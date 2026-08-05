@@ -1,0 +1,115 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
+import { LogOut, Settings } from "lucide-react";
+
+import { Logo } from "@/components/common/logo";
+import { CreditsWidget } from "@/components/common/credits-widget";
+import { PremiumUpgradeCard } from "@/components/common/premium-upgrade-card";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { MAIN_NAV_ITEMS } from "@/constants/navigation";
+import { cn } from "@/lib/utils";
+
+type SidebarNavProps = {
+  onNavigate?: () => void;
+  className?: string;
+};
+
+export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
+  const pathname = usePathname();
+
+  return (
+    <nav className={cn("flex flex-col gap-1 px-3", className)}>
+      {MAIN_NAV_ITEMS.map((item) => {
+        const isActive =
+          item.href === "/"
+            ? pathname === "/"
+            : pathname.startsWith(item.href);
+        const Icon = item.icon;
+
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onNavigate}
+            className={cn(
+              "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+              isActive
+                ? "sidebar-active-indicator bg-primary/15 text-foreground"
+                : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+            )}
+          >
+            {isActive && (
+              <motion.div
+                layoutId="sidebar-active"
+                className="absolute inset-0 rounded-xl bg-primary/10"
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              />
+            )}
+            <span
+              className={cn(
+                "relative z-10 flex size-8 items-center justify-center rounded-lg transition-all",
+                isActive
+                  ? "gradient-primary glow-purple text-white"
+                  : "bg-white/5 text-muted-foreground group-hover:text-foreground"
+              )}
+            >
+              <Icon className="size-4" />
+            </span>
+            <span className="relative z-10 truncate">{item.title}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+type SidebarProps = {
+  className?: string;
+};
+
+export function Sidebar({ className }: SidebarProps) {
+  return (
+    <aside
+      className={cn(
+        "hidden h-full w-[var(--sidebar-width)] shrink-0 flex-col border-r border-border bg-background/80 backdrop-blur-xl lg:flex",
+        className
+      )}
+    >
+      <div className="flex h-[var(--header-height)] items-center border-b border-border px-5">
+        <Logo />
+      </div>
+
+      <ScrollArea className="flex-1 py-4">
+        <SidebarNav />
+      </ScrollArea>
+
+      <div className="space-y-4 border-t border-border p-4">
+        <PremiumUpgradeCard />
+
+        <CreditsWidget variant="sidebar" />
+
+        <Separator />
+
+        <div className="flex flex-col gap-1">
+          <Button variant="ghost" className="justify-start gap-3 px-3" asChild>
+            <Link href="/dashboard/billing">
+              <Settings className="size-4" />
+              Settings
+            </Link>
+          </Button>
+          <Button variant="ghost" className="justify-start gap-3 px-3" asChild>
+            <Link href="/auth/sign-in">
+              <LogOut className="size-4" />
+              Log out
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </aside>
+  );
+}

@@ -1,0 +1,103 @@
+"use client";
+
+import { FileText, Phone } from "lucide-react";
+
+import { StatusBadge } from "@/components/common/status-badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import type { CallRecord } from "@/types/call";
+import { cn } from "@/lib/utils";
+
+type TranscriptDrawerProps = {
+  call: CallRecord | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+};
+
+function formatCallDate(iso: string) {
+  return new Intl.DateTimeFormat("en-SG", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(iso));
+}
+
+export function TranscriptDrawer({
+  call,
+  open,
+  onOpenChange,
+}: TranscriptDrawerProps) {
+  if (!call) return null;
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full gap-0 p-0 sm:max-w-lg">
+        <div className="border-b border-border px-6 py-5 pr-14">
+          <div className="flex items-center gap-2">
+            <FileText className="size-5 text-primary" />
+            <h2 className="text-lg font-semibold">Call Transcript</h2>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {call.customerNumber} · {formatCallDate(call.callDateTime)}
+          </p>
+        </div>
+
+        <div className="space-y-4 px-6 py-4">
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Phone className="size-3.5" />
+              {call.assignedNumber}
+            </div>
+            <StatusBadge status={call.status} />
+            <span className="text-muted-foreground">{call.duration}</span>
+            <span className="text-gold">{call.creditsUsed} credits</span>
+          </div>
+          <Separator />
+        </div>
+
+        <ScrollArea className="flex-1 px-6 pb-6">
+          {call.transcript.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <FileText className="size-10 text-muted-foreground/50" />
+              <p className="mt-3 text-sm font-medium">No transcript available</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Transcripts are generated for completed calls only.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {call.transcript.map((line, index) => (
+                <div
+                  key={`${line.timestamp}-${index}`}
+                  className={cn(
+                    "rounded-xl border px-4 py-3",
+                    line.speaker === "agent"
+                      ? "border-primary/20 bg-primary/5"
+                      : "border-border bg-white/5"
+                  )}
+                >
+                  <div className="mb-1 flex items-center justify-between gap-2">
+                    <span
+                      className={cn(
+                        "text-xs font-semibold uppercase tracking-wider",
+                        line.speaker === "agent"
+                          ? "text-primary"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      {line.speaker === "agent" ? "AI Agent" : "Customer"}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {line.timestamp}
+                    </span>
+                  </div>
+                  <p className="text-sm leading-relaxed">{line.text}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
+  );
+}
