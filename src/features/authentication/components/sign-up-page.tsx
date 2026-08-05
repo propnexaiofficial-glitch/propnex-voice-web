@@ -23,14 +23,24 @@ export function SignUpPageContent() {
       welcomeText="Create your account to access voice agents, campaigns, and analytics. Complete verification to activate your workspace."
     >
       <form className="space-y-3" onSubmit={handleSubmit}>
-        <AuthField
-          label="Full name"
-          name="name"
-          type="text"
-          placeholder="Full name"
-          autoComplete="name"
-          required
-        />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <AuthField
+            label="First name"
+            name="firstName"
+            type="text"
+            placeholder="First name"
+            autoComplete="given-name"
+            required
+          />
+          <AuthField
+            label="Last name"
+            name="lastName"
+            type="text"
+            placeholder="Last name"
+            autoComplete="family-name"
+            required
+          />
+        </div>
         <AuthField
           label="Email address"
           name="email"
@@ -45,14 +55,6 @@ export function SignUpPageContent() {
           type="tel"
           placeholder="Phone number"
           autoComplete="tel"
-          required
-        />
-        <AuthField
-          label="Company"
-          name="company"
-          type="text"
-          placeholder="Company"
-          autoComplete="organization"
           required
         />
         <AuthField

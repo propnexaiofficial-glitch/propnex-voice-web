@@ -6,11 +6,8 @@ import { motion } from "framer-motion";
 import { LogOut, Settings } from "lucide-react";
 
 import { Logo } from "@/components/common/logo";
-import { CreditsWidget } from "@/components/common/credits-widget";
-import { PremiumUpgradeCard } from "@/components/common/premium-upgrade-card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { MAIN_NAV_ITEMS } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
 
@@ -22,13 +19,14 @@ type SidebarNavProps = {
 export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
   const pathname = usePathname();
 
+  const activeHref = MAIN_NAV_ITEMS.filter(
+    (item) => pathname === item.href || pathname.startsWith(`${item.href}/`)
+  ).sort((a, b) => b.href.length - a.href.length)[0]?.href;
+
   return (
     <nav className={cn("flex flex-col gap-1 px-3", className)}>
       {MAIN_NAV_ITEMS.map((item) => {
-        const isActive =
-          item.href === "/"
-            ? pathname === "/"
-            : pathname.startsWith(item.href);
+        const isActive = item.href === activeHref;
         const Icon = item.icon;
 
         return (
@@ -88,27 +86,19 @@ export function Sidebar({ className }: SidebarProps) {
         <SidebarNav />
       </ScrollArea>
 
-      <div className="space-y-4 border-t border-border p-4">
-        <PremiumUpgradeCard />
-
-        <CreditsWidget variant="sidebar" />
-
-        <Separator />
-
-        <div className="flex flex-col gap-1">
-          <Button variant="ghost" className="justify-start gap-3 px-3" asChild>
-            <Link href="/dashboard/billing">
-              <Settings className="size-4" />
-              Settings
-            </Link>
-          </Button>
-          <Button variant="ghost" className="justify-start gap-3 px-3" asChild>
-            <Link href="/auth/sign-in">
-              <LogOut className="size-4" />
-              Log out
-            </Link>
-          </Button>
-        </div>
+      <div className="space-y-1 border-t border-border p-4">
+        <Button variant="ghost" className="justify-start gap-3 px-3" asChild>
+          <Link href="/dashboard/billing">
+            <Settings className="size-4" />
+            Settings
+          </Link>
+        </Button>
+        <Button variant="ghost" className="justify-start gap-3 px-3" asChild>
+          <Link href="/auth/sign-in">
+            <LogOut className="size-4" />
+            Log out
+          </Link>
+        </Button>
       </div>
     </aside>
   );

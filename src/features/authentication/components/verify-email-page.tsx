@@ -4,17 +4,23 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { AuthField } from "@/features/authentication/components/auth-field";
 import { AuthShell } from "@/features/authentication/components/auth-shell";
 import { OtpInput } from "@/features/authentication/components/otp-input";
 import { AUTH_ROUTES } from "@/features/authentication/types";
 
 export function VerifyEmailPageContent() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [message, setMessage] = useState("");
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!email.trim()) {
+      setMessage("Please enter your email address.");
+      return;
+    }
     if (otp.length < 6) {
       setMessage("Please enter the 6-digit OTP sent to your email.");
       return;
@@ -24,21 +30,37 @@ export function VerifyEmailPageContent() {
   }
 
   function handleResend() {
-    setMessage("A new verification OTP has been sent to your registered email.");
+    if (!email.trim()) {
+      setMessage("Please enter your email address to resend the OTP.");
+      return;
+    }
+    setMessage("A new verification OTP has been sent to your email.");
   }
 
   return (
     <AuthShell
       title="Verify Email"
       welcomeTitle="Almost there!"
-      welcomeText="We sent a verification OTP to your registered email address. Enter it below to activate your account."
+      welcomeText="Enter your email and the verification OTP we sent you to activate your account."
     >
       <form className="space-y-6" onSubmit={handleSubmit}>
-        <p className="text-center text-xs leading-relaxed text-white/60">
-          Enter the 6-digit OTP sent to your registered email address.
-        </p>
+        <AuthField
+          label="Email address"
+          name="email"
+          type="email"
+          placeholder="Email address"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
 
-        <OtpInput value={otp} onChange={setOtp} />
+        <div className="space-y-3">
+          <p className="text-center text-xs leading-relaxed text-white/60">
+            Enter the 6-digit OTP sent to your email address.
+          </p>
+          <OtpInput value={otp} onChange={setOtp} />
+        </div>
 
         {message && (
           <p className="text-center text-xs text-fuchsia-300">{message}</p>

@@ -1,8 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
-import { AUTH_ROUTES } from "@/features/authentication/types";
 import { cn } from "@/lib/utils";
 
 type AuthShellProps = {
@@ -36,20 +33,11 @@ export function AuthShell({
       />
 
       <div className="relative z-10 mx-auto grid min-h-screen max-w-6xl items-center gap-10 px-6 py-10 lg:grid-cols-2 lg:gap-16 lg:px-10">
-        <div className="flex justify-end lg:hidden">
-          <Link href={AUTH_ROUTES.dashboard} className="auth-btn-skip">
-            Skip Now
-          </Link>
-        </div>
-
         <div className="hidden max-w-md space-y-6 lg:block">
           <h1 className="text-4xl font-bold leading-tight tracking-tight xl:text-5xl">
             {welcomeTitle}
           </h1>
           <p className="text-sm leading-relaxed text-white/75">{welcomeText}</p>
-          <Link href={AUTH_ROUTES.dashboard} className="auth-btn-skip inline-block">
-            Skip Now
-          </Link>
         </div>
 
         <div className="mx-auto w-full max-w-md">
