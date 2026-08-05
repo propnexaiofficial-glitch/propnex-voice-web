@@ -14,12 +14,12 @@ import { cn } from "@/lib/utils";
 
 const typeConfig: Record<
   RecentActivityItem["type"],
-  { icon: typeof PhoneIncoming; color: string }
+  { icon: typeof PhoneIncoming }
 > = {
-  inbound: { icon: PhoneIncoming, color: "bg-primary/15 text-primary" },
-  outbound: { icon: PhoneOutgoing, color: "bg-blue-500/15 text-blue-400" },
-  agent: { icon: Mic2, color: "bg-emerald-500/15 text-emerald-400" },
-  billing: { icon: CreditCard, color: "bg-gold/15 text-gold" },
+  inbound: { icon: PhoneIncoming },
+  outbound: { icon: PhoneOutgoing },
+  agent: { icon: Mic2 },
+  billing: { icon: CreditCard },
 };
 
 type RecentActivityProps = {
@@ -51,13 +51,8 @@ export function RecentActivity({ className }: RecentActivityProps) {
               transition={{ duration: 0.3, delay: index * 0.06 }}
               className="flex items-start gap-4 p-4 first:rounded-t-2xl last:rounded-b-2xl"
             >
-              <div
-                className={cn(
-                  "flex size-9 shrink-0 items-center justify-center rounded-lg",
-                  config.color
-                )}
-              >
-                <Icon className="size-4" />
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <Icon className="size-4 text-primary" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">

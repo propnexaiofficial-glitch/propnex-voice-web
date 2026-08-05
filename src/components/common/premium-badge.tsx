@@ -1,7 +1,6 @@
 "use client";
 
 import { Crown, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
 
 import { cn } from "@/lib/utils";
 
@@ -31,18 +30,16 @@ export function PremiumBadge({
   showIcon = true,
 }: PremiumBadgeProps) {
   return (
-    <motion.span
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
+    <span
       className={cn(
-        "premium-badge inline-flex items-center rounded-full border border-gold/40 font-semibold uppercase tracking-wider text-gold-light",
+        "premium-badge inline-flex items-center rounded-md font-medium uppercase tracking-wide",
         sizeStyles[size],
         className
       )}
     >
       {showIcon && <Crown className={cn(iconSizes[size], "shrink-0")} />}
       {label}
-    </motion.span>
+    </span>
   );
 }
 
@@ -51,10 +48,9 @@ type PremiumHighlightProps = {
   className?: string;
 };
 
-/** Inline wrapper for premium-labelled text */
 export function PremiumHighlight({ children, className }: PremiumHighlightProps) {
   return (
-    <span className={cn("premium-text-shimmer font-semibold", className)}>
+    <span className={cn("premium-text-shimmer font-medium", className)}>
       {children}
     </span>
   );
@@ -65,7 +61,6 @@ type PremiumLabelProps = {
   className?: string;
 };
 
-/** Highlights the word "Premium" (or "premium") inside a string */
 export function PremiumLabel({ text, className }: PremiumLabelProps) {
   const parts = text.split(/(premium)/gi);
 
@@ -92,11 +87,11 @@ export function PremiumChip({ icon, children, className }: PremiumChipProps) {
   return (
     <div
       className={cn(
-        "premium-chip inline-flex items-center gap-2 rounded-full border border-gold/30 px-3 py-1.5 text-xs font-medium text-gold-light",
+        "premium-chip inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium",
         className
       )}
     >
-      {icon ?? <Sparkles className="size-3.5 text-gold" />}
+      {icon ?? <Sparkles className="size-3.5 text-muted-foreground" />}
       {children}
     </div>
   );

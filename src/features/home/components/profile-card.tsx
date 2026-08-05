@@ -38,8 +38,8 @@ export function ProfileCard({ className }: ProfileCardProps) {
     >
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
         <div className="relative shrink-0">
-          <div className="absolute -inset-1 rounded-full gradient-primary opacity-40 blur-md" />
-          <Avatar className="relative size-20 border-2 border-primary/30">
+          <div className="absolute -inset-1 rounded-full bg-primary/20 blur-md" />
+          <Avatar className="relative size-20 border-2 border-primary/25">
             <AvatarImage src={mockUser.avatar} alt={mockUser.name} />
             <AvatarFallback className="text-lg">
               {getInitials(mockUser.name)}
@@ -67,7 +67,7 @@ export function ProfileCard({ className }: ProfileCardProps) {
               return (
                 <div
                   key={field.label}
-                  className="flex items-center gap-3 rounded-xl border border-border/60 bg-white/5 px-3 py-2.5"
+                  className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-3 py-2.5"
                 >
                   <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                     <Icon className="size-4 text-primary" />
@@ -81,17 +81,16 @@ export function ProfileCard({ className }: ProfileCardProps) {
                 </div>
               );
             })}
-            <div className="flex items-center gap-3 rounded-xl border border-gold/20 bg-gold/5 px-3 py-2.5 sm:col-span-2">
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg gradient-gold glow-gold">
-                <User className="size-4 text-navy" />
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-3 py-2.5 sm:col-span-2">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40">
+                <User className="size-4 text-muted-foreground" />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
                   Account Type
                 </p>
                 <p className="text-sm font-medium">
-                  Enterprise · Multi-tenant ·{" "}
-                  <span className="premium-text-shimmer font-semibold">Premium</span>
+                  Enterprise · Multi-tenant · Premium
                 </p>
               </div>
               <PremiumBadge size="sm" />

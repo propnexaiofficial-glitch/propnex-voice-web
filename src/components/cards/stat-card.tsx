@@ -6,21 +6,6 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { DashboardStat } from "@/features/home/types";
 
-const accentStyles = {
-  purple: {
-    icon: "gradient-primary glow-purple text-white",
-  },
-  blue: {
-    icon: "bg-blue-500/20 text-blue-400",
-  },
-  green: {
-    icon: "bg-emerald-500/20 text-emerald-400",
-  },
-  gold: {
-    icon: "bg-gold/20 text-gold",
-  },
-};
-
 type StatCardProps = {
   stat: DashboardStat;
   index?: number;
@@ -28,7 +13,6 @@ type StatCardProps = {
 };
 
 export function StatCard({ stat, index = 0, className }: StatCardProps) {
-  const styles = accentStyles[stat.accent];
   const isPositive = stat.change >= 0;
   const Icon = stat.icon;
 
@@ -37,20 +21,15 @@ export function StatCard({ stat, index = 0, className }: StatCardProps) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.06 }}
-      className={cn("glass-card rounded-2xl p-5", className)}
+      className={cn("glass-card rounded-xl p-5", className)}
     >
-      <div
-        className={cn(
-          "flex size-10 items-center justify-center rounded-xl",
-          styles.icon
-        )}
-      >
+      <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
         <Icon className="size-5" />
       </div>
 
       <div className="mt-4 space-y-1">
         <p className="text-sm text-muted-foreground">{stat.title}</p>
-        <p className="text-2xl font-bold tracking-tight">
+        <p className="text-2xl font-semibold tracking-tight text-foreground">
           {typeof stat.value === "number"
             ? stat.value.toLocaleString()
             : stat.value}
@@ -59,16 +38,11 @@ export function StatCard({ stat, index = 0, className }: StatCardProps) {
 
       <div className="mt-3 flex items-center gap-1.5 text-xs">
         {isPositive ? (
-          <ArrowUpRight className="size-3.5 text-emerald-400" />
+          <ArrowUpRight className="size-3.5 text-primary/80" />
         ) : (
-          <ArrowDownRight className="size-3.5 text-rose-400" />
+          <ArrowDownRight className="size-3.5 text-muted-foreground" />
         )}
-        <span
-          className={cn(
-            "font-medium",
-            isPositive ? "text-emerald-400" : "text-rose-400"
-          )}
-        >
+        <span className="font-medium text-primary/90">
           {isPositive ? "+" : ""}
           {stat.change}%
         </span>

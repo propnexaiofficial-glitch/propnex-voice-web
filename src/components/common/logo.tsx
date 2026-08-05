@@ -15,7 +15,7 @@ export function Logo({ compact = false, className }: LogoProps) {
       href="/dashboard"
       className={cn("flex items-center gap-3 transition-opacity hover:opacity-90", className)}
     >
-      <div className="flex size-10 items-center justify-center rounded-xl gradient-primary glow-purple shadow-lg">
+      <div className="flex size-10 items-center justify-center rounded-xl gradient-primary glow-purple">
         <Mic2 className="size-5 text-white" />
       </div>
       {!compact && (

@@ -16,7 +16,7 @@ export function DashboardShell({ children, className }: DashboardShellProps) {
 
   return (
     <TooltipProvider>
-      <div className="flex min-h-screen bg-background">
+      <div className="flex min-h-screen bg-background page-mesh-bg">
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <DashboardHeader title={title} />

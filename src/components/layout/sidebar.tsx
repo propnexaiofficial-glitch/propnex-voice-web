@@ -37,8 +37,8 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
             className={cn(
               "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
               isActive
-                ? "sidebar-active-indicator bg-primary/15 text-foreground"
-                : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                ? "sidebar-active-indicator bg-primary/10 text-foreground"
+                : "text-muted-foreground hover:bg-primary/5 hover:text-foreground"
             )}
           >
             {isActive && (
@@ -52,8 +52,8 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
               className={cn(
                 "relative z-10 flex size-8 items-center justify-center rounded-lg transition-all",
                 isActive
-                  ? "gradient-primary glow-purple text-white"
-                  : "bg-white/5 text-muted-foreground group-hover:text-foreground"
+                  ? "gradient-primary text-white glow-purple"
+                  : "bg-primary/5 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
               )}
             >
               <Icon className="size-4" />

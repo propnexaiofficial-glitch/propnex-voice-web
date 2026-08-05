@@ -21,25 +21,22 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.08 }}
       className={cn(
-        "glass-card relative overflow-hidden rounded-2xl p-6",
+        "glass-card relative overflow-hidden rounded-xl p-6",
         className
       )}
     >
-      <div className="pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-primary/10 blur-2xl" />
-      <div className="pointer-events-none absolute -bottom-6 -left-6 size-24 rounded-full bg-gold/10 blur-2xl" />
-
       <div className="relative space-y-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-gold/15">
-              <Coins className="size-4 text-gold" />
+            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+              <Coins className="size-4 text-primary" />
             </div>
             <div>
               <p className="text-sm font-semibold">Credit Balance</p>
               <p className="text-xs text-muted-foreground">Available credits</p>
             </div>
           </div>
-          <Button variant="gold" size="sm" asChild>
+          <Button variant="default" size="sm" asChild>
             <Link href="/dashboard/billing">
               <Plus className="size-3.5" />
               Top Up
@@ -57,14 +54,14 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">Monthly usage</span>
-            <span className="font-medium text-gold">{usagePercent}%</span>
+            <span className="font-medium text-primary">{usagePercent}%</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-white/10">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${usagePercent}%` }}
               transition={{ duration: 0.9, ease: "easeOut", delay: 0.2 }}
-              className="h-full rounded-full gradient-primary glow-purple"
+              className="h-full rounded-full gradient-primary opacity-90"
             />
           </div>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -73,9 +70,9 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2">
-          <TrendingUp className="size-4 text-emerald-400" />
-          <p className="text-xs text-emerald-400">
+        <div className="flex items-center gap-2 rounded-lg border border-primary/15 bg-primary/5 px-3 py-2">
+          <TrendingUp className="size-4 text-primary/80" />
+          <p className="text-xs text-muted-foreground">
             Usage is within your monthly plan limits
           </p>
         </div>

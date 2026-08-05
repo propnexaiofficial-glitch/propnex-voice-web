@@ -31,24 +31,24 @@ export function CreditsWidget({
           <span className="text-xs font-medium text-muted-foreground">
             Daily AI Usage
           </span>
-          <span className="text-xs font-semibold text-gold">
+          <span className="text-xs font-semibold text-primary">
             {mockUser.creditsUsagePercent}%
           </span>
         </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+        <div className="h-1.5 overflow-hidden rounded-full bg-primary/10">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${mockUser.creditsUsagePercent}%` }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="h-full rounded-full gradient-primary glow-purple"
+            className="h-full rounded-full gradient-primary opacity-90"
           />
         </div>
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-1.5">
-            <Coins className="size-3.5 text-gold" />
+            <Coins className="size-3.5 text-primary" />
             <span className="text-sm font-semibold">{formattedCredits}</span>
           </div>
-          <Button variant="gold" size="sm" asChild>
+          <Button variant="default" size="sm" asChild>
             <Link href="/dashboard/billing">
               <Plus className="size-3.5" />
               Top Up
@@ -63,12 +63,12 @@ export function CreditsWidget({
     <Link
       href="/dashboard/billing"
       className={cn(
-        "group hidden items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 transition-all hover:border-primary/30 hover:bg-primary/10 md:flex",
+        "group hidden items-center gap-3 rounded-full border border-border bg-primary/5 px-3 py-2 transition-all hover:border-primary/25 hover:bg-primary/10 md:flex",
         className
       )}
     >
-      <div className="flex size-8 items-center justify-center rounded-lg bg-gold/15">
-        <Coins className="size-4 text-gold" />
+      <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
+        <Coins className="size-4 text-primary" />
       </div>
       <div className="text-left">
         <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -76,7 +76,7 @@ export function CreditsWidget({
         </p>
         <p className="text-sm font-semibold leading-none">{formattedCredits}</p>
       </div>
-      <Plus className="size-4 text-muted-foreground transition-colors group-hover:text-primary" />
+      <Plus className="size-4 text-primary/70 transition-colors group-hover:text-primary" />
     </Link>
   );
 }
