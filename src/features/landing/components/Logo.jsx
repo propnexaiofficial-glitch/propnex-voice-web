@@ -1,24 +1,18 @@
-import Image from "next/image";
 import { Link } from "@/features/landing/lib/router";
 
 const sizes = {
-  nav: "h-8 w-auto",
-  footer: "h-7 w-auto",
-  lg: "h-9 w-auto",
+  nav: "text-lg md:text-xl",
+  footer: "text-lg md:text-xl",
+  lg: "text-xl md:text-2xl",
 };
 
 export default function Logo({ size = "nav", className = "", asLink = true }) {
-  const imageClass = `${sizes[size] || sizes.nav} object-contain ${className}`.trim();
+  const textClass = className || sizes[size] || sizes.nav;
 
   const content = (
-    <Image
-      src="/propnex-logo-cropped.png"
-      alt="PropNex AI"
-      width={140}
-      height={36}
-      className={imageClass}
-      priority
-    />
+    <span className={`brand-logo-text font-bold tracking-tight ${textClass}`}>
+      PropNex AI
+    </span>
   );
 
   if (!asLink) return content;

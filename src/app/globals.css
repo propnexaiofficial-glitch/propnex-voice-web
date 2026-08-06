@@ -141,6 +141,13 @@
     color: transparent;
   }
 
+  .brand-logo-text {
+    background: linear-gradient(105deg, #00d2ff 0%, #3b82f6 45%, #a855f7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
   .glow-purple {
     box-shadow: var(--glow-purple);
   }
