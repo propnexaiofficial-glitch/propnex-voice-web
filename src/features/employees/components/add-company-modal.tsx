@@ -57,7 +57,7 @@ export function AddCompanyModal({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Building2 className="size-5 text-primary" />
+              <Building2 className="size-5 text-foreground" />
               Add Sub-Company
             </DialogTitle>
             <DialogDescription>

@@ -23,8 +23,8 @@ export function CallPreviewPanel({
 
   return (
     <div className={cn("glass-card flex flex-col rounded-xl p-4", className)}>
-      <div className="mb-3 flex items-center gap-2 border-b border-white/10 pb-3">
-        <Icon className="size-4 shrink-0 text-primary" />
+      <div className="mb-3 flex items-center gap-2 border-b border-border pb-3">
+        <Icon className="size-4 shrink-0 text-foreground" />
         <h4 className="text-sm font-semibold">{label} Preview</h4>
         <span className="ml-auto text-[11px] text-muted-foreground">
           {filtered.length} recent
@@ -40,7 +40,7 @@ export function CallPreviewPanel({
           {filtered.map((call) => (
             <li
               key={call.id}
-              className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-0.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5"
+              className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-0.5 rounded-lg border border-border bg-muted/50 px-3 py-2.5"
             >
               <p className="truncate text-xs font-medium">{call.customerNumber}</p>
               <StatusBadge status={call.status} />

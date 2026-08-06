@@ -21,9 +21,9 @@ export function StatCard({ stat, index = 0, className }: StatCardProps) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.06 }}
-      className={cn("glass-card rounded-xl p-5", className)}
+      className={cn("glass-card rounded-lg p-5", className)}
     >
-      <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <div className="flex size-10 items-center justify-center rounded-lg bg-muted text-foreground">
         <Icon className="size-5" />
       </div>
 
@@ -38,11 +38,11 @@ export function StatCard({ stat, index = 0, className }: StatCardProps) {
 
       <div className="mt-3 flex items-center gap-1.5 text-xs">
         {isPositive ? (
-          <ArrowUpRight className="size-3.5 text-primary/80" />
+          <ArrowUpRight className="size-3.5 text-emerald-500" />
         ) : (
-          <ArrowDownRight className="size-3.5 text-muted-foreground" />
+          <ArrowDownRight className="size-3.5 text-red-400" />
         )}
-        <span className="font-medium text-primary/90">
+        <span className={cn("font-medium", isPositive ? "text-emerald-500" : "text-red-400")}>
           {isPositive ? "+" : ""}
           {stat.change}%
         </span>

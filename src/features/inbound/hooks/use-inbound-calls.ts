@@ -8,7 +8,11 @@ import { DEFAULT_CALL_FILTERS, type CallLogFilters, type CallRecord } from "@/ty
 function matchesSearch(call: CallRecord, search: string) {
   if (!search.trim()) return true;
   const query = search.toLowerCase();
+  const callId = call.callId ?? call.id;
+  const callerId = call.callerId ?? call.customerNumber;
   return (
+    callId.toLowerCase().includes(query) ||
+    callerId.toLowerCase().includes(query) ||
     call.customerNumber.toLowerCase().includes(query) ||
     call.assignedNumber.toLowerCase().includes(query)
   );

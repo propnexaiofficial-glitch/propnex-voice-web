@@ -76,12 +76,12 @@ export function UploadCsvModal({
           className={cn(
             "flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 transition-colors",
             dragOver
-              ? "border-primary bg-primary/10"
-              : "border-border hover:border-primary/40 hover:bg-white/5"
+              ? "border-foreground/30 bg-muted"
+              : "border-border hover:border-border hover:bg-muted/50"
           )}
         >
-          <div className="flex size-12 items-center justify-center rounded-xl bg-primary/15">
-            <Upload className="size-6 text-primary" />
+          <div className="flex size-12 items-center justify-center rounded-xl bg-muted">
+            <Upload className="size-6 text-foreground" />
           </div>
           <p className="mt-3 text-sm font-medium">
             Drag & drop your CSV file here

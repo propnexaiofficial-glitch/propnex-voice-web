@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 type CallLogTableProps = {
   calls: CallRecord[];
   onViewTranscript: (call: CallRecord) => void;
+  variant?: "inbound" | "outbound";
   className?: string;
 };
 
@@ -21,11 +22,24 @@ function formatCallDate(iso: string) {
   }).format(new Date(iso));
 }
 
+function getCallId(call: CallRecord) {
+  if (call.callId) return call.callId;
+  return call.id.toUpperCase().replace(/^IN-/, "INB-").replace(/^OUT-/, "OUT-");
+}
+
+function getCallerId(call: CallRecord, variant: "inbound" | "outbound") {
+  if (call.callerId) return call.callerId;
+  return variant === "inbound" ? call.customerNumber : call.assignedNumber;
+}
+
 export function CallLogTable({
   calls,
   onViewTranscript,
+  variant = "outbound",
   className,
 }: CallLogTableProps) {
+  const isInbound = variant === "inbound";
+
   return (
     <div className={cn("glass-card overflow-hidden rounded-2xl", className)}>
       <div className="overflow-x-auto">
@@ -33,8 +47,16 @@ export function CallLogTable({
           <thead>
             <tr className="border-b border-border bg-white/5">
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                Customer Number
+                Call ID
               </th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                Caller ID
+              </th>
+              {!isInbound && (
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                  Customer Number
+                </th>
+              )}
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                 Assigned Number
               </th>
@@ -64,11 +86,19 @@ export function CallLogTable({
                 key={call.id}
                 className="border-b border-border/60 transition-colors last:border-0 hover:bg-white/5"
               >
-                <td className="px-4 py-3 font-medium">{call.customerNumber}</td>
+                <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                  {getCallId(call)}
+                </td>
+                <td className="px-4 py-3 font-medium">{getCallerId(call, variant)}</td>
+                {!isInbound && (
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {call.customerNumber}
+                  </td>
+                )}
                 <td className="px-4 py-3 text-muted-foreground">
                   {call.assignedNumber}
                 </td>
-                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
                   {formatCallDate(call.callDateTime)}
                 </td>
                 <td className="px-4 py-3 tabular-nums">{call.duration}</td>
@@ -97,7 +127,7 @@ export function CallLogTable({
                     View
                   </Button>
                 </td>
-                <td className="px-4 py-3 text-right tabular-nums font-medium text-gold">
+                <td className="px-4 py-3 text-right tabular-nums font-medium text-foreground">
                   {call.creditsUsed}
                 </td>
               </tr>

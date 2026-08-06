@@ -25,8 +25,8 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
     >
       <div className="relative space-y-5">
         <div className="flex items-center gap-2">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-            <Coins className="size-4 text-primary" />
+          <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+            <Coins className="size-4 text-foreground" />
           </div>
           <div>
             <p className="text-sm font-semibold">Credit Balance</p>
@@ -44,14 +44,14 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">Monthly usage</span>
-            <span className="font-medium text-primary">{usagePercent}%</span>
+            <span className="font-medium text-foreground">{usagePercent}%</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-white/10">
+          <div className="h-2 overflow-hidden rounded-full bg-muted">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${usagePercent}%` }}
               transition={{ duration: 0.9, ease: "easeOut", delay: 0.2 }}
-              className="h-full rounded-full gradient-primary opacity-90"
+              className="h-full rounded-full bg-foreground"
             />
           </div>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -60,8 +60,8 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 rounded-lg border border-primary/15 bg-primary/5 px-3 py-2">
-          <TrendingUp className="size-4 text-primary/80" />
+        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+          <TrendingUp className="size-4 text-muted-foreground" />
           <p className="text-xs text-muted-foreground">
             Usage is within your monthly plan limits
           </p>

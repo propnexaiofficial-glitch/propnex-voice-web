@@ -10,13 +10,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "rounded-full bg-primary text-primary-foreground shadow-[var(--glow-purple)] hover:bg-primary/90",
+          "rounded-md bg-primary text-primary-foreground hover:bg-primary/90",
         secondary:
-          "rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80",
         outline:
-          "rounded-full border border-border bg-transparent hover:border-primary/30 hover:bg-primary/5",
-        ghost: "rounded-lg hover:bg-muted/60",
-        gold: "rounded-full border border-primary/25 bg-primary/10 text-primary hover:bg-primary/15",
+          "rounded-md border border-border bg-transparent hover:bg-accent hover:text-accent-foreground",
+        ghost: "rounded-md hover:bg-accent hover:text-accent-foreground",
+        gold: "rounded-md border border-border bg-secondary text-foreground hover:bg-accent",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

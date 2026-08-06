@@ -14,8 +14,8 @@ export function AssignedChannelsPanel({ channels }: AssignedChannelsPanelProps) 
   return (
     <div className="glass-card overflow-hidden rounded-2xl p-6">
       <div className="mb-5 flex items-center gap-2">
-        <div className="flex size-9 items-center justify-center rounded-lg bg-primary/15">
-          <Phone className="size-4 text-primary" />
+        <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+          <Phone className="size-4 text-foreground" />
         </div>
         <h3 className="text-sm font-semibold">Assigned Channels</h3>
       </div>
@@ -52,7 +52,7 @@ export function AssignedChannelsPanel({ channels }: AssignedChannelsPanelProps) 
                         className={cn(
                           "text-[10px] font-normal",
                           name.toLowerCase().includes("premium") &&
-                            "border-primary/30 bg-primary/10 text-primary"
+                            "border-border bg-muted text-muted-foreground"
                         )}
                       >
                         {name}

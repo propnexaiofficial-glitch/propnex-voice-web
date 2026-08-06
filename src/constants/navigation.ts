@@ -2,7 +2,6 @@ import {
   Home,
   PhoneIncoming,
   PhoneOutgoing,
-  IdCard,
   Mic2,
   Users,
   CreditCard,
@@ -29,12 +28,6 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     href: "/dashboard/outbound",
     icon: PhoneOutgoing,
     description: "Outgoing calls & campaigns",
-  },
-  {
-    title: "Caller ID",
-    href: "/dashboard/caller-id",
-    icon: IdCard,
-    description: "Manage caller ID phone numbers",
   },
   {
     title: "Agent Library",

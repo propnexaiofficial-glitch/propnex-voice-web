@@ -16,8 +16,8 @@ const PAGE_SIZE = 5;
 
 const typeStyles = {
   "top-up": "bg-emerald-500/15 text-emerald-400 border-emerald-500/25",
-  usage: "bg-primary/15 text-primary border-primary/25",
-  subscription: "bg-gold/15 text-gold border-gold/25",
+  usage: "bg-muted text-foreground border-border",
+  subscription: "bg-muted text-foreground border-border",
 };
 
 const statusStyles = {
@@ -47,8 +47,8 @@ export function BillingHistoryTable({ items }: BillingHistoryTableProps) {
 
   return (
     <div className="glass-card overflow-hidden rounded-2xl">
-      <div className="flex items-center gap-2 border-b border-white/10 px-6 py-4">
-        <Receipt className="size-4 text-primary" />
+      <div className="flex items-center gap-2 border-b border-border px-6 py-4">
+        <Receipt className="size-4 text-foreground" />
         <div>
           <h3 className="text-sm font-semibold">Billing History</h3>
           <p className="text-xs text-muted-foreground">
@@ -60,7 +60,7 @@ export function BillingHistoryTable({ items }: BillingHistoryTableProps) {
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] text-sm">
           <thead>
-            <tr className="border-b border-white/10 text-left text-xs text-muted-foreground">
+            <tr className="border-b border-border text-left text-xs text-muted-foreground">
               <th className="px-6 py-3 font-medium">Date</th>
               <th className="px-4 py-3 font-medium">Description</th>
               <th className="px-4 py-3 font-medium">Type</th>
@@ -73,7 +73,7 @@ export function BillingHistoryTable({ items }: BillingHistoryTableProps) {
             {pageItems.map((item) => (
               <tr
                 key={item.id}
-                className="border-b border-white/5 transition-colors hover:bg-white/5"
+                className="border-b border-border transition-colors hover:bg-muted/50"
               >
                 <td className="whitespace-nowrap px-6 py-3.5 text-xs text-muted-foreground">
                   {formatDate(item.date)}
@@ -120,7 +120,7 @@ export function BillingHistoryTable({ items }: BillingHistoryTableProps) {
         </table>
       </div>
 
-      <div className="border-t border-white/10 px-4 py-3">
+      <div className="border-t border-border px-4 py-3">
         <TablePagination
           page={page}
           totalPages={totalPages}

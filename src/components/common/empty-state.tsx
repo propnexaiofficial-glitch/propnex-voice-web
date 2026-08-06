@@ -20,8 +20,8 @@ export function EmptyState({
         className
       )}
     >
-      <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-primary/10">
-        <Inbox className="size-7 text-primary" />
+      <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-muted">
+        <Inbox className="size-7 text-muted-foreground" />
       </div>
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="mt-1 max-w-sm text-sm text-muted-foreground">{description}</p>

@@ -37,14 +37,14 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
             className={cn(
               "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
               isActive
-                ? "sidebar-active-indicator bg-primary/10 text-foreground"
-                : "text-muted-foreground hover:bg-primary/5 hover:text-foreground"
+                ? "sidebar-active-indicator bg-accent text-foreground"
+                : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
             )}
           >
             {isActive && (
               <motion.div
                 layoutId="sidebar-active"
-                className="absolute inset-0 rounded-xl bg-primary/10"
+                className="absolute inset-0 rounded-xl bg-accent"
                 transition={{ type: "spring", stiffness: 380, damping: 30 }}
               />
             )}
@@ -52,8 +52,8 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
               className={cn(
                 "relative z-10 flex size-8 items-center justify-center rounded-lg transition-all",
                 isActive
-                  ? "gradient-primary text-white glow-purple"
-                  : "bg-primary/5 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
+                  ? "bg-foreground text-background"
+                  : "bg-muted text-muted-foreground group-hover:bg-accent group-hover:text-foreground"
               )}
             >
               <Icon className="size-4" />
@@ -74,7 +74,7 @@ export function Sidebar({ className }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "hidden h-full w-[var(--sidebar-width)] shrink-0 flex-col border-r border-border bg-background/80 backdrop-blur-xl lg:flex",
+        "hidden h-full w-[var(--sidebar-width)] shrink-0 flex-col border-r border-border bg-sidebar-background lg:flex",
         className
       )}
     >

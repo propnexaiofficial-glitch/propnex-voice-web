@@ -40,7 +40,7 @@ export function CallLogFiltersBar({
   return (
     <div className={cn("glass-card rounded-2xl p-4", className)}>
       <div className="mb-4 flex items-center gap-2">
-        <Filter className="size-4 text-primary" />
+        <Filter className="size-4 text-foreground" />
         <h3 className="text-sm font-semibold">Filters</h3>
         {hasActiveFilters && (
           <Button

@@ -34,7 +34,7 @@ export function TranscriptDrawer({
       <SheetContent side="right" className="w-full gap-0 p-0 sm:max-w-lg">
         <div className="border-b border-border px-6 py-5 pr-14">
           <div className="flex items-center gap-2">
-            <FileText className="size-5 text-primary" />
+            <FileText className="size-5 text-foreground" />
             <h2 className="text-lg font-semibold">Call Transcript</h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -50,7 +50,7 @@ export function TranscriptDrawer({
             </div>
             <StatusBadge status={call.status} />
             <span className="text-muted-foreground">{call.duration}</span>
-            <span className="text-gold">{call.creditsUsed} credits</span>
+            <span className="text-muted-foreground">{call.creditsUsed} credits</span>
           </div>
           <Separator />
         </div>
@@ -72,8 +72,8 @@ export function TranscriptDrawer({
                   className={cn(
                     "rounded-xl border px-4 py-3",
                     line.speaker === "agent"
-                      ? "border-primary/20 bg-primary/5"
-                      : "border-border bg-white/5"
+                      ? "border-border bg-muted"
+                      : "border-border bg-card"
                   )}
                 >
                   <div className="mb-1 flex items-center justify-between gap-2">
@@ -81,7 +81,7 @@ export function TranscriptDrawer({
                       className={cn(
                         "text-xs font-semibold uppercase tracking-wider",
                         line.speaker === "agent"
-                          ? "text-primary"
+                          ? "text-foreground"
                           : "text-muted-foreground"
                       )}
                     >

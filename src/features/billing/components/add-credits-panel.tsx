@@ -12,8 +12,8 @@ export function AddCreditsPanel({ onPurchase }: AddCreditsPanelProps) {
   return (
     <div className="glass-card flex h-full flex-col justify-center rounded-2xl p-6">
       <div className="mb-6 flex items-center gap-2">
-        <div className="flex size-9 items-center justify-center rounded-lg bg-primary/15">
-          <CreditCard className="size-4 text-primary" />
+        <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+          <CreditCard className="size-4 text-foreground" />
         </div>
         <h3 className="text-sm font-semibold">Add Credits</h3>
       </div>
@@ -21,7 +21,7 @@ export function AddCreditsPanel({ onPurchase }: AddCreditsPanelProps) {
       <Button
         size="lg"
         onClick={onPurchase}
-        className="h-12 w-full gap-2 text-base font-semibold shadow-[var(--glow-purple)]"
+        className="h-12 w-full gap-2 text-base font-semibold"
       >
         <CreditCard className="size-5" />
         Purchase Credits

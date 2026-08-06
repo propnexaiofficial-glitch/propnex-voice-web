@@ -66,7 +66,7 @@ export function TablePagination({
               <Button
                 variant={p === page ? "default" : "outline"}
                 size="icon-sm"
-                className={cn(p === page && "glow-purple")}
+                className={cn(p === page && "bg-primary text-primary-foreground")}
                 onClick={() => onPageChange(p)}
                 aria-label={`Page ${p}`}
                 aria-current={p === page ? "page" : undefined}

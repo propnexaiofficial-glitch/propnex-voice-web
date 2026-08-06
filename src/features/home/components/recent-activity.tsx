@@ -51,8 +51,8 @@ export function RecentActivity({ className }: RecentActivityProps) {
               transition={{ duration: 0.3, delay: index * 0.06 }}
               className="flex items-start gap-4 p-4 first:rounded-t-2xl last:rounded-b-2xl"
             >
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                <Icon className="size-4 text-primary" />
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+                <Icon className="size-4 text-foreground" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">

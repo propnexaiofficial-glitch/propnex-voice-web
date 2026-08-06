@@ -37,9 +37,9 @@ export function ProfileCard({ className }: ProfileCardProps) {
     >
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
         <div className="relative shrink-0">
-          <div className="absolute -inset-1 rounded-full bg-primary/20 blur-md" />
-          <Avatar className="relative size-20 border-2 border-primary/25">
-            <AvatarFallback className="bg-primary/15 text-lg text-primary">
+          <div className="absolute -inset-1 rounded-full bg-muted blur-md" />
+          <Avatar className="relative size-20 border-2 border-border">
+            <AvatarFallback className="bg-muted text-lg text-foreground">
               {getInitials(mockUser.name)}
             </AvatarFallback>
           </Avatar>
@@ -66,8 +66,8 @@ export function ProfileCard({ className }: ProfileCardProps) {
                   key={field.label}
                   className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-3 py-2.5"
                 >
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                    <Icon className="size-4 text-primary" />
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+                    <Icon className="size-4 text-muted-foreground" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground">

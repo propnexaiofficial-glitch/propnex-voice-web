@@ -32,8 +32,8 @@ export function AgentToolsPageContent() {
         className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-primary/15">
-            <Wrench className="size-5 text-primary" />
+          <div className="flex size-10 items-center justify-center rounded-xl bg-muted">
+            <Wrench className="size-5 text-foreground" />
           </div>
           <div>
             <h2 className="text-lg font-semibold">Agent Tools & Libraries</h2>

@@ -24,8 +24,8 @@ export function BillingPageContent() {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center gap-3"
       >
-        <div className="flex size-10 items-center justify-center rounded-xl bg-primary/15">
-          <CreditCard className="size-5 text-primary" />
+        <div className="flex size-10 items-center justify-center rounded-xl bg-muted">
+          <CreditCard className="size-5 text-foreground" />
         </div>
         <div>
           <h2 className="text-lg font-semibold">Billing & Credits</h2>

@@ -27,17 +27,9 @@ export function CompanyDetailPanel({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-3">
             <div
-              className={cn(
-                "flex size-11 shrink-0 items-center justify-center rounded-xl",
-                company.isPremium ? "gradient-gold" : "bg-primary/15"
-              )}
+              className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted"
             >
-              <Building2
-                className={cn(
-                  "size-5",
-                  company.isPremium ? "text-navy" : "text-primary"
-                )}
-              />
+              <Building2 className="size-5 text-foreground" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
@@ -72,19 +64,19 @@ export function CompanyDetailPanel({
                 / {company.creditsLimit.toLocaleString()}
               </span>
             </p>
-            <p className="mt-0.5 text-gold">{usagePercent}% used</p>
+            <p className="mt-0.5 text-muted-foreground">{usagePercent}% used</p>
           </div>
         </div>
 
         <div className="mt-5 grid grid-cols-3 gap-3">
           {[
-            { label: "Credits Used", value: company.creditsUsed.toLocaleString(), accent: "text-gold" },
+            { label: "Credits Used", value: company.creditsUsed.toLocaleString(), accent: "text-foreground" },
             { label: "Inbound Calls", value: company.inboundCalls.toLocaleString(), accent: "" },
             { label: "Outbound Calls", value: company.outboundCalls.toLocaleString(), accent: "" },
           ].map((stat) => (
             <div
               key={stat.label}
-              className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-center"
+              className="rounded-xl border border-border bg-muted px-3 py-3 text-center"
             >
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 {stat.label}

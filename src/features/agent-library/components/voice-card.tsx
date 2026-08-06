@@ -43,14 +43,14 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.04 }}
       className={cn(
-        "glass-card group flex flex-col overflow-hidden rounded-2xl transition-all duration-200 hover:border-primary/20",
-        agent.assigned && "ring-1 ring-primary/20"
+        "glass-card group flex flex-col overflow-hidden rounded-lg transition-all duration-200 hover:border-border",
+        agent.assigned && "ring-1 ring-border"
       )}
     >
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start gap-4">
           <Avatar className="size-14 rounded-xl border-border">
-            <AvatarFallback className="rounded-xl bg-primary/15 text-sm font-semibold text-primary">
+            <AvatarFallback className="rounded-xl bg-muted text-sm font-semibold text-foreground">
               {getInitials(agent.name)}
             </AvatarFallback>
           </Avatar>

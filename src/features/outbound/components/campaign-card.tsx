@@ -56,26 +56,18 @@ export function CampaignCard({
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         className={cn(
-          "glass-card relative overflow-hidden rounded-2xl border border-dashed border-primary/20 p-6",
+          "glass-card relative overflow-hidden rounded-lg border border-dashed border-border p-6",
           className
         )}
       >
-        <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent"
-          aria-hidden
-        />
-
         <div className="relative flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-                <PhoneOutgoing className="size-5 text-primary/70" />
+              <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+                <PhoneOutgoing className="size-5 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground/90">{campaign.name}</h3>
-              <Badge
-                variant="outline"
-                className="gap-1 border-primary/30 bg-primary/10 text-primary"
-              >
+              <h3 className="text-lg font-semibold">{campaign.name}</h3>
+              <Badge variant="secondary" className="gap-1">
                 <Sparkles className="size-3" />
                 Coming Soon
               </Badge>
@@ -86,8 +78,8 @@ export function CampaignCard({
               be able to upload CSV contacts and launch AI outbound calls from here.
             </p>
 
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/20 px-3 py-1.5 text-xs text-muted-foreground">
-              <Clock className="size-3.5 text-primary/70" />
+            <div className="inline-flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-1.5 text-xs text-muted-foreground">
+              <Clock className="size-3.5" />
               Expected in the next release
             </div>
           </div>
@@ -110,8 +102,8 @@ export function CampaignCard({
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-blue-500/15">
-              <PhoneOutgoing className="size-5 text-blue-400" />
+            <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+              <PhoneOutgoing className="size-5 text-foreground" />
             </div>
             <h3 className="text-lg font-semibold">{campaign.name}</h3>
             <Badge variant={status.variant}>{status.label}</Badge>
@@ -168,7 +160,7 @@ export function CampaignCard({
           <div className="mt-6 space-y-4 border-t border-border pt-6">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">Campaign Progress</span>
-              <span className="font-semibold text-primary">{progressPercent}%</span>
+              <span className="font-semibold text-foreground">{progressPercent}%</span>
             </div>
 
             <div className="h-2 overflow-hidden rounded-full bg-white/10">
@@ -176,7 +168,7 @@ export function CampaignCard({
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercent}%` }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
-                className="h-full rounded-full gradient-primary glow-purple"
+                className="h-full rounded-full bg-foreground"
               />
             </div>
 

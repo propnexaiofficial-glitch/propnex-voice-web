@@ -8,10 +8,10 @@ import { quickActions } from "@/features/home/data";
 import { cn } from "@/lib/utils";
 
 const accentStyles = {
-  purple: "bg-primary/10 text-primary",
-  blue: "bg-blue-500/10 text-blue-400",
-  green: "bg-emerald-500/10 text-emerald-400",
-  gold: "bg-violet-400/10 text-violet-300",
+  purple: "bg-muted text-foreground",
+  blue: "bg-muted text-foreground",
+  green: "bg-muted text-foreground",
+  gold: "bg-muted text-foreground",
 };
 
 type QuickActionsProps = {
@@ -41,7 +41,7 @@ export function QuickActions({ className }: QuickActionsProps) {
             >
               <Link
                 href={action.href}
-                className="group glass-card flex h-full flex-col rounded-xl p-4 transition-all hover:border-primary/25 hover:shadow-[0_0_28px_rgba(124,58,237,0.12)]"
+                className="group glass-card flex h-full flex-col rounded-lg p-4 transition-all hover:border-border hover:bg-accent/30"
               >
                 <div
                   className={cn(
@@ -56,7 +56,7 @@ export function QuickActions({ className }: QuickActionsProps) {
                 <p className="mt-1 flex-1 text-xs leading-relaxed text-muted-foreground">
                   {action.description}
                 </p>
-                <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary/80 transition-colors group-hover:text-primary">
+                <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors group-hover:text-foreground">
                   Open
                   <ArrowRight className="size-3" />
                 </span>

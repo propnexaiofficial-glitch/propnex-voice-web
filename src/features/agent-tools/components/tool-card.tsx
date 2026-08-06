@@ -27,11 +27,11 @@ type ToolCardProps = {
 };
 
 const accentStyles = {
-  purple: "bg-primary/15 text-primary border-primary/25",
-  blue: "bg-blue-500/15 text-blue-400 border-blue-500/25",
-  green: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25",
-  gold: "bg-gold/15 text-gold border-gold/25",
-  pink: "bg-pink-500/15 text-pink-400 border-pink-500/25",
+  purple: "bg-muted text-foreground border-border",
+  blue: "bg-muted text-foreground border-border",
+  green: "bg-muted text-foreground border-border",
+  gold: "bg-muted text-foreground border-border",
+  pink: "bg-muted text-foreground border-border",
 };
 
 const iconMap: Record<string, LucideIcon> = {
@@ -46,7 +46,7 @@ const iconMap: Record<string, LucideIcon> = {
 const statusStyles = {
   active: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25",
   configured: "bg-blue-500/15 text-blue-400 border-blue-500/25",
-  inactive: "bg-white/5 text-muted-foreground border-white/10",
+  inactive: "bg-muted text-muted-foreground border-border",
 };
 
 export function ToolCard({
@@ -66,7 +66,7 @@ export function ToolCard({
       transition={{ delay: index * 0.06 }}
       className={cn(
         "tool-card flex flex-col rounded-2xl border p-5",
-        tool.isPremium ? "border-gold/25" : "border-white/10"
+        "border-border"
       )}
     >
       <div className="mb-4 flex items-start justify-between gap-3">
@@ -112,7 +112,7 @@ export function ToolCard({
         </div>
       </div>
 
-      <div className="mt-5 flex gap-2 border-t border-white/10 pt-4">
+      <div className="mt-5 flex gap-2 border-t border-border pt-4">
         {isActive ? (
           <Button
             variant="outline"

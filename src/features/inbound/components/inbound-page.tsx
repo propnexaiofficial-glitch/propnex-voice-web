@@ -41,8 +41,8 @@ export function InboundPageContent() {
         className="flex flex-col gap-1"
       >
         <div className="flex items-center gap-2">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/15">
-            <PhoneIncoming className="size-5 text-primary" />
+          <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+            <PhoneIncoming className="size-5 text-foreground" />
           </div>
           <div>
             <h2 className="text-lg font-semibold">Inbound Call Logs</h2>
@@ -66,7 +66,11 @@ export function InboundPageContent() {
         />
       ) : (
         <>
-          <CallLogTable calls={calls} onViewTranscript={handleViewTranscript} />
+          <CallLogTable
+            calls={calls}
+            variant="inbound"
+            onViewTranscript={handleViewTranscript}
+          />
           <TablePagination
             page={page}
             totalPages={totalPages}

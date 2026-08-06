@@ -25,7 +25,7 @@ export function MobileSidebar() {
       </SheetTrigger>
       <SheetContent side="left" className="gap-0 p-0">
         <div className="flex h-[var(--header-height)] items-center border-b border-border px-5">
-          <Logo />
+          <Logo compact />
         </div>
         <div className="flex-1 overflow-y-auto py-4">
           <SidebarNav onNavigate={() => setOpen(false)} />

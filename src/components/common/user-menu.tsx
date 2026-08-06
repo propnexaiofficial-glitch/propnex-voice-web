@@ -38,7 +38,7 @@ export function UserMenu({ className }: UserMenuProps) {
           className={cn("relative size-10 rounded-full p-0", className)}
         >
           <Avatar className="size-10">
-            <AvatarFallback className="bg-primary/15 text-primary">
+            <AvatarFallback className="bg-muted text-foreground">
               {getInitials(mockUser.name)}
             </AvatarFallback>
           </Avatar>

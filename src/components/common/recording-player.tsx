@@ -92,7 +92,7 @@ export function RecordingPlayer({
 
       <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
         <div
-          className="h-full rounded-full gradient-primary transition-all duration-300"
+          className="h-full rounded-full bg-foreground transition-all duration-300"
           style={{ width: `${progressPercent}%` }}
         />
       </div>

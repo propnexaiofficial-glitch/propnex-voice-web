@@ -22,8 +22,8 @@ export function PremiumUpgradeCard({
       <div className="relative space-y-3">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg gradient-primary glow-purple">
-              <Crown className="size-4 text-white" />
+            <div className="flex size-8 items-center justify-center rounded-lg bg-muted">
+              <Crown className="size-4 text-foreground" />
             </div>
             {!compact && (
               <div>

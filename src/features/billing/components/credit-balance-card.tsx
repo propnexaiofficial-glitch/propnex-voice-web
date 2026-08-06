@@ -21,17 +21,14 @@ export function CreditBalanceCard({ summary, className }: CreditBalanceCardProps
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        "glass-card relative overflow-hidden rounded-2xl p-6",
+        "glass-card relative overflow-hidden rounded-lg p-6",
         className
       )}
     >
-      <div className="pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-primary/10 blur-2xl" />
-      <div className="pointer-events-none absolute -bottom-6 -left-6 size-24 rounded-full bg-gold/10 blur-2xl" />
-
       <div className="relative space-y-5">
         <div className="flex items-center gap-2">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-gold/15">
-            <Coins className="size-4 text-gold" />
+          <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+            <Coins className="size-4 text-foreground" />
           </div>
           <div>
             <p className="text-sm font-semibold">Credit Balance</p>
@@ -49,14 +46,14 @@ export function CreditBalanceCard({ summary, className }: CreditBalanceCardProps
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">Monthly usage</span>
-            <span className="font-medium text-gold">{usagePercent}%</span>
+            <span className="font-medium text-foreground">{usagePercent}%</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-white/10">
+          <div className="h-2 overflow-hidden rounded-full bg-muted">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${usagePercent}%` }}
               transition={{ duration: 0.9, ease: "easeOut", delay: 0.15 }}
-              className="h-full rounded-full gradient-primary glow-purple"
+              className="h-full rounded-full bg-foreground"
             />
           </div>
           <div className="flex items-center justify-between text-xs text-muted-foreground">

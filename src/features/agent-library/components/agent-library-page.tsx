@@ -16,8 +16,8 @@ type LibraryStatProps = {
 function LibraryStat({ label, value, icon: Icon }: LibraryStatProps) {
   return (
     <div className="glass-card flex items-center gap-3 rounded-xl px-4 py-3.5">
-      <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-        <Icon className="size-4 text-primary" />
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+        <Icon className="size-4 text-foreground" />
       </div>
       <div>
         <p className="text-xs text-muted-foreground">{label}</p>
@@ -40,8 +40,8 @@ export function AgentLibraryPageContent() {
         className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-primary/15">
-            <Mic2 className="size-5 text-primary" />
+          <div className="flex size-10 items-center justify-center rounded-xl bg-muted">
+            <Mic2 className="size-5 text-foreground" />
           </div>
           <div>
             <h2 className="text-lg font-semibold tracking-tight">Agent Library</h2>

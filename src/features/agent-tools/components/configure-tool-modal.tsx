@@ -52,8 +52,8 @@ export function ConfigureToolModal({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-2">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/15">
-              <Settings2 className="size-4 text-primary" />
+            <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+              <Settings2 className="size-4 text-foreground" />
             </div>
             <div>
               <DialogTitle>Configure {tool.name}</DialogTitle>

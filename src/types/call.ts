@@ -10,6 +10,8 @@ export type TranscriptLine = {
 
 export type CallRecord = {
   id: string;
+  callId?: string;
+  callerId?: string;
   customerNumber: string;
   assignedNumber: string;
   callDateTime: string;

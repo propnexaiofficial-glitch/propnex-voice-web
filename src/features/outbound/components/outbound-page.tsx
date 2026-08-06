@@ -53,8 +53,8 @@ export function OutboundPageContent() {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center gap-2"
       >
-        <div className="flex size-9 items-center justify-center rounded-lg bg-blue-500/15">
-          <PhoneOutgoing className="size-5 text-blue-400" />
+        <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+          <PhoneOutgoing className="size-5 text-foreground" />
         </div>
         <div>
           <h2 className="text-lg font-semibold">Outbound Call Logs</h2>
@@ -87,7 +87,11 @@ export function OutboundPageContent() {
         />
       ) : (
         <>
-          <CallLogTable calls={calls} onViewTranscript={handleViewTranscript} />
+          <CallLogTable
+            calls={calls}
+            variant="outbound"
+            onViewTranscript={handleViewTranscript}
+          />
           <TablePagination
             page={page}
             totalPages={totalPages}

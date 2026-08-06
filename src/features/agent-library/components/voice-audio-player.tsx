@@ -19,11 +19,11 @@ type VoiceAudioPlayerProps = {
 };
 
 const progressColors = {
-  purple: "gradient-primary",
+  purple: "bg-foreground",
   blue: "bg-blue-500",
   green: "bg-emerald-500",
-  gold: "gradient-gold",
-  pink: "bg-pink-500",
+  gold: "bg-zinc-400",
+  pink: "bg-zinc-400",
 };
 
 export function VoiceAudioPlayer({
@@ -65,7 +65,7 @@ export function VoiceAudioPlayer({
         <button
           type="button"
           onClick={toggle}
-          className="flex size-7 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/40 backdrop-blur-sm transition-all hover:border-primary/50 hover:bg-primary/20"
+          className="flex size-7 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/40 backdrop-blur-sm transition-all hover:border-white/40 hover:bg-black/50"
           aria-label={isPlaying ? "Pause sample" : "Play sample"}
         >
           {isPlaying ? (
@@ -95,13 +95,13 @@ export function VoiceAudioPlayer({
         <button
           type="button"
           onClick={toggle}
-          className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-muted/30 transition-colors hover:border-primary/30 hover:bg-primary/10"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-muted/30 transition-colors hover:border-border hover:bg-accent"
           aria-label={isPlaying ? "Pause sample" : "Play sample"}
         >
           {isPlaying ? (
-            <Pause className="size-4 text-primary" />
+            <Pause className="size-4 text-foreground" />
           ) : (
-            <Play className="size-4 text-primary" />
+            <Play className="size-4 text-foreground" />
           )}
         </button>
         <div className="min-w-0 flex-1 space-y-1.5">
@@ -128,13 +128,13 @@ export function VoiceAudioPlayer({
         <button
           type="button"
           onClick={toggle}
-          className="flex size-9 items-center justify-center rounded-full border border-white/15 bg-white/5 transition-all hover:border-primary/40 hover:bg-primary/10 hover:shadow-[var(--glow-purple)]"
+          className="flex size-9 items-center justify-center rounded-full border border-border bg-muted transition-all hover:bg-accent"
           aria-label={isPlaying ? "Pause sample" : "Play sample"}
         >
           {isPlaying ? (
-            <Pause className="size-4 text-primary" />
+            <Pause className="size-4 text-foreground" />
           ) : (
-            <Play className="size-4 text-primary" />
+            <Play className="size-4 text-foreground" />
           )}
         </button>
         <span className="text-xs tabular-nums text-muted-foreground">
