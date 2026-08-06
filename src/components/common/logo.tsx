@@ -1,5 +1,5 @@
+import Image from "next/image";
 import Link from "next/link";
-import { Mic2 } from "lucide-react";
 
 import { APP_NAME, APP_TAGLINE } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
@@ -15,16 +15,16 @@ export function Logo({ compact = false, className }: LogoProps) {
       href="/dashboard"
       className={cn("flex items-center gap-3 transition-opacity hover:opacity-90", className)}
     >
-      <div className="flex size-10 items-center justify-center rounded-xl gradient-primary glow-purple">
-        <Mic2 className="size-5 text-white" />
-      </div>
+      <Image
+        src="/propnex-logo-cropped.png"
+        alt={APP_NAME}
+        width={140}
+        height={36}
+        className={cn("h-9 w-auto object-contain", compact && "h-8")}
+        priority
+      />
       {!compact && (
-        <div className="min-w-0">
-          <p className="truncate text-base font-bold tracking-tight text-foreground">
-            {APP_NAME}
-          </p>
-          <p className="truncate text-xs text-muted-foreground">{APP_TAGLINE}</p>
-        </div>
+        <p className="truncate text-xs text-muted-foreground">{APP_TAGLINE}</p>
       )}
     </Link>
   );
