@@ -3,9 +3,8 @@
 import { Building2, Mail, Phone, User } from "lucide-react";
 import { motion } from "framer-motion";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { PremiumBadge } from "@/components/common/premium-badge";
 import { mockUser } from "@/data/mock-user";
 import { cn } from "@/lib/utils";
 
@@ -40,8 +39,7 @@ export function ProfileCard({ className }: ProfileCardProps) {
         <div className="relative shrink-0">
           <div className="absolute -inset-1 rounded-full bg-primary/20 blur-md" />
           <Avatar className="relative size-20 border-2 border-primary/25">
-            <AvatarImage src={mockUser.avatar} alt={mockUser.name} />
-            <AvatarFallback className="text-lg">
+            <AvatarFallback className="bg-primary/15 text-lg text-primary">
               {getInitials(mockUser.name)}
             </AvatarFallback>
           </Avatar>
@@ -54,7 +52,6 @@ export function ProfileCard({ className }: ProfileCardProps) {
                 {mockUser.name}
               </h2>
               <Badge variant="success">Active</Badge>
-              <PremiumBadge label="Premium" size="sm" />
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
               Account owner · PropNex AI Technology
@@ -90,10 +87,9 @@ export function ProfileCard({ className }: ProfileCardProps) {
                   Account Type
                 </p>
                 <p className="text-sm font-medium">
-                  Enterprise · Multi-tenant · Premium
+                  Enterprise · Multi-tenant
                 </p>
               </div>
-              <PremiumBadge size="sm" />
             </div>
           </div>
         </div>

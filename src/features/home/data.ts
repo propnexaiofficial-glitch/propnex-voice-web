@@ -61,8 +61,6 @@ export const quickActions: QuickAction[] = [
     href: "/dashboard/inbound",
     icon: PhoneIncoming,
     accent: "purple",
-    image:
-      "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: "start-campaign",
@@ -71,8 +69,6 @@ export const quickActions: QuickAction[] = [
     href: "/dashboard/outbound",
     icon: Upload,
     accent: "blue",
-    image:
-      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: "browse-agents",
@@ -81,7 +77,6 @@ export const quickActions: QuickAction[] = [
     href: "/dashboard/agent-library",
     icon: Mic2,
     accent: "green",
-    image: "/quick-actions/agent-library.jpg",
   },
   {
     id: "manage-team",
@@ -90,8 +85,6 @@ export const quickActions: QuickAction[] = [
     href: "/dashboard/employees",
     icon: Users,
     accent: "gold",
-    image:
-      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: "top-up-credits",
@@ -100,8 +93,6 @@ export const quickActions: QuickAction[] = [
     href: "/dashboard/billing",
     icon: CreditCard,
     accent: "purple",
-    image:
-      "https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=800&q=80",
   },
 ];
 

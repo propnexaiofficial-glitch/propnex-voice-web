@@ -1,10 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { Coins, Plus, TrendingUp } from "lucide-react";
+import { Coins, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 
-import { Button } from "@/components/ui/button";
 import { creditsOverview } from "@/features/home/data";
 import { cn } from "@/lib/utils";
 
@@ -26,22 +24,14 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
       )}
     >
       <div className="relative space-y-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-              <Coins className="size-4 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold">Credit Balance</p>
-              <p className="text-xs text-muted-foreground">Available credits</p>
-            </div>
+        <div className="flex items-center gap-2">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+            <Coins className="size-4 text-primary" />
           </div>
-          <Button variant="default" size="sm" asChild>
-            <Link href="/dashboard/billing">
-              <Plus className="size-3.5" />
-              Top Up
-            </Link>
-          </Button>
+          <div>
+            <p className="text-sm font-semibold">Credit Balance</p>
+            <p className="text-xs text-muted-foreground">Available credits</p>
+          </div>
         </div>
 
         <div>

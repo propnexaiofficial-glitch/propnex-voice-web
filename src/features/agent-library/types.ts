@@ -11,20 +11,9 @@ export type VoiceAgent = {
   id: string;
   name: string;
   description: string;
-  coverImage: string;
   tags: VoiceTag[];
   accent: VoiceAccent;
   sampleDurationSeconds: number;
   assigned: boolean;
   recommendedFor: string;
-};
-
-export type AgentLibraryFilters = {
-  search: string;
-  tag: string;
-};
-
-export const DEFAULT_AGENT_FILTERS: AgentLibraryFilters = {
-  search: "",
-  tag: "all",
 };

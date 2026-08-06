@@ -1,8 +1,8 @@
 import type {
+  AssignedChannel,
   BillingHistoryItem,
   BillingSummary,
   CreditPackage,
-  TelephonyChannel,
 } from "@/features/billing/types";
 
 export const billingSummary: BillingSummary = {
@@ -24,47 +24,36 @@ export const creditPackages: CreditPackage[] = [
   { id: "pkg-4", credits: 50000, price: 1499, currency: "SGD", premium: true },
 ];
 
-export const telephonyChannels: TelephonyChannel[] = [
+export const assignedChannels: AssignedChannel[] = [
   {
-    id: "ch-1",
-    number: "+65 6789 0101",
-    label: "Main Inbound Line",
-    type: "inbound",
-    status: "active",
-    provider: "Twilio",
+    id: "ac-1",
+    didNo: "+65 6789 0101",
+    channelCount: 2,
+    purchasedChannels: ["Inbound", "Outbound"],
   },
   {
-    id: "ch-2",
-    number: "+65 6789 0201",
-    label: "Outbound Campaign",
-    type: "outbound",
-    status: "active",
-    provider: "Twilio",
+    id: "ac-2",
+    didNo: "+65 6789 0201",
+    channelCount: 1,
+    purchasedChannels: ["Outbound"],
   },
   {
-    id: "ch-3",
-    number: "+65 6789 0301",
-    label: "Premium Support Line",
-    type: "both",
-    status: "active",
-    provider: "Plivo",
-    isPremium: true,
+    id: "ac-3",
+    didNo: "+65 6789 0301",
+    channelCount: 3,
+    purchasedChannels: ["Inbound", "Outbound", "Premium Support"],
   },
   {
-    id: "ch-4",
-    number: "+65 6789 0401",
-    label: "Backup SIP Channel",
-    type: "both",
-    status: "inactive",
-    provider: "SIP Trunk",
+    id: "ac-4",
+    didNo: "+60 3 1234 5678",
+    channelCount: 2,
+    purchasedChannels: ["Inbound", "Outbound"],
   },
   {
-    id: "ch-5",
-    number: "+65 6789 0501",
-    label: "New Channel (Pending)",
-    type: "inbound",
-    status: "pending",
-    provider: "Twilio",
+    id: "ac-5",
+    didNo: "+65 6789 0501",
+    channelCount: 1,
+    purchasedChannels: ["Inbound"],
   },
 ];
 

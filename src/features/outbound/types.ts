@@ -12,6 +12,7 @@ export type Campaign = {
   failedCalls: number;
   uploadedFileName?: string;
   startedAt?: string;
+  comingSoon?: boolean;
 };
 
 export type UploadCsvState = {

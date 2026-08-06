@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { LogOut, Settings, User } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -38,8 +38,9 @@ export function UserMenu({ className }: UserMenuProps) {
           className={cn("relative size-10 rounded-full p-0", className)}
         >
           <Avatar className="size-10">
-            <AvatarImage src={mockUser.avatar} alt={mockUser.name} />
-            <AvatarFallback>{getInitials(mockUser.name)}</AvatarFallback>
+            <AvatarFallback className="bg-primary/15 text-primary">
+              {getInitials(mockUser.name)}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>

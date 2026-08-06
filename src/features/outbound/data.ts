@@ -163,6 +163,7 @@ export const initialCampaign: Campaign = {
   completedCalls: 0,
   successfulCalls: 0,
   failedCalls: 0,
+  comingSoon: true,
 };
 
 export const OUTBOUND_PAGE_SIZE = 8;

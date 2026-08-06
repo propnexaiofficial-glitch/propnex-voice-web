@@ -35,7 +35,7 @@ export function EmployeesPageContent() {
             <Users className="size-5 text-primary" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold">Employees & Sub-Companies</h2>
+            <h2 className="text-lg font-semibold">Sub-Companies</h2>
             <p className="text-sm text-muted-foreground">
               Manage client accounts and monitor their usage
             </p>

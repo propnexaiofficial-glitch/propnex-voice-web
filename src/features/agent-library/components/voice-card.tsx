@@ -3,7 +3,7 @@
 import { Check, UserPlus, Volume2 } from "lucide-react";
 import { motion } from "framer-motion";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { VoiceAudioPlayer } from "@/features/agent-library/components/voice-audio-player";
@@ -50,12 +50,7 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start gap-4">
           <Avatar className="size-14 rounded-xl border-border">
-            <AvatarImage
-              src={agent.coverImage}
-              alt={agent.name}
-              className="rounded-xl object-cover"
-            />
-            <AvatarFallback className="rounded-xl text-sm font-semibold">
+            <AvatarFallback className="rounded-xl bg-primary/15 text-sm font-semibold text-primary">
               {getInitials(agent.name)}
             </AvatarFallback>
           </Avatar>

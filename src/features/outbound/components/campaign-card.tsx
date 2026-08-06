@@ -2,9 +2,11 @@
 
 import {
   CheckCircle2,
+  Clock,
   Pause,
   PhoneOutgoing,
   Play,
+  Sparkles,
   Upload,
   Users,
 } from "lucide-react";
@@ -46,6 +48,58 @@ export function CampaignCard({
   className,
 }: CampaignCardProps) {
   const status = statusConfig[campaign.status];
+  const isComingSoon = campaign.comingSoon === true;
+
+  if (isComingSoon) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={cn(
+          "glass-card relative overflow-hidden rounded-2xl border border-dashed border-primary/20 p-6",
+          className
+        )}
+      >
+        <div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent"
+          aria-hidden
+        />
+
+        <div className="relative flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+                <PhoneOutgoing className="size-5 text-primary/70" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground/90">{campaign.name}</h3>
+              <Badge
+                variant="outline"
+                className="gap-1 border-primary/30 bg-primary/10 text-primary"
+              >
+                <Sparkles className="size-3" />
+                Coming Soon
+              </Badge>
+            </div>
+
+            <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
+              Bulk campaign uploads and automated lead reactivation are on the way. You&apos;ll
+              be able to upload CSV contacts and launch AI outbound calls from here.
+            </p>
+
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/20 px-3 py-1.5 text-xs text-muted-foreground">
+              <Clock className="size-3.5 text-primary/70" />
+              Expected in the next release
+            </div>
+          </div>
+
+          <Button variant="outline" disabled className="shrink-0 gap-2 opacity-60">
+            <Upload className="size-4" />
+            Upload CSV
+          </Button>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -114,7 +168,7 @@ export function CampaignCard({
           <div className="mt-6 space-y-4 border-t border-border pt-6">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">Campaign Progress</span>
-              <span className="text-primary font-semibold">{progressPercent}%</span>
+              <span className="font-semibold text-primary">{progressPercent}%</span>
             </div>
 
             <div className="h-2 overflow-hidden rounded-full bg-white/10">

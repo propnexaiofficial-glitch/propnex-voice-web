@@ -1,14 +1,10 @@
 import type { VoiceAgent } from "@/features/agent-library/types";
 
-const img = (id: string) =>
-  `https://images.unsplash.com/${id}?w=600&h=600&fit=crop&q=80&auto=format`;
-
 export const voiceAgents: VoiceAgent[] = [
   {
     id: "voice-001",
     name: "Sarah Chen",
     description: "Warm, professional tone ideal for property consultations and client onboarding calls.",
-    coverImage: img("photo-1573496359142-b8d87734a21a"),
     tags: [
       { label: "Professional", category: "tone" },
       { label: "English (US)", category: "accent" },
@@ -24,7 +20,6 @@ export const voiceAgents: VoiceAgent[] = [
     id: "voice-002",
     name: "James Mitchell",
     description: "Confident and clear delivery suited for outbound lead reactivation campaigns.",
-    coverImage: img("photo-1560250097-0b93528c311a"),
     tags: [
       { label: "Confident", category: "tone" },
       { label: "English (UK)", category: "accent" },
@@ -40,7 +35,6 @@ export const voiceAgents: VoiceAgent[] = [
     id: "voice-003",
     name: "Priya Sharma",
     description: "Friendly conversational style perfect for follow-ups and appointment scheduling.",
-    coverImage: img("photo-1580489944761-15a19d654956"),
     tags: [
       { label: "Friendly", category: "tone" },
       { label: "English (IN)", category: "accent" },
@@ -56,7 +50,6 @@ export const voiceAgents: VoiceAgent[] = [
     id: "voice-004",
     name: "Marcus Lee",
     description: "Authoritative voice for premium listings and high-value client conversations.",
-    coverImage: img("photo-1472099645785-5658abf4ff4e"),
     tags: [
       { label: "Authoritative", category: "tone" },
       { label: "English (SG)", category: "accent" },
@@ -72,7 +65,6 @@ export const voiceAgents: VoiceAgent[] = [
     id: "voice-005",
     name: "Emma Watson",
     description: "Calm and empathetic tone for sensitive client situations and complaint handling.",
-    coverImage: img("photo-1438761681033-6461ffad8d80"),
     tags: [
       { label: "Empathetic", category: "tone" },
       { label: "English (AU)", category: "accent" },
@@ -88,7 +80,6 @@ export const voiceAgents: VoiceAgent[] = [
     id: "voice-006",
     name: "David Okonkwo",
     description: "Energetic and persuasive voice built for outbound campaign conversions.",
-    coverImage: img("photo-1507003211169-0a1dd7228f2d"),
     tags: [
       { label: "Energetic", category: "tone" },
       { label: "English (US)", category: "accent" },
@@ -104,7 +95,6 @@ export const voiceAgents: VoiceAgent[] = [
     id: "voice-007",
     name: "Yuki Tanaka",
     description: "Soft and approachable delivery for first-time buyer guidance and education.",
-    coverImage: img("photo-1544005313-94ddf0286df2"),
     tags: [
       { label: "Soft", category: "tone" },
       { label: "English (US)", category: "accent" },
@@ -120,7 +110,6 @@ export const voiceAgents: VoiceAgent[] = [
     id: "voice-008",
     name: "Alex Rivera",
     description: "Neutral corporate tone for multi-tenant and B2B reseller communications.",
-    coverImage: img("photo-1500648767791-00dcc994a43e"),
     tags: [
       { label: "Corporate", category: "tone" },
       { label: "English (US)", category: "accent" },
@@ -136,7 +125,6 @@ export const voiceAgents: VoiceAgent[] = [
     id: "voice-009",
     name: "Sophie Laurent",
     description: "Elegant and refined voice for high-end marketing and brand campaigns.",
-    coverImage: img("photo-1534528741775-53994a69daeb"),
     tags: [
       { label: "Elegant", category: "tone" },
       { label: "English (UK)", category: "accent" },
@@ -152,7 +140,6 @@ export const voiceAgents: VoiceAgent[] = [
     id: "voice-010",
     name: "Ryan Cooper",
     description: "Direct and efficient style for high-volume outbound calling operations.",
-    coverImage: img("photo-1519085360753-af0119f7cbe7"),
     tags: [
       { label: "Direct", category: "tone" },
       { label: "English (US)", category: "accent" },
@@ -164,14 +151,4 @@ export const voiceAgents: VoiceAgent[] = [
     assigned: false,
     recommendedFor: "High-volume dialing",
   },
-];
-
-export const tagFilterOptions = [
-  { value: "all", label: "All Voices" },
-  { value: "Female", label: "Female" },
-  { value: "Male", label: "Male" },
-  { value: "Professional", label: "Professional" },
-  { value: "Outbound", label: "Outbound" },
-  { value: "Support", label: "Support" },
-  { value: "Sales", label: "Sales" },
 ];

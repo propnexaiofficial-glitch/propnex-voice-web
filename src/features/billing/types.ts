@@ -7,14 +7,11 @@ export type CreditPackage = {
   premium?: boolean;
 };
 
-export type TelephonyChannel = {
+export type AssignedChannel = {
   id: string;
-  number: string;
-  label: string;
-  type: "inbound" | "outbound" | "both";
-  status: "active" | "inactive" | "pending";
-  provider: string;
-  isPremium?: boolean;
+  didNo: string;
+  channelCount: number;
+  purchasedChannels: string[];
 };
 
 export type BillingHistoryItem = {

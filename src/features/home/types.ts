@@ -17,7 +17,6 @@ export type QuickAction = {
   href: string;
   icon: LucideIcon;
   accent: "purple" | "blue" | "green" | "gold";
-  image: string;
 };
 
 export type RecentActivityItem = {

@@ -6,17 +6,14 @@ import { motion } from "framer-motion";
 import { AddCreditsPanel } from "@/features/billing/components/add-credits-panel";
 import { BillingHistoryTable } from "@/features/billing/components/billing-history-table";
 import { CreditBalanceCard } from "@/features/billing/components/credit-balance-card";
-import { TelephonyChannelsPanel } from "@/features/billing/components/telephony-channels-panel";
+import { AssignedChannelsPanel } from "@/features/billing/components/assigned-channels-panel";
 import { useBilling } from "@/features/billing/hooks/use-billing";
 
 export function BillingPageContent() {
   const {
     summary,
-    creditPackages,
-    telephonyChannels,
+    assignedChannels,
     billingHistory,
-    selectedPackageId,
-    selectPackage,
     purchaseCredits,
   } = useBilling();
 
@@ -33,7 +30,7 @@ export function BillingPageContent() {
         <div>
           <h2 className="text-lg font-semibold">Billing & Credits</h2>
           <p className="text-sm text-muted-foreground">
-            Manage credits, telephony channels, and payment history
+            Manage credits, assigned channels, and payment history
           </p>
         </div>
       </motion.div>
@@ -41,16 +38,11 @@ export function BillingPageContent() {
       <div className="grid gap-6 lg:grid-cols-3">
         <CreditBalanceCard summary={summary} className="lg:col-span-1" />
         <div className="lg:col-span-2">
-          <AddCreditsPanel
-            packages={creditPackages}
-            selectedPackageId={selectedPackageId}
-            onSelect={selectPackage}
-            onPurchase={purchaseCredits}
-          />
+          <AddCreditsPanel onPurchase={purchaseCredits} />
         </div>
       </div>
 
-      <TelephonyChannelsPanel channels={telephonyChannels} />
+      <AssignedChannelsPanel channels={assignedChannels} />
 
       <BillingHistoryTable items={billingHistory} />
     </div>

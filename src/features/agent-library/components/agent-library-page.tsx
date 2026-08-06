@@ -4,8 +4,6 @@ import { CheckCircle2, Headphones, Mic2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
 
-import { EmptyState } from "@/components/common/empty-state";
-import { AgentLibraryFiltersBar } from "@/features/agent-library/components/agent-library-filters";
 import { VoiceCard } from "@/features/agent-library/components/voice-card";
 import { useAgentLibrary } from "@/features/agent-library/hooks/use-agent-library";
 
@@ -30,14 +28,7 @@ function LibraryStat({ label, value, icon: Icon }: LibraryStatProps) {
 }
 
 export function AgentLibraryPageContent() {
-  const {
-    agents,
-    filters,
-    setFilters,
-    assignedCount,
-    totalCount,
-    toggleAssign,
-  } = useAgentLibrary();
+  const { agents, assignedCount, totalCount, toggleAssign } = useAgentLibrary();
 
   const availableCount = totalCount - assignedCount;
 
@@ -67,38 +58,22 @@ export function AgentLibraryPageContent() {
         <LibraryStat label="Available" value={availableCount} icon={Mic2} />
       </div>
 
-      <AgentLibraryFiltersBar
-        filters={filters}
-        onChange={setFilters}
-        totalCount={totalCount}
-        assignedCount={assignedCount}
-      />
+      <p className="text-sm text-muted-foreground">
+        Showing{" "}
+        <span className="font-medium text-foreground">{agents.length}</span>{" "}
+        voice{agents.length !== 1 ? "s" : ""}
+      </p>
 
-      {agents.length === 0 ? (
-        <EmptyState
-          title="No voices found"
-          description="Try a different search term or filter to discover available agents."
-        />
-      ) : (
-        <>
-          <p className="text-sm text-muted-foreground">
-            Showing{" "}
-            <span className="font-medium text-foreground">{agents.length}</span>{" "}
-            voice{agents.length !== 1 ? "s" : ""}
-          </p>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {agents.map((agent, index) => (
-              <VoiceCard
-                key={agent.id}
-                agent={agent}
-                index={index}
-                onAssign={toggleAssign}
-              />
-            ))}
-          </div>
-        </>
-      )}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {agents.map((agent, index) => (
+          <VoiceCard
+            key={agent.id}
+            agent={agent}
+            index={index}
+            onAssign={toggleAssign}
+          />
+        ))}
+      </div>
     </div>
   );
 }
