@@ -11,6 +11,7 @@ import { CallLogTable } from "@/components/tables/call-log-table";
 import { TablePagination } from "@/components/tables/table-pagination";
 import { CampaignCard } from "@/features/outbound/components/campaign-card";
 import { UploadCsvModal } from "@/features/outbound/components/upload-csv-modal";
+import { leadReactivationCampaign } from "@/features/outbound/data";
 import { useCampaign } from "@/features/outbound/hooks/use-campaign";
 import { useOutboundCalls } from "@/features/outbound/hooks/use-outbound-calls";
 import type { CallRecord } from "@/types/call";
@@ -29,7 +30,7 @@ export function OutboundPageContent() {
   } = useOutboundCalls();
 
   const {
-    campaign,
+    campaign: outboundCampaign,
     progressPercent,
     handleUpload,
     startCampaign,
@@ -64,14 +65,25 @@ export function OutboundPageContent() {
         </div>
       </motion.div>
 
-      <CampaignCard
-        campaign={campaign}
-        progressPercent={progressPercent}
-        onUploadClick={() => setUploadOpen(true)}
-        onStart={startCampaign}
-        onPause={pauseCampaign}
-        onResume={resumeCampaign}
-      />
+      <div className="space-y-4">
+        <CampaignCard
+          campaign={leadReactivationCampaign}
+          progressPercent={0}
+          onUploadClick={() => undefined}
+          onStart={() => undefined}
+          onPause={() => undefined}
+          onResume={() => undefined}
+        />
+
+        <CampaignCard
+          campaign={outboundCampaign}
+          progressPercent={progressPercent}
+          onUploadClick={() => setUploadOpen(true)}
+          onStart={startCampaign}
+          onPause={pauseCampaign}
+          onResume={resumeCampaign}
+        />
+      </div>
 
       <CallLogFiltersBar
         filters={filters}
@@ -106,6 +118,8 @@ export function OutboundPageContent() {
         open={uploadOpen}
         onOpenChange={setUploadOpen}
         onUpload={handleUpload}
+        title="Upload CSV — Outbound"
+        description="Upload a contact list to launch a general outbound calling campaign. CSV should include a phone number column."
       />
 
       <TranscriptDrawer

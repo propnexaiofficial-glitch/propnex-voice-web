@@ -3,13 +3,13 @@
 import { useCallback, useState } from "react";
 
 import {
-  initialCampaign,
   MOCK_CSV_CONTACT_COUNT,
+  outboundCampaignInitial,
 } from "@/features/outbound/data";
 import type { Campaign, UploadCsvState } from "@/features/outbound/types";
 
-export function useCampaign() {
-  const [campaign, setCampaign] = useState<Campaign>(initialCampaign);
+export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
+  const [campaign, setCampaign] = useState<Campaign>(initialState);
   const [upload, setUpload] = useState<UploadCsvState | null>(null);
 
   const handleUpload = useCallback((fileName: string) => {

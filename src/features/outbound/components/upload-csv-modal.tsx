@@ -18,12 +18,16 @@ type UploadCsvModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpload: (fileName: string) => void;
+  title?: string;
+  description?: string;
 };
 
 export function UploadCsvModal({
   open,
   onOpenChange,
   onUpload,
+  title = "Upload CSV",
+  description = "Upload a list of customer numbers to start an outbound calling campaign. CSV should include a phone number column.",
 }: UploadCsvModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -51,11 +55,8 @@ export function UploadCsvModal({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Upload CSV</DialogTitle>
-          <DialogDescription>
-            Upload a list of customer numbers to start an outbound calling
-            campaign. CSV should include a phone number column.
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
         <div

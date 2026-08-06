@@ -119,7 +119,9 @@ export function CampaignCard({
 
           {campaign.status === "idle" && (
             <p className="text-sm text-muted-foreground">
-              Upload a CSV contact list to prepare your outbound campaign.
+              {isComingSoon
+                ? "Bulk campaign uploads and automated lead reactivation are on the way."
+                : "Upload a CSV contact list to prepare your outbound campaign."}
             </p>
           )}
         </div>

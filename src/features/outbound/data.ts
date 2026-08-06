@@ -155,7 +155,7 @@ export const outboundCalls: CallRecord[] = [
   },
 ];
 
-export const initialCampaign: Campaign = {
+export const leadReactivationCampaign: Campaign = {
   id: "camp-001",
   name: "Lead Reactivation Q3",
   status: "idle",
@@ -165,6 +165,19 @@ export const initialCampaign: Campaign = {
   failedCalls: 0,
   comingSoon: true,
 };
+
+export const outboundCampaignInitial: Campaign = {
+  id: "camp-002",
+  name: "Outbound",
+  status: "idle",
+  totalContacts: 0,
+  completedCalls: 0,
+  successfulCalls: 0,
+  failedCalls: 0,
+};
+
+/** @deprecated Use leadReactivationCampaign */
+export const initialCampaign = leadReactivationCampaign;
 
 export const OUTBOUND_PAGE_SIZE = 8;
 
