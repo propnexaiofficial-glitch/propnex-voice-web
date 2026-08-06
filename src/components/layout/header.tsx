@@ -1,7 +1,6 @@
 "use client";
 
 import { CreditsWidget } from "@/components/common/credits-widget";
-import { PremiumBadge } from "@/components/common/premium-badge";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 import { NotificationButton } from "@/components/common/notification-button";
 import { SearchBar } from "@/components/common/search-bar";
@@ -46,7 +45,6 @@ export function DashboardHeader({
       </div>
 
       <div className="flex items-center gap-1 sm:gap-2">
-        <PremiumBadge label="Premium" size="sm" className="hidden md:inline-flex" />
         <ThemeToggle />
         <CreditsWidget variant="header" />
         <NotificationButton />

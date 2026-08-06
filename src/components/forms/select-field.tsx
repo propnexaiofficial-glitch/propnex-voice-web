@@ -26,7 +26,7 @@ export function SelectField({
       <select
         id={selectId}
         className={cn(
-          "flex h-10 w-full rounded-lg border border-input bg-background/60 px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:bg-white/5",
+          "flex h-10 w-full rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground transition-colors [color-scheme:dark] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           className
         )}
         {...props}

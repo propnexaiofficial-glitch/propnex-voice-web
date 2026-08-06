@@ -122,6 +122,15 @@
   body {
     @apply min-h-full bg-background text-foreground font-sans antialiased;
   }
+
+  select {
+    color-scheme: dark;
+  }
+
+  select option {
+    background-color: var(--card);
+    color: var(--foreground);
+  }
 }
 
 @layer utilities {
