@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { LogOut, Settings } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 import { Logo } from "@/components/common/logo";
 import { Button } from "@/components/ui/button";
@@ -86,14 +86,8 @@ export function Sidebar({ className }: SidebarProps) {
         <SidebarNav />
       </ScrollArea>
 
-      <div className="space-y-1 border-t border-border p-4">
-        <Button variant="ghost" className="justify-start gap-3 px-3" asChild>
-          <Link href="/dashboard/billing">
-            <Settings className="size-4" />
-            Settings
-          </Link>
-        </Button>
-        <Button variant="ghost" className="justify-start gap-3 px-3" asChild>
+      <div className="border-t border-border p-4">
+        <Button variant="ghost" className="w-full justify-start gap-3 px-3" asChild>
           <Link href="/auth/sign-in">
             <LogOut className="size-4" />
             Log out
