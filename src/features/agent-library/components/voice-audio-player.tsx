@@ -95,7 +95,7 @@ export function VoiceAudioPlayer({
         <button
           type="button"
           onClick={toggle}
-          className="flex size-9 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 transition-all hover:border-primary/40 hover:bg-primary/10 hover:shadow-[var(--glow-purple)]"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-muted/30 transition-colors hover:border-primary/30 hover:bg-primary/10"
           aria-label={isPlaying ? "Pause sample" : "Play sample"}
         >
           {isPlaying ? (
@@ -105,13 +105,16 @@ export function VoiceAudioPlayer({
           )}
         </button>
         <div className="min-w-0 flex-1 space-y-1.5">
-          <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+          <div className="h-1 overflow-hidden rounded-full bg-muted">
             <div
-              className={cn("h-full rounded-full transition-all duration-300", progressColors[accent])}
+              className={cn(
+                "h-full rounded-full transition-all duration-300",
+                progressColors[accent]
+              )}
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-          <p className="text-xs tabular-nums text-muted-foreground">
+          <p className="text-[11px] tabular-nums text-muted-foreground">
             {formatTime(progress)} / {formatTime(durationSeconds)}
           </p>
         </div>

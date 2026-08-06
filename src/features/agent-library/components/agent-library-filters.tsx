@@ -1,12 +1,20 @@
 "use client";
 
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search } from "lucide-react";
 
-import { SelectField } from "@/components/forms/select-field";
 import { Input } from "@/components/ui/input";
-import { tagFilterOptions } from "@/features/agent-library/data";
 import type { AgentLibraryFilters } from "@/features/agent-library/types";
 import { cn } from "@/lib/utils";
+
+const quickFilters = [
+  { value: "all", label: "All" },
+  { value: "Female", label: "Female" },
+  { value: "Male", label: "Male" },
+  { value: "Professional", label: "Professional" },
+  { value: "Outbound", label: "Outbound" },
+  { value: "Support", label: "Support" },
+  { value: "Sales", label: "Sales" },
+];
 
 type AgentLibraryFiltersBarProps = {
   filters: AgentLibraryFilters;
@@ -24,51 +32,46 @@ export function AgentLibraryFiltersBar({
   className,
 }: AgentLibraryFiltersBarProps) {
   return (
-    <div className={cn("glass-card rounded-2xl p-4", className)}>
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
-        <div className="flex-1 space-y-1.5">
-          <label
-            htmlFor="agent-search"
-            className="text-xs font-medium text-muted-foreground"
-          >
-            Search agents
-          </label>
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              id="agent-search"
-              placeholder="Search by name or description..."
-              value={filters.search}
-              onChange={(e) =>
-                onChange({ ...filters, search: e.target.value })
-              }
-              className="pl-10"
-            />
-          </div>
+    <div className={cn("glass-card space-y-4 rounded-2xl p-4", className)}>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            id="agent-search"
+            placeholder="Search by name, tone, or use case..."
+            value={filters.search}
+            onChange={(e) => onChange({ ...filters, search: e.target.value })}
+            className="pl-10"
+          />
         </div>
 
-        <div className="w-full lg:w-48">
-          <SelectField
-            label="Filter by tag"
-            value={filters.tag}
-            onChange={(e) =>
-              onChange({ ...filters, tag: e.target.value })
-            }
-          >
-            {tagFilterOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </SelectField>
-        </div>
+        <p className="shrink-0 text-sm text-muted-foreground lg:text-right">
+          <span className="font-medium text-foreground">{assignedCount}</span> assigned
+          <span className="mx-2 text-border">·</span>
+          <span className="font-medium text-foreground">{totalCount}</span> total
+        </p>
+      </div>
 
-        <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm">
-          <SlidersHorizontal className="size-4 text-primary" />
-          <span className="text-muted-foreground">
-            {assignedCount} assigned · {totalCount} total
-          </span>
-        </div>
+      <div className="flex flex-wrap gap-2">
+        {quickFilters.map((option) => {
+          const active = filters.tag === option.value;
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onChange({ ...filters, tag: option.value })}
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                active
+                  ? "border-primary/40 bg-primary/15 text-primary"
+                  : "border-border text-muted-foreground hover:border-primary/25 hover:text-foreground"
+              )}
+            >
+              {option.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
