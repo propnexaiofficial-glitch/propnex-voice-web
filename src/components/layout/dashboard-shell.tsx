@@ -21,7 +21,7 @@ function DashboardShellInner({
   return (
     <div className="flex min-h-screen bg-background page-mesh-bg">
       <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <DashboardHeader title={title} />
         <main
           className={cn(

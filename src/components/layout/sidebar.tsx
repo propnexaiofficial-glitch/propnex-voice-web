@@ -66,6 +66,24 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
   );
 }
 
+function SidebarLogout({ className }: { className?: string }) {
+  return (
+    <div className={cn("flex shrink-0 justify-end border-t border-border px-4 py-3", className)}>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 gap-1.5 px-2.5 text-xs text-muted-foreground hover:text-foreground"
+        asChild
+      >
+        <Link href="/auth/sign-in">
+          <LogOut className="size-3.5" />
+          Log out
+        </Link>
+      </Button>
+    </div>
+  );
+}
+
 type SidebarProps = {
   className?: string;
 };
@@ -74,26 +92,21 @@ export function Sidebar({ className }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "hidden h-full w-[var(--sidebar-width)] shrink-0 flex-col border-r border-border bg-sidebar-background lg:flex",
+        "sticky top-0 hidden h-screen w-[var(--sidebar-width)] shrink-0 flex-col border-r border-border bg-sidebar-background lg:flex",
         className
       )}
     >
-      <div className="flex h-[var(--header-height)] items-center border-b border-border px-5">
+      <div className="flex h-[var(--header-height)] shrink-0 items-center border-b border-border bg-sidebar-background px-5">
         <Logo />
       </div>
 
-      <ScrollArea className="flex-1 py-4">
+      <ScrollArea className="min-h-0 flex-1 py-4">
         <SidebarNav />
       </ScrollArea>
 
-      <div className="border-t border-border p-4">
-        <Button variant="ghost" className="w-full justify-start gap-3 px-3" asChild>
-          <Link href="/auth/sign-in">
-            <LogOut className="size-4" />
-            Log out
-          </Link>
-        </Button>
-      </div>
+      <SidebarLogout />
     </aside>
   );
 }
+
+export { SidebarLogout };
