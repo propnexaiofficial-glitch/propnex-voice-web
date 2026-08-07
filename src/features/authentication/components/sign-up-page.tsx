@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import axios from "axios";
 
 import { AuthField } from "@/features/authentication/components/auth-field";
 import { AuthShell } from "@/features/authentication/components/auth-shell";
@@ -10,10 +12,50 @@ import { AUTH_ROUTES } from "@/features/authentication/types";
 
 export function SignUpPageContent() {
   const router = useRouter();
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    router.push(AUTH_ROUTES.verifyEmail);
+    setError("");
+    setSubmitting(true);
+
+    const formData = new FormData(e.currentTarget);
+    const firstName = formData.get("firstName") as string;
+    const lastName = formData.get("lastName") as string;
+    const email = formData.get("email") as string;
+    const phone = formData.get("phone") as string;
+    const password = formData.get("password") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      setSubmitting(false);
+      return;
+    }
+
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+    try {
+      await axios.post(`${apiBase}/users/signup`, {
+        firstName,
+        lastName,
+        email,
+        phone,
+        password,
+        confirmPassword,
+      });
+
+      router.push(AUTH_ROUTES.signIn);
+    } catch (err: any) {
+      const responseData = err.response?.data;
+      const errorMsg = responseData?.message 
+        ? (Array.isArray(responseData.message) ? responseData.message.join(", ") : responseData.message)
+        : (err.message || "Registration failed");
+      setError(errorMsg);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -30,6 +72,7 @@ export function SignUpPageContent() {
             type="text"
             placeholder="First name"
             autoComplete="given-name"
+            disabled={submitting}
             required
           />
           <AuthField
@@ -38,6 +81,7 @@ export function SignUpPageContent() {
             type="text"
             placeholder="Last name"
             autoComplete="family-name"
+            disabled={submitting}
             required
           />
         </div>
@@ -47,6 +91,7 @@ export function SignUpPageContent() {
           type="email"
           placeholder="Email address"
           autoComplete="email"
+          disabled={submitting}
           required
         />
         <AuthField
@@ -55,6 +100,7 @@ export function SignUpPageContent() {
           type="tel"
           placeholder="Phone number"
           autoComplete="tel"
+          disabled={submitting}
           required
         />
         <AuthField
@@ -63,6 +109,7 @@ export function SignUpPageContent() {
           type="password"
           placeholder="Password"
           autoComplete="new-password"
+          disabled={submitting}
           required
         />
         <AuthField
@@ -71,17 +118,22 @@ export function SignUpPageContent() {
           type="password"
           placeholder="Confirm password"
           autoComplete="new-password"
+          disabled={submitting}
           required
         />
 
-        <button type="submit" className="auth-btn-primary mt-2">
-          Create Account
+        {error && (
+          <p className="text-center text-xs text-red-400">{error}</p>
+        )}
+
+        <button type="submit" disabled={submitting} className="auth-btn-primary mt-2 disabled:opacity-50">
+          {submitting ? "Creating Account..." : "Create Account"}
         </button>
       </form>
 
       <div className="mt-5 space-y-4 text-center">
         <p className="text-xs text-white/45">Or</p>
-        <AuthSocialButtons onGoogle={() => router.push(AUTH_ROUTES.verifyEmail)} />
+        <AuthSocialButtons onGoogle={() => router.push(AUTH_ROUTES.dashboard)} />
 
         <p className="text-xs text-white/55">
           Already have an account?{" "}

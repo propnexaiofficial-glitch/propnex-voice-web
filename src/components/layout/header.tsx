@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { CreditsWidget } from "@/components/common/credits-widget";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 import { NotificationButton } from "@/components/common/notification-button";
@@ -18,7 +19,21 @@ export function DashboardHeader({
   title = "Dashboard",
   className,
 }: DashboardHeaderProps) {
-  const firstName = mockUser.name.split(" ")[0];
+  const [firstName, setFirstName] = useState("");
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        if (user && user.firstName) {
+          setFirstName(user.firstName);
+          return;
+        }
+      } catch (e) {}
+    }
+    setFirstName(mockUser.name.split(" ")[0]);
+  }, []);
 
   return (
     <header

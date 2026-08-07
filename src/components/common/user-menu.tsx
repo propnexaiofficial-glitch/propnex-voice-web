@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { LogOut, Settings, User } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -30,6 +32,36 @@ type UserMenuProps = {
 };
 
 export function UserMenu({ className }: UserMenuProps) {
+  const router = useRouter();
+  const [userInfo, setUserInfo] = useState({ name: "", email: "" });
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        if (user && user.firstName && user.lastName) {
+          setUserInfo({
+            name: `${user.firstName} ${user.lastName}`,
+            email: user.email || "",
+          });
+          return;
+        }
+      } catch (e) {}
+    }
+    setUserInfo({
+      name: mockUser.name,
+      email: mockUser.email,
+    });
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+    router.push("/auth/sign-in");
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -39,7 +71,7 @@ export function UserMenu({ className }: UserMenuProps) {
         >
           <Avatar className="size-10">
             <AvatarFallback className="bg-muted text-foreground">
-              {getInitials(mockUser.name)}
+              {getInitials(userInfo.name || "User")}
             </AvatarFallback>
           </Avatar>
         </Button>
@@ -47,9 +79,9 @@ export function UserMenu({ className }: UserMenuProps) {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{mockUser.name}</p>
+            <p className="text-sm font-medium leading-none">{userInfo.name}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              {mockUser.email}
+              {userInfo.email}
             </p>
           </div>
         </DropdownMenuLabel>
@@ -67,11 +99,9 @@ export function UserMenu({ className }: UserMenuProps) {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/auth/sign-in">
-            <LogOut className="size-4" />
-            Log out
-          </Link>
+        <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-400 focus:text-red-400 focus:bg-red-500/10">
+          <LogOut className="size-4" />
+          Log out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
