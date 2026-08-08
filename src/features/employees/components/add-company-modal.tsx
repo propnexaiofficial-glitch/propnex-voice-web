@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, Plus } from "lucide-react";
+import { Building2, Plus, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +18,7 @@ import type { AddCompanyForm } from "@/features/employees/types";
 type AddCompanyModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (form: AddCompanyForm) => void;
+  onSubmit: (form: AddCompanyForm) => void | Promise<void>;
 };
 
 const emptyForm: AddCompanyForm = {
@@ -33,16 +33,32 @@ export function AddCompanyModal({
   onSubmit,
 }: AddCompanyModalProps) {
   const [form, setForm] = useState<AddCompanyForm>(emptyForm);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.name || !form.contactEmail) return;
-    onSubmit(form);
-    setForm(emptyForm);
-    onOpenChange(false);
+    setError("");
+    setSubmitting(true);
+    try {
+      await onSubmit(form);
+      setForm(emptyForm);
+      onOpenChange(false);
+    } catch (err: any) {
+      const msg = err.response?.data?.message;
+      setError(
+        Array.isArray(msg) ? msg.join(", ") : msg || "Failed to add sub-company"
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleClose = (next: boolean) => {
-    if (!next) setForm(emptyForm);
+    if (!next) {
+      setForm(emptyForm);
+      setError("");
+    }
     onOpenChange(next);
   };
 
@@ -75,43 +91,45 @@ export function AddCompanyModal({
                 id="co-name"
                 placeholder="e.g. Orchard Realty Group"
                 value={form.name}
+                disabled={submitting}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
             </div>
             <div className="space-y-1.5">
               <label htmlFor="co-email" className="text-xs font-medium text-muted-foreground">
-                Contact Email
+                Company Email
               </label>
               <Input
                 id="co-email"
                 type="email"
                 placeholder="admin@company.com"
                 value={form.contactEmail}
+                disabled={submitting}
                 onChange={(e) => setForm({ ...form, contactEmail: e.target.value })}
               />
             </div>
-            <div className="space-y-1.5">
-              <label htmlFor="co-phone" className="text-xs font-medium text-muted-foreground">
-                Contact Phone
-              </label>
-              <Input
-                id="co-phone"
-                placeholder="+65 9123 4567"
-                value={form.contactPhone}
-                onChange={(e) => setForm({ ...form, contactPhone: e.target.value })}
-              />
-            </div>
+
+            {error && (
+              <p className="text-center text-xs text-red-500">{error}</p>
+            )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => handleClose(false)}>
+            <Button variant="outline" onClick={() => handleClose(false)} disabled={submitting}>
               Cancel
             </Button>
             <Button
-              disabled={!form.name || !form.contactEmail}
+              disabled={!form.name || !form.contactEmail || submitting}
               onClick={handleSubmit}
             >
-              Add Company
+              {submitting ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Add Company"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

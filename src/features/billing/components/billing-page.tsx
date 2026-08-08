@@ -42,7 +42,7 @@ export function BillingPageContent() {
         </div>
       </div>
 
-      <AssignedChannelsPanel channels={assignedChannels} />
+      {/* <AssignedChannelsPanel channels={assignedChannels} /> */}
 
       <BillingHistoryTable items={billingHistory} />
     </div>

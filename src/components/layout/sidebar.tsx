@@ -68,11 +68,11 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
 
 function SidebarLogout({ className }: { className?: string }) {
   return (
-    <div className={cn("flex shrink-0 justify-end border-t border-border px-4 py-3", className)}>
+    <div className={cn("flex shrink-0 justify-center items-center border-t border-border px-4 py-3", className)}>
       <Button
         variant="ghost"
         size="sm"
-        className="h-8 gap-1.5 px-2.5 text-xs text-muted-foreground hover:text-foreground"
+        className="h-8 gap-1.5 px-2.5 text-md text-muted-foreground hover:text-foreground"
         asChild
       >
         <Link href="/auth/sign-in">

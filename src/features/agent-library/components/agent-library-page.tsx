@@ -54,8 +54,8 @@ export function AgentLibraryPageContent() {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <LibraryStat label="Total voices" value={totalCount} icon={Headphones} />
-        <LibraryStat label="Assigned" value={assignedCount} icon={CheckCircle2} />
-        <LibraryStat label="Available" value={availableCount} icon={Mic2} />
+        {/* <LibraryStat label="Assigned" value={assignedCount} icon={CheckCircle2} />
+        <LibraryStat label="Available" value={availableCount} icon={Mic2} /> */}
       </div>
 
       <p className="text-sm text-muted-foreground">

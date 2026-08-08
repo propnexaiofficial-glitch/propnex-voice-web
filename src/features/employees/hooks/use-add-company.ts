@@ -9,8 +9,8 @@ export function useAddCompanyAndNavigate() {
   const router = useRouter();
   const { addCompany } = useEmployeesContext();
 
-  return (form: AddCompanyForm) => {
-    const company = addCompany(form);
+  return async (form: AddCompanyForm) => {
+    const company = await addCompany(form);
     router.push(`/dashboard/employees/${company.id}/overview`);
   };
 }

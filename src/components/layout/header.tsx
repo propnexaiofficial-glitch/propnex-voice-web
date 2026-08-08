@@ -30,7 +30,7 @@ export function DashboardHeader({
           setFirstName(user.firstName);
           return;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     setFirstName(mockUser.name.split(" ")[0]);
   }, []);
@@ -49,20 +49,20 @@ export function DashboardHeader({
           <h1 className="truncate text-lg font-semibold tracking-tight sm:text-xl">
             {title}
           </h1>
-          <p className="hidden text-sm text-muted-foreground sm:block">
+          {/* <p className="hidden text-sm text-muted-foreground sm:block">
             Welcome back, {firstName}! 👋
-          </p>
+          </p> */}
         </div>
       </div>
 
-      <div className="hidden flex-1 justify-center lg:flex">
+      {/* <div className="hidden flex-1 justify-center lg:flex">
         <SearchBar />
-      </div>
+      </div> */}
 
       <div className="flex items-center gap-1 sm:gap-2">
         <ThemeToggle />
         <CreditsWidget variant="header" />
-        <NotificationButton />
+        {/* <NotificationButton /> */}
         <UserMenu />
       </div>
     </header>

@@ -121,7 +121,7 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
           />
         </div>
 
-        <Button
+        {/* <Button
           type="button"
           variant={agent.assigned ? "outline" : "default"}
           className={cn(
@@ -142,7 +142,7 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
               Assign to campaign
             </>
           )}
-        </Button>
+        </Button> */}
       </div>
     </motion.article>
   );
