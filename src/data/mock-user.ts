@@ -6,3 +6,4 @@ export const mockUser = {
   credits: 12450,
   creditsUsagePercent: 78,
 };
+
