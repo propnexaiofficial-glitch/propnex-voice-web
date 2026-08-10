@@ -2,55 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-import {
-  fetchInboundCalls,
-  type CallListApiResponse,
-  type InboundCallApiItem,
-} from "@/lib/api-client";
 import type { CallLogFilters } from "@/types/call";
-import { type CallRecord, type CallStatus } from "@/types/call";
-
-// ─── API → CallRecord mapper ──────────────────────────────────────────────────
-
-const STATUS_MAP: Record<string, CallStatus> = {
-  COMPLETED: "completed",
-  ANSWERED: "completed",
-  MISSED: "missed",
-  VOICEMAIL: "missed",
-  NO_ANSWER: "missed",
-  FAILED: "failed",
-  BUSY: "failed",
-  CANCELLED: "failed",
-  PENDING: "failed",
-  QUEUED: "failed",
-  DISPATCHING: "failed",
-  QUEUED_AT_PROVIDER: "failed",
-  RINGING: "failed",
-};
-
-function formatDuration(seconds: number): string {
-  if (!seconds || seconds <= 0) return "0m 0s";
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}m ${s}s`;
-}
-
-function mapApiItemToCallRecord(item: InboundCallApiItem): CallRecord {
-  return {
-    id: item.id,
-    callId: item.publicId,
-    callerId: item.providerCallId ?? undefined,
-    customerNumber: item.providerCallId ?? "Unknown",
-    assignedNumber: item.phoneNumberId ?? item.companyId ?? "N/A",
-    callDateTime: item.startedAt,
-    duration: formatDuration(item.durationSeconds),
-    durationSeconds: item.durationSeconds,
-    status: STATUS_MAP[item.status?.toUpperCase()] ?? "failed",
-    creditsUsed: Math.max(1, Math.round(item.durationSeconds / 12)),
-    recordingUrl: item.recordingUrl ?? undefined,
-    transcript: [],
-  };
-}
+import { type CallRecord } from "@/types/call";
+import type { CallListApiResponse } from "@/lib/api-client";
+import { fetchInboundCalls } from "@/lib/api-client";
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
@@ -63,6 +18,28 @@ type UseInboundCallsApiState = {
 };
 
 const PAGE_SIZE = 8;
+
+function formatDuration(seconds: number): string {
+  if (!seconds) return "0s";
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return m > 0 ? `${m}m ${s}s` : `${s}s`;
+}
+
+function mapApiItemToCallRecord(item: any): CallRecord {
+  return {
+    id: item.id || item.publicId,
+    customerNumber: item.customerNumber || item.phoneNumber || "Unknown",
+    assignedNumber: item.assignedNumber || "Unknown",
+    callDateTime: item.startedAt || new Date().toISOString(),
+    duration: formatDuration(item.durationSeconds || 0),
+    durationSeconds: item.durationSeconds || 0,
+    status: item.status?.toLowerCase() === "completed" ? "completed" : 
+            item.status?.toLowerCase() === "failed" ? "failed" : "missed",
+    creditsUsed: item.creditsUsed || 0,
+    transcript: [],
+  };
+}
 
 export function useInboundCallsApi(
   filters: CallLogFilters,
@@ -90,23 +67,13 @@ export function useInboundCallsApi(
           status: status !== "all" ? status : undefined,
           page,
           limit: PAGE_SIZE,
+          search: search.trim() || undefined,
         });
 
         if (isCancelled) return;
 
-        // Client-side search filter (server doesn't support free-text search yet)
         let items = res.data;
-        if (search.trim()) {
-          const q = search.toLowerCase();
-          items = items.filter(
-            (item) =>
-              item.publicId.toLowerCase().includes(q) ||
-              (item.providerCallId ?? "").toLowerCase().includes(q) ||
-              (item.phoneNumberId ?? "").toLowerCase().includes(q)
-          );
-        }
 
-        // Client-side date range filter
         if (dateFrom || dateTo) {
           items = items.filter((item) => {
             const d = item.startedAt.slice(0, 10);
