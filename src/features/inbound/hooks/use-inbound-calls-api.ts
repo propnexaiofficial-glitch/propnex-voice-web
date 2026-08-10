@@ -67,12 +67,22 @@ export function useInboundCallsApi(
           status: status !== "all" ? status : undefined,
           page,
           limit: PAGE_SIZE,
-          search: search.trim() || undefined,
         });
 
         if (isCancelled) return;
 
         let items = res.data;
+
+        // Client-side search filter (server doesn't support free-text search yet)
+        if (search.trim()) {
+          const q = search.toLowerCase();
+          items = items.filter(
+            (item) =>
+              item.publicId?.toLowerCase().includes(q) ||
+              (item.providerCallId ?? "").toLowerCase().includes(q) ||
+              (item.phoneNumberId ?? "").toLowerCase().includes(q)
+          );
+        }
 
         if (dateFrom || dateTo) {
           items = items.filter((item) => {
