@@ -37,6 +37,8 @@ function mapApiItemToCallRecord(item: any): CallRecord {
     status: item.status?.toLowerCase() === "completed" ? "completed" : 
             item.status?.toLowerCase() === "failed" ? "failed" : "missed",
     creditsUsed: item.creditsUsed || 0,
+    recordingUrl: item.recordingUrl || undefined,
+    transcriptUrl: item.transcriptUrl || undefined,
     transcript: [],
   };
 }
