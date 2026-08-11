@@ -19,6 +19,7 @@ function DashboardShellInner({
 }: DashboardShellProps) {
   const title = usePageTitle();
   const [isWaiting, setIsWaiting] = useState(false);
+  const [isRejected, setIsRejected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -26,8 +27,9 @@ function DashboardShellInner({
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
         const user = JSON.parse(storedUser);
-        // If the user lacks a company ID or contract ID, they must wait
-        if (!user.companyId && !user.contractId) {
+        if (user.approvalStatus === "REJECTED") {
+          setIsRejected(true);
+        } else if (!user.companyId && !user.contractId) {
           setIsWaiting(true);
         }
       }
@@ -39,7 +41,7 @@ function DashboardShellInner({
   }, []);
 
   useEffect(() => {
-    if (!isWaiting) return;
+    if (!isWaiting && !isRejected) return;
 
     const interval = setInterval(async () => {
       try {
@@ -53,9 +55,18 @@ function DashboardShellInner({
         
         if (response.ok) {
           const data = await response.json();
-          if (data.user && (data.user.companyId || data.user.contractId)) {
+          if (data.user) {
             localStorage.setItem("user", JSON.stringify(data.user));
-            setIsWaiting(false);
+            if (data.user.approvalStatus === "REJECTED") {
+              setIsRejected(true);
+              setIsWaiting(false);
+            } else if (data.user.companyId || data.user.contractId) {
+              setIsWaiting(false);
+              setIsRejected(false);
+            } else {
+              setIsWaiting(true);
+              setIsRejected(false);
+            }
           }
         }
       } catch (err) {
@@ -64,10 +75,48 @@ function DashboardShellInner({
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [isWaiting]);
+  }, [isWaiting, isRejected]);
 
   if (isLoading) {
     return <div className="flex min-h-screen items-center justify-center bg-background"><div className="animate-spin h-8 w-8 rounded-full border-4 border-fuchsia-500 border-r-transparent" /></div>;
+  }
+
+  if (isRejected) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 page-mesh-bg">
+        <div className="mx-auto flex max-w-[400px] flex-col items-center justify-center space-y-6 text-center bg-zinc-900/50 backdrop-blur-md p-8 rounded-2xl border border-white/10">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10">
+            <svg
+              className="h-8 w-8 text-red-500"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              viewBox="0 0 24 24"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold tracking-tight text-white">
+              Request Declined
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Sorry, your account request was not accepted. Thank you for your interest.
+            </p>
+          </div>
+          <button onClick={() => {
+            localStorage.removeItem("user");
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("access_token");
+            window.location.href = "/auth/sign-in";
+          }} className="text-sm text-fuchsia-400 hover:text-fuchsia-300">
+            Sign out
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (isWaiting) {
