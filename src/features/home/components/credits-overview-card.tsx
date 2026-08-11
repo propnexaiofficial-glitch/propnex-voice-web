@@ -12,10 +12,10 @@ type CreditsOverviewCardProps = {
 };
 
 export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
-  const [balance, setBalance] = useState(creditsOverview.balance);
-  const [usedThisMonth, setUsedThisMonth] = useState(creditsOverview.usedThisMonth);
-  const [monthlyLimit, setMonthlyLimit] = useState(creditsOverview.monthlyLimit);
-  const [usagePercent, setUsagePercent] = useState(creditsOverview.usagePercent);
+  const [balance, setBalance] = useState(0);
+  const [usedThisMonth, setUsedThisMonth] = useState(0);
+  const [monthlyLimit, setMonthlyLimit] = useState(10000);
+  const [usagePercent, setUsagePercent] = useState(0);
 
   useEffect(() => {
     const fetchCredits = async () => {
