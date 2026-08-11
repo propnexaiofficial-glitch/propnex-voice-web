@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { Coins, Plus } from "lucide-react";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { mockUser } from "@/data/mock-user";
 import { cn } from "@/lib/utils";
 
 type CreditsWidgetProps = {
@@ -17,7 +17,33 @@ export function CreditsWidget({
   variant = "header",
   className,
 }: CreditsWidgetProps) {
-  const formattedCredits = mockUser.credits.toLocaleString();
+  const [balance, setBalance] = useState(0);
+  const [usagePercent, setUsagePercent] = useState(0);
+
+  useEffect(() => {
+    const fetchCredits = () => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          if (user.creditBalance) {
+            const rem = user.creditBalance.creditsRemaining || 0;
+            const used = user.creditBalance.creditsUsed || 0;
+            setBalance(rem);
+            const limit = 10000;
+            setUsagePercent(Math.min(100, Math.round((used / limit) * 100)));
+          }
+        }
+      } catch (e) {}
+    };
+
+    fetchCredits();
+    // Re-check periodically in case CreditsOverviewCard updates localStorage
+    const interval = setInterval(fetchCredits, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formattedCredits = balance.toLocaleString();
 
   if (variant === "sidebar") {
     return (
@@ -32,13 +58,13 @@ export function CreditsWidget({
             Daily AI Usage
           </span>
           <span className="text-xs font-semibold text-foreground">
-            {mockUser.creditsUsagePercent}%
+            {usagePercent}%
           </span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-muted">
           <motion.div
             initial={{ width: 0 }}
-            animate={{ width: `${mockUser.creditsUsagePercent}%` }}
+            animate={{ width: `${usagePercent}%` }}
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="h-full rounded-full bg-foreground"
           />
