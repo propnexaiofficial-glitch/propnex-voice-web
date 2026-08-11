@@ -96,36 +96,6 @@ export const quickActions: QuickAction[] = [
   },
 ];
 
-export const recentActivity: RecentActivityItem[] = [
-  {
-    id: "1",
-    title: "Inbound call completed",
-    description: "+65 9123 4567 · 4m 32s · 12 credits",
-    timestamp: "2m ago",
-    type: "inbound",
-  },
-  {
-    id: "2",
-    title: "Outbound campaign started",
-    description: "Lead Reactivation · 150 contacts queued",
-    timestamp: "18m ago",
-    type: "outbound",
-  },
-  {
-    id: "3",
-    title: "Voice agent assigned",
-    description: "Sarah · Professional · English (US)",
-    timestamp: "1h ago",
-    type: "agent",
-  },
-  {
-    id: "4",
-    title: "Credits topped up",
-    description: "+5,000 credits added to balance",
-    timestamp: "3h ago",
-    type: "billing",
-  },
-];
 
 export const creditsOverview = {
   balance: 12450,

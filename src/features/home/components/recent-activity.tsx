@@ -8,14 +8,12 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-import { recentActivity } from "@/features/home/data";
 import type { RecentActivityItem } from "@/features/home/types";
 import { cn } from "@/lib/utils";
 
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
-import { recentActivity as fallbackActivity } from "@/features/home/data";
 
 const typeConfig: Record<
   RecentActivityItem["type"],
