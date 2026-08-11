@@ -11,7 +11,7 @@ export const outboundCalls: CallRecord[] = [
     duration: "3m 20s",
     durationSeconds: 200,
     status: "completed",
-    creditsUsed: 10,
+    creditsUsed: 12.25,
     transcript: [
       { speaker: "agent", text: "Hello, this is PropNex AI calling about your property inquiry.", timestamp: "0:00" },
       { speaker: "customer", text: "Yes, I'm still interested in the listing.", timestamp: "0:08" },
@@ -25,7 +25,7 @@ export const outboundCalls: CallRecord[] = [
     duration: "1m 45s",
     durationSeconds: 105,
     status: "completed",
-    creditsUsed: 6,
+    creditsUsed: 7,
     transcript: [
       { speaker: "agent", text: "Hi, following up on your viewing request.", timestamp: "0:00" },
     ],
@@ -38,7 +38,7 @@ export const outboundCalls: CallRecord[] = [
     duration: "0m 00s",
     durationSeconds: 0,
     status: "missed",
-    creditsUsed: 2,
+    creditsUsed: 0,
     transcript: [],
   },
   {
@@ -49,7 +49,7 @@ export const outboundCalls: CallRecord[] = [
     duration: "5m 12s",
     durationSeconds: 312,
     status: "completed",
-    creditsUsed: 16,
+    creditsUsed: 19.25,
     transcript: [
       { speaker: "customer", text: "Tell me more about the financing options.", timestamp: "0:00" },
       { speaker: "agent", text: "I'd be happy to explain our partner bank rates.", timestamp: "0:06" },
@@ -63,7 +63,7 @@ export const outboundCalls: CallRecord[] = [
     duration: "2m 05s",
     durationSeconds: 125,
     status: "failed",
-    creditsUsed: 5,
+    creditsUsed: 8.75,
     transcript: [],
   },
   {
@@ -74,7 +74,7 @@ export const outboundCalls: CallRecord[] = [
     duration: "4m 38s",
     durationSeconds: 278,
     status: "completed",
-    creditsUsed: 14,
+    creditsUsed: 17.5,
     transcript: [
       { speaker: "agent", text: "Calling to re-engage on your property search.", timestamp: "0:00" },
     ],
@@ -87,7 +87,7 @@ export const outboundCalls: CallRecord[] = [
     duration: "3m 55s",
     durationSeconds: 235,
     status: "completed",
-    creditsUsed: 12,
+    creditsUsed: 14,
     transcript: [
       { speaker: "customer", text: "Can we schedule a call with an agent?", timestamp: "0:00" },
     ],
@@ -100,7 +100,7 @@ export const outboundCalls: CallRecord[] = [
     duration: "0m 35s",
     durationSeconds: 35,
     status: "missed",
-    creditsUsed: 1,
+    creditsUsed: 3.5,
     transcript: [],
   },
   {
@@ -111,7 +111,7 @@ export const outboundCalls: CallRecord[] = [
     duration: "6m 22s",
     durationSeconds: 382,
     status: "completed",
-    creditsUsed: 19,
+    creditsUsed: 22.75,
     transcript: [
       { speaker: "agent", text: "Lead reactivation call for dormant inquiry.", timestamp: "0:00" },
     ],
@@ -124,7 +124,7 @@ export const outboundCalls: CallRecord[] = [
     duration: "2m 48s",
     durationSeconds: 168,
     status: "completed",
-    creditsUsed: 9,
+    creditsUsed: 10.5,
     transcript: [
       { speaker: "customer", text: "What's the price for the Tampines unit?", timestamp: "0:00" },
     ],
@@ -137,7 +137,7 @@ export const outboundCalls: CallRecord[] = [
     duration: "1m 30s",
     durationSeconds: 90,
     status: "failed",
-    creditsUsed: 4,
+    creditsUsed: 5.25,
     transcript: [],
   },
   {
@@ -148,7 +148,7 @@ export const outboundCalls: CallRecord[] = [
     duration: "4m 05s",
     durationSeconds: 245,
     status: "completed",
-    creditsUsed: 13,
+    creditsUsed: 15.75,
     transcript: [
       { speaker: "agent", text: "Outbound follow-up on your condo viewing.", timestamp: "0:00" },
     ],

@@ -9,7 +9,7 @@ export const inboundCalls: CallRecord[] = [
     duration: "4m 32s",
     durationSeconds: 272,
     status: "completed",
-    creditsUsed: 12,
+    creditsUsed: 17.5,
     transcript: [
       { speaker: "agent", text: "Hello, thank you for calling PropNex. How can I help you today?", timestamp: "0:00" },
       { speaker: "customer", text: "Hi, I'm interested in a 3-bedroom condo near Orchard.", timestamp: "0:08" },
@@ -24,7 +24,7 @@ export const inboundCalls: CallRecord[] = [
     duration: "2m 18s",
     durationSeconds: 138,
     status: "completed",
-    creditsUsed: 8,
+    creditsUsed: 8.75,
     transcript: [
       { speaker: "agent", text: "Good afternoon, PropNex AI assistant speaking.", timestamp: "0:00" },
       { speaker: "customer", text: "Can you schedule a viewing for this weekend?", timestamp: "0:06" },
@@ -38,7 +38,7 @@ export const inboundCalls: CallRecord[] = [
     duration: "0m 45s",
     durationSeconds: 45,
     status: "missed",
-    creditsUsed: 2,
+    creditsUsed: 3.5,
     transcript: [],
   },
   {
@@ -49,7 +49,7 @@ export const inboundCalls: CallRecord[] = [
     duration: "6m 05s",
     durationSeconds: 365,
     status: "completed",
-    creditsUsed: 18,
+    creditsUsed: 22.75,
     transcript: [
       { speaker: "agent", text: "Welcome to PropNex. How may I assist you?", timestamp: "0:00" },
       { speaker: "customer", text: "I need information about financing options.", timestamp: "0:10" },
@@ -64,7 +64,7 @@ export const inboundCalls: CallRecord[] = [
     duration: "1m 12s",
     durationSeconds: 72,
     status: "failed",
-    creditsUsed: 4,
+    creditsUsed: 5.25,
     transcript: [
       { speaker: "agent", text: "Hello, this is PropNex AI.", timestamp: "0:00" },
     ],
@@ -77,7 +77,7 @@ export const inboundCalls: CallRecord[] = [
     duration: "3m 48s",
     durationSeconds: 228,
     status: "completed",
-    creditsUsed: 11,
+    creditsUsed: 14,
     transcript: [
       { speaker: "customer", text: "Is the Marina Bay unit still available?", timestamp: "0:00" },
       { speaker: "agent", text: "Let me check that for you right away.", timestamp: "0:07" },
@@ -91,7 +91,7 @@ export const inboundCalls: CallRecord[] = [
     duration: "5m 22s",
     durationSeconds: 322,
     status: "completed",
-    creditsUsed: 15,
+    creditsUsed: 19.25,
     transcript: [
       { speaker: "agent", text: "Thank you for calling PropNex.", timestamp: "0:00" },
       { speaker: "customer", text: "I'd like to list my property for sale.", timestamp: "0:05" },
@@ -105,7 +105,7 @@ export const inboundCalls: CallRecord[] = [
     duration: "0m 30s",
     durationSeconds: 30,
     status: "missed",
-    creditsUsed: 1,
+    creditsUsed: 1.75,
     transcript: [],
   },
   {
@@ -116,7 +116,7 @@ export const inboundCalls: CallRecord[] = [
     duration: "7m 15s",
     durationSeconds: 435,
     status: "completed",
-    creditsUsed: 22,
+    creditsUsed: 26.25,
     transcript: [
       { speaker: "agent", text: "Hello, PropNex AI assistant.", timestamp: "0:00" },
       { speaker: "customer", text: "What are the latest HDB resale prices in Tampines?", timestamp: "0:08" },
@@ -130,7 +130,7 @@ export const inboundCalls: CallRecord[] = [
     duration: "2m 55s",
     durationSeconds: 175,
     status: "completed",
-    creditsUsed: 9,
+    creditsUsed: 10.5,
     transcript: [
       { speaker: "customer", text: "Can I speak to a human agent?", timestamp: "0:00" },
       { speaker: "agent", text: "I'll transfer you to our sales team now.", timestamp: "0:04" },
@@ -144,7 +144,7 @@ export const inboundCalls: CallRecord[] = [
     duration: "1m 40s",
     durationSeconds: 100,
     status: "failed",
-    creditsUsed: 5,
+    creditsUsed: 7,
     transcript: [],
   },
   {
@@ -155,7 +155,7 @@ export const inboundCalls: CallRecord[] = [
     duration: "4m 10s",
     durationSeconds: 250,
     status: "completed",
-    creditsUsed: 13,
+    creditsUsed: 15.75,
     transcript: [
       { speaker: "agent", text: "PropNex AI, how can I help?", timestamp: "0:00" },
       { speaker: "customer", text: "Looking for rental properties under $3000.", timestamp: "0:06" },
@@ -169,7 +169,7 @@ export const inboundCalls: CallRecord[] = [
     duration: "3m 02s",
     durationSeconds: 182,
     status: "completed",
-    creditsUsed: 10,
+    creditsUsed: 12.25,
     transcript: [
       { speaker: "customer", text: "Do you have virtual tour options?", timestamp: "0:00" },
       { speaker: "agent", text: "Yes, we offer 360° virtual tours for most listings.", timestamp: "0:05" },
@@ -183,7 +183,7 @@ export const inboundCalls: CallRecord[] = [
     duration: "0m 55s",
     durationSeconds: 55,
     status: "missed",
-    creditsUsed: 2,
+    creditsUsed: 3.5,
     transcript: [],
   },
   {
@@ -194,12 +194,52 @@ export const inboundCalls: CallRecord[] = [
     duration: "8m 48s",
     durationSeconds: 528,
     status: "completed",
-    creditsUsed: 25,
+    creditsUsed: 31.5,
     transcript: [
       { speaker: "agent", text: "Good morning, PropNex AI assistant.", timestamp: "0:00" },
       { speaker: "customer", text: "I want to compare commercial spaces in CBD.", timestamp: "0:07" },
       { speaker: "agent", text: "I have several options. Let me walk you through them.", timestamp: "0:18" },
     ],
+  },
+  {
+    id: "in-016",
+    customerNumber: "+65 8123 4567",
+    assignedNumber: "+65 6789 0101",
+    callDateTime: "2026-08-01T09:15:00",
+    duration: "1m 45s",
+    durationSeconds: 105,
+    status: "completed",
+    creditsUsed: 7,
+    transcript: [
+      { speaker: "agent", text: "Welcome to PropNex. Are you looking to buy or rent?", timestamp: "0:00" },
+      { speaker: "customer", text: "I'm looking to buy a condo in the East.", timestamp: "0:08" },
+      { speaker: "agent", text: "Great, we have several new launches in that area.", timestamp: "0:14" },
+    ],
+  },
+  {
+    id: "in-017",
+    customerNumber: "+65 9234 5678",
+    assignedNumber: "+65 6789 0102",
+    callDateTime: "2026-07-31T14:40:00",
+    duration: "5m 12s",
+    durationSeconds: 312,
+    status: "completed",
+    creditsUsed: 19.25,
+    transcript: [
+      { speaker: "customer", text: "Hi, I need help with my property valuation.", timestamp: "0:00" },
+      { speaker: "agent", text: "Certainly, I can connect you with our valuation experts.", timestamp: "0:05" },
+    ],
+  },
+  {
+    id: "in-018",
+    customerNumber: "+65 8345 6789",
+    assignedNumber: "+65 6789 0103",
+    callDateTime: "2026-07-31T11:20:00",
+    duration: "0m 15s",
+    durationSeconds: 15,
+    status: "missed",
+    creditsUsed: 1.75,
+    transcript: [],
   },
 ];
 
