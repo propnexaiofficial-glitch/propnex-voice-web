@@ -118,10 +118,6 @@ export function SignInPageContent() {
           Forget Password?
         </Link>
 
-        <p className="text-xs text-white/45">Or</p>
-
-        <AuthSocialButtons onGoogle={() => router.push(AUTH_ROUTES.dashboard)} />
-
         <p className="text-xs text-white/55">
           New here?{" "}
           <Link href={AUTH_ROUTES.signUp} className="text-fuchsia-300 hover:text-fuchsia-200">

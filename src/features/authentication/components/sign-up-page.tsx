@@ -178,9 +178,6 @@ export function SignUpPageContent() {
       </form>
 
       <div className="mt-5 space-y-4 text-center">
-        <p className="text-xs text-white/45">Or</p>
-        <AuthSocialButtons onGoogle={() => router.push(AUTH_ROUTES.dashboard)} />
-
         <p className="text-xs text-white/55">
           Already have an account?{" "}
           <Link href={AUTH_ROUTES.signIn} className="text-fuchsia-300 hover:text-fuchsia-200">
