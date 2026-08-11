@@ -49,11 +49,11 @@ export function RecentActivity({ className }: RecentActivityProps) {
         if (response.data && response.data.length > 0) {
           setData(response.data);
         } else {
-          setData(fallbackActivity); // fallback if empty
+          setData([]); 
         }
       } catch (err) {
         console.error("Failed to fetch recent activity", err);
-        setData(fallbackActivity); // Use dummy data on failure so UI isn't broken
+        setData([]); 
       } finally {
         setLoading(false);
       }
@@ -82,6 +82,13 @@ export function RecentActivity({ className }: RecentActivityProps) {
         {loading && data.length === 0 ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <Loader2 className="size-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : data.length === 0 ? (
+          <div className="flex min-h-[200px] flex-col items-center justify-center space-y-2 p-8 text-center text-sm text-muted-foreground">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+              <PhoneIncoming className="h-5 w-5 text-muted-foreground/50" />
+            </div>
+            <p>No recent activity yet.</p>
           </div>
         ) : (
           data.map((item, index) => {
