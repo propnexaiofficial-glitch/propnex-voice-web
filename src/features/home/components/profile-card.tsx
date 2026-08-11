@@ -2,13 +2,14 @@
 
 import { Building2, Mail, Phone, User } from "lucide-react";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { mockUser } from "@/data/mock-user";
 import { cn } from "@/lib/utils";
 
 function getInitials(name: string) {
+  if (!name) return "U";
   return name
     .split(" ")
     .map((part) => part[0])
@@ -17,17 +18,40 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
-const profileFields = [
-  { label: "Email", value: mockUser.email, icon: Mail },
-  { label: "Phone", value: mockUser.phone, icon: Phone },
-  { label: "Company", value: mockUser.company, icon: Building2 },
-];
-
 type ProfileCardProps = {
   className?: string;
 };
 
 export function ProfileCard({ className }: ProfileCardProps) {
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUser = () => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (e) {}
+    };
+
+    fetchUser();
+    // Optional: listen to custom events if user data changes, but polling or just initial load is usually fine here
+    const interval = setInterval(fetchUser, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fullName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : "Loading...";
+  const email = user?.email || "loading...";
+  const phone = user?.phone || "loading...";
+  const company = user?.companyId ? "PropNex AI Technology" : "No Company"; // We don't have the company name in the JWT payload easily, so placeholder for now
+
+  const profileFields = [
+    { label: "Email", value: email, icon: Mail },
+    { label: "Phone", value: phone, icon: Phone },
+    { label: "Company", value: company, icon: Building2 },
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -40,7 +64,7 @@ export function ProfileCard({ className }: ProfileCardProps) {
           <div className="absolute -inset-1 rounded-full bg-muted blur-md" />
           <Avatar className="relative size-20 border-2 border-border">
             <AvatarFallback className="bg-muted text-lg text-foreground">
-              {getInitials(mockUser.name)}
+              {getInitials(fullName)}
             </AvatarFallback>
           </Avatar>
         </div>
@@ -49,12 +73,12 @@ export function ProfileCard({ className }: ProfileCardProps) {
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-xl font-bold tracking-tight">
-                {mockUser.name}
+                {fullName}
               </h2>
               <Badge variant="success">Active</Badge>
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              Account owner · PropNex AI Technology
+              Account owner · {company}
             </p>
           </div>
 
