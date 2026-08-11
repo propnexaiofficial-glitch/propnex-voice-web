@@ -53,6 +53,25 @@ export function TranscriptDrawer({
             <span className="text-muted-foreground">{call.creditsUsed} credits</span>
           </div>
           <Separator />
+          {(call.recordingUrl || call.transcriptUrl) && (
+            <div className="flex flex-col gap-3 py-2">
+              {call.recordingUrl && (
+                <audio controls className="h-10 w-full" src={call.recordingUrl} />
+              )}
+              {call.transcriptUrl && (
+                <a 
+                  href={call.transcriptUrl} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="inline-flex w-fit items-center gap-2 text-sm font-medium text-primary hover:underline"
+                >
+                  <FileText className="size-4" /> 
+                  Open Full Transcript Document
+                </a>
+              )}
+              <Separator />
+            </div>
+          )}
         </div>
 
         <ScrollArea className="flex-1 px-6 pb-6">

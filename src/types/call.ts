@@ -20,6 +20,7 @@ export type CallRecord = {
   status: CallStatus;
   creditsUsed: number;
   recordingUrl?: string;
+  transcriptUrl?: string;
   transcript: TranscriptLine[];
 };
 
