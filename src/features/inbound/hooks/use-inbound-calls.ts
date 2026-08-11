@@ -39,12 +39,7 @@ export function useInboundCalls() {
   const [page, setPage] = useState(1);
 
   const filteredCalls = useMemo(() => {
-    return inboundCalls.filter(
-      (call) =>
-        matchesSearch(call, filters.search) &&
-        matchesStatus(call, filters.status) &&
-        matchesDateRange(call, filters.dateFrom, filters.dateTo)
-    );
+    return []; // Return empty array to disable mock data
   }, [filters]);
 
   const totalPages = Math.max(

@@ -35,12 +35,7 @@ export function useOutboundCalls() {
   const [page, setPage] = useState(1);
 
   const filteredCalls = useMemo(() => {
-    return outboundCalls.filter(
-      (call) =>
-        matchesSearch(call, filters.search) &&
-        matchesStatus(call, filters.status) &&
-        matchesDateRange(call, filters.dateFrom, filters.dateTo)
-    );
+    return []; // Return empty array to disable mock data
   }, [filters]);
 
   const totalPages = Math.max(1, Math.ceil(filteredCalls.length / OUTBOUND_PAGE_SIZE));
