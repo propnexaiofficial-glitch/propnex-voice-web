@@ -73,21 +73,3 @@ export function DashboardSummary({ className }: DashboardSummaryProps) {
   );
 }
 
-  return (
-    <section className={cn("space-y-4", className)}>
-      <div>
-        <h2 className="text-lg font-semibold tracking-tight">
-          Dashboard Summary
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Voice AI performance overview for your account
-        </p>
-      </div>
-      <div className={cn("grid gap-4 sm:grid-cols-2 xl:grid-cols-4", loading && "opacity-60")}>
-        {stats.map((stat, index) => (
-          <StatCard key={stat.id} stat={stat} index={index} />
-        ))}
-      </div>
-    </section>
-  );
-}
