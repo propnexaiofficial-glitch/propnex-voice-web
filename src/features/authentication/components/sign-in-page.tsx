@@ -13,17 +13,31 @@ import { AUTH_ROUTES } from "@/features/authentication/types";
 export function SignInPageContent() {
   const router = useRouter();
   const [rememberMe, setRememberMe] = useState(true);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError("");
-    setSubmitting(true);
-
+    setErrors({});
+    
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
+
+    const newErrors: Record<string, string> = {};
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+    if (!password) {
+      newErrors.password = "Password is required";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setSubmitting(true);
 
     const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -46,7 +60,7 @@ export function SignInPageContent() {
       const errorMsg = responseData?.message 
         ? (Array.isArray(responseData.message) ? responseData.message.join(", ") : responseData.message)
         : (err.message || "Invalid email or password");
-      setError(errorMsg);
+      setErrors({ root: errorMsg });
     } finally {
       setSubmitting(false);
     }
@@ -54,7 +68,7 @@ export function SignInPageContent() {
 
   return (
     <AuthShell title="Login">
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={handleSubmit} noValidate>
         <AuthField
           label="Email address"
           name="email"
@@ -62,6 +76,7 @@ export function SignInPageContent() {
           placeholder="Email address"
           autoComplete="email"
           disabled={submitting}
+          error={errors.email}
           required
         />
         <AuthField
@@ -71,6 +86,7 @@ export function SignInPageContent() {
           placeholder="Password"
           autoComplete="current-password"
           disabled={submitting}
+          error={errors.password}
           required
         />
 
@@ -85,8 +101,8 @@ export function SignInPageContent() {
           Remember me
         </label>
 
-        {error && (
-          <p className="text-center text-xs text-red-400">{error}</p>
+        {errors.root && (
+          <p className="text-center text-xs text-red-400">{errors.root}</p>
         )}
 
         <button type="submit" disabled={submitting} className="auth-btn-primary disabled:opacity-50">

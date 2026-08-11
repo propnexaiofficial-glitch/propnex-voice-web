@@ -5,13 +5,62 @@ import { motion } from "framer-motion";
 
 import { creditsOverview } from "@/features/home/data";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 type CreditsOverviewCardProps = {
   className?: string;
 };
 
 export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
-  const { balance, usedThisMonth, monthlyLimit, usagePercent } = creditsOverview;
+  const [balance, setBalance] = useState(creditsOverview.balance);
+  const [usedThisMonth, setUsedThisMonth] = useState(creditsOverview.usedThisMonth);
+  const [monthlyLimit, setMonthlyLimit] = useState(creditsOverview.monthlyLimit);
+  const [usagePercent, setUsagePercent] = useState(creditsOverview.usagePercent);
+
+  useEffect(() => {
+    const fetchCredits = async () => {
+      try {
+        const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+        if (!token) return;
+
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const response = await fetch(`${apiBase}/users/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user && data.user.creditBalance) {
+            // Update localStorage just to keep it in sync
+            localStorage.setItem("user", JSON.stringify(data.user));
+            
+            const cb = data.user.creditBalance;
+            setBalance(cb.creditsRemaining || 0);
+            setUsedThisMonth(cb.creditsUsed || 0);
+            const limit = 10000;
+            setMonthlyLimit(limit);
+            setUsagePercent(Math.min(100, Math.round(((cb.creditsUsed || 0) / limit) * 100)));
+          }
+        }
+      } catch (err) {
+        // Fallback to local storage on error
+        try {
+          const storedUser = localStorage.getItem("user");
+          if (storedUser) {
+            const user = JSON.parse(storedUser);
+            if (user.creditBalance) {
+              setBalance(user.creditBalance.creditsRemaining || 0);
+              setUsedThisMonth(user.creditBalance.creditsUsed || 0);
+            }
+          }
+        } catch(e) {}
+      }
+    };
+
+    fetchCredits(); // initial load
+    const interval = setInterval(fetchCredits, 10000); // Poll every 10 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <motion.div

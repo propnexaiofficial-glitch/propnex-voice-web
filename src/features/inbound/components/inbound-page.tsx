@@ -9,10 +9,7 @@ import { TablePagination } from "@/components/tables/table-pagination";
 import { EmptyState } from "@/components/common/empty-state";
 import { InboundFilters } from "@/features/inbound/components/inbound-filters";
 import { TranscriptDrawer } from "@/components/common/transcript-drawer";
-import {
-  useInboundCallsApi,
-  INBOUND_API_PAGE_SIZE,
-} from "@/features/inbound/hooks/use-inbound-calls-api";
+import { useInboundCalls } from "@/features/inbound/hooks/use-inbound-calls";
 import {
   DEFAULT_CALL_FILTERS,
   type CallLogFilters,
@@ -67,15 +64,20 @@ function ErrorBanner({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export function InboundPageContent() {
-  const [filters, setFilters] = useState<CallLogFilters>(DEFAULT_CALL_FILTERS);
-  const [page, setPage] = useState(1);
-  const [retryKey, setRetryKey] = useState(0);
-
-  const { calls, total, totalPages, loading, error } = useInboundCallsApi(
+  const {
     filters,
+    updateFilters: handleFiltersChange,
+    resetFilters: handleResetFilters,
+    calls,
+    totalCalls: total,
     page,
-    retryKey
-  );
+    totalPages,
+    pageSize,
+    setPage,
+  } = useInboundCalls();
+  
+  const loading = false;
+  const error = null;
 
   const [selectedCall, setSelectedCall] = useState<CallRecord | null>(null);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
@@ -85,19 +87,7 @@ export function InboundPageContent() {
     setTranscriptOpen(true);
   };
 
-  const handleFiltersChange = (next: CallLogFilters) => {
-    setFilters(next);
-    setPage(1);
-  };
-
-  const handleResetFilters = () => {
-    setFilters(DEFAULT_CALL_FILTERS);
-    setPage(1);
-  };
-
-  const handleRetry = () => {
-    setRetryKey((k) => k + 1);
-  };
+  const handleRetry = () => {};
 
   return (
     <div className="space-y-6">
@@ -157,7 +147,7 @@ export function InboundPageContent() {
             page={page}
             totalPages={totalPages}
             totalItems={total}
-            pageSize={INBOUND_API_PAGE_SIZE}
+            pageSize={pageSize}
             onPageChange={setPage}
           />
         </>
