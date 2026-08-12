@@ -22,10 +22,12 @@ function DashboardShellInner({
   const [isRejected, setIsRejected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [reminding, setReminding] = useState(false);
+  const [remindMessage, setRemindMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
   const handleRemindAdmin = async () => {
     try {
       setReminding(true);
+      setRemindMessage(null);
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
       const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       
@@ -37,13 +39,13 @@ function DashboardShellInner({
       });
       
       if (res.ok) {
-        alert("Reminder sent successfully! The admin has been notified.");
+        setRemindMessage({ text: "Reminder sent successfully! The admin has been notified.", type: "success" });
       } else {
-        alert("Failed to send reminder. Please try again.");
+        setRemindMessage({ text: "Failed to send reminder. The server might still be updating.", type: "error" });
       }
     } catch (e) {
       console.error(e);
-      alert("Failed to send reminder. Please check your connection.");
+      setRemindMessage({ text: "Failed to send reminder. Please check your connection.", type: "error" });
     } finally {
       setReminding(false);
     }
@@ -179,6 +181,13 @@ function DashboardShellInner({
             >
               {reminding ? "Sending Reminder..." : "Remind Admin"}
             </button>
+            
+            {remindMessage && (
+              <p className={`text-sm ${remindMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                {remindMessage.text}
+              </p>
+            )}
+
             <button onClick={() => {
               localStorage.removeItem("user");
               localStorage.removeItem("accessToken");
