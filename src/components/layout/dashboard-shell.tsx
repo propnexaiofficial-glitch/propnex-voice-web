@@ -21,6 +21,33 @@ function DashboardShellInner({
   const [isWaiting, setIsWaiting] = useState(false);
   const [isRejected, setIsRejected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [reminding, setReminding] = useState(false);
+
+  const handleRemindAdmin = async () => {
+    try {
+      setReminding(true);
+      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      
+      const res = await fetch(`${apiBase}/users/remind-admin`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      
+      if (res.ok) {
+        alert("Reminder sent successfully! The admin has been notified.");
+      } else {
+        alert("Failed to send reminder. Please try again.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Failed to send reminder. Please check your connection.");
+    } finally {
+      setReminding(false);
+    }
+  };
 
   useEffect(() => {
     try {
@@ -144,14 +171,23 @@ function DashboardShellInner({
               Your account request has been received. Please wait while an Administrator provisions your portal.
             </p>
           </div>
-          <button onClick={() => {
-            localStorage.removeItem("user");
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("access_token");
-            window.location.href = "/auth/sign-in";
-          }} className="text-sm text-fuchsia-400 hover:text-fuchsia-300">
-            Sign out
-          </button>
+          <div className="flex flex-col w-full gap-3 mt-4">
+            <button 
+              onClick={handleRemindAdmin} 
+              disabled={reminding}
+              className="w-full rounded-md bg-fuchsia-600 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-500 disabled:opacity-50 transition-colors"
+            >
+              {reminding ? "Sending Reminder..." : "Remind Admin"}
+            </button>
+            <button onClick={() => {
+              localStorage.removeItem("user");
+              localStorage.removeItem("accessToken");
+              localStorage.removeItem("access_token");
+              window.location.href = "/auth/sign-in";
+            }} className="text-sm text-fuchsia-400 hover:text-fuchsia-300">
+              Sign out
+            </button>
+          </div>
         </div>
       </div>
     );
