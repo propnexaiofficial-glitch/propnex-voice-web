@@ -39,10 +39,8 @@ export function SignInPageContent() {
 
     setSubmitting(true);
 
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
     try {
-      const response = await axios.post(`${apiBase}/users/signin`, {
+      const response = await axios.post(`/api/users/signin`, {
         email,
         password,
       });

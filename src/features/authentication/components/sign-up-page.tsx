@@ -61,10 +61,8 @@ export function SignUpPageContent() {
 
     setSubmitting(true);
 
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
     try {
-      await axios.post(`${apiBase}/users/signup`, {
+      await axios.post(`/api/users/signup`, {
         firstName,
         lastName,
         email,
@@ -75,7 +73,7 @@ export function SignUpPageContent() {
 
       // Notify Admin Panel
       try {
-        await fetch("http://127.0.0.1:3003/api/pending-approvals", {
+        await fetch("/api/pending-approvals", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
