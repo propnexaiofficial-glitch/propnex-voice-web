@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://200.234.34.240:5000/api/:path*", // Proxy to propnex-server (Dashboard API)
+        destination: "http://200.234.34.240:5000/:path*", // Proxy to propnex-server (Dashboard API)
       }
     ];
   },
