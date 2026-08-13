@@ -19,15 +19,15 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/users/:path*",
-        destination: "http://200.234.34.240:3001/users/:path*", // Proxy to Auth Server
+        destination: "http://200.234.34.240:5000/users/:path*", // Auth server on port 5000
       },
       {
         source: "/api/webhook/:path*",
-        destination: "http://200.234.34.240:3001/webhook/:path*", // Proxy to Webhook Server
+        destination: "http://200.234.34.240:5000/webhook/:path*", // Webhooks also on port 5000
       },
       {
         source: "/api/:path*",
-        destination: "http://200.234.34.240:5000/:path*", // Proxy to propnex-server (Dashboard API)
+        destination: "http://200.234.34.240:3001/api/:path*", // Main dashboard API on port 3001
       }
     ];
   },
