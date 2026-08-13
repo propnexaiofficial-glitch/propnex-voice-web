@@ -65,9 +65,17 @@ export async function fetchInboundCalls(
 
   const url = `${API_BASE_URL}/api/calls/inbound${query.toString() ? `?${query}` : ""}`;
 
+  let token = "";
+  if (typeof window !== "undefined") {
+    token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
+  }
+
   const res = await fetch(url, {
     next: { revalidate: 0 },
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+      "Content-Type": "application/json",
+      ...(token ? { "Authorization": `Bearer ${token}` } : {})
+    },
   });
 
   if (!res.ok) {
