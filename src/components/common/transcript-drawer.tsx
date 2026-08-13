@@ -22,11 +22,43 @@ function formatCallDate(iso: string) {
   }).format(new Date(iso));
 }
 
+import { useEffect, useState } from "react";
+
 export function TranscriptDrawer({
   call,
   open,
   onOpenChange,
 }: TranscriptDrawerProps) {
+  const [transcriptData, setTranscriptData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (open && call) {
+      setLoading(true);
+      fetch(`/api/calls/${call.id}/transcript`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Transcript not found");
+          return res.json();
+        })
+        .then((data) => {
+          // If the AI saves it as an array of messages or similar, map it
+          if (Array.isArray(data)) {
+            setTranscriptData(data);
+          } else if (data.messages && Array.isArray(data.messages)) {
+            setTranscriptData(data.messages);
+          } else if (data.transcript && Array.isArray(data.transcript)) {
+            setTranscriptData(data.transcript);
+          } else {
+            setTranscriptData([]);
+          }
+        })
+        .catch(() => {
+          setTranscriptData([]);
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [open, call]);
+
   if (!call) return null;
 
   return (
@@ -53,11 +85,8 @@ export function TranscriptDrawer({
             <span className="text-muted-foreground">{call.creditsUsed} credits</span>
           </div>
           <Separator />
-          {(call.recordingUrl || call.transcriptUrl) && (
             <div className="flex flex-col gap-3 py-2">
-              {call.recordingUrl && (
-                <audio controls className="h-10 w-full" src={call.recordingUrl} />
-              )}
+              <audio controls className="h-10 w-full" src={`/api/calls/${call.id}/recording`} />
               {call.transcriptUrl && (
                 <a 
                   href={call.transcriptUrl} 
@@ -71,11 +100,12 @@ export function TranscriptDrawer({
               )}
               <Separator />
             </div>
-          )}
         </div>
 
         <ScrollArea className="flex-1 px-6 pb-6">
-          {call.transcript.length === 0 ? (
+          {loading ? (
+             <div className="py-12 text-center text-sm text-muted-foreground">Loading transcript...</div>
+          ) : transcriptData.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <FileText className="size-10 text-muted-foreground/50" />
               <p className="mt-3 text-sm font-medium">No transcript available</p>
@@ -85,7 +115,7 @@ export function TranscriptDrawer({
             </div>
           ) : (
             <div className="space-y-4">
-              {call.transcript.map((line, index) => (
+              {transcriptData.map((line, index) => (
                 <div
                   key={`${line.timestamp}-${index}`}
                   className={cn(

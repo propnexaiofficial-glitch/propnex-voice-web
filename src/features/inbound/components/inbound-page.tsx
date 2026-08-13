@@ -9,6 +9,7 @@ import { TablePagination } from "@/components/tables/table-pagination";
 import { EmptyState } from "@/components/common/empty-state";
 import { InboundFilters } from "@/features/inbound/components/inbound-filters";
 import { TranscriptDrawer } from "@/components/common/transcript-drawer";
+import { useInboundCallsApi } from "@/features/inbound/hooks/use-inbound-calls-api";
 import { useInboundCalls } from "@/features/inbound/hooks/use-inbound-calls";
 import {
   DEFAULT_CALL_FILTERS,
@@ -68,16 +69,22 @@ export function InboundPageContent() {
     filters,
     updateFilters: handleFiltersChange,
     resetFilters: handleResetFilters,
+  } = useInboundCalls(); // We still need the filter state, let's just grab filter state from a custom hook or we can use the old hook just for state, and pass it to Api. Wait, useInboundCallsApi expects filters and page to be passed in.
+
+  const [page, setPage] = useState(1);
+  const [retryKey, setRetryKey] = useState(0);
+
+  const {
     calls,
-    totalCalls: total,
-    page,
+    total,
     totalPages,
-    pageSize,
-    setPage,
-  } = useInboundCalls();
+    loading,
+    error,
+  } = useInboundCallsApi(filters, page, retryKey);
   
-  const loading = false;
-  const error = null;
+  const pageSize = 8;
+  
+
 
   const [selectedCall, setSelectedCall] = useState<CallRecord | null>(null);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
@@ -87,7 +94,9 @@ export function InboundPageContent() {
     setTranscriptOpen(true);
   };
 
-  const handleRetry = () => {};
+  const handleRetry = () => {
+    setRetryKey(k => k + 1);
+  };
 
   return (
     <div className="space-y-6">
