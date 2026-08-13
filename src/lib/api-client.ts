@@ -66,15 +66,30 @@ export async function fetchInboundCalls(
   const url = `${API_BASE_URL}/api/calls/inbound${query.toString() ? `?${query}` : ""}`;
 
   let token = "";
+  let companyId = "";
+  let userEmail = "";
+
   if (typeof window !== "undefined") {
     token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
+    try {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        companyId = user.companyId || user.company_id || "";
+        userEmail = user.email || "";
+      }
+    } catch (e) {
+      // ignore parse errors
+    }
   }
 
   const res = await fetch(url, {
     next: { revalidate: 0 },
     headers: { 
       "Content-Type": "application/json",
-      ...(token ? { "Authorization": `Bearer ${token}` } : {})
+      ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+      ...(companyId ? { "X-Company-Id": companyId } : {}),
+      ...(userEmail ? { "X-User-Email": userEmail } : {}),
     },
   });
 
