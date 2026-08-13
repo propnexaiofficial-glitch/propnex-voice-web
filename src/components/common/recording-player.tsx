@@ -14,6 +14,7 @@ function formatTime(seconds: number) {
 
 type RecordingPlayerProps = {
   durationSeconds: number;
+  audioUrl?: string | null;
   label?: string;
   compact?: boolean;
   className?: string;
@@ -21,6 +22,7 @@ type RecordingPlayerProps = {
 
 export function RecordingPlayer({
   durationSeconds,
+  audioUrl,
   label = "Recording",
   compact = false,
   className,
@@ -45,6 +47,10 @@ export function RecordingPlayer({
   }, [isPlaying, durationSeconds]);
 
   const handleToggle = () => {
+    if (audioUrl) {
+      window.open(audioUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
     if (progress >= durationSeconds) {
       setProgress(0);
     }

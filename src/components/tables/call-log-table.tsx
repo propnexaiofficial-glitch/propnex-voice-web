@@ -109,6 +109,7 @@ export function CallLogTable({
                   {call.status === "completed" ? (
                     <RecordingPlayer
                       durationSeconds={call.durationSeconds}
+                      audioUrl={call.recordingUrl}
                       compact
                     />
                   ) : (

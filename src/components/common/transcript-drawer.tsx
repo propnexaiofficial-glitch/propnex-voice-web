@@ -86,7 +86,9 @@ export function TranscriptDrawer({
           </div>
           <Separator />
             <div className="flex flex-col gap-3 py-2">
-              <audio controls className="h-10 w-full" src={`/api/calls/${call.id}/recording`} />
+              {call.recordingUrl && (
+                <audio controls className="h-10 w-full" src={call.recordingUrl} />
+              )}
               {call.transcriptUrl && (
                 <a 
                   href={call.transcriptUrl} 
