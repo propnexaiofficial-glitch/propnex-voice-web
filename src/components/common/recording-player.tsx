@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Pause, Play } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -29,36 +29,63 @@ export function RecordingPlayer({
 }: RecordingPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Initialize the audio element when the URL is available
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!audioUrl) return;
 
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= durationSeconds) {
-          setIsPlaying(false);
-          return durationSeconds;
-        }
-        return prev + 1;
-      });
-    }, 1000);
+    const audio = new Audio(audioUrl);
+    audioRef.current = audio;
 
-    return () => clearInterval(interval);
-  }, [isPlaying, durationSeconds]);
+    const updateTime = () => {
+      setProgress(audio.currentTime);
+    };
+
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setProgress(durationSeconds > 0 ? durationSeconds : audio.duration || 0);
+    };
+
+    audio.addEventListener("timeupdate", updateTime);
+    audio.addEventListener("ended", handleEnded);
+
+    return () => {
+      audio.removeEventListener("timeupdate", updateTime);
+      audio.removeEventListener("ended", handleEnded);
+      audio.pause();
+      audioRef.current = null;
+    };
+  }, [audioUrl, durationSeconds]);
 
   const handleToggle = () => {
-    if (audioUrl) {
-      window.open(audioUrl, "_blank", "noopener,noreferrer");
+    if (!audioRef.current) {
+      if (audioUrl) {
+        window.open(audioUrl, "_blank", "noopener,noreferrer");
+      }
       return;
     }
-    if (progress >= durationSeconds) {
-      setProgress(0);
+
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      // If we finished, restart
+      if (progress >= durationSeconds && durationSeconds > 0) {
+        audioRef.current.currentTime = 0;
+      }
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+      }).catch(err => {
+        console.error("Failed to play audio:", err);
+        // Fallback to opening in new tab if browser blocked autoplay
+        window.open(audioUrl!, "_blank", "noopener,noreferrer");
+      });
     }
-    setIsPlaying((prev) => !prev);
   };
 
-  const progressPercent =
-    durationSeconds > 0 ? (progress / durationSeconds) * 100 : 0;
+  const currentDuration = durationSeconds > 0 ? durationSeconds : (audioRef.current?.duration || 0);
+  const progressPercent = currentDuration > 0 ? (progress / currentDuration) * 100 : 0;
 
   if (compact) {
     return (
@@ -67,6 +94,7 @@ export function RecordingPlayer({
           variant="outline"
           size="icon-sm"
           onClick={handleToggle}
+          disabled={!audioUrl}
           aria-label={isPlaying ? "Pause recording" : "Play recording"}
         >
           {isPlaying ? (
@@ -76,7 +104,7 @@ export function RecordingPlayer({
           )}
         </Button>
         <span className="text-xs text-muted-foreground">
-          {formatTime(progress)} / {formatTime(durationSeconds)}
+          {formatTime(progress)} / {formatTime(currentDuration)}
         </span>
       </div>
     );
@@ -92,7 +120,7 @@ export function RecordingPlayer({
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-medium text-muted-foreground">{label}</p>
         <span className="text-xs tabular-nums text-muted-foreground">
-          {formatTime(progress)} / {formatTime(durationSeconds)}
+          {formatTime(progress)} / {formatTime(currentDuration)}
         </span>
       </div>
 
@@ -108,6 +136,7 @@ export function RecordingPlayer({
         size="sm"
         className="w-full"
         onClick={handleToggle}
+        disabled={!audioUrl}
       >
         {isPlaying ? (
           <>
