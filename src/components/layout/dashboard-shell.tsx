@@ -67,7 +67,8 @@ function DashboardShellInner({
       let res;
       if (isWaitingNumber) {
         // Hit the Admin Panel's number-requests API
-        res = await fetch("http://localhost:3003/api/number-requests", {
+        const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
+        res = await fetch(`${adminBase}/api/number-requests`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
