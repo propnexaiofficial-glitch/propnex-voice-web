@@ -124,10 +124,16 @@ export function useInboundCallsApi(
           items.sort((a, b) => (b.durationSeconds || 0) - (a.durationSeconds || 0));
         }
 
+        const isFilteredLocally = Boolean(search.trim() || dateFrom || dateTo || durationSort);
+        const finalTotal = isFilteredLocally ? items.length : (res.meta?.total || items.length);
+        const finalTotalPages = isFilteredLocally 
+          ? (Math.ceil(items.length / PAGE_SIZE) || 1) 
+          : (res.meta?.totalPages || Math.ceil(finalTotal / PAGE_SIZE) || 1);
+
         setState({
           calls: items.map((item: any) => mapApiItemToCallRecord(item, fallbackAssignedNumber)),
-          total: items.length,
-          totalPages: Math.ceil(items.length / PAGE_SIZE) || 1,
+          total: finalTotal,
+          totalPages: finalTotalPages,
           loading: false,
           error: null,
         });
