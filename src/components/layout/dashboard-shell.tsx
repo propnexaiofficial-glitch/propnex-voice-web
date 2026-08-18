@@ -67,7 +67,8 @@ function DashboardShellInner({
       let res;
       if (isWaitingNumber) {
         // Hit the Admin Panel's number-requests API
-        const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
+        // Temporarily using the vercel.app domain until admin.propnexai.com DNS fully propagates
+        const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://propnexai-admin-panel-seven.vercel.app";
         res = await fetch(`${adminBase}/api/number-requests`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
