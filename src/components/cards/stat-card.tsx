@@ -13,7 +13,7 @@ type StatCardProps = {
 };
 
 export function StatCard({ stat, index = 0, className }: StatCardProps) {
-  const isPositive = stat.change >= 0;
+  const isPositive = stat.change !== undefined && stat.change >= 0;
   const Icon = stat.icon;
 
   return (
@@ -36,18 +36,20 @@ export function StatCard({ stat, index = 0, className }: StatCardProps) {
         </p>
       </div>
 
-      <div className="mt-3 flex items-center gap-1.5 text-xs">
-        {isPositive ? (
-          <ArrowUpRight className="size-3.5 text-emerald-500" />
-        ) : (
-          <ArrowDownRight className="size-3.5 text-red-400" />
-        )}
-        <span className={cn("font-medium", isPositive ? "text-emerald-500" : "text-red-400")}>
-          {isPositive ? "+" : ""}
-          {stat.change}%
-        </span>
-        <span className="text-muted-foreground">{stat.changeLabel}</span>
-      </div>
+      {stat.change !== undefined && (
+        <div className="mt-3 flex items-center gap-1.5 text-xs">
+          {isPositive ? (
+            <ArrowUpRight className="size-3.5 text-emerald-500" />
+          ) : (
+            <ArrowDownRight className="size-3.5 text-red-400" />
+          )}
+          <span className={cn("font-medium", isPositive ? "text-emerald-500" : "text-red-400")}>
+            {isPositive ? "+" : ""}
+            {stat.change}%
+          </span>
+          <span className="text-muted-foreground">{stat.changeLabel}</span>
+        </div>
+      )}
     </motion.div>
   );
 }

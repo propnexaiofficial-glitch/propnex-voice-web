@@ -19,29 +19,99 @@ function DashboardShellInner({
 }: DashboardShellProps) {
   const title = usePageTitle();
   const [isWaiting, setIsWaiting] = useState(false);
+  const [isWaitingNumber, setIsWaitingNumber] = useState(false);
   const [isRejected, setIsRejected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [reminding, setReminding] = useState(false);
   const [remindMessage, setRemindMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
+  const [isRemindDisabled, setIsRemindDisabled] = useState(false);
+
+  const checkReminderStatus = (userObj?: Record<string, unknown> | null, isNumberReminder?: boolean) => {
+    try {
+      const user = userObj || (() => {
+        const str = localStorage.getItem("user");
+        return str ? JSON.parse(str) : null;
+      })();
+      if (!user) return false;
+
+      const isNumber = isNumberReminder !== undefined ? isNumberReminder : isWaitingNumber;
+      const targetTime = isNumber ? user.numberRemindedAt : user.remindedAt;
+      
+      if (targetTime) {
+        const timeSince = Date.now() - new Date(targetTime).getTime();
+        if (timeSince < 24 * 60 * 60 * 1000) {
+          setIsRemindDisabled(true);
+          return true;
+        }
+      }
+    } catch(e) {}
+    setIsRemindDisabled(false);
+    return false;
+  };
 
   const handleRemindAdmin = async () => {
+    if (checkReminderStatus()) {
+      setRemindMessage({ text: "You can only send a reminder once every 24 hours.", type: "error" });
+      return;
+    }
+
     try {
       setReminding(true);
       setRemindMessage(null);
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       
-      const res = await fetch(`${apiBase}/users/remind-admin`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      });
+      const storedUserStr = localStorage.getItem("user");
+      const user = storedUserStr ? JSON.parse(storedUserStr) : {};
+      const email = user.email || user.id || "default";
+
+      let res;
+      if (isWaitingNumber) {
+        // Hit the Admin Panel's number-requests API
+        res = await fetch("http://localhost:3003/api/number-requests", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            companyId: user.companyId || null,
+            name: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unknown"
+          })
+        });
+      } else {
+        // Normal pending approval reminder
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        res = await fetch(`${apiBase}/users/remind-admin`, {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+      }
       
       if (res.ok) {
-        setRemindMessage({ text: "Reminder sent successfully! The admin has been notified.", type: "success" });
+        setIsRemindDisabled(true);
+        setRemindMessage({ text: "Reminder sent successfully! The admin has been notified. (24h Lock active)", type: "success" });
+        
+        // Fetch updated user from backend to get the latest timestamp lock
+        try {
+          const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+          const refreshRes = await fetch(`${apiBase}/users/me`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (refreshRes.ok) {
+            const data = await refreshRes.json();
+            if (data.user) {
+              localStorage.setItem("user", JSON.stringify(data.user));
+              window.dispatchEvent(new Event("user-updated"));
+            }
+          }
+        } catch(e) {}
+        
       } else {
-        setRemindMessage({ text: "Failed to send reminder. The server might still be updating.", type: "error" });
+        const errData = await res.json().catch(() => ({}));
+        if (errData.error === "24h_lock" || res.status === 429 || res.status === 400) {
+           setIsRemindDisabled(true);
+           setRemindMessage({ text: "You can only send a reminder once every 24 hours.", type: "error" });
+        } else {
+           setRemindMessage({ text: "Failed to send reminder. Please try again.", type: "error" });
+        }
       }
     } catch (e) {
       console.error(e);
@@ -52,51 +122,121 @@ function DashboardShellInner({
   };
 
   useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        if (user.approvalStatus === "REJECTED") {
-          setIsRejected(true);
-        } else if (!user.companyId && !user.contractId) {
-          setIsWaiting(true);
+    const checkState = async () => {
+      let needsRefresh = false;
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          if (user.approvalStatus === "REJECTED") {
+            setIsRejected(true);
+            needsRefresh = true;
+          } else if (!user.companyId && !user.contractId) {
+            setIsWaiting(true);
+            checkReminderStatus(user, false);
+            needsRefresh = true;
+          } else if (!user.assignedNumber) {
+            setIsWaitingNumber(true);
+            checkReminderStatus(user, true);
+            needsRefresh = true;
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsLoading(false);
+      }
+
+      if (needsRefresh) {
+        try {
+          const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+          if (!token) return;
+          const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+          const response = await fetch(`${apiBase}/users/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+            cache: "no-store"
+          });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.user) {
+              localStorage.setItem("user", JSON.stringify(data.user));
+              window.dispatchEvent(new Event("user-updated"));
+              if (data.user.approvalStatus === "REJECTED") {
+                setIsRejected(true);
+                setIsWaiting(false);
+                setIsWaitingNumber(false);
+              } else if (!data.user.companyId && !data.user.contractId) {
+                setIsWaiting(true);
+                setIsRejected(false);
+                setIsWaitingNumber(false);
+                checkReminderStatus(data.user, false);
+              } else if (!data.user.assignedNumber) {
+                setIsWaitingNumber(true);
+                setIsWaiting(false);
+                setIsRejected(false);
+                checkReminderStatus(data.user, true);
+              } else {
+                setIsWaiting(false);
+                setIsRejected(false);
+                setIsWaitingNumber(false);
+              }
+            }
+          } else if (response.status === 401) {
+            localStorage.removeItem("user");
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("access_token");
+            window.location.href = "/auth/sign-in";
+          }
+        } catch (e) {
+          console.error("Instant refresh error:", e);
         }
       }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoading(false);
-    }
+    };
+    checkState();
   }, []);
 
   useEffect(() => {
-    if (!isWaiting && !isRejected) return;
-
     const interval = setInterval(async () => {
       try {
         const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
         if (!token) return;
 
         const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        const response = await fetch(`${apiBase}/users/me`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+          const response = await fetch(`${apiBase}/users/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+            cache: "no-store"
+          });
         
         if (response.ok) {
           const data = await response.json();
           if (data.user) {
             localStorage.setItem("user", JSON.stringify(data.user));
+            window.dispatchEvent(new Event("user-updated"));
             if (data.user.approvalStatus === "REJECTED") {
               setIsRejected(true);
               setIsWaiting(false);
-            } else if (data.user.companyId || data.user.contractId) {
-              setIsWaiting(false);
-              setIsRejected(false);
-            } else {
+              setIsWaitingNumber(false);
+            } else if (!data.user.companyId && !data.user.contractId) {
               setIsWaiting(true);
               setIsRejected(false);
+              setIsWaitingNumber(false);
+              checkReminderStatus(data.user, false);
+            } else if (!data.user.assignedNumber) {
+              setIsWaitingNumber(true);
+              setIsWaiting(false);
+              setIsRejected(false);
+              checkReminderStatus(data.user, true);
+            } else {
+              setIsWaiting(false);
+              setIsRejected(false);
+              setIsWaitingNumber(false);
             }
           }
+        } else if (response.status === 401) {
+          localStorage.removeItem("user");
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("access_token");
+          window.location.href = "/auth/sign-in";
         }
       } catch (err) {
         console.error("Polling error:", err);
@@ -104,7 +244,7 @@ function DashboardShellInner({
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [isWaiting, isRejected]);
+  }, [isWaiting, isRejected, isWaitingNumber]);
 
   if (isLoading) {
     return <div className="flex min-h-screen items-center justify-center bg-background"><div className="animate-spin h-8 w-8 rounded-full border-4 border-fuchsia-500 border-r-transparent" /></div>;
@@ -129,10 +269,10 @@ function DashboardShellInner({
           </div>
           <div className="space-y-2">
             <h2 className="text-2xl font-bold tracking-tight text-white">
-              Request Declined
+              Application Not Accepted
             </h2>
             <p className="text-sm text-muted-foreground">
-              Sorry, your account request was not accepted. Thank you for your interest.
+              Please try again after 6 months. For any problem contact us: support@propnexai.com
             </p>
           </div>
           <button onClick={() => {
@@ -176,10 +316,10 @@ function DashboardShellInner({
           <div className="flex flex-col w-full gap-3 mt-4">
             <button 
               onClick={handleRemindAdmin} 
-              disabled={reminding}
+              disabled={reminding || isRemindDisabled}
               className="w-full rounded-md bg-fuchsia-600 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-500 disabled:opacity-50 transition-colors"
             >
-              {reminding ? "Sending Reminder..." : "Remind Admin"}
+              {reminding ? "Sending Reminder..." : isRemindDisabled ? "Reminder Sent (24h Lock)" : "Remind Admin"}
             </button>
             
             {remindMessage && (
@@ -202,6 +342,8 @@ function DashboardShellInner({
     );
   }
 
+
+
   return (
     <div className="flex min-h-screen bg-background page-mesh-bg">
       <Sidebar />
@@ -213,6 +355,29 @@ function DashboardShellInner({
             className
           )}
         >
+          {isWaitingNumber && (
+            <div className="mb-6 rounded-lg border border-yellow-500/20 bg-yellow-500/10 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-yellow-500/20 text-yellow-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-yellow-500">Number Assignment Pending</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Your account is verified, but you need a phone number to make or receive calls.
+                    {remindMessage && <span className={`ml-2 font-medium ${remindMessage.type === 'error' ? 'text-red-400' : 'text-green-400'}`}>{remindMessage.text}</span>}
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={handleRemindAdmin}
+                disabled={isRemindDisabled || reminding}
+                className="shrink-0 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold text-xs rounded-md transition-colors disabled:opacity-50"
+              >
+                {reminding ? "Sending..." : isRemindDisabled ? "Reminder Sent (24h Lock)" : "Remind Admin"}
+              </button>
+            </div>
+          )}
           {children}
         </main>
       </div>

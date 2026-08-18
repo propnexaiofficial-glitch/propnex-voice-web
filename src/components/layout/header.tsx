@@ -62,7 +62,6 @@ export function DashboardHeader({
       <div className="flex items-center gap-1 sm:gap-2">
         <ThemeToggle />
         <CreditsWidget variant="header" />
-        {/* <NotificationButton /> */}
         <UserMenu />
       </div>
     </header>

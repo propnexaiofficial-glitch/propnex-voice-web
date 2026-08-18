@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PhoneIncoming, RefreshCcw, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -73,6 +73,21 @@ export function InboundPageContent() {
 
   const [page, setPage] = useState(1);
   const [retryKey, setRetryKey] = useState(0);
+  const [hasAssignedNumber, setHasAssignedNumber] = useState(true);
+
+  useEffect(() => {
+    const checkNumber = () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        setHasAssignedNumber(!!user.assignedNumber);
+      } catch (e) {}
+    };
+
+    checkNumber();
+
+    window.addEventListener("user-updated", checkNumber);
+    return () => window.removeEventListener("user-updated", checkNumber);
+  }, []);
 
   const {
     calls,
@@ -80,7 +95,7 @@ export function InboundPageContent() {
     totalPages,
     loading,
     error,
-  } = useInboundCallsApi(filters, page, retryKey);
+  } = useInboundCallsApi(filters, page, retryKey, hasAssignedNumber);
   
   const pageSize = 8;
   
@@ -138,7 +153,12 @@ export function InboundPageContent() {
       )}
 
       {/* ── Content ── */}
-      {loading ? (
+      {!hasAssignedNumber ? (
+        <EmptyState
+          title="Number Not Assigned"
+          description="You need an assigned phone number to receive and view inbound calls."
+        />
+      ) : loading ? (
         <TableSkeleton />
       ) : calls.length === 0 && !error ? (
         <EmptyState

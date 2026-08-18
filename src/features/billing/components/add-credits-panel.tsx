@@ -1,14 +1,45 @@
 "use client";
 
-import { CreditCard } from "lucide-react";
-
+import { CreditCard, CheckCircle2, Loader2 } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 type AddCreditsPanelProps = {
-  onPurchase: () => void;
+  onPurchase: (amount: number) => Promise<boolean>;
+  currentBalance: number;
 };
 
-export function AddCreditsPanel({ onPurchase }: AddCreditsPanelProps) {
+export function AddCreditsPanel({ onPurchase, currentBalance }: AddCreditsPanelProps) {
+  const [amount, setAmount] = useState<number>(5000);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
+
+  const handlePurchase = async () => {
+    setError(null);
+    setSuccess(false);
+
+    if (amount <= 0) {
+      setError("Please enter a valid amount.");
+      return;
+    }
+
+    if (currentBalance + amount > 10000) {
+      setError(`Cannot exceed 10,000 maximum limit. You can request up to ${10000 - currentBalance} more credits.`);
+      return;
+    }
+
+    setLoading(true);
+    const success = await onPurchase(amount);
+    setLoading(false);
+
+    if (success) {
+      setSuccess(true);
+      setAmount(0);
+    }
+  };
+
   return (
     <div className="glass-card flex h-full flex-col justify-center rounded-2xl p-6">
       <div className="mb-6 flex items-center gap-2">
@@ -18,14 +49,36 @@ export function AddCreditsPanel({ onPurchase }: AddCreditsPanelProps) {
         <h3 className="text-sm font-semibold">Add Credits</h3>
       </div>
 
-      <Button
-        size="lg"
-        onClick={onPurchase}
-        className="h-12 w-full gap-2 text-base font-semibold"
-      >
-        <CreditCard className="size-5" />
-        Purchase Credits
-      </Button>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1">
+            <Input
+              type="number"
+              value={amount || ""}
+              onChange={(e) => setAmount(parseInt(e.target.value) || 0)}
+              className="pl-4 h-12"
+              placeholder="Amount to request..."
+            />
+          </div>
+          <Button
+            size="lg"
+            onClick={handlePurchase}
+            disabled={loading}
+            className="h-12 gap-2 text-base font-semibold whitespace-nowrap px-8"
+          >
+            {loading ? <Loader2 className="size-5 animate-spin" /> : <CreditCard className="size-5" />}
+            {loading ? "Requesting..." : "Purchase Credits"}
+          </Button>
+        </div>
+
+        {error && <p className="text-sm text-red-500 font-medium px-1">{error}</p>}
+        {success && (
+          <div className="flex items-start gap-2 rounded-lg bg-emerald-500/10 p-3 text-emerald-500">
+            <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
+            <p className="text-sm font-medium">Request sent successfully. Please wait until the credit is added by the admin.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

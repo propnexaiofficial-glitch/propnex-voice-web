@@ -38,7 +38,7 @@ export function BillingPageContent() {
       <div className="grid gap-6 lg:grid-cols-3">
         <CreditBalanceCard summary={summary} className="lg:col-span-1" />
         <div className="lg:col-span-2">
-          <AddCreditsPanel onPurchase={purchaseCredits} />
+          <AddCreditsPanel onPurchase={purchaseCredits} currentBalance={summary.balance} />
         </div>
       </div>
 

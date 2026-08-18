@@ -36,7 +36,7 @@ export function RecentActivity({ className }: RecentActivityProps) {
   useEffect(() => {
     const fetchActivity = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
         const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const response = await axios.get(`${apiBase}/users/recent-activity`, {
           headers: {

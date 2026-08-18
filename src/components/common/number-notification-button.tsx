@@ -1,7 +1,6 @@
 "use client";
 
-import { Bell } from "lucide-react";
-
+import { PhoneCall } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -12,15 +11,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type NotificationButtonProps = {
+export function NumberNotificationButton({
+  count = 1,
+  className,
+}: {
   count?: number;
   className?: string;
-};
-
-export function NotificationButton({
-  count = 3,
-  className,
-}: NotificationButtonProps) {
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -28,9 +25,9 @@ export function NotificationButton({
           variant="ghost"
           size="icon"
           className={cn("relative", className)}
-          aria-label="Notifications"
+          aria-label="Number Notifications"
         >
-          <Bell className="size-5" />
+          <PhoneCall className="size-5" />
           {count > 0 && (
             <Badge
               variant="destructive"
@@ -43,7 +40,7 @@ export function NotificationButton({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64 p-4">
         <DropdownMenuLabel className="p-0 text-center font-normal text-muted-foreground">
-          {count > 0 ? "You have new general notifications!" : "No new notifications"}
+          {count > 0 ? "Your phone number has been assigned!" : "No new number notifications"}
         </DropdownMenuLabel>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -35,10 +35,10 @@ export function DashboardSummary({ className }: DashboardSummaryProps) {
           // Update the structure with real values
           const updatedStats = [...stats];
           
-          updatedStats[0] = { ...updatedStats[0], value: data.inboundCalls.toLocaleString() };
-          updatedStats[1] = { ...updatedStats[1], value: data.outboundCalls.toLocaleString() };
-          updatedStats[2] = { ...updatedStats[2], value: data.activeAgents.toLocaleString() };
-          updatedStats[3] = { ...updatedStats[3], value: data.creditsUsed.toLocaleString() };
+          updatedStats[0] = { ...updatedStats[0], value: data.inboundCalls.toLocaleString(), change: data.inboundTrend, changeLabel: "vs last month" };
+          updatedStats[1] = { ...updatedStats[1], value: data.outboundCalls.toLocaleString(), change: data.outboundTrend, changeLabel: "vs last month" };
+          updatedStats[2] = { ...updatedStats[2], value: data.activeAgents.toLocaleString(), change: data.agentsTrend, changeLabel: "new this week" };
+          updatedStats[3] = { ...updatedStats[3], value: data.creditsUsed.toLocaleString(), change: data.creditsTrend, changeLabel: "vs last month" };
           
           setStats(updatedStats);
         }

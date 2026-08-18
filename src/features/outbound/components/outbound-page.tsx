@@ -27,6 +27,8 @@ export function OutboundPageContent() {
     totalPages,
     pageSize,
     setPage,
+    loading,
+    error,
   } = useOutboundCalls();
 
   const {
@@ -92,25 +94,51 @@ export function OutboundPageContent() {
         searchId="outbound-search"
       />
 
-      {calls.length === 0 ? (
+      {error ? (
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          <div className="flex items-center gap-2">
+            <span>{error}</span>
+          </div>
+        </div>
+      ) : calls.length === 0 && !loading ? (
         <EmptyState
           title="No outbound calls found"
           description="Adjust your filters or start a campaign to see call records here."
         />
       ) : (
         <>
-          <CallLogTable
-            calls={calls}
-            variant="outbound"
-            onViewTranscript={handleViewTranscript}
-          />
-          <TablePagination
-            page={page}
-            totalPages={totalPages}
-            totalItems={totalCalls}
-            pageSize={pageSize}
-            onPageChange={setPage}
-          />
+          {loading ? (
+             <div className="rounded-xl border border-border overflow-hidden animate-pulse">
+               <div className="bg-muted/40 h-12 w-full" />
+               {[...Array(5)].map((_, i) => (
+                 <div
+                   key={i}
+                   className="h-14 w-full bg-background border-t border-border flex items-center gap-4 px-4"
+                 >
+                   <div className="h-4 w-24 rounded bg-muted" />
+                   <div className="h-4 w-32 rounded bg-muted" />
+                   <div className="h-4 w-20 rounded bg-muted flex-1" />
+                   <div className="h-6 w-20 rounded-full bg-muted" />
+                   <div className="h-4 w-16 rounded bg-muted" />
+                 </div>
+               ))}
+             </div>
+          ) : (
+            <>
+              <CallLogTable
+                calls={calls}
+                variant="outbound"
+                onViewTranscript={handleViewTranscript}
+              />
+              <TablePagination
+                page={page}
+                totalPages={totalPages}
+                totalItems={totalCalls}
+                pageSize={pageSize}
+                onPageChange={setPage}
+              />
+            </>
+          )}
         </>
       )}
 

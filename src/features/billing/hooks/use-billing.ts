@@ -41,37 +41,28 @@ export function useBilling() {
     return () => clearInterval(interval);
   }, []);
 
-  async function purchaseCredits() {
+  async function purchaseCredits(amount: number): Promise<boolean> {
     try {
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-      if (!token) return;
+      if (!token) return false;
       
       const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      const response = await fetch(`${apiBase}/users/topup`, {
+      const response = await fetch(`${apiBase}/users/request-topup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ amount: 5000 }) // Default topup amount
+        body: JSON.stringify({ amount })
       });
 
       if (response.ok) {
-        // Fetch new /me so the rest of the app gets the updated credit balance
-        const meRes = await fetch(`${apiBase}/users/me`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (meRes.ok) {
-          const meData = await meRes.json();
-          if (meData.user) {
-            localStorage.setItem("user", JSON.stringify(meData.user));
-          }
-        }
-        // Refresh local history
-        await fetchCreditsAndHistory();
+        return true;
       }
+      return false;
     } catch (err) {
-      console.error("Top-up failed", err);
+      console.error("Top-up request failed", err);
+      return false;
     }
   }
 

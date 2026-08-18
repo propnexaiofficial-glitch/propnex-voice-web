@@ -17,6 +17,8 @@ export function SignUpPageContent() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [phone, setPhone] = useState<string | undefined>("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -25,7 +27,7 @@ export function SignUpPageContent() {
     const formData = new FormData(e.currentTarget);
     const firstName = formData.get("firstName") as string;
     const lastName = formData.get("lastName") as string;
-    const email = formData.get("email") as string;
+    const email = (formData.get("email") as string).toLowerCase();
     const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirmPassword") as string;
 
@@ -153,18 +155,27 @@ export function SignUpPageContent() {
           autoComplete="new-password"
           disabled={submitting}
           error={errors.password}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <AuthField
-          label="Confirm password"
-          name="confirmPassword"
-          type="password"
-          placeholder="Confirm password"
-          autoComplete="new-password"
-          disabled={submitting}
-          error={errors.confirmPassword}
-          required
-        />
+        <div>
+          <AuthField
+            label="Confirm password"
+            name="confirmPassword"
+            type="password"
+            placeholder="Confirm password"
+            autoComplete="new-password"
+            disabled={submitting}
+            error={errors.confirmPassword}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+          {password && confirmPassword && password === confirmPassword && (
+            <p className="text-xs text-green-400 mt-1">✓ Passwords match</p>
+          )}
+        </div>
 
         {errors.root && (
           <p className="text-center text-xs text-red-400">{errors.root}</p>

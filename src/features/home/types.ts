@@ -4,8 +4,8 @@ export type DashboardStat = {
   id: string;
   title: string;
   value: string | number;
-  change: number;
-  changeLabel: string;
+  change?: number;
+  changeLabel?: string;
   icon: LucideIcon;
   accent: "purple" | "blue" | "green" | "gold";
 };

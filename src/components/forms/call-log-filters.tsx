@@ -35,7 +35,8 @@ export function CallLogFiltersBar({
     filters.search !== DEFAULT_CALL_FILTERS.search ||
     filters.status !== DEFAULT_CALL_FILTERS.status ||
     filters.dateFrom !== DEFAULT_CALL_FILTERS.dateFrom ||
-    filters.dateTo !== DEFAULT_CALL_FILTERS.dateTo;
+    filters.dateTo !== DEFAULT_CALL_FILTERS.dateTo ||
+    filters.durationSort !== DEFAULT_CALL_FILTERS.durationSort;
 
   return (
     <div className={cn("glass-card rounded-2xl p-4", className)}>
@@ -55,7 +56,7 @@ export function CallLogFiltersBar({
         )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div className="space-y-1.5 sm:col-span-2">
           <label
             htmlFor={searchId}
@@ -120,6 +121,20 @@ export function CallLogFiltersBar({
             onChange={(e) => update({ dateTo: e.target.value })}
           />
         </div>
+
+        <SelectField
+          label="Duration"
+          value={filters.durationSort}
+          onChange={(e) =>
+            update({
+              durationSort: e.target.value as CallLogFilters["durationSort"],
+            })
+          }
+        >
+          <option value="default">Default</option>
+          <option value="desc">Longest First</option>
+          <option value="asc">Shortest First</option>
+        </SelectField>
       </div>
     </div>
   );

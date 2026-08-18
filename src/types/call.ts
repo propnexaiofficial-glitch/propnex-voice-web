@@ -29,6 +29,7 @@ export type CallLogFilters = {
   status: CallStatus | "all";
   dateFrom: string;
   dateTo: string;
+  durationSort: "default" | "asc" | "desc";
 };
 
 export const DEFAULT_CALL_FILTERS: CallLogFilters = {
@@ -36,6 +37,7 @@ export const DEFAULT_CALL_FILTERS: CallLogFilters = {
   status: "all",
   dateFrom: "",
   dateTo: "",
+  durationSort: "default",
 };
 
 export const CALL_STATUS_OPTIONS: { value: CallStatus | "all"; label: string }[] =

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Pause, Play } from "lucide-react";
+import { Pause, Play, RotateCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -29,14 +29,41 @@ export function RecordingPlayer({
 }: RecordingPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [hasError, setHasError] = useState(false);
+  const [isValidating, setIsValidating] = useState(!!audioUrl);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Exclusive playback listener
+  useEffect(() => {
+    const handleGlobalPlay = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail !== audioUrl && isPlaying) {
+        if (audioRef.current) {
+          audioRef.current.pause();
+        }
+        setIsPlaying(false);
+      }
+    };
+    window.addEventListener("recording-play", handleGlobalPlay);
+    return () => window.removeEventListener("recording-play", handleGlobalPlay);
+  }, [audioUrl, isPlaying]);
+
+  const [retryCount, setRetryCount] = useState(0);
 
   // Initialize the audio element when the URL is available
   useEffect(() => {
     if (!audioUrl) return;
 
+    let isMounted = true;
+    setHasError(false);
+    setIsValidating(true);
+
     const audio = new Audio(audioUrl);
+    audio.preload = "metadata";
     audioRef.current = audio;
+
+    // Force the browser to start fetching the metadata immediately.
+    audio.load();
 
     const updateTime = () => {
       setProgress(audio.currentTime);
@@ -47,16 +74,47 @@ export function RecordingPlayer({
       setProgress(durationSeconds > 0 ? durationSeconds : audio.duration || 0);
     };
 
+    const handleError = () => {
+      if (!isMounted) return;
+      if (retryCount < 5) {
+        // Retry after 2 seconds (S3 eventual consistency)
+        setTimeout(() => {
+          if (isMounted) setRetryCount((prev) => prev + 1);
+        }, 2000);
+      } else {
+        setHasError(true);
+        setIsValidating(false);
+        setIsPlaying(false);
+      }
+    };
+
+    const handleLoadedMetadata = () => {
+      if (!isMounted) return;
+      setHasError(false);
+      setIsValidating(false);
+    };
+
+    if (audio.readyState >= 1) {
+      setIsValidating(false);
+    }
+
     audio.addEventListener("timeupdate", updateTime);
     audio.addEventListener("ended", handleEnded);
+    audio.addEventListener("error", handleError);
+    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    audio.addEventListener("canplay", handleLoadedMetadata);
 
     return () => {
+      isMounted = false;
       audio.removeEventListener("timeupdate", updateTime);
       audio.removeEventListener("ended", handleEnded);
+      audio.removeEventListener("error", handleError);
+      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      audio.removeEventListener("canplay", handleLoadedMetadata);
       audio.pause();
       audioRef.current = null;
     };
-  }, [audioUrl, durationSeconds]);
+  }, [audioUrl, durationSeconds, retryCount]);
 
   const handleToggle = () => {
     if (!audioRef.current) {
@@ -76,10 +134,13 @@ export function RecordingPlayer({
       }
       audioRef.current.play().then(() => {
         setIsPlaying(true);
+        // Dispatch event so other players pause
+        window.dispatchEvent(new CustomEvent("recording-play", { detail: audioUrl }));
       }).catch(err => {
         console.error("Failed to play audio:", err);
-        // Fallback to opening in new tab if browser blocked autoplay
-        window.open(audioUrl!, "_blank", "noopener,noreferrer");
+        if (err.name !== "NotAllowedError") {
+          setHasError(true);
+        }
       });
     }
   };
@@ -88,24 +149,78 @@ export function RecordingPlayer({
   const progressPercent = currentDuration > 0 ? (progress / currentDuration) * 100 : 0;
 
   if (compact) {
+    if (hasError) {
+      return (
+        <div className={cn("flex items-center gap-2", className)}>
+          <span className="text-xs text-destructive flex items-center gap-1.5">
+            <span className="size-1.5 rounded-full bg-destructive animate-pulse" />
+            Not found
+          </span>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
+            onClick={(e) => {
+              e.stopPropagation();
+              setHasError(false);
+              setIsValidating(true);
+              setRetryCount(0);
+            }}
+            aria-label="Retry loading recording"
+            title="Retry loading recording"
+          >
+            <RotateCw className="size-3" />
+          </Button>
+        </div>
+      );
+    }
+
     return (
       <div className={cn("flex items-center gap-2", className)}>
         <Button
           variant="outline"
           size="icon-sm"
           onClick={handleToggle}
-          disabled={!audioUrl}
+          disabled={!audioUrl || isValidating}
           aria-label={isPlaying ? "Pause recording" : "Play recording"}
         >
-          {isPlaying ? (
+          {isValidating ? (
+            <span className="size-3.5 border-[1.5px] border-muted-foreground border-t-transparent rounded-full animate-spin" />
+          ) : isPlaying ? (
             <Pause className="size-3.5" />
           ) : (
             <Play className="size-3.5" />
           )}
         </Button>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-xs text-muted-foreground min-w-[70px]">
           {formatTime(progress)} / {formatTime(currentDuration)}
         </span>
+      </div>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <div
+        className={cn(
+          "glass-card rounded-xl p-4 space-y-3 min-w-[220px] flex flex-col items-center justify-center",
+          className
+        )}
+      >
+        <span className="text-xs font-medium text-destructive">Recording Not Found</span>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full text-xs h-8"
+          onClick={() => {
+            setHasError(false);
+            setIsValidating(true);
+            setRetryCount(0);
+          }}
+        >
+          <RotateCw className="size-3.5 mr-1.5" />
+          Retry
+        </Button>
       </div>
     );
   }
@@ -136,16 +251,21 @@ export function RecordingPlayer({
         size="sm"
         className="w-full"
         onClick={handleToggle}
-        disabled={!audioUrl}
+        disabled={!audioUrl || isValidating}
       >
-        {isPlaying ? (
+        {isValidating ? (
           <>
-            <Pause className="size-4" />
+            <span className="size-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-1" />
+            Loading...
+          </>
+        ) : isPlaying ? (
+          <>
+            <Pause className="size-4 mr-1" />
             Pause
           </>
         ) : (
           <>
-            <Play className="size-4" />
+            <Play className="size-4 mr-1" />
             Play Recording
           </>
         )}

@@ -26,11 +26,11 @@ function formatDuration(seconds: number): string {
   return m > 0 ? `${m}m ${s}s` : `${s}s`;
 }
 
-function mapApiItemToCallRecord(item: any): CallRecord {
+function mapApiItemToCallRecord(item: any, fallbackAssignedNumber: string): CallRecord {
   return {
     id: item.id || item.publicId,
     customerNumber: item.customerNumber || item.phoneNumber || "Unknown",
-    assignedNumber: item.assignedNumber || "Unknown",
+    assignedNumber: item.assignedNumber && item.assignedNumber !== "Unknown" ? item.assignedNumber : fallbackAssignedNumber,
     callDateTime: item.startedAt || new Date().toISOString(),
     duration: formatDuration(item.durationSeconds || 0),
     durationSeconds: item.durationSeconds || 0,
@@ -46,7 +46,8 @@ function mapApiItemToCallRecord(item: any): CallRecord {
 export function useInboundCallsApi(
   filters: CallLogFilters,
   page: number,
-  retryKey: number = 0
+  retryKey: number = 0,
+  hasAssignedNumber: boolean = true
 ): UseInboundCallsApiState {
   const [state, setState] = useState<UseInboundCallsApiState>({
     calls: [],
@@ -56,12 +57,23 @@ export function useInboundCallsApi(
     error: null,
   });
 
-  const { search, status, dateFrom, dateTo } = filters;
+  const { search, status, dateFrom, dateTo, durationSort } = filters;
 
   useEffect(() => {
     let isCancelled = false;
 
     const load = async () => {
+      if (!hasAssignedNumber) {
+        setState({
+          calls: [],
+          total: 0,
+          totalPages: 1,
+          loading: false,
+          error: null,
+        });
+        return;
+      }
+
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
@@ -75,14 +87,25 @@ export function useInboundCallsApi(
 
         let items = res.data;
 
-        // Client-side search filter (server doesn't support free-text search yet)
+        let fallbackAssignedNumber = "Unknown";
+        try {
+          const userStr = localStorage.getItem("user");
+          if (userStr) {
+            const user = JSON.parse(userStr);
+            fallbackAssignedNumber = user.assignedNumber || "Unknown";
+          }
+        } catch (e) {}
+
+        // Client-side search filter
         if (search.trim()) {
           const q = search.toLowerCase();
           items = items.filter(
             (item) =>
               item.publicId?.toLowerCase().includes(q) ||
               (item.providerCallId ?? "").toLowerCase().includes(q) ||
-              (item.phoneNumberId ?? "").toLowerCase().includes(q)
+              (item.phoneNumberId ?? "").toLowerCase().includes(q) ||
+              (item.customerNumber ?? "").toLowerCase().includes(q) ||
+              (item.assignedNumber && item.assignedNumber !== "Unknown" ? item.assignedNumber : fallbackAssignedNumber).toLowerCase().includes(q)
           );
         }
 
@@ -95,10 +118,16 @@ export function useInboundCallsApi(
           });
         }
 
+        if (durationSort === "asc") {
+          items.sort((a, b) => (a.durationSeconds || 0) - (b.durationSeconds || 0));
+        } else if (durationSort === "desc") {
+          items.sort((a, b) => (b.durationSeconds || 0) - (a.durationSeconds || 0));
+        }
+
         setState({
-          calls: items.map(mapApiItemToCallRecord),
-          total: res.meta.total,
-          totalPages: res.meta.totalPages,
+          calls: items.map((item: any) => mapApiItemToCallRecord(item, fallbackAssignedNumber)),
+          total: items.length,
+          totalPages: Math.ceil(items.length / PAGE_SIZE) || 1,
           loading: false,
           error: null,
         });
@@ -119,7 +148,7 @@ export function useInboundCallsApi(
     return () => {
       isCancelled = true;
     };
-  }, [search, status, dateFrom, dateTo, page, retryKey]);
+  }, [search, status, dateFrom, dateTo, durationSort, page, retryKey, hasAssignedNumber]);
 
   return state;
 }

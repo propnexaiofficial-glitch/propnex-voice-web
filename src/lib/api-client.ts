@@ -30,6 +30,8 @@ export type InboundCallApiItem = {
   startedAt: string;
   createdAt: string;
   updatedAt: string;
+  customerNumber?: string | null;
+  assignedNumber?: string | null;
 };
 
 export type CallListApiResponse = {
@@ -57,16 +59,13 @@ export async function fetchInboundCalls(
 ): Promise<CallListApiResponse> {
   const query = new URLSearchParams();
   if (params.status && params.status !== "all") query.set("status", params.status.toUpperCase());
-  if (params.companyId) query.set("companyId", params.companyId);
   if (params.phoneNumberId) query.set("phoneNumberId", params.phoneNumberId);
   if (params.provider) query.set("provider", params.provider);
   if (params.page) query.set("page", String(params.page));
   if (params.limit) query.set("limit", String(params.limit));
 
-  const url = `${API_BASE_URL}/api/calls/inbound${query.toString() ? `?${query}` : ""}`;
-
   let token = "";
-  let companyId = "";
+  let companyId = params.companyId || "";
   let userEmail = "";
 
   if (typeof window !== "undefined") {
@@ -75,13 +74,17 @@ export async function fetchInboundCalls(
       const userStr = localStorage.getItem("user");
       if (userStr) {
         const user = JSON.parse(userStr);
-        companyId = user.companyId || user.company_id || "";
+        if (!companyId) companyId = user.companyId || user.company_id || "";
         userEmail = user.email || "";
       }
     } catch (e) {
       // ignore parse errors
     }
   }
+
+  if (companyId) query.set("companyId", companyId);
+
+  const url = `${API_BASE_URL}/api/calls/inbound${query.toString() ? `?${query}` : ""}`;
 
   const res = await fetch(url, {
     next: { revalidate: 0 },

@@ -44,12 +44,14 @@ export function ProfileCard({ className }: ProfileCardProps) {
   const fullName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : "Loading...";
   const email = user?.email || "loading...";
   const phone = user?.phone || "loading...";
+  const assignedNumber = user?.assignedNumber || "Not Assigned";
   const company = user?.companyId ? "PropNex AI Technology" : "No Company"; // We don't have the company name in the JWT payload easily, so placeholder for now
 
   const profileFields = [
     { label: "Email", value: email, icon: Mail },
     { label: "Phone", value: phone, icon: Phone },
     { label: "Company", value: company, icon: Building2 },
+    { label: "Assigned Number", value: assignedNumber, icon: Phone },
   ];
 
   return (
@@ -102,19 +104,6 @@ export function ProfileCard({ className }: ProfileCardProps) {
                 </div>
               );
             })}
-            <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-3 py-2.5 sm:col-span-2">
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40">
-                <User className="size-4 text-muted-foreground" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Account Type
-                </p>
-                <p className="text-sm font-medium">
-                  Enterprise · Multi-tenant
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
