@@ -124,7 +124,7 @@ export function useInboundCallsApi(
           items.sort((a, b) => (b.durationSeconds || 0) - (a.durationSeconds || 0));
         }
 
-        const isFilteredLocally = Boolean(search.trim() || dateFrom || dateTo || durationSort);
+        const isFilteredLocally = Boolean(search.trim() || dateFrom || dateTo || (durationSort && durationSort !== "default"));
         const finalTotal = isFilteredLocally ? items.length : (res.meta?.total || items.length);
         const finalTotalPages = isFilteredLocally 
           ? (Math.ceil(items.length / PAGE_SIZE) || 1) 
