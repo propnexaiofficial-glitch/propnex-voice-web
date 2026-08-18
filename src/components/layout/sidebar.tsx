@@ -14,9 +14,10 @@ import { cn } from "@/lib/utils";
 type SidebarNavProps = {
   onNavigate?: () => void;
   className?: string;
+  isLockedOut?: boolean;
 };
 
-export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
+export function SidebarNav({ onNavigate, className, isLockedOut }: SidebarNavProps) {
   const pathname = usePathname();
 
   const activeHref = MAIN_NAV_ITEMS.filter(
@@ -28,16 +29,26 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
       {MAIN_NAV_ITEMS.map((item) => {
         const isActive = item.href === activeHref;
         const Icon = item.icon;
+        const isBilling = item.href === "/dashboard/billing";
+        const isDisabled = isLockedOut && !isBilling;
 
         return (
           <Link
             key={item.href}
-            href={item.href}
-            onClick={onNavigate}
+            href={isDisabled ? "#" : item.href}
+            onClick={(e) => {
+              if (isDisabled) {
+                e.preventDefault();
+                return;
+              }
+              onNavigate?.();
+            }}
             className={cn(
               "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
               isActive
                 ? "sidebar-active-indicator bg-accent text-foreground"
+                : isDisabled
+                ? "text-muted-foreground/30 cursor-not-allowed"
                 : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
             )}
           >
@@ -53,6 +64,8 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
                 "relative z-10 flex size-8 items-center justify-center rounded-lg transition-all",
                 isActive
                   ? "bg-foreground text-background"
+                  : isDisabled
+                  ? "bg-muted/30 text-muted-foreground/30"
                   : "bg-muted text-muted-foreground group-hover:bg-accent group-hover:text-foreground"
               )}
             >
@@ -86,9 +99,10 @@ function SidebarLogout({ className }: { className?: string }) {
 
 type SidebarProps = {
   className?: string;
+  isLockedOut?: boolean;
 };
 
-export function Sidebar({ className }: SidebarProps) {
+export function Sidebar({ className, isLockedOut }: SidebarProps) {
   return (
     <aside
       className={cn(
@@ -101,7 +115,7 @@ export function Sidebar({ className }: SidebarProps) {
       </div>
 
       <ScrollArea className="min-h-0 flex-1 py-4">
-        <SidebarNav />
+        <SidebarNav isLockedOut={isLockedOut} />
       </ScrollArea>
 
       <SidebarLogout />

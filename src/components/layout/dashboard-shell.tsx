@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { EmployeesProvider } from "@/features/employees/context/employees-context";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { cn } from "@/lib/utils";
+import { usePathname, useRouter } from "next/navigation";
 
 type DashboardShellProps = {
   children: React.ReactNode;
@@ -18,6 +19,8 @@ function DashboardShellInner({
   className,
 }: DashboardShellProps) {
   const title = usePageTitle();
+  const pathname = usePathname();
+  const router = useRouter();
   const [isWaiting, setIsWaiting] = useState(false);
   const [isWaitingNumber, setIsWaitingNumber] = useState(false);
   const [isRejected, setIsRejected] = useState(false);
@@ -25,6 +28,7 @@ function DashboardShellInner({
   const [reminding, setReminding] = useState(false);
   const [remindMessage, setRemindMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const [isRemindDisabled, setIsRemindDisabled] = useState(false);
+  const [creditsRemaining, setCreditsRemaining] = useState<number | null>(null);
 
   const checkReminderStatus = (userObj?: Record<string, unknown> | null, isNumberReminder?: boolean) => {
     try {
@@ -130,6 +134,9 @@ function DashboardShellInner({
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
           const user = JSON.parse(storedUser);
+          if (user.creditBalance !== undefined) {
+            setCreditsRemaining(user.creditBalance?.creditsRemaining || 0);
+          }
           if (user.approvalStatus === "REJECTED") {
             setIsRejected(true);
             needsRefresh = true;
@@ -163,6 +170,9 @@ function DashboardShellInner({
             if (data.user) {
               localStorage.setItem("user", JSON.stringify(data.user));
               window.dispatchEvent(new Event("user-updated"));
+              if (data.user.creditBalance !== undefined) {
+                setCreditsRemaining(data.user.creditBalance?.creditsRemaining || 0);
+              }
               if (data.user.approvalStatus === "REJECTED") {
                 setIsRejected(true);
                 setIsWaiting(false);
@@ -214,6 +224,9 @@ function DashboardShellInner({
           if (data.user) {
             localStorage.setItem("user", JSON.stringify(data.user));
             window.dispatchEvent(new Event("user-updated"));
+            if (data.user.creditBalance !== undefined) {
+              setCreditsRemaining(data.user.creditBalance?.creditsRemaining || 0);
+            }
             if (data.user.approvalStatus === "REJECTED") {
               setIsRejected(true);
               setIsWaiting(false);
@@ -247,6 +260,14 @@ function DashboardShellInner({
 
     return () => clearInterval(interval);
   }, [isWaiting, isRejected, isWaitingNumber]);
+
+  useEffect(() => {
+    if (!isLoading && !isWaiting && !isWaitingNumber && !isRejected && creditsRemaining !== null) {
+      if (creditsRemaining <= 0 && pathname !== "/dashboard/billing") {
+        router.push("/dashboard/billing");
+      }
+    }
+  }, [isLoading, isWaiting, isWaitingNumber, isRejected, creditsRemaining, pathname, router]);
 
   if (isLoading) {
     return <div className="flex min-h-screen items-center justify-center bg-background"><div className="animate-spin h-8 w-8 rounded-full border-4 border-fuchsia-500 border-r-transparent" /></div>;
@@ -344,12 +365,18 @@ function DashboardShellInner({
     );
   }
 
-
+  const isLockedOut = creditsRemaining !== null && creditsRemaining <= 0;
 
   return (
     <div className="flex min-h-screen bg-background page-mesh-bg">
-      <Sidebar />
+      <Sidebar isLockedOut={isLockedOut} />
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+        {creditsRemaining !== null && creditsRemaining < 100 && creditsRemaining > 0 && (
+          <div className="w-full bg-red-500/10 border-b border-red-500/20 px-4 py-2 flex items-center justify-center gap-2 text-red-500 text-sm font-medium z-50">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            Warning: Your credit balance is extremely low. Please purchase more credits immediately to avoid being blocked from the dashboard.
+          </div>
+        )}
         <DashboardHeader title={title} />
         <main
           className={cn(
