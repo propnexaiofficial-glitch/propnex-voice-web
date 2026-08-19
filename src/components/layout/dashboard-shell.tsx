@@ -262,12 +262,12 @@ function DashboardShellInner({
   }, [isWaiting, isRejected, isWaitingNumber]);
 
   useEffect(() => {
-    if (!isLoading && !isWaiting && !isWaitingNumber && !isRejected && creditsRemaining !== null) {
+    if (!isLoading && !isRejected && creditsRemaining !== null) {
       if (creditsRemaining <= 0 && pathname !== "/dashboard/billing") {
         router.push("/dashboard/billing");
       }
     }
-  }, [isLoading, isWaiting, isWaitingNumber, isRejected, creditsRemaining, pathname, router]);
+  }, [isLoading, isRejected, creditsRemaining, pathname, router]);
 
   if (isLoading) {
     return <div className="flex min-h-screen items-center justify-center bg-background"><div className="animate-spin h-8 w-8 rounded-full border-4 border-fuchsia-500 border-r-transparent" /></div>;
@@ -303,7 +303,7 @@ function DashboardShellInner({
             localStorage.removeItem("accessToken");
             localStorage.removeItem("access_token");
             window.location.href = "/auth/sign-in";
-          }} className="text-sm text-fuchsia-400 hover:text-fuchsia-300">
+          }} className="text-sm text-red-400 hover:text-red-300">
             Sign out
           </button>
         </div>
@@ -366,12 +366,6 @@ function DashboardShellInner({
   }
 
   const isLockedOut = creditsRemaining !== null && creditsRemaining <= 0;
-
-  useEffect(() => {
-    if (isLockedOut && pathname !== "/dashboard/billing") {
-      router.push("/dashboard/billing");
-    }
-  }, [isLockedOut, pathname, router]);
 
   return (
     <div className="flex min-h-screen bg-background page-mesh-bg">
