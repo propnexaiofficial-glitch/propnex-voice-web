@@ -8,6 +8,7 @@ import { LogOut } from "lucide-react";
 import { Logo } from "@/components/common/logo";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MAIN_NAV_ITEMS } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
 
@@ -25,57 +26,77 @@ export function SidebarNav({ onNavigate, className, isLockedOut }: SidebarNavPro
   ).sort((a, b) => b.href.length - a.href.length)[0]?.href;
 
   return (
-    <nav className={cn("flex flex-col gap-1 px-3", className)}>
-      {MAIN_NAV_ITEMS.map((item) => {
-        const isActive = item.href === activeHref;
-        const Icon = item.icon;
-        const isBilling = item.href === "/dashboard/billing";
-        const isDisabled = isLockedOut && !isBilling;
+    <TooltipProvider delayDuration={0}>
+      <nav className={cn("flex flex-col gap-1 px-3", className)}>
+        {MAIN_NAV_ITEMS.map((item) => {
+          const isActive = item.href === activeHref;
+          const Icon = item.icon;
+          const isBilling = item.href === "/dashboard/billing";
+          const isComingSoon = item.comingSoon;
+          const isDisabled = (isLockedOut && !isBilling) || isComingSoon;
 
-        return (
-          <Link
-            key={item.href}
-            href={isDisabled ? "#" : item.href}
-            onClick={(e) => {
-              if (isDisabled) {
-                e.preventDefault();
-                return;
-              }
-              onNavigate?.();
-            }}
-            className={cn(
-              "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
-              isActive
-                ? "sidebar-active-indicator bg-accent text-foreground"
-                : isDisabled
-                ? "text-muted-foreground/30 cursor-not-allowed"
-                : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-            )}
-          >
-            {isActive && (
-              <motion.div
-                layoutId="sidebar-active"
-                className="absolute inset-0 rounded-xl bg-accent"
-                transition={{ type: "spring", stiffness: 380, damping: 30 }}
-              />
-            )}
-            <span
+          const LinkContent = (
+            <Link
+              key={item.href}
+              href={isDisabled ? "#" : item.href}
+              onClick={(e) => {
+                if (isDisabled) {
+                  e.preventDefault();
+                  return;
+                }
+                onNavigate?.();
+              }}
               className={cn(
-                "relative z-10 flex size-8 items-center justify-center rounded-lg transition-all",
-                isActive
-                  ? "bg-foreground text-background"
+                "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+                isActive && !isComingSoon
+                  ? "sidebar-active-indicator bg-accent text-foreground"
                   : isDisabled
-                  ? "bg-muted/30 text-muted-foreground/30"
-                  : "bg-muted text-muted-foreground group-hover:bg-accent group-hover:text-foreground"
+                  ? "text-muted-foreground/30 cursor-not-allowed"
+                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
               )}
             >
-              <Icon className="size-4" />
-            </span>
-            <span className="relative z-10 truncate">{item.title}</span>
-          </Link>
-        );
-      })}
-    </nav>
+              {isActive && !isComingSoon && (
+                <motion.div
+                  layoutId="sidebar-active"
+                  className="absolute inset-0 rounded-xl bg-accent"
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                />
+              )}
+              <span
+                className={cn(
+                  "relative z-10 flex size-8 items-center justify-center rounded-lg transition-all",
+                  isActive && !isComingSoon
+                    ? "bg-foreground text-background"
+                    : isDisabled
+                    ? "bg-muted/30 text-muted-foreground/30"
+                    : "bg-muted text-muted-foreground group-hover:bg-accent group-hover:text-foreground"
+                )}
+              >
+                <Icon className="size-4" />
+              </span>
+              <span className="relative z-10 truncate">{item.title}</span>
+            </Link>
+          );
+
+          if (isComingSoon) {
+            return (
+              <Tooltip key={item.href}>
+                <TooltipTrigger asChild>
+                  <div>
+                    {LinkContent}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Coming Soon</p>
+                </TooltipContent>
+              </Tooltip>
+            );
+          }
+
+          return LinkContent;
+        })}
+      </nav>
+    </TooltipProvider>
   );
 }
 
