@@ -400,7 +400,7 @@ function DashboardShellInner({
             className
           )}
         >
-          {isLockedOut && pathname !== "/dashboard/billing" ? (
+          {isLockedOut && pathname !== "/dashboard/billing" && (
             <div className="flex h-full flex-col items-center justify-center py-12">
               <div className="text-center space-y-3">
                 <h2 className="text-2xl font-bold text-red-500">Dashboard Locked</h2>
@@ -413,34 +413,34 @@ function DashboardShellInner({
                 <p className="text-xs text-muted-foreground mt-2">Redirecting to billing...</p>
               </div>
             </div>
-          ) : (
-            <>
-              {isWaitingNumber && (
-                <div className="mb-6 rounded-lg border border-yellow-500/20 bg-yellow-500/10 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-yellow-500/20 text-yellow-500">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-yellow-500">Number Assignment Pending</h3>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        Your account is verified, but you need a phone number to make or receive calls.
-                        {remindMessage && <span className={`ml-2 font-medium ${remindMessage.type === 'error' ? 'text-red-400' : 'text-green-400'}`}>{remindMessage.text}</span>}
-                      </p>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={handleRemindAdmin}
-                    disabled={isRemindDisabled || reminding}
-                    className="shrink-0 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold text-xs rounded-md transition-colors disabled:opacity-50"
-                  >
-                    {reminding ? "Sending..." : isRemindDisabled ? "Reminder Sent (24h Lock)" : "Remind Admin"}
-                  </button>
-                </div>
-              )}
-              {children}
-            </>
           )}
+
+          <div className={isLockedOut && pathname !== "/dashboard/billing" ? "hidden" : "block"}>
+            {isWaitingNumber && (
+              <div className="mb-6 rounded-lg border border-yellow-500/20 bg-yellow-500/10 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-yellow-500/20 text-yellow-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-yellow-500">Number Assignment Pending</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Your account is verified, but you need a phone number to make or receive calls.
+                      {remindMessage && <span className={`ml-2 font-medium ${remindMessage.type === 'error' ? 'text-red-400' : 'text-green-400'}`}>{remindMessage.text}</span>}
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={handleRemindAdmin}
+                  disabled={isRemindDisabled || reminding}
+                  className="shrink-0 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold text-xs rounded-md transition-colors disabled:opacity-50"
+                >
+                  {reminding ? "Sending..." : isRemindDisabled ? "Reminder Sent (24h Lock)" : "Remind Admin"}
+                </button>
+              </div>
+            )}
+            {children}
+          </div>
         </main>
       </div>
     </div>
