@@ -8,7 +8,6 @@ import { LogOut } from "lucide-react";
 import { Logo } from "@/components/common/logo";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MAIN_NAV_ITEMS } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
 
@@ -26,85 +25,75 @@ export function SidebarNav({ onNavigate, className, isLockedOut }: SidebarNavPro
   ).sort((a, b) => b.href.length - a.href.length)[0]?.href;
 
   return (
-    <TooltipProvider delayDuration={0}>
-      <nav className={cn("flex flex-col gap-1 px-3", className)}>
-        {MAIN_NAV_ITEMS.map((item) => {
-          const isActive = item.href === activeHref;
-          const Icon = item.icon;
-          const isBilling = item.href === "/dashboard/billing";
-          const isComingSoon = item.comingSoon;
-          const isDisabled = (isLockedOut && !isBilling) || isComingSoon;
+    <nav className={cn("flex flex-col gap-1 px-3", className)}>
+      {MAIN_NAV_ITEMS.map((item) => {
+        const isActive = item.href === activeHref;
+        const Icon = item.icon;
+        const isBilling = item.href === "/dashboard/billing";
+        const isComingSoon = item.comingSoon;
+        const isDisabled = (isLockedOut && !isBilling) || isComingSoon;
 
-          const LinkContent = (
-            <Link
-              key={item.href}
-              href={isDisabled ? "#" : item.href}
-              onClick={(e) => {
-                if (isDisabled) {
-                  e.preventDefault();
-                  return;
-                }
-                onNavigate?.();
-              }}
+        return (
+          <Link
+            key={item.href}
+            href={isDisabled ? "#" : item.href}
+            onClick={(e) => {
+              if (isDisabled) {
+                e.preventDefault();
+                return;
+              }
+              onNavigate?.();
+            }}
+            className={cn(
+              "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all overflow-hidden",
+              isActive && !isComingSoon
+                ? "sidebar-active-indicator bg-accent text-foreground"
+                : isDisabled
+                ? "text-muted-foreground/30 cursor-not-allowed"
+                : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+            )}
+          >
+            {isActive && !isComingSoon && (
+              <motion.div
+                layoutId="sidebar-active"
+                className="absolute inset-0 rounded-xl bg-accent"
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              />
+            )}
+            <span
               className={cn(
-                "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+                "relative z-10 flex size-8 shrink-0 items-center justify-center rounded-lg transition-all",
                 isActive && !isComingSoon
-                  ? "sidebar-active-indicator bg-accent text-foreground"
+                  ? "bg-foreground text-background"
                   : isDisabled
-                  ? "text-muted-foreground/30 cursor-not-allowed"
-                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+                  ? "bg-muted/30 text-muted-foreground/30"
+                  : "bg-muted text-muted-foreground group-hover:bg-accent group-hover:text-foreground"
               )}
             >
-              {isActive && !isComingSoon && (
-                <motion.div
-                  layoutId="sidebar-active"
-                  className="absolute inset-0 rounded-xl bg-accent"
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                />
-              )}
-              <span
-                className={cn(
-                  "relative z-10 flex size-8 items-center justify-center rounded-lg transition-all",
-                  isActive && !isComingSoon
-                    ? "bg-foreground text-background"
-                    : isDisabled
-                    ? "bg-muted/30 text-muted-foreground/30"
-                    : "bg-muted text-muted-foreground group-hover:bg-accent group-hover:text-foreground"
-                )}
-              >
-                <Icon className="size-4" />
-              </span>
-              <span className="relative z-10 truncate">{item.title}</span>
-            </Link>
-          );
-
-          if (isComingSoon) {
-            return (
-              <Tooltip key={item.href}>
-                <TooltipTrigger asChild>
-                  <div>
-                    {LinkContent}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent 
-                  side="bottom" 
-                  sideOffset={4}
-                  className="bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase flex items-center gap-2 text-foreground/90 overflow-visible"
-                >
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
+              <Icon className="size-4" />
+            </span>
+            <span className="relative z-10 flex-1 truncate h-5 flex items-center">
+              {!isComingSoon ? (
+                <span>{item.title}</span>
+              ) : (
+                <>
+                  <span className="absolute inset-0 transition-transform duration-300 group-hover:-translate-y-full flex items-center">
+                    {item.title}
                   </span>
-                  Coming Soon
-                </TooltipContent>
-              </Tooltip>
-            );
-          }
-
-          return LinkContent;
-        })}
-      </nav>
-    </TooltipProvider>
+                  <span className="absolute inset-0 transition-transform duration-300 translate-y-full group-hover:translate-y-0 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary">
+                    <span className="relative flex h-1.5 w-1.5 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
+                    </span>
+                    Coming Soon
+                  </span>
+                </>
+              )}
+            </span>
+          </Link>
+        );
+      })}
+    </nav>
   );
 }
 
