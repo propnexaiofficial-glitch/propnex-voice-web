@@ -367,6 +367,12 @@ function DashboardShellInner({
 
   const isLockedOut = creditsRemaining !== null && creditsRemaining <= 0;
 
+  useEffect(() => {
+    if (isLockedOut && pathname !== "/dashboard/billing") {
+      router.push("/dashboard/billing");
+    }
+  }, [isLockedOut, pathname, router]);
+
   return (
     <div className="flex min-h-screen bg-background page-mesh-bg">
       <Sidebar isLockedOut={isLockedOut} />
@@ -375,7 +381,7 @@ function DashboardShellInner({
           <div className="w-full bg-red-500/10 border-b border-red-500/20 px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-red-500 text-sm font-medium z-50">
             <div className="flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-              <span>Warning: Your credit balance is extremely low ({creditsRemaining} credits). Please purchase more credits immediately to avoid being blocked from the dashboard.</span>
+              <span>Warning: Your credit balance is {creditsRemaining === 0 ? "zero" : `extremely low (${creditsRemaining} credits)`}. Please purchase more credits immediately to avoid being blocked from the dashboard.</span>
             </div>
             {pathname !== "/dashboard/billing" && (
               <button 
@@ -394,30 +400,47 @@ function DashboardShellInner({
             className
           )}
         >
-          {isWaitingNumber && (
-            <div className="mb-6 rounded-lg border border-yellow-500/20 bg-yellow-500/10 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-yellow-500/20 text-yellow-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+          {isLockedOut && pathname !== "/dashboard/billing" ? (
+            <div className="flex h-full flex-col items-center justify-center py-12">
+              <div className="text-center space-y-3">
+                <h2 className="text-2xl font-bold text-red-500">Dashboard Locked</h2>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  Your credit balance is 0. Please purchase more credits to unlock dashboard access.
+                </p>
+                <div className="mt-8 flex justify-center">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-yellow-500">Number Assignment Pending</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Your account is verified, but you need a phone number to make or receive calls.
-                    {remindMessage && <span className={`ml-2 font-medium ${remindMessage.type === 'error' ? 'text-red-400' : 'text-green-400'}`}>{remindMessage.text}</span>}
-                  </p>
-                </div>
+                <p className="text-xs text-muted-foreground mt-2">Redirecting to billing...</p>
               </div>
-              <button 
-                onClick={handleRemindAdmin}
-                disabled={isRemindDisabled || reminding}
-                className="shrink-0 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold text-xs rounded-md transition-colors disabled:opacity-50"
-              >
-                {reminding ? "Sending..." : isRemindDisabled ? "Reminder Sent (24h Lock)" : "Remind Admin"}
-              </button>
             </div>
+          ) : (
+            <>
+              {isWaitingNumber && (
+                <div className="mb-6 rounded-lg border border-yellow-500/20 bg-yellow-500/10 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-yellow-500/20 text-yellow-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-yellow-500">Number Assignment Pending</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Your account is verified, but you need a phone number to make or receive calls.
+                        {remindMessage && <span className={`ml-2 font-medium ${remindMessage.type === 'error' ? 'text-red-400' : 'text-green-400'}`}>{remindMessage.text}</span>}
+                      </p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={handleRemindAdmin}
+                    disabled={isRemindDisabled || reminding}
+                    className="shrink-0 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold text-xs rounded-md transition-colors disabled:opacity-50"
+                  >
+                    {reminding ? "Sending..." : isRemindDisabled ? "Reminder Sent (24h Lock)" : "Remind Admin"}
+                  </button>
+                </div>
+              )}
+              {children}
+            </>
           )}
-          {children}
         </main>
       </div>
     </div>
