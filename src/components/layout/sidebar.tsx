@@ -86,8 +86,16 @@ export function SidebarNav({ onNavigate, className, isLockedOut }: SidebarNavPro
                     {LinkContent}
                   </div>
                 </TooltipTrigger>
-                <TooltipContent side="right">
-                  <p>Coming Soon</p>
+                <TooltipContent 
+                  side="bottom" 
+                  sideOffset={4}
+                  className="bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase flex items-center gap-2 text-foreground/90 overflow-visible"
+                >
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
+                  </span>
+                  Coming Soon
                 </TooltipContent>
               </Tooltip>
             );
