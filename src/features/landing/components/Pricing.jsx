@@ -29,8 +29,7 @@ export default function Pricing() {
         </div>
 
         <p className="mt-8 text-center text-sm text-white/40">
-          Pay-as-you-go: ₹4/min Prepaid · Volume: ₹3.5/min · Setup: ₹24,999
-          one-time · White Labelling: On Demand
+          White Labelling: On Demand
         </p>
         <div className="mt-4 text-center">
           <Link

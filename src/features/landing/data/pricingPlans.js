@@ -9,8 +9,6 @@ export const plans = [
     subtitle: 'Prepaid · flexible credits',
     context: 'Perfect for getting started:',
     features: [
-      '₹4 per minute — Prepaid',
-      'One-time setup fee ₹24,999',
       'White Labelling — On Demand',
       'Top-up when balance is low',
       'No monthly commitment',
@@ -26,8 +24,6 @@ export const plans = [
     subtitle: 'Discounted per-minute pricing',
     context: null,
     features: [
-      '₹3.5 per minute',
-      'One-time setup fee ₹24,999',
       'White Labelling — On Demand',
       'Pre-configured voice agents',
       'Priority support',
@@ -43,8 +39,6 @@ export const plans = [
     subtitle: 'Custom scalable plans',
     context: 'For high-volume teams:',
     features: [
-      'Custom per-minute pricing',
-      'One-time setup fee ₹24,999',
       'White Labelling — On Demand',
       'Customised integrations & deployment',
       'Dedicated account manager',

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { Link } from '@/features/landing/lib/router'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
@@ -15,13 +15,13 @@ const trusted = [
 const faqs = [
   {
     q: 'How is per-minute pricing calculated?',
-    a: 'Pay-as-you-go is ₹4 per minute (Prepaid). Volume Plan is ₹3.5 per minute. Enterprise pricing is custom — talk to sales on ' +
+    a: 'Pricing is tailored to your volume — talk to sales on ' +
       TANISHQ_SALES_DISPLAY +
       '.',
   },
   {
     q: 'Is there a setup fee?',
-    a: 'Yes. Every plan includes a one-time setup fee of ₹24,999.',
+    a: 'Talk to our sales team for details on setup.',
   },
   {
     q: 'Is white labelling available?',
@@ -29,7 +29,7 @@ const faqs = [
   },
   {
     q: 'How does pay-as-you-go / prepaid work?',
-    a: 'You preload credits and are charged ₹4 per minute. Top up anytime — no monthly commitment.',
+    a: 'You preload credits. Top up anytime — no monthly commitment.',
   },
   {
     q: 'How do I get Enterprise pricing?',
@@ -218,8 +218,7 @@ export default function PricingPage() {
           </div>
 
           <p className="mx-auto mt-8 max-w-3xl text-center text-sm leading-relaxed text-white/40">
-            Pay-as-you-go: ₹4/min Prepaid · Volume: ₹3.5/min · Setup: ₹24,999
-            one-time · White Labelling: On Demand
+            White Labelling: On Demand
           </p>
           <div className="mt-4 text-center">
             <Link
