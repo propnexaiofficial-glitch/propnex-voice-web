@@ -31,8 +31,8 @@ export async function GET(req: NextRequest) {
     const formatted = subCompanies.map(c => ({
       _id: c.id,
       companyName: c.name,
-      companyEmail: c.email || "",
-      contactPhone: c.phone || "",
+      companyEmail: "",
+      contactPhone: "",
       creditsUsed: c.creditBalance?.creditsUsed || 0,
       creditsRemaining: c.creditBalance?.creditsRemaining || 0,
       inboundCalls: 0,
