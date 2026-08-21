@@ -89,7 +89,6 @@ export async function POST(req: NextRequest) {
     const newCompany = await prisma.company.create({
       data: {
         name: companyName,
-        email: companyEmail,
         slug: companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-" + Date.now().toString(36),
         contractId: Math.random().toString(36).substring(2, 12).toUpperCase().padEnd(10, '0'),
         cli: (companyName.substring(0, 3) || "SUB").toUpperCase() + "-" + Math.random().toString(36).substring(2, 6).toUpperCase(),
