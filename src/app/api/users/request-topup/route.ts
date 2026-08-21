@@ -25,10 +25,16 @@ export async function POST(req: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
+    
+    // Find active company member to get companyId
+    const member = await (prisma as any).companyMember.findFirst({
+      where: { userId, status: "ACTIVE" }
+    });
 
     await prisma.supportRequest.create({
       data: {
         userId,
+        companyId: member?.companyId || null,
         name: user?.firstName || "User",
         email: user?.email || "Unknown",
         reason: "BILLING_CREDITS",
