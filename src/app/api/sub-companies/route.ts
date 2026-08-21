@@ -90,8 +90,11 @@ export async function POST(req: NextRequest) {
       data: {
         name: companyName,
         email: companyEmail,
+        slug: companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-" + Date.now().toString(36),
+        contractId: Math.random().toString(36).substring(2, 12).toUpperCase().padEnd(10, '0'),
         parentCompanyId: member.companyId,
-        status: "ACTIVE"
+        status: "ACTIVE",
+        tenantType: "CHILD"
       }
     });
 
