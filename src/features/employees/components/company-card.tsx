@@ -23,7 +23,8 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
     (company.creditsUsed / company.creditsLimit) * 100
   );
 
-  const isPending = company.status.toUpperCase() === "PENDING";
+  const isLocked = !company.contactPhone;
+  const isPending = company.status.toUpperCase() === "PENDING" || isLocked;
 
   return (
     <motion.div
@@ -67,20 +68,12 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
 
 
           <Badge
-
-            variant={company.status === "active" ? "success" : "secondary"}
-
-            className="shrink-0 text-[10px]"
-
+            variant={isLocked ? "secondary" : company.status === "active" ? "success" : "secondary"}
+            className={cn("shrink-0 text-[10px]", isLocked && "bg-amber-500/10 text-amber-500 hover:bg-amber-500/20")}
           >
-
-            {company.status}
-
+            {isLocked ? "LOCKED" : company.status}
           </Badge>
-
         </div>
-
-
 
         <div className="space-y-3">
           <div className="space-y-1.5">
@@ -98,20 +91,25 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
             </div>
           </div>
           
-          <div className="flex items-center justify-between text-[11px]">
-            <div className="flex flex-col">
-              <span className="text-muted-foreground">Inbound Calls</span>
-              <span className="font-semibold text-foreground">{company.inboundCalls.toLocaleString()}</span>
+          {isLocked ? (
+            <div className="flex items-center justify-center rounded-lg border border-dashed border-amber-500/30 bg-amber-500/5 py-2 text-[10px] text-amber-500">
+              <Lock className="mr-1.5 size-3" />
+              Waiting for phone assignment
             </div>
-            <div className="flex flex-col text-right">
-              <span className="text-muted-foreground">Outbound Calls</span>
-              <span className="font-semibold text-foreground">{company.outboundCalls.toLocaleString()}</span>
+          ) : (
+            <div className="flex items-center justify-between text-[11px]">
+              <div className="flex flex-col">
+                <span className="text-muted-foreground">Inbound Calls</span>
+                <span className="font-semibold text-foreground">{company.inboundCalls.toLocaleString()}</span>
+              </div>
+              <div className="flex flex-col text-right">
+                <span className="text-muted-foreground">Outbound Calls</span>
+                <span className="font-semibold text-foreground">{company.outboundCalls.toLocaleString()}</span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
-
       </Link>
-
     </motion.div>
 
   );
