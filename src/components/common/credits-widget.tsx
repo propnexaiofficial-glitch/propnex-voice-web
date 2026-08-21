@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Coins, Plus, Building2 } from "lucide-react";
+import { Coins, Plus, Building2, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
@@ -50,6 +50,8 @@ export function CreditsWidget({
   }, []);
 
   const formattedCredits = balance.toLocaleString();
+  const totalSubCompanyCredits = companies.reduce((acc, c) => acc + (c.creditsRemaining || 0), 0);
+  const grandTotal = balance + totalSubCompanyCredits;
 
   if (variant === "sidebar") {
     return (
@@ -119,29 +121,45 @@ export function CreditsWidget({
         <div className="p-3 border-b border-border/50">
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sub-Company Credits</h4>
         </div>
-        <div className="max-h-[240px] overflow-y-auto">
-          {companies.length > 0 ? (
-            <div className="flex flex-col">
-              {companies.map((company) => (
-                <div key={company.id} className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors border-b border-border/50 last:border-0">
-                  <div className="flex items-center gap-2 overflow-hidden mr-3">
-                    <Building2 className="size-3.5 text-muted-foreground shrink-0" />
-                    <span className="text-sm font-medium truncate">{company.name}</span>
-                  </div>
-                  <span className={cn(
-                    "text-xs font-semibold shrink-0 bg-background px-2 py-1 rounded-md border border-border",
-                    (company.creditsRemaining ?? 0) <= 0 && "text-red-500 border-red-500/20 bg-red-500/10"
-                  )}>
-                    {company.creditsRemaining ?? 0}
-                  </span>
+        <div className="max-h-[300px] overflow-y-auto">
+          <div className="flex flex-col">
+            <div className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors border-b border-border/50">
+              <div className="flex items-center gap-2 overflow-hidden mr-3">
+                <User className="size-3.5 text-muted-foreground shrink-0" />
+                <span className="text-sm font-medium truncate">Main Account</span>
+              </div>
+              <div className={cn(
+                "flex items-center gap-1.5 text-xs font-semibold shrink-0 bg-background px-2 py-1 rounded-md border border-border",
+                balance <= 0 && "text-red-500 border-red-500/20 bg-red-500/10"
+              )}>
+                <Coins className="size-3 opacity-70" />
+                <span>{balance}</span>
+              </div>
+            </div>
+
+            {companies.map((company) => (
+              <div key={company.id} className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors border-b border-border/50">
+                <div className="flex items-center gap-2 overflow-hidden mr-3">
+                  <Building2 className="size-3.5 text-muted-foreground shrink-0" />
+                  <span className="text-sm font-medium truncate">{company.name}</span>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-4 text-center text-xs text-muted-foreground">
-              No sub-companies found.
-            </div>
-          )}
+                <div className={cn(
+                  "flex items-center gap-1.5 text-xs font-semibold shrink-0 bg-background px-2 py-1 rounded-md border border-border",
+                  (company.creditsRemaining ?? 0) <= 0 && "text-red-500 border-red-500/20 bg-red-500/10"
+                )}>
+                  <Coins className="size-3 opacity-70" />
+                  <span>{company.creditsRemaining ?? 0}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="p-3 border-t border-border/50 bg-muted/30 flex items-center justify-between">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total</span>
+          <div className="flex items-center gap-1.5 text-sm font-bold text-foreground">
+            <Coins className="size-4 text-fuchsia-500" />
+            <span>{grandTotal.toLocaleString()}</span>
+          </div>
         </div>
       </TooltipContent>
     </Tooltip>

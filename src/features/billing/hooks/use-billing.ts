@@ -3,12 +3,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { assignedChannels } from "@/features/billing/data";
 import type { BillingHistoryItem } from "@/features/billing/types";
+import { useEmployeesContext } from "@/features/employees/context/employees-context";
 
 export function useBilling() {
   const [history, setHistory] = useState([]);
-  const [balance, setBalance] = useState(0);
-  const [usedThisMonth, setUsedThisMonth] = useState(0);
+  const [mainBalance, setMainBalance] = useState(0);
+  const [mainUsedThisMonth, setMainUsedThisMonth] = useState(0);
   const [hasPendingCreditRequest, setHasPendingCreditRequest] = useState(false);
+  
+  const { companies } = useEmployeesContext();
 
   const getToken = () =>
     localStorage.getItem("accessToken") || localStorage.getItem("access_token");
@@ -20,8 +23,8 @@ export function useBilling() {
       if (storedUser) {
         const user = JSON.parse(storedUser);
         if (user.creditBalance) {
-          setBalance(user.creditBalance.creditsRemaining || 0);
-          setUsedThisMonth(user.creditBalance.creditsUsed || 0);
+          setMainBalance(user.creditBalance.creditsRemaining || 0);
+          setMainUsedThisMonth(user.creditBalance.creditsUsed || 0);
         }
       }
 
@@ -95,8 +98,17 @@ export function useBilling() {
     }
   }
 
+  const subUsed = companies.reduce((acc, c) => acc + (c.creditsUsed || 0), 0);
+  const subRemaining = companies.reduce((acc, c) => acc + (c.creditsRemaining || 0), 0);
+  
+  const clampedMainUsed = Math.max(0, mainUsedThisMonth);
+  const clampedSubUsed = Math.max(0, subUsed);
+
+  const totalBalance = mainBalance + subRemaining;
+  const totalUsed = clampedMainUsed + clampedSubUsed;
+
   return {
-    summary: { balance, usedThisMonth, monthlyLimit: 10000 },
+    summary: { balance: totalBalance, usedThisMonth: totalUsed, monthlyLimit: 10000 },
     assignedChannels,
     billingHistory: history,
     purchaseCredits,

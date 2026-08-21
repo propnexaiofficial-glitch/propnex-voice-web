@@ -2,20 +2,19 @@
 
 import { Coins, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
-
-import { creditsOverview } from "@/features/home/data";
-import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
+
+import { cn } from "@/lib/utils";
+import { useEmployeesContext } from "@/features/employees/context/employees-context";
 
 type CreditsOverviewCardProps = {
   className?: string;
 };
 
 export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
-  const [balance, setBalance] = useState(0);
-  const [usedThisMonth, setUsedThisMonth] = useState(0);
-  const [monthlyLimit, setMonthlyLimit] = useState(10000);
-  const [usagePercent, setUsagePercent] = useState(0);
+  const [mainBalance, setMainBalance] = useState(0);
+  const [mainUsed, setMainUsed] = useState(0);
+  const { companies } = useEmployeesContext();
 
   useEffect(() => {
     const syncCredits = () => {
@@ -25,11 +24,8 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
           const user = JSON.parse(storedUser);
           if (user.creditBalance) {
             const cb = user.creditBalance;
-            setBalance(cb.creditsRemaining || 0);
-            setUsedThisMonth(cb.creditsUsed || 0);
-            const limit = 10000;
-            setMonthlyLimit(limit);
-            setUsagePercent(Math.min(100, Math.round(((cb.creditsUsed || 0) / limit) * 100)));
+            setMainBalance(cb.creditsRemaining || 0);
+            setMainUsed(cb.creditsUsed || 0);
           }
         }
       } catch (err) {
@@ -41,6 +37,19 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
     window.addEventListener("user-updated", syncCredits);
     return () => window.removeEventListener("user-updated", syncCredits);
   }, []);
+
+  const subUsed = companies.reduce((acc, c) => acc + (c.creditsUsed || 0), 0);
+  const subRemaining = companies.reduce((acc, c) => acc + (c.creditsRemaining || 0), 0);
+  
+  // To avoid showing negative usages in the UI, we clamp them to 0 minimum.
+  const clampedMainUsed = Math.max(0, mainUsed);
+  const clampedSubUsed = Math.max(0, subUsed);
+
+  const totalBalance = mainBalance + subRemaining;
+  const totalUsed = clampedMainUsed + clampedSubUsed;
+  const monthlyLimit = 10000;
+  
+  const usagePercent = Math.min(100, Math.round((totalUsed / monthlyLimit) * 100));
 
   return (
     <motion.div
@@ -59,13 +68,13 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
           </div>
           <div>
             <p className="text-sm font-semibold">Credit Balance</p>
-            <p className="text-xs text-muted-foreground">Available credits</p>
+            <p className="text-xs text-muted-foreground">Total available credits</p>
           </div>
         </div>
 
         <div>
           <p className="text-3xl font-bold tracking-tight">
-            {balance.toLocaleString()}
+            {totalBalance.toLocaleString()}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">credits remaining</p>
         </div>
@@ -84,7 +93,7 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
             />
           </div>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>{usedThisMonth.toLocaleString()} used</span>
+            <span>{totalUsed.toLocaleString()} used</span>
             <span>{monthlyLimit.toLocaleString()} limit</span>
           </div>
         </div>
