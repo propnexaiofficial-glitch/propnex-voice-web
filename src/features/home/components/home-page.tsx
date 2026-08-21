@@ -17,6 +17,8 @@ export function HomePageContent() {
       </div>
 
       <QuickActions />
+
+      <RecentActivity />
     </div>
   );
 }

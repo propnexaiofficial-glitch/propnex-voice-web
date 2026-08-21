@@ -24,12 +24,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json([]);
     }
 
+    const subCompanies = await prisma.company.findMany({
+      where: { parentCompanyId: member.companyId },
+      select: { id: true }
+    });
+    
+    const companyIdsToQuery = [member.companyId, ...subCompanies.map((c: any) => c.id)];
+
     const recentCalls = await prisma.callLog.findMany({
       where: { 
-        OR: [
-          { companyId: member.companyId },
-          { company: { parentCompanyId: member.companyId } }
-        ]
+        companyId: { in: companyIdsToQuery }
       },
       orderBy: { startedAt: "desc" },
       take: 5

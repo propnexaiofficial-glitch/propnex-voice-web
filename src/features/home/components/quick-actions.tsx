@@ -28,7 +28,7 @@ export function QuickActions({ className }: QuickActionsProps) {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {quickActions.map((action, index) => {
           const Icon = action.icon;
 

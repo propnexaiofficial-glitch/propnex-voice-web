@@ -48,9 +48,9 @@ export function CreditBalanceCard({ summary, className }: CreditBalanceCardProps
 
   // We still use summary.balance and summary.usedThisMonth for consistency, but we break it down
   const clampedUsed = Math.max(0, summary.usedThisMonth);
-  const usagePercent = Math.min(100, Math.round(
+  const usagePercent = clampedUsed > 0 ? Math.max(1, Math.min(100, Math.round(
     (clampedUsed / summary.monthlyLimit) * 100
-  ));
+  ))) : 0;
 
   return (
     <motion.div

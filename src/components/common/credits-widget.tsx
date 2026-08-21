@@ -24,7 +24,7 @@ export function CreditsWidget({
   className,
 }: CreditsWidgetProps) {
   const [balance, setBalance] = useState(0);
-  const [usagePercent, setUsagePercent] = useState(0);
+  const [mainUsed, setMainUsed] = useState(0);
   const { companies } = useEmployeesContext();
 
   useEffect(() => {
@@ -37,8 +37,7 @@ export function CreditsWidget({
             const rem = user.creditBalance.creditsRemaining || 0;
             const used = user.creditBalance.creditsUsed || 0;
             setBalance(rem);
-            const limit = 10000;
-            setUsagePercent(Math.min(100, Math.round((used / limit) * 100)));
+            setMainUsed(used);
           }
         }
       } catch (e) {}
@@ -49,9 +48,15 @@ export function CreditsWidget({
     return () => window.removeEventListener("user-updated", fetchCredits);
   }, []);
 
-  const formattedCredits = balance.toLocaleString();
   const totalSubCompanyCredits = companies.reduce((acc, c) => acc + (c.creditsRemaining || 0), 0);
   const grandTotal = balance + totalSubCompanyCredits;
+  
+  const totalSubCompanyUsed = companies.reduce((acc, c) => acc + (c.creditsUsed || 0), 0);
+  const grandUsed = Math.max(0, mainUsed) + Math.max(0, totalSubCompanyUsed);
+  const limit = 10000;
+  const usagePercent = grandUsed > 0 ? Math.max(1, Math.min(100, Math.round((grandUsed / limit) * 100))) : 0;
+
+  const formattedCredits = grandTotal.toLocaleString();
 
   if (variant === "sidebar") {
     return (

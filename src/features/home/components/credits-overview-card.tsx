@@ -49,7 +49,7 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
   const totalUsed = clampedMainUsed + clampedSubUsed;
   const monthlyLimit = 10000;
   
-  const usagePercent = Math.min(100, Math.round((totalUsed / monthlyLimit) * 100));
+  const usagePercent = totalUsed > 0 ? Math.max(1, Math.min(100, Math.round((totalUsed / monthlyLimit) * 100))) : 0;
 
   return (
     <motion.div
