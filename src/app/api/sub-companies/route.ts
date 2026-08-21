@@ -31,18 +31,30 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    const formatted = subCompanies.map((c: any) => ({
-      _id: c.id,
-      companyName: c.name,
-      companyEmail: "",
-      contactPhone: c.phoneNumbers?.[0]?.number || "",
-      creditsUsed: c.creditBalance?.creditsUsed || 0,
-      creditsRemaining: c.creditBalance?.creditsRemaining || 0,
-      inboundCalls: 0,
-      outboundCalls: 0,
-      status: c.status || "ACTIVE",
-      createdAt: c.createdAt
-    }));
+    const subCompanyIds = subCompanies.map(c => c.id);
+    const callCounts = await prisma.callLog.groupBy({
+      by: ['companyId', 'direction'],
+      where: { companyId: { in: subCompanyIds } },
+      _count: { _all: true }
+    });
+
+    const formatted = subCompanies.map((c: any) => {
+      const inbound = callCounts.find(cc => cc.companyId === c.id && cc.direction === "INBOUND")?._count._all || 0;
+      const outbound = callCounts.find(cc => cc.companyId === c.id && cc.direction === "OUTBOUND")?._count._all || 0;
+
+      return {
+        _id: c.id,
+        companyName: c.name,
+        companyEmail: "",
+        contactPhone: c.phoneNumbers?.[0]?.number || "",
+        creditsUsed: c.creditBalance?.creditsUsed || 0,
+        creditsRemaining: c.creditBalance?.creditsRemaining || 0,
+        inboundCalls: inbound,
+        outboundCalls: outbound,
+        status: c.status || "ACTIVE",
+        createdAt: c.createdAt
+      };
+    });
 
     return NextResponse.json(formatted);
   } catch (err) {

@@ -24,20 +24,27 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ inboundCalls: 0, outboundCalls: 0, activeAgents: 0, creditsUsed: 0 });
     }
 
+    const subCompanies = await prisma.company.findMany({
+      where: { parentCompanyId: member.companyId },
+      select: { id: true }
+    });
+    
+    const companyIdsToQuery = [member.companyId, ...subCompanies.map((c: any) => c.id)];
+
     const inboundCalls = await prisma.callLog.count({
-      where: { companyId: member.companyId, direction: "INBOUND" }
+      where: { companyId: { in: companyIdsToQuery }, direction: "INBOUND" }
     });
 
     const outboundCalls = await prisma.callLog.count({
-      where: { companyId: member.companyId, direction: "OUTBOUND" }
+      where: { companyId: { in: companyIdsToQuery }, direction: "OUTBOUND" }
     });
 
     const activeAgents = await (prisma as any).aiAgent.count({
-      where: { companyId: member.companyId, status: "ACTIVE" }
+      where: { companyId: { in: companyIdsToQuery }, status: "ACTIVE" }
     });
 
     const callStats = await prisma.callLog.aggregate({
-      where: { companyId: member.companyId },
+      where: { companyId: { in: companyIdsToQuery } },
       _sum: { creditsUsed: true }
     });
 

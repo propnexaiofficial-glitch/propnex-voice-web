@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const targetCompanyId = searchParams.get("companyId");
     
-    let companyIdToQuery = member.companyId;
+    let companyIdsToQuery = [member.companyId];
 
     if (targetCompanyId && targetCompanyId !== member.companyId) {
       // Check if targetCompanyId is a sub-company of the user's company
@@ -34,8 +34,15 @@ export async function GET(req: NextRequest) {
         where: { id: targetCompanyId, parentCompanyId: member.companyId }
       });
       if (subCompany) {
-        companyIdToQuery = targetCompanyId;
+        companyIdsToQuery = [targetCompanyId];
       }
+    } else {
+      // Fetch parent + all child companies' calls
+      const subCompanies = await prisma.company.findMany({
+        where: { parentCompanyId: member.companyId },
+        select: { id: true }
+      });
+      companyIdsToQuery = [member.companyId, ...subCompanies.map((c: any) => c.id)];
     }
 
     const page = parseInt(searchParams.get("page") || "1", 10);
@@ -44,7 +51,7 @@ export async function GET(req: NextRequest) {
 
     const calls = await prisma.callLog.findMany({
       where: { 
-        companyId: companyIdToQuery,
+        companyId: { in: companyIdsToQuery },
         direction: "INBOUND"
       },
       orderBy: { startedAt: "desc" },
@@ -57,7 +64,7 @@ export async function GET(req: NextRequest) {
 
     const total = await prisma.callLog.count({
       where: { 
-        companyId: companyIdToQuery,
+        companyId: { in: companyIdsToQuery },
         direction: "INBOUND"
       }
     });
