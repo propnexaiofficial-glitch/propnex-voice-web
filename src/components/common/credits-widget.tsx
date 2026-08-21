@@ -1,11 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { Coins, Plus } from "lucide-react";
+import { Coins, Plus, Building2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useEmployeesContext } from "@/features/employees/context/employees-context";
 import { cn } from "@/lib/utils";
 
 type CreditsWidgetProps = {
@@ -19,6 +25,7 @@ export function CreditsWidget({
 }: CreditsWidgetProps) {
   const [balance, setBalance] = useState(0);
   const [usagePercent, setUsagePercent] = useState(0);
+  const { companies } = useEmployeesContext();
 
   useEffect(() => {
     const fetchCredits = () => {
@@ -84,7 +91,7 @@ export function CreditsWidget({
     );
   }
 
-  return (
+  const widgetContent = (
     <Link
       href="/dashboard/billing"
       className={cn(
@@ -103,5 +110,40 @@ export function CreditsWidget({
       </div>
       <Plus className="size-4 text-muted-foreground transition-colors group-hover:text-foreground" />
     </Link>
+  );
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{widgetContent}</TooltipTrigger>
+      <TooltipContent side="bottom" align="end" className="w-[280px] p-0 glass-card">
+        <div className="p-3 border-b border-border/50">
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sub-Company Credits</h4>
+        </div>
+        <div className="max-h-[240px] overflow-y-auto">
+          {companies.length > 0 ? (
+            <div className="flex flex-col">
+              {companies.map((company) => (
+                <div key={company.id} className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors border-b border-border/50 last:border-0">
+                  <div className="flex items-center gap-2 overflow-hidden mr-3">
+                    <Building2 className="size-3.5 text-muted-foreground shrink-0" />
+                    <span className="text-sm font-medium truncate">{company.name}</span>
+                  </div>
+                  <span className={cn(
+                    "text-xs font-semibold shrink-0 bg-background px-2 py-1 rounded-md border border-border",
+                    (company.creditsRemaining ?? 0) <= 0 && "text-red-500 border-red-500/20 bg-red-500/10"
+                  )}>
+                    {company.creditsRemaining ?? 0}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-4 text-center text-xs text-muted-foreground">
+              No sub-companies found.
+            </div>
+          )}
+        </div>
+      </TooltipContent>
+    </Tooltip>
   );
 }
