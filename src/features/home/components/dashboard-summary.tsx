@@ -22,7 +22,14 @@ export function DashboardSummary({ className }: DashboardSummaryProps) {
     try {
       const cached = localStorage.getItem("dashboardStats");
       if (cached) {
-        setStats(JSON.parse(cached));
+        const parsed = JSON.parse(cached);
+        // Merge cached values back into mockStats so we don't lose the Icon component
+        setStats(prev => prev.map((stat, i) => ({
+          ...stat,
+          value: parsed[i]?.value !== undefined ? parsed[i].value : stat.value,
+          change: parsed[i]?.change !== undefined ? parsed[i].change : stat.change,
+          changeLabel: parsed[i]?.changeLabel !== undefined ? parsed[i].changeLabel : stat.changeLabel
+        })));
       }
     } catch(e) {}
   }, []);
