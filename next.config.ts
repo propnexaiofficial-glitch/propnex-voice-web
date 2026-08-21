@@ -17,13 +17,16 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
+      // NOTE: /api/users/signup and /api/users/signin are handled by Next.js API route handlers
+      // (src/app/api/users/signup/route.ts and src/app/api/users/signin/route.ts)
+      // and talk directly to MongoDB Atlas — no VPS proxy needed for auth.
       {
         source: "/api/users/:path*",
-        destination: "http://200.234.34.240:3002/api/users/:path*", // Auth server on port 3002
+        destination: "http://200.234.34.240:3002/api/users/:path*", // Non-auth user routes (me, billing, etc.)
       },
       {
         source: "/api/webhook/:path*",
-        destination: "http://200.234.34.240:3002/api/webhook/:path*", // Webhooks also on port 3002
+        destination: "http://200.234.34.240:3002/api/webhook/:path*",
       },
       {
         // Route inbound calls through backend server (proper per-company filtering)
@@ -32,8 +35,8 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/api/:path*",
-        destination: "http://200.234.34.240:3002/api/:path*", // Live remote Main dashboard API
-      }
+        destination: "http://200.234.34.240:3002/api/:path*",
+      },
     ];
   },
 };
