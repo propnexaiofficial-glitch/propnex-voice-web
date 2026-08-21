@@ -45,7 +45,8 @@ export function TransferCreditsModal({
     setSubmitting(true);
     try {
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-      const res = await fetch(`http://localhost:3001/api/sub-companies/${company.id}/transfer-credits`, {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
+      const res = await fetch(`${apiBase}/sub-companies/${company.id}/transfer-credits`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

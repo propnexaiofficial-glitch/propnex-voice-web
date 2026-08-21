@@ -118,7 +118,7 @@ function DashboardShellInner({
         });
       } else {
         // Normal pending approval reminder
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
         res = await fetch(`${apiBase}/users/remind-admin`, {
           method: "POST",
           headers: { "Authorization": `Bearer ${token}` }
@@ -131,7 +131,7 @@ function DashboardShellInner({
         
         // Fetch updated user from backend to get the latest timestamp lock
         try {
-          const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+          const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
           const refreshRes = await fetch(`${apiBase}/users/me`, {
             headers: { Authorization: `Bearer ${token}` }
           });
@@ -194,7 +194,7 @@ function DashboardShellInner({
         try {
           const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
           if (!token) return;
-          const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+          const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
           const response = await fetch(`${apiBase}/users/me`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store"
@@ -257,7 +257,7 @@ function DashboardShellInner({
         const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
         if (!token) return;
 
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
           const response = await fetch(`${apiBase}/users/me`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store"

@@ -12,8 +12,7 @@ export function useBilling() {
 
   const getToken = () =>
     localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
 
   const fetchCreditsAndHistory = useCallback(async () => {
     try {

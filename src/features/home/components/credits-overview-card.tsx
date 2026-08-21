@@ -23,7 +23,7 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
         const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
         if (!token) return;
 
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
         const response = await fetch(`${apiBase}/users/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });

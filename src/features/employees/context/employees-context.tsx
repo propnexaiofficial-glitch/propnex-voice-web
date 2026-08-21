@@ -14,7 +14,7 @@ import axios from "axios";
 import type { AddCompanyForm, CallPreview, SubCompany } from "@/features/employees/types";
 import { callPreviews } from "@/features/employees/data";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
 
 type EmployeesContextValue = {
   companies: SubCompany[];
