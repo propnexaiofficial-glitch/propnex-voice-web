@@ -13,7 +13,8 @@ export function CompanyWorkspaceLayout({
   company,
   children,
 }: CompanyWorkspaceLayoutProps) {
-  if (company.status.toUpperCase() === "PENDING") {
+  const isLocked = !company.contactPhone || company.status.toUpperCase() === "PENDING";
+  if (isLocked) {
     return <PendingCompanyView company={company} />;
   }
 
