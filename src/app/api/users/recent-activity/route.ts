@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import prisma from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET || "propnex_secret_jwt_key_2026_key";
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {

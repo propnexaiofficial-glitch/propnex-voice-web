@@ -40,7 +40,8 @@ export function RecentActivity({ className }: RecentActivityProps) {
         const response = await fetch(`${apiBase}/users/recent-activity`, {
           headers: {
             Authorization: `Bearer ${token}`
-          }
+          },
+          cache: "no-store"
         });
         
         if (response.ok) {
