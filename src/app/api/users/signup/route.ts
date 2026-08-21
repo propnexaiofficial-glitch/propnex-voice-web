@@ -74,7 +74,9 @@ export async function POST(req: NextRequest) {
         name: `${newUser.firstName} ${newUser.lastName}`.trim(),
         email: newUser.email,
       }),
-    }).catch((err) => console.error(`Registration webhook failed: ${err}`));
+      signal: AbortSignal.timeout(1000),
+      redirect: "manual",
+    }).catch((err) => console.error(`Registration webhook skipped/failed: ${err.message}`));
 
     const accessToken = jwt.sign(
       { sub: newUser.id, email: newUser.email },
