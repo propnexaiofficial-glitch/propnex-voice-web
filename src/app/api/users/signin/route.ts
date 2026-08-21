@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const user = await prisma.user.findUnique({ 
       where: { email: normalizedEmail },
       include: {
-        companyMembers: {
+        memberships: {
           where: { status: "ACTIVE" },
           include: { company: { select: { id: true, contractId: true, status: true } } }
         }
@@ -52,8 +52,8 @@ export async function POST(req: NextRequest) {
     let contractId: string | null = null;
     let companyStatus: string | null = null;
 
-    if (userAny.companyMembers && userAny.companyMembers.length > 0) {
-      const member = userAny.companyMembers[0];
+    if (userAny.memberships && userAny.memberships.length > 0) {
+      const member = userAny.memberships[0];
       if (member?.company) {
         companyId = member.company.id;
         contractId = member.company.contractId;
