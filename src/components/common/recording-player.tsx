@@ -59,6 +59,12 @@ export function RecordingPlayer({
   }, [audioUrl, isPlaying]);
 
   const [retryCount, setRetryCount] = useState(0);
+  const [reloadKey, setReloadKey] = useState(0);
+  const durationRef = useRef(durationSeconds);
+  
+  useEffect(() => {
+    durationRef.current = durationSeconds;
+  }, [durationSeconds]);
 
   // Initialize the audio element when the URL is available
   useEffect(() => {
@@ -67,7 +73,8 @@ export function RecordingPlayer({
     let isMounted = true;
     setIsValidating(true);
 
-    const audio = new Audio(audioUrl);
+    const buster = (retryCount > 0 || reloadKey > 0) ? (audioUrl.includes('?') ? `&_t=${Date.now()}` : `?_t=${Date.now()}`) : '';
+    const audio = new Audio(audioUrl + buster);
     audio.preload = "metadata";
     audioRef.current = audio;
 
@@ -80,7 +87,7 @@ export function RecordingPlayer({
 
     const handleEnded = () => {
       setIsPlaying(false);
-      setProgress(durationSeconds > 0 ? durationSeconds : audio.duration || 0);
+      setProgress(durationRef.current > 0 ? durationRef.current : audio.duration || 0);
     };
 
     const handleError = () => {
@@ -129,7 +136,7 @@ export function RecordingPlayer({
       audio.pause();
       audioRef.current = null;
     };
-  }, [audioUrl, durationSeconds, retryCount]);
+  }, [audioUrl, retryCount, reloadKey]);
 
   const handleToggle = () => {
     if (!audioRef.current) {
@@ -180,6 +187,7 @@ export function RecordingPlayer({
               setHasError(false);
               setIsValidating(true);
               setRetryCount(0);
+              setReloadKey(k => k + 1);
             }}
             aria-label="Retry loading recording"
             title="Retry loading recording"
@@ -231,6 +239,7 @@ export function RecordingPlayer({
             setHasError(false);
             setIsValidating(true);
             setRetryCount(0);
+            setReloadKey(k => k + 1);
           }}
         >
           <RotateCw className="size-3.5 mr-1.5" />
