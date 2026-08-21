@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     });
 
     const activeAgents = await (prisma as any).aiAgent.count({
-      where: { companyId: member.companyId, isActive: true }
+      where: { companyId: member.companyId, status: "ACTIVE" }
     });
 
     const callStats = await prisma.callLog.aggregate({
@@ -49,8 +49,8 @@ export async function GET(req: NextRequest) {
       activeAgents,
       creditsUsed
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("Dashboard stats error:", err);
-    return NextResponse.json({ inboundCalls: 0, outboundCalls: 0, activeAgents: 0, creditsUsed: 0 });
+    return NextResponse.json({ inboundCalls: 0, outboundCalls: 0, activeAgents: 0, creditsUsed: 0, error: err.message || err.toString() });
   }
 }
