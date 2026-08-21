@@ -24,7 +24,12 @@ export async function GET(req: NextRequest) {
     }
 
     const recentCalls = await prisma.callLog.findMany({
-      where: { companyId: member.companyId },
+      where: { 
+        OR: [
+          { companyId: member.companyId },
+          { company: { parentCompanyId: member.companyId } }
+        ]
+      },
       orderBy: { startedAt: "desc" },
       take: 5
     });

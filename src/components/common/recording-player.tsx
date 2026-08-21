@@ -29,8 +29,18 @@ export function RecordingPlayer({
 }: RecordingPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [hasError, setHasError] = useState(false);
-  const [isValidating, setIsValidating] = useState(!!audioUrl);
+  const [hasError, setHasError] = useState(() => {
+    if (typeof window !== 'undefined' && audioUrl) {
+      return sessionStorage.getItem(`rec_fail_${audioUrl}`) === 'true';
+    }
+    return false;
+  });
+  const [isValidating, setIsValidating] = useState(() => {
+    if (typeof window !== 'undefined' && audioUrl) {
+      return sessionStorage.getItem(`rec_fail_${audioUrl}`) !== 'true';
+    }
+    return !!audioUrl;
+  });
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Exclusive playback listener
@@ -52,10 +62,9 @@ export function RecordingPlayer({
 
   // Initialize the audio element when the URL is available
   useEffect(() => {
-    if (!audioUrl) return;
+    if (!audioUrl || hasError) return; // Skip initialization if already marked as error from cache
 
     let isMounted = true;
-    setHasError(false);
     setIsValidating(true);
 
     const audio = new Audio(audioUrl);
@@ -76,7 +85,7 @@ export function RecordingPlayer({
 
     const handleError = () => {
       if (!isMounted) return;
-      if (retryCount < 5) {
+      if (retryCount < 2) { // Reduced to 2 retries to avoid long spinners
         // Retry after 2 seconds (S3 eventual consistency)
         setTimeout(() => {
           if (isMounted) setRetryCount((prev) => prev + 1);
@@ -85,6 +94,9 @@ export function RecordingPlayer({
         setHasError(true);
         setIsValidating(false);
         setIsPlaying(false);
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(`rec_fail_${audioUrl}`, 'true');
+        }
       }
     };
 
@@ -92,6 +104,9 @@ export function RecordingPlayer({
       if (!isMounted) return;
       setHasError(false);
       setIsValidating(false);
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem(`rec_fail_${audioUrl}`);
+      }
     };
 
     if (audio.readyState >= 1) {

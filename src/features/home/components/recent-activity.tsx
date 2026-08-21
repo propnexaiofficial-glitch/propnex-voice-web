@@ -36,7 +36,7 @@ export function RecentActivity({ className }: RecentActivityProps) {
     const fetchActivity = async () => {
       try {
         const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://200.234.34.240:3001/api";
+        const apiBase = "/api";
         const response = await fetch(`${apiBase}/users/recent-activity`, {
           headers: {
             Authorization: `Bearer ${token}`

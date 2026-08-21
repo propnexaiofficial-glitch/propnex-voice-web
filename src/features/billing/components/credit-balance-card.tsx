@@ -12,9 +12,10 @@ type CreditBalanceCardProps = {
 };
 
 export function CreditBalanceCard({ summary, className }: CreditBalanceCardProps) {
-  const usagePercent = Math.round(
-    (summary.usedThisMonth / summary.monthlyLimit) * 100
-  );
+  const clampedUsed = Math.max(0, summary.usedThisMonth);
+  const usagePercent = Math.min(100, Math.round(
+    (clampedUsed / summary.monthlyLimit) * 100
+  ));
 
   return (
     <motion.div
@@ -57,7 +58,7 @@ export function CreditBalanceCard({ summary, className }: CreditBalanceCardProps
             />
           </div>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>{summary.usedThisMonth.toLocaleString()} used</span>
+            <span>{clampedUsed.toLocaleString()} used</span>
             <span>{summary.monthlyLimit.toLocaleString()} limit</span>
           </div>
         </div>

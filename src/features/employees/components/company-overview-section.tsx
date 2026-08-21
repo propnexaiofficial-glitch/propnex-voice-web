@@ -63,6 +63,11 @@ export function CompanyOverviewSection({
                 >
                   {company.status}
                 </Badge>
+                {(company.creditsRemaining ?? company.creditsLimit ?? 0) < 50 && (
+                  <Badge variant="destructive" className="text-[10px] uppercase font-bold animate-pulse">
+                    Low Credit
+                  </Badge>
+                )}
               </div>
               <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5">

@@ -45,7 +45,7 @@ export function TransferCreditsModal({
     setSubmitting(true);
     try {
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
+      const apiBase = "/api";
       const res = await fetch(`${apiBase}/sub-companies/${company.id}/transfer-credits`, {
         method: "POST",
         headers: {
@@ -61,6 +61,22 @@ export function TransferCreditsModal({
       }
 
       await refreshCompanies();
+      
+      // Update local storage user balance instantly for the dashboard shell
+      try {
+        const refreshRes = await fetch(`${apiBase}/users/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store"
+        });
+        if (refreshRes.ok) {
+          const data = await refreshRes.json();
+          if (data.user) {
+            localStorage.setItem("user", JSON.stringify(data.user));
+            window.dispatchEvent(new Event("user-updated"));
+          }
+        }
+      } catch(e) {}
+
       setAmount("");
       onOpenChange(false);
     } catch (err: any) {

@@ -62,12 +62,18 @@ export async function GET(req: NextRequest) {
         companyBlockedUntil = member.company.blockedUntil;
         creditBalance = member.company.creditBalance;
         
-        // Fetch the assigned phone number for this company
-        const phoneRecord = await (prisma as any).phoneNumber.findFirst({
-          where: { companyId: member.company.id, status: "ACTIVE" }
+        // Fetch the assigned phone numbers for this company AND its sub-companies
+        const phoneRecords = await (prisma as any).phoneNumber.findMany({
+          where: { 
+            OR: [
+              { companyId: member.company.id },
+              { company: { parentCompanyId: member.company.id } }
+            ],
+            status: "ACTIVE" 
+          }
         });
-        if (phoneRecord) {
-          assignedNumber = phoneRecord.number;
+        if (phoneRecords && phoneRecords.length > 0) {
+          assignedNumber = phoneRecords.map((r: any) => r.number).join(", ");
         } else {
           assignedNumber = "Not Assigned";
         }
