@@ -111,8 +111,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       _id: newCompany.id,
       companyName: newCompany.name,
-      companyEmail: newCompany.email || "",
-      contactPhone: newCompany.phone || "",
+      companyEmail: companyEmail || "",
+      contactPhone: "",
       creditsUsed: 0,
       creditsRemaining: credits,
       status: newCompany.status,
