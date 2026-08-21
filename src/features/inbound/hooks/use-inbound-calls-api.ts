@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 import type { CallLogFilters } from "@/types/call";
 import { type CallRecord } from "@/types/call";
