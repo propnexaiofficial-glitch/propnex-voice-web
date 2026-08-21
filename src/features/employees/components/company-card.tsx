@@ -61,12 +61,19 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
             </p>
           </div>
 
-          <Badge
-            variant={isPending ? "secondary" : company.status === "active" ? "success" : "secondary"}
-            className={cn("shrink-0 text-[10px]", isPending && "bg-amber-500/10 text-amber-500 hover:bg-amber-500/20")}
-          >
-            {isPending ? "PENDING" : company.status}
-          </Badge>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {company.creditsRemaining < 50 && (
+              <Badge variant="destructive" className="animate-pulse bg-red-500/10 text-red-500 hover:bg-red-500/20 text-[10px]">
+                Low Credit
+              </Badge>
+            )}
+            <Badge
+              variant={isPending ? "secondary" : company.status === "active" ? "success" : "secondary"}
+              className={cn("text-[10px]", isPending && "bg-amber-500/10 text-amber-500 hover:bg-amber-500/20")}
+            >
+              {isPending ? "PENDING" : company.status}
+            </Badge>
+          </div>
         </div>
 
         <div className="space-y-3">

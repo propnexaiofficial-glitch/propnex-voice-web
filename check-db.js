@@ -1,0 +1,1 @@
+const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); async function main() { const bals = await prisma.creditBalance.findMany(); console.log(bals); } main().finally(() => prisma.$disconnect());

@@ -59,26 +59,44 @@ export function TransferCreditsModal({
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Failed to transfer credits");
       }
-
-      await refreshCompanies();
       
       // Update local storage user balance instantly for the dashboard shell
       try {
-        const refreshRes = await fetch(`${apiBase}/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: "no-store"
-        });
-        if (refreshRes.ok) {
-          const data = await refreshRes.json();
-          if (data.user) {
-            localStorage.setItem("user", JSON.stringify(data.user));
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+          const u = JSON.parse(userStr);
+          if (u.creditBalance) {
+            if (action === "ADD") {
+              u.creditBalance.creditsRemaining -= Number(amount);
+            } else {
+              u.creditBalance.creditsRemaining += Number(amount);
+            }
+            localStorage.setItem("user", JSON.stringify(u));
             window.dispatchEvent(new Event("user-updated"));
           }
         }
-      } catch(e) {}
 
-      setAmount("");
-      onOpenChange(false);
+        // Close the modal instantly so the user doesn't have to wait for the background refresh
+        setAmount("");
+        onOpenChange(false);
+
+        // Run these in the background without awaiting them to block the UI
+        Promise.all([
+          refreshCompanies(),
+          fetch(`${apiBase}/users/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+            cache: "no-store"
+          }).then(async (refreshRes) => {
+            if (refreshRes.ok) {
+              const data = await refreshRes.json();
+              if (data.user) {
+                localStorage.setItem("user", JSON.stringify(data.user));
+                window.dispatchEvent(new Event("user-updated"));
+              }
+            }
+          }).catch(() => {})
+        ]);
+      } catch(e) {}
     } catch (err: any) {
       setError(err.message || "Failed to transfer credits");
     } finally {
