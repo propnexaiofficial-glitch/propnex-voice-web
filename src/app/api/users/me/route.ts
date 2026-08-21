@@ -36,11 +36,22 @@ export async function GET(req: NextRequest) {
     let contractId: string | null = null;
     let companyStatus: string | null = null;
     let companyBlockedUntil: string | null = null;
+    let creditBalance: any = undefined;
 
     try {
       const member = await (prisma as any).companyMember.findFirst({
         where: { userId: user.id, status: "ACTIVE" },
-        include: { company: { select: { id: true, contractId: true, status: true, blockedUntil: true } } },
+        include: { 
+          company: { 
+            select: { 
+              id: true, 
+              contractId: true, 
+              status: true, 
+              blockedUntil: true,
+              creditBalance: true
+            } 
+          } 
+        },
       });
       
       if (member?.company) {
@@ -48,6 +59,7 @@ export async function GET(req: NextRequest) {
         contractId = member.company.contractId;
         companyStatus = member.company.status;
         companyBlockedUntil = member.company.blockedUntil;
+        creditBalance = member.company.creditBalance;
       }
     } catch (e) {
       console.warn("Could not fetch company for user:", e);
@@ -64,6 +76,7 @@ export async function GET(req: NextRequest) {
         contractId,
         companyStatus,
         companyBlockedUntil,
+        creditBalance,
       },
     });
   } catch (err: any) {

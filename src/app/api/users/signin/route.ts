@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       include: {
         memberships: {
           where: { status: "ACTIVE" },
-          include: { company: { select: { id: true, contractId: true, status: true } } }
+          include: { company: { select: { id: true, contractId: true, status: true, creditBalance: true } } }
         }
       }
     });
@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
     let companyId: string | null = null;
     let contractId: string | null = null;
     let companyStatus: string | null = null;
+    let creditBalance: any = undefined;
 
     if (userAny.memberships && userAny.memberships.length > 0) {
       const member = userAny.memberships[0];
@@ -58,6 +59,7 @@ export async function POST(req: NextRequest) {
         companyId = member.company.id;
         contractId = member.company.contractId;
         companyStatus = member.company.status;
+        creditBalance = member.company.creditBalance;
       }
     }
 
@@ -79,6 +81,7 @@ export async function POST(req: NextRequest) {
         companyId,
         contractId,
         companyStatus,
+        creditBalance,
       },
     });
   } catch (err: any) {
