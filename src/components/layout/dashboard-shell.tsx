@@ -313,9 +313,15 @@ function DashboardShellInner({
       } catch (err) {
         console.error("Polling error:", err);
       }
-    }, 5000);
+    };
 
-    return () => clearInterval(interval);
+    fetchUser();
+    const interval = setInterval(fetchUser, 10000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, [isWaiting, isRejected, isWaitingNumber]);
 
   useEffect(() => {
