@@ -34,7 +34,7 @@ export function TransferCreditsModal({
   const [amount, setAmount] = useState<number | "">("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const { refetch } = useEmployeesContext();
+  const { refreshCompanies } = useEmployeesContext();
 
   const handleSubmit = async () => {
     if (!amount || amount <= 0) {
@@ -60,7 +60,7 @@ export function TransferCreditsModal({
         throw new Error(data.error || "Failed to transfer credits");
       }
 
-      await refetch();
+      await refreshCompanies();
       setAmount("");
       onOpenChange(false);
     } catch (err: any) {
