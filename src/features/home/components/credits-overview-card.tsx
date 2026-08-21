@@ -79,9 +79,20 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
           <p className="mt-1 text-sm text-muted-foreground">credits remaining</p>
         </div>
 
+        <div className="grid grid-cols-2 gap-4 rounded-xl border border-border bg-card/50 p-3">
+          <div>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">In Hand (Main)</p>
+            <p className="mt-1 font-semibold">{mainBalance.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Assigned (Sub)</p>
+            <p className="mt-1 font-semibold">{subRemaining.toLocaleString()}</p>
+          </div>
+        </div>
+
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Monthly usage</span>
+            <span className="text-muted-foreground">Monthly usage ({totalUsed.toLocaleString()} total used)</span>
             <span className="font-medium text-foreground">{usagePercent}%</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-muted">
@@ -92,17 +103,10 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
               className="h-full rounded-full bg-foreground"
             />
           </div>
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>{totalUsed.toLocaleString()} used</span>
-            <span>{monthlyLimit.toLocaleString()} limit</span>
+          <div className="flex items-center justify-between text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+            <span>Main Used: {clampedMainUsed.toLocaleString()}</span>
+            <span>Sub Used: {clampedSubUsed.toLocaleString()}</span>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-          <TrendingUp className="size-4 text-muted-foreground" />
-          <p className="text-xs text-muted-foreground">
-            Usage is within your monthly plan limits
-          </p>
         </div>
       </div>
     </motion.div>

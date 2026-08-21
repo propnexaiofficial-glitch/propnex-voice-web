@@ -2,9 +2,11 @@
 
 import { Coins, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import type { BillingSummary } from "@/features/billing/types";
+import { useEmployeesContext } from "@/features/employees/context/employees-context";
 
 type CreditBalanceCardProps = {
   summary: BillingSummary;
@@ -12,6 +14,39 @@ type CreditBalanceCardProps = {
 };
 
 export function CreditBalanceCard({ summary, className }: CreditBalanceCardProps) {
+  const [mainBalance, setMainBalance] = useState(0);
+  const [mainUsed, setMainUsed] = useState(0);
+  const { companies } = useEmployeesContext();
+
+  useEffect(() => {
+    const syncCredits = () => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          if (user.creditBalance) {
+            const cb = user.creditBalance;
+            setMainBalance(cb.creditsRemaining || 0);
+            setMainUsed(cb.creditsUsed || 0);
+          }
+        }
+      } catch (err) {
+        console.error("Error parsing user from localStorage", err);
+      }
+    };
+
+    syncCredits();
+    window.addEventListener("user-updated", syncCredits);
+    return () => window.removeEventListener("user-updated", syncCredits);
+  }, []);
+
+  const subUsed = companies.reduce((acc, c) => acc + (c.creditsUsed || 0), 0);
+  const subRemaining = companies.reduce((acc, c) => acc + (c.creditsRemaining || 0), 0);
+  
+  const clampedMainUsed = Math.max(0, mainUsed);
+  const clampedSubUsed = Math.max(0, subUsed);
+
+  // We still use summary.balance and summary.usedThisMonth for consistency, but we break it down
   const clampedUsed = Math.max(0, summary.usedThisMonth);
   const usagePercent = Math.min(100, Math.round(
     (clampedUsed / summary.monthlyLimit) * 100
@@ -33,7 +68,7 @@ export function CreditBalanceCard({ summary, className }: CreditBalanceCardProps
           </div>
           <div>
             <p className="text-sm font-semibold">Credit Balance</p>
-            <p className="text-xs text-muted-foreground">Available credits</p>
+            <p className="text-xs text-muted-foreground">Total available credits</p>
           </div>
         </div>
 
@@ -44,9 +79,20 @@ export function CreditBalanceCard({ summary, className }: CreditBalanceCardProps
           <p className="mt-1 text-sm text-muted-foreground">credits remaining</p>
         </div>
 
+        <div className="grid grid-cols-2 gap-4 rounded-xl border border-border bg-card/50 p-3">
+          <div>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">In Hand (Main)</p>
+            <p className="mt-1 font-semibold">{mainBalance.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Assigned (Sub)</p>
+            <p className="mt-1 font-semibold">{subRemaining.toLocaleString()}</p>
+          </div>
+        </div>
+
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Monthly usage</span>
+            <span className="text-muted-foreground">Monthly usage ({clampedUsed.toLocaleString()} total used)</span>
             <span className="font-medium text-foreground">{usagePercent}%</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-muted">
@@ -57,9 +103,9 @@ export function CreditBalanceCard({ summary, className }: CreditBalanceCardProps
               className="h-full rounded-full bg-foreground"
             />
           </div>
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>{clampedUsed.toLocaleString()} used</span>
-            <span>{summary.monthlyLimit.toLocaleString()} limit</span>
+          <div className="flex items-center justify-between text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+            <span>Main Used: {clampedMainUsed.toLocaleString()}</span>
+            <span>Sub Used: {clampedSubUsed.toLocaleString()}</span>
           </div>
         </div>
 

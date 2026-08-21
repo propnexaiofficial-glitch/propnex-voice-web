@@ -63,14 +63,6 @@ export const quickActions: QuickAction[] = [
     accent: "blue",
   },
   {
-    id: "browse-agents",
-    title: "Browse Agent Library",
-    description: "Preview voice samples and assign agents",
-    href: "/dashboard/agent-library",
-    icon: Mic2,
-    accent: "green",
-  },
-  {
     id: "manage-team",
     title: "Manage Sub-Companies",
     description: "Onboard clients and track their usage",
