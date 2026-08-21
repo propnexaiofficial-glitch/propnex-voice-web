@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Mail, Phone } from "lucide-react";
+import { Building2, Mail, Phone, ArrowUpRight } from "lucide-react";
 
 import { PremiumBadge } from "@/components/common/premium-badge";
 import { Badge } from "@/components/ui/badge";
@@ -92,16 +92,22 @@ export function CompanyOverviewSection({
               label: "Credits Used",
               value: company.creditsUsed.toLocaleString(),
               accent: "text-foreground",
+              change: "+100%",
+              changeLabel: "vs last month",
             },
             {
               label: "Inbound Calls",
               value: company.inboundCalls.toLocaleString(),
               accent: "",
+              change: "+0%",
+              changeLabel: "vs last month",
             },
             {
               label: "Outbound Calls",
               value: company.outboundCalls.toLocaleString(),
               accent: "",
+              change: "+0%",
+              changeLabel: "new this week",
             },
           ].map((stat) => (
             <div
@@ -114,6 +120,13 @@ export function CompanyOverviewSection({
               <p className={cn("mt-1 text-xl font-bold tabular-nums", stat.accent)}>
                 {stat.value}
               </p>
+              <div className="mt-2 flex items-center justify-center gap-1 text-[10px]">
+                <ArrowUpRight className="size-3 text-emerald-500" />
+                <span className="font-medium text-emerald-500">
+                  {stat.change}
+                </span>
+                <span className="text-muted-foreground">{stat.changeLabel}</span>
+              </div>
             </div>
           ))}
         </div>
