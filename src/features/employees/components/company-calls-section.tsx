@@ -1,25 +1,22 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { PhoneIncoming, PhoneOutgoing } from "lucide-react";
+import { PhoneIncoming, PhoneOutgoing, Upload } from "lucide-react";
 import { motion } from "framer-motion";
 
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/common/empty-state";
 import { TranscriptDrawer } from "@/components/common/transcript-drawer";
 import { CallLogFiltersBar } from "@/components/forms/call-log-filters";
 import { CallLogTable } from "@/components/tables/call-log-table";
 import { TablePagination } from "@/components/tables/table-pagination";
-import {
-  companyInboundCalls,
-  companyOutboundCalls,
-} from "@/features/employees/data";
+import { useInboundCallsApi, INBOUND_API_PAGE_SIZE } from "@/features/inbound/hooks/use-inbound-calls-api";
+import { UploadCsvModal } from "@/features/outbound/components/upload-csv-modal";
 import {
   DEFAULT_CALL_FILTERS,
   type CallLogFilters,
   type CallRecord,
 } from "@/types/call";
-
-const PAGE_SIZE = 5;
 
 type CompanyCallsSectionProps = {
   companyId: string;
@@ -59,32 +56,19 @@ export function CompanyCallsSection({
   companyId,
   direction,
 }: CompanyCallsSectionProps) {
-  const source =
-    direction === "inbound"
-      ? companyInboundCalls[companyId] ?? []
-      : companyOutboundCalls[companyId] ?? [];
-
   const [filters, setFilters] = useState<CallLogFilters>(DEFAULT_CALL_FILTERS);
   const [page, setPage] = useState(1);
   const [selectedCall, setSelectedCall] = useState<CallRecord | null>(null);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
 
-  const filteredCalls = useMemo(() => {
-    return source.filter(
-      (call) =>
-        matchesSearch(call, filters.search) &&
-        matchesStatus(call, filters.status) &&
-        matchesDateRange(call, filters.dateFrom, filters.dateTo)
-    );
-  }, [source, filters]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredCalls.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-
-  const paginatedCalls = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return filteredCalls.slice(start, start + PAGE_SIZE);
-  }, [filteredCalls, currentPage]);
+  const {
+    calls: paginatedCalls,
+    total: totalItems,
+    totalPages,
+    loading,
+    error,
+  } = useInboundCallsApi(filters, page, 0, true, companyId, direction);
 
   const updateFilters = (next: CallLogFilters) => {
     setFilters(next);
@@ -108,20 +92,35 @@ export function CompanyCallsSection({
     setTranscriptOpen(true);
   };
 
+  const handleUpload = (fileName: string) => {
+    // In a real app, this would process the CSV and start the campaign.
+    // For now, it just closes the modal.
+    setUploadOpen(false);
+  };
+
   return (
     <div className="space-y-5">
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-2"
+        className="flex items-center justify-between gap-4"
       >
-        <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
-          <Icon className="size-5 text-foreground" />
+        <div className="flex items-center gap-2">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+            <Icon className="size-5 text-foreground" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold">{title}</h2>
+            <p className="text-sm text-muted-foreground">{description}</p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <p className="text-sm text-muted-foreground">{description}</p>
-        </div>
+
+        {direction === "outbound" && (
+          <Button variant="outline" className="gap-2" onClick={() => setUploadOpen(true)}>
+            <Upload className="size-4" />
+            Upload CSV
+          </Button>
+        )}
       </motion.div>
 
       <CallLogFiltersBar
@@ -144,10 +143,10 @@ export function CompanyCallsSection({
             onViewTranscript={handleViewTranscript}
           />
           <TablePagination
-            page={currentPage}
+            page={page}
             totalPages={totalPages}
-            totalItems={filteredCalls.length}
-            pageSize={PAGE_SIZE}
+            totalItems={totalItems}
+            pageSize={INBOUND_API_PAGE_SIZE}
             onPageChange={setPage}
           />
         </>
@@ -158,6 +157,16 @@ export function CompanyCallsSection({
         open={transcriptOpen}
         onOpenChange={setTranscriptOpen}
       />
+
+      {direction === "outbound" && (
+        <UploadCsvModal
+          open={uploadOpen}
+          onOpenChange={setUploadOpen}
+          onUpload={handleUpload}
+          title="Upload CSV — Sub-Company Outbound"
+          description="Upload a contact list to launch a general outbound calling campaign for this sub-company. CSV should include a phone number column."
+        />
+      )}
     </div>
   );
 }

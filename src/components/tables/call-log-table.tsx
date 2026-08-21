@@ -27,10 +27,6 @@ function getCallId(call: CallRecord) {
   return call.id.toUpperCase().replace(/^IN-/, "INB-").replace(/^OUT-/, "OUT-");
 }
 
-function getCallerId(call: CallRecord, variant: "inbound" | "outbound") {
-  if (call.callerId) return call.callerId;
-  return variant === "inbound" ? call.customerNumber : call.assignedNumber;
-}
 
 export function CallLogTable({
   calls,
@@ -46,17 +42,12 @@ export function CallLogTable({
         <table className="w-full min-w-[960px] text-sm">
           <thead>
             <tr className="border-b border-border bg-white/5">
+
+
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                Call ID
+                Customer Number
               </th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                Caller ID
-              </th>
-              {!isInbound && (
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                  Customer Number
-                </th>
-              )}
+
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                 Assigned Number
               </th>
@@ -86,15 +77,11 @@ export function CallLogTable({
                 key={call.id}
                 className="border-b border-border/60 transition-colors last:border-0 hover:bg-white/5"
               >
-                <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                  {getCallId(call)}
+
+                <td className="px-4 py-3 text-muted-foreground">
+                  {call.customerNumber}
                 </td>
-                <td className="px-4 py-3 font-medium">{getCallerId(call, variant)}</td>
-                {!isInbound && (
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {call.customerNumber}
-                  </td>
-                )}
+
                 <td className="px-4 py-3 text-muted-foreground">
                   {call.assignedNumber}
                 </td>
@@ -121,7 +108,7 @@ export function CallLogTable({
                     variant="ghost"
                     size="sm"
                     className="h-8 gap-1.5 text-xs"
-                    disabled={call.transcript.length === 0}
+                    disabled={!call.transcriptUrl}
                     onClick={() => onViewTranscript(call)}
                   >
                     <FileText className="size-3.5" />

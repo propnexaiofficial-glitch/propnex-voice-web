@@ -6,20 +6,44 @@ import { PremiumBadge } from "@/components/common/premium-badge";
 import { Badge } from "@/components/ui/badge";
 import { CallPreviewPanel } from "@/features/employees/components/call-preview-panel";
 import type { CallPreview, SubCompany } from "@/features/employees/types";
+import { useInboundCallsApi } from "@/features/inbound/hooks/use-inbound-calls-api";
+import { DEFAULT_CALL_FILTERS } from "@/types/call";
 import { cn } from "@/lib/utils";
 
 type CompanyOverviewSectionProps = {
   company: SubCompany;
-  previewCalls: CallPreview[];
+  previewCalls?: CallPreview[];
 };
 
 export function CompanyOverviewSection({
   company,
-  previewCalls,
 }: CompanyOverviewSectionProps) {
+  const { calls: inboundCallsRaw } = useInboundCallsApi(DEFAULT_CALL_FILTERS, 1, 0, true, company.id, "inbound");
+  const { calls: outboundCallsRaw } = useInboundCallsApi(DEFAULT_CALL_FILTERS, 1, 0, true, company.id, "outbound");
+
   const usagePercent = Math.round(
     (company.creditsUsed / company.creditsLimit) * 100
   );
+
+  const inboundPreviews: CallPreview[] = inboundCallsRaw.slice(0, 5).map(c => ({
+    id: c.id,
+    customerNumber: c.customerNumber,
+    date: new Date(c.callDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    duration: c.duration,
+    status: c.status as any,
+    direction: "inbound"
+  }));
+
+  const outboundPreviews: CallPreview[] = outboundCallsRaw.slice(0, 5).map(c => ({
+    id: c.id,
+    customerNumber: c.customerNumber,
+    date: new Date(c.callDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    duration: c.duration,
+    status: c.status as any,
+    direction: "outbound"
+  }));
+
+  const realPreviewCalls = [...inboundPreviews, ...outboundPreviews];
 
   return (
     <div className="space-y-4">
@@ -40,14 +64,10 @@ export function CompanyOverviewSection({
                   {company.status}
                 </Badge>
               </div>
-              <div className="mt-2 flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:items-center sm:gap-4">
-                <span className="inline-flex items-center gap-1.5">
-                  <Mail className="size-3 shrink-0" />
-                  {company.contactEmail}
-                </span>
+              <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5">
                   <Phone className="size-3 shrink-0" />
-                  {company.contactPhone}
+                  {company.contactPhone || "Pending Assignment..."}
                 </span>
               </div>
             </div>
@@ -100,8 +120,8 @@ export function CompanyOverviewSection({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <CallPreviewPanel calls={previewCalls} direction="inbound" />
-        <CallPreviewPanel calls={previewCalls} direction="outbound" />
+        <CallPreviewPanel calls={realPreviewCalls} direction="inbound" />
+        <CallPreviewPanel calls={realPreviewCalls} direction="outbound" />
       </div>
     </div>
   );

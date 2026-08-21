@@ -12,7 +12,6 @@ import type { RecentActivityItem } from "@/features/home/types";
 import { cn } from "@/lib/utils";
 
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { Loader2 } from "lucide-react";
 
 const typeConfig: Record<
@@ -37,15 +36,20 @@ export function RecentActivity({ className }: RecentActivityProps) {
     const fetchActivity = async () => {
       try {
         const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        const response = await axios.get(`${apiBase}/users/recent-activity`, {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://200.234.34.240:3001/api";
+        const response = await fetch(`${apiBase}/users/recent-activity`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
         
-        if (response.data && response.data.length > 0) {
-          setData(response.data);
+        if (response.ok) {
+          const json = await response.json();
+          if (json && json.length > 0) {
+            setData(json);
+          } else {
+            setData([]); 
+          }
         } else {
           setData([]); 
         }

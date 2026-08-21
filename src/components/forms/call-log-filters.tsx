@@ -36,7 +36,9 @@ export function CallLogFiltersBar({
     filters.status !== DEFAULT_CALL_FILTERS.status ||
     filters.dateFrom !== DEFAULT_CALL_FILTERS.dateFrom ||
     filters.dateTo !== DEFAULT_CALL_FILTERS.dateTo ||
-    filters.durationSort !== DEFAULT_CALL_FILTERS.durationSort;
+    filters.assignedNumber !== DEFAULT_CALL_FILTERS.assignedNumber ||
+    filters.callerNumber !== DEFAULT_CALL_FILTERS.callerNumber ||
+    filters.minDuration !== DEFAULT_CALL_FILTERS.minDuration;
 
   return (
     <div className={cn("glass-card rounded-2xl p-4", className)}>
@@ -57,20 +59,39 @@ export function CallLogFiltersBar({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="space-y-1.5 sm:col-span-2">
+        <div className="space-y-1.5">
           <label
-            htmlFor={searchId}
+            htmlFor={`${searchId}-assigned`}
             className="text-xs font-medium text-muted-foreground"
           >
-            Search phone number
+            Assigned number
           </label>
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              id={searchId}
-              placeholder="Customer or assigned number..."
-              value={filters.search}
-              onChange={(e) => update({ search: e.target.value })}
+              id={`${searchId}-assigned`}
+              placeholder="Filter assigned..."
+              value={filters.assignedNumber}
+              onChange={(e) => update({ assignedNumber: e.target.value })}
+              className="pl-10"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label
+            htmlFor={`${searchId}-caller`}
+            className="text-xs font-medium text-muted-foreground"
+          >
+            Caller number
+          </label>
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id={`${searchId}-caller`}
+              placeholder="Filter caller..."
+              value={filters.callerNumber}
+              onChange={(e) => update({ callerNumber: e.target.value })}
               className="pl-10"
             />
           </div>
@@ -122,19 +143,23 @@ export function CallLogFiltersBar({
           />
         </div>
 
-        <SelectField
-          label="Duration"
-          value={filters.durationSort}
-          onChange={(e) =>
-            update({
-              durationSort: e.target.value as CallLogFilters["durationSort"],
-            })
-          }
-        >
-          <option value="default">Default</option>
-          <option value="desc">Longest First</option>
-          <option value="asc">Shortest First</option>
-        </SelectField>
+        <div className="space-y-1.5">
+          <label
+            htmlFor={`${searchId}-duration`}
+            className="text-xs font-medium text-muted-foreground"
+          >
+            Min Duration (sec)
+          </label>
+          <Input
+            id={`${searchId}-duration`}
+            type="number"
+            min="0"
+            step="any"
+            placeholder="e.g. 2"
+            value={filters.minDuration}
+            onChange={(e) => update({ minDuration: e.target.value })}
+          />
+        </div>
       </div>
     </div>
   );

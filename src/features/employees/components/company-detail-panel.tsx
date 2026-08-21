@@ -42,14 +42,10 @@ export function CompanyDetailPanel({
                   {company.status}
                 </Badge>
               </div>
-              <div className="mt-2 flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:items-center sm:gap-4">
-                <span className="inline-flex items-center gap-1.5">
-                  <Mail className="size-3 shrink-0" />
-                  {company.contactEmail}
-                </span>
+              <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5">
                   <Phone className="size-3 shrink-0" />
-                  {company.contactPhone}
+                  {company.contactPhone || "Pending Assignment..."}
                 </span>
               </div>
             </div>

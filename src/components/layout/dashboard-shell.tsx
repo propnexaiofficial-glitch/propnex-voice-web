@@ -24,11 +24,40 @@ function DashboardShellInner({
   const [isWaiting, setIsWaiting] = useState(false);
   const [isWaitingNumber, setIsWaitingNumber] = useState(false);
   const [isRejected, setIsRejected] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blockedUntilDate, setBlockedUntilDate] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [reminding, setReminding] = useState(false);
   const [remindMessage, setRemindMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const [isRemindDisabled, setIsRemindDisabled] = useState(false);
   const [creditsRemaining, setCreditsRemaining] = useState<number | null>(null);
+
+  const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
+
+  useEffect(() => {
+    if (isBlocked && blockedUntilDate) {
+      const timer = setInterval(() => {
+        const now = new Date().getTime();
+        const future = new Date(blockedUntilDate).getTime();
+        const difference = future - now;
+
+        if (difference <= 0) {
+          setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+          clearInterval(timer);
+          // Reload to re-check status if time is up
+          window.location.reload();
+        } else {
+          setTimeLeft({
+            days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+            hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+            minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+            seconds: Math.floor((difference % (1000 * 60)) / 1000),
+          });
+        }
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [isBlocked, blockedUntilDate]);
 
   const checkReminderStatus = (userObj?: Record<string, unknown> | null, isNumberReminder?: boolean) => {
     try {
@@ -144,7 +173,7 @@ function DashboardShellInner({
             setIsWaiting(true);
             checkReminderStatus(user, false);
             needsRefresh = true;
-          } else if (!user.assignedNumber) {
+          } else if (!user.assignedNumber || user.assignedNumber === "Not Assigned" || user.assignedNumber === "Unknown") {
             setIsWaitingNumber(true);
             checkReminderStatus(user, true);
             needsRefresh = true;
@@ -173,24 +202,34 @@ function DashboardShellInner({
               if (data.user.creditBalance !== undefined) {
                 setCreditsRemaining(data.user.creditBalance?.creditsRemaining || 0);
               }
-              if (data.user.approvalStatus === "REJECTED") {
+              if (data.user.status === "SUSPENDED") {
+                setIsBlocked(true);
+                setBlockedUntilDate(data.user.blockedUntil);
+                setIsWaiting(false);
+                setIsWaitingNumber(false);
+                setIsRejected(false);
+              } else if (data.user.approvalStatus === "REJECTED") {
                 setIsRejected(true);
+                setIsBlocked(false);
                 setIsWaiting(false);
                 setIsWaitingNumber(false);
               } else if (!data.user.companyId && !data.user.contractId) {
                 setIsWaiting(true);
                 setIsRejected(false);
+                setIsBlocked(false);
                 setIsWaitingNumber(false);
                 checkReminderStatus(data.user, false);
-              } else if (!data.user.assignedNumber) {
+              } else if (!data.user.assignedNumber || data.user.assignedNumber === "Not Assigned" || data.user.assignedNumber === "Unknown") {
                 setIsWaitingNumber(true);
                 setIsWaiting(false);
                 setIsRejected(false);
+                setIsBlocked(false);
                 checkReminderStatus(data.user, true);
               } else {
                 setIsWaiting(false);
                 setIsRejected(false);
                 setIsWaitingNumber(false);
+                setIsBlocked(false);
               }
             }
           } else if (response.status === 401) {
@@ -227,24 +266,34 @@ function DashboardShellInner({
             if (data.user.creditBalance !== undefined) {
               setCreditsRemaining(data.user.creditBalance?.creditsRemaining || 0);
             }
-            if (data.user.approvalStatus === "REJECTED") {
+            if (data.user.status === "SUSPENDED") {
+              setIsBlocked(true);
+              setBlockedUntilDate(data.user.blockedUntil);
+              setIsWaiting(false);
+              setIsWaitingNumber(false);
+              setIsRejected(false);
+            } else if (data.user.approvalStatus === "REJECTED") {
               setIsRejected(true);
+              setIsBlocked(false);
               setIsWaiting(false);
               setIsWaitingNumber(false);
             } else if (!data.user.companyId && !data.user.contractId) {
               setIsWaiting(true);
               setIsRejected(false);
+              setIsBlocked(false);
               setIsWaitingNumber(false);
               checkReminderStatus(data.user, false);
-            } else if (!data.user.assignedNumber) {
+            } else if (!data.user.assignedNumber || data.user.assignedNumber === "Not Assigned" || data.user.assignedNumber === "Unknown") {
               setIsWaitingNumber(true);
               setIsWaiting(false);
               setIsRejected(false);
+              setIsBlocked(false);
               checkReminderStatus(data.user, true);
             } else {
               setIsWaiting(false);
               setIsRejected(false);
               setIsWaitingNumber(false);
+              setIsBlocked(false);
             }
           }
         } else if (response.status === 401) {
@@ -271,6 +320,66 @@ function DashboardShellInner({
 
   if (isLoading) {
     return <div className="flex min-h-screen items-center justify-center bg-background"><div className="animate-spin h-8 w-8 rounded-full border-4 border-fuchsia-500 border-r-transparent" /></div>;
+  }
+
+  if (isBlocked) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 page-mesh-bg">
+        <div className="mx-auto flex max-w-[400px] flex-col items-center justify-center space-y-6 text-center bg-zinc-900/50 backdrop-blur-md p-8 rounded-2xl border border-white/10">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10">
+            <svg
+              className="h-8 w-8 text-red-500"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              viewBox="0 0 24 24"
+            >
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold tracking-tight text-white">
+              Account Suspended
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Your account has been suspended by the administrator. You will regain access when the timer expires.
+            </p>
+          </div>
+          
+          {timeLeft && (
+            <div className="flex justify-center gap-4 mt-6 mb-2">
+              <div className="flex flex-col items-center">
+                <span className="text-3xl font-mono font-bold text-white bg-zinc-800/80 rounded-lg w-16 h-16 flex items-center justify-center shadow-inner border border-zinc-700/50">{String(timeLeft.days).padStart(2, '0')}</span>
+                <span className="text-xs text-muted-foreground mt-2 font-medium tracking-wider uppercase">Days</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-3xl font-mono font-bold text-white bg-zinc-800/80 rounded-lg w-16 h-16 flex items-center justify-center shadow-inner border border-zinc-700/50">{String(timeLeft.hours).padStart(2, '0')}</span>
+                <span className="text-xs text-muted-foreground mt-2 font-medium tracking-wider uppercase">Hours</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-3xl font-mono font-bold text-white bg-zinc-800/80 rounded-lg w-16 h-16 flex items-center justify-center shadow-inner border border-zinc-700/50">{String(timeLeft.minutes).padStart(2, '0')}</span>
+                <span className="text-xs text-muted-foreground mt-2 font-medium tracking-wider uppercase">Mins</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-3xl font-mono font-bold text-white bg-zinc-800/80 rounded-lg w-16 h-16 flex items-center justify-center shadow-inner border border-zinc-700/50">{String(timeLeft.seconds).padStart(2, '0')}</span>
+                <span className="text-xs text-muted-foreground mt-2 font-medium tracking-wider uppercase">Secs</span>
+              </div>
+            </div>
+          )}
+
+          <button onClick={() => {
+            localStorage.removeItem("user");
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("access_token");
+            window.location.href = "/auth/sign-in";
+          }} className="text-sm text-red-400 hover:text-red-300 mt-4 font-medium transition-colors">
+            Sign out
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (isRejected) {

@@ -29,8 +29,8 @@ function formatDuration(seconds: number): string {
 function mapApiItemToCallRecord(item: any, fallbackAssignedNumber: string): CallRecord {
   return {
     id: item.id || item.publicId,
-    customerNumber: item.customerNumber || item.phoneNumber || "Unknown",
-    assignedNumber: item.assignedNumber && item.assignedNumber !== "Unknown" ? item.assignedNumber : fallbackAssignedNumber,
+    customerNumber: item.customerNumber || item.phoneNumber || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown",
+    assignedNumber: item.providerWebhook?.callid || item.providerWebhook?.calledno || fallbackAssignedNumber,
     callDateTime: item.startedAt || new Date().toISOString(),
     duration: formatDuration(item.durationSeconds || 0),
     durationSeconds: item.durationSeconds || 0,
@@ -47,7 +47,9 @@ export function useInboundCallsApi(
   filters: CallLogFilters,
   page: number,
   retryKey: number = 0,
-  hasAssignedNumber: boolean = true
+  hasAssignedNumber: boolean = true,
+  companyId?: string,
+  direction?: "inbound" | "outbound"
 ): UseInboundCallsApiState {
   const [state, setState] = useState<UseInboundCallsApiState>({
     calls: [],
@@ -57,35 +59,28 @@ export function useInboundCallsApi(
     error: null,
   });
 
-  const { search, status, dateFrom, dateTo, durationSort } = filters;
+  const { search, status, dateFrom, dateTo, assignedNumber, callerNumber, minDuration } = filters;
 
   useEffect(() => {
     let isCancelled = false;
 
-    const load = async () => {
-      if (!hasAssignedNumber) {
-        setState({
-          calls: [],
-          total: 0,
-          totalPages: 1,
-          loading: false,
-          error: null,
-        });
-        return;
+    const load = async (isPolling = false) => {
+      if (!isPolling) {
+        setState((prev) => ({ ...prev, loading: true, error: null }));
       }
-
-      setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
         const res: CallListApiResponse = await fetchInboundCalls({
           status: status !== "all" ? status : undefined,
           page,
           limit: PAGE_SIZE,
+          companyId,
+          direction: direction === "inbound" ? "INBOUND" : direction === "outbound" ? "OUTBOUND" : undefined,
         });
 
         if (isCancelled) return;
 
-        let items = res.data;
+        let items = res.data as any[];
 
         let fallbackAssignedNumber = "Unknown";
         try {
@@ -96,17 +91,34 @@ export function useInboundCallsApi(
           }
         } catch (e) {}
 
-        // Client-side search filter
-        if (search.trim()) {
+        // Client-side search filters
+        if (search && search.trim()) {
           const q = search.toLowerCase();
-          items = items.filter(
-            (item) =>
+          items = items.filter((item) => {
+            const customerNum = (item.customerNumber || item.phoneNumber || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
+            return (
               item.publicId?.toLowerCase().includes(q) ||
               (item.providerCallId ?? "").toLowerCase().includes(q) ||
               (item.phoneNumberId ?? "").toLowerCase().includes(q) ||
-              (item.customerNumber ?? "").toLowerCase().includes(q) ||
-              (item.assignedNumber && item.assignedNumber !== "Unknown" ? item.assignedNumber : fallbackAssignedNumber).toLowerCase().includes(q)
-          );
+              customerNum.includes(q)
+            );
+          });
+        }
+
+        if (assignedNumber && assignedNumber.trim()) {
+          const q = assignedNumber.toLowerCase();
+          items = items.filter((item) => {
+             const num = (item.assignedNumber && item.assignedNumber !== "Unknown" ? item.assignedNumber : fallbackAssignedNumber).toLowerCase();
+             return num.includes(q);
+          });
+        }
+
+        if (callerNumber && callerNumber.trim()) {
+          const q = callerNumber.toLowerCase();
+          items = items.filter((item) => {
+             const num = (item.customerNumber || item.phoneNumber || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
+             return num.includes(q);
+          });
         }
 
         if (dateFrom || dateTo) {
@@ -118,13 +130,20 @@ export function useInboundCallsApi(
           });
         }
 
-        if (durationSort === "asc") {
-          items.sort((a, b) => (a.durationSeconds || 0) - (b.durationSeconds || 0));
-        } else if (durationSort === "desc") {
-          items.sort((a, b) => (b.durationSeconds || 0) - (a.durationSeconds || 0));
+        if (minDuration && minDuration.trim()) {
+          const minSec = parseFloat(minDuration);
+          if (!isNaN(minSec)) {
+             items = items.filter((item) => (item.durationSeconds || 0) >= minSec);
+          }
         }
 
-        const isFilteredLocally = Boolean(search.trim() || dateFrom || dateTo || (durationSort && durationSort !== "default"));
+        const isFilteredLocally = Boolean(
+          (search && search.trim()) || 
+          dateFrom || dateTo || 
+          (assignedNumber && assignedNumber.trim()) || 
+          (callerNumber && callerNumber.trim()) || 
+          (minDuration && minDuration.trim())
+        );
         const finalTotal = isFilteredLocally ? items.length : (res.meta?.total || items.length);
         const finalTotalPages = isFilteredLocally 
           ? (Math.ceil(items.length / PAGE_SIZE) || 1) 
@@ -151,10 +170,15 @@ export function useInboundCallsApi(
 
     void load();
 
+    const intervalId = setInterval(() => {
+      void load(true);
+    }, 5000);
+
     return () => {
       isCancelled = true;
+      clearInterval(intervalId);
     };
-  }, [search, status, dateFrom, dateTo, durationSort, page, retryKey, hasAssignedNumber]);
+  }, [search, status, dateFrom, dateTo, assignedNumber, callerNumber, minDuration, page, retryKey, hasAssignedNumber, companyId, direction]);
 
   return state;
 }

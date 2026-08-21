@@ -5,10 +5,11 @@ export type SubCompany = {
   contactPhone: string;
   creditsUsed: number;
   creditsLimit: number;
+  creditsRemaining: number;
   inboundCalls: number;
   outboundCalls: number;
   isPremium: boolean;
-  status: "active" | "inactive";
+  status: "active" | "inactive" | "pending";
   joinedDate: string;
 };
 
@@ -25,4 +26,5 @@ export type AddCompanyForm = {
   name: string;
   contactEmail: string;
   contactPhone: string;
+  allocatedCredits: number;
 };

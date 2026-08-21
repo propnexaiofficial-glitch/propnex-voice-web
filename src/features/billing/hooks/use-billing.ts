@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { assignedChannels } from "@/features/billing/data";
 import type { BillingHistoryItem } from "@/features/billing/types";
 
@@ -8,8 +8,14 @@ export function useBilling() {
   const [history, setHistory] = useState([]);
   const [balance, setBalance] = useState(0);
   const [usedThisMonth, setUsedThisMonth] = useState(0);
+  const [hasPendingCreditRequest, setHasPendingCreditRequest] = useState(false);
 
-  const fetchCreditsAndHistory = async () => {
+  const getToken = () =>
+    localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+
+  const fetchCreditsAndHistory = useCallback(async () => {
     try {
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
@@ -20,33 +26,40 @@ export function useBilling() {
         }
       }
 
-      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+      const token = getToken();
       if (!token) return;
 
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      // Fetch billing history
       const response = await fetch(`${apiBase}/users/billing-history`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
       if (response.ok) {
         const data = await response.json();
         setHistory(data);
       }
+
+      // Poll pending topup status to auto-lock/unlock the Purchase button
+      const pendingRes = await fetch(`${apiBase}/users/pending-topup`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (pendingRes.ok) {
+        const pendingData = await pendingRes.json();
+        setHasPendingCreditRequest(!!pendingData.hasPending);
+      }
     } catch (e) {}
-  };
+  }, [apiBase]);
 
   useEffect(() => {
     fetchCreditsAndHistory();
-    const interval = setInterval(fetchCreditsAndHistory, 5000);
+    const interval = setInterval(fetchCreditsAndHistory, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchCreditsAndHistory]);
 
   async function purchaseCredits(amount: number): Promise<boolean> {
     try {
-      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+      const token = getToken();
       if (!token) return false;
-      
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
       const response = await fetch(`${apiBase}/users/request-topup`, {
         method: "POST",
         headers: {
@@ -57,8 +70,21 @@ export function useBilling() {
       });
 
       if (response.ok) {
+        // Lock the button immediately — admin must process before next request
+        setHasPendingCreditRequest(true);
         return true;
       }
+
+      const errData = await response.json().catch(() => ({}));
+
+      // 409 = already pending (backend guard)
+      if (response.status === 409 || errData?.error === "already_pending") {
+        setHasPendingCreditRequest(true);
+        console.warn("Credit request already pending:", errData?.message);
+        return false;
+      }
+
+      console.error("Top-up request failed:", errData?.message || response.status);
       return false;
     } catch (err) {
       console.error("Top-up request failed", err);
@@ -71,5 +97,6 @@ export function useBilling() {
     assignedChannels,
     billingHistory: history,
     purchaseCredits,
+    hasPendingCreditRequest,
   };
 }

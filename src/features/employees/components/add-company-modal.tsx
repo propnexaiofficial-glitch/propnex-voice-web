@@ -25,6 +25,7 @@ const emptyForm: AddCompanyForm = {
   name: "",
   contactEmail: "",
   contactPhone: "",
+  allocatedCredits: 0,
 };
 
 export function AddCompanyModal({
@@ -37,7 +38,11 @@ export function AddCompanyModal({
   const [error, setError] = useState("");
 
   const handleSubmit = async () => {
-    if (!form.name || !form.contactEmail) return;
+    if (!form.name) return;
+    if (form.allocatedCredits < 0) {
+      setError("Credits cannot be negative.");
+      return;
+    }
     setError("");
     setSubmitting(true);
     try {
@@ -45,7 +50,7 @@ export function AddCompanyModal({
       setForm(emptyForm);
       onOpenChange(false);
     } catch (err: any) {
-      const msg = err.response?.data?.message;
+      const msg = err.response?.data?.error || err.response?.data?.message || err.message;
       setError(
         Array.isArray(msg) ? msg.join(", ") : msg || "Failed to add sub-company"
       );
@@ -95,18 +100,23 @@ export function AddCompanyModal({
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
             </div>
+            
             <div className="space-y-1.5">
-              <label htmlFor="co-email" className="text-xs font-medium text-muted-foreground">
-                Company Email
+              <label htmlFor="allocated-credits" className="text-xs font-medium text-muted-foreground">
+                Allocated Credits
               </label>
               <Input
-                id="co-email"
-                type="email"
-                placeholder="admin@company.com"
-                value={form.contactEmail}
+                id="allocated-credits"
+                type="number"
+                min="0"
+                placeholder="e.g. 500"
+                value={form.allocatedCredits || ""}
                 disabled={submitting}
-                onChange={(e) => setForm({ ...form, contactEmail: e.target.value })}
+                onChange={(e) => setForm({ ...form, allocatedCredits: parseInt(e.target.value) || 0 })}
               />
+              <p className="text-[10px] text-muted-foreground">
+                Credits will be deducted from your main company balance.
+              </p>
             </div>
 
             {error && (
@@ -119,7 +129,7 @@ export function AddCompanyModal({
               Cancel
             </Button>
             <Button
-              disabled={!form.name || !form.contactEmail || submitting}
+              disabled={!form.name || submitting}
               onClick={handleSubmit}
             >
               {submitting ? (

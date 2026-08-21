@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, Building2 } from "lucide-react";
+import { ArrowLeft, Building2, Coins } from "lucide-react";
 import { motion } from "framer-motion";
 
+import { Button } from "@/components/ui/button";
 import { PremiumBadge } from "@/components/common/premium-badge";
 import {
   COMPANY_NAV_ITEMS,
@@ -12,6 +14,7 @@ import {
 } from "@/constants/company-navigation";
 import type { SubCompany } from "@/features/employees/types";
 import { cn } from "@/lib/utils";
+import { TransferCreditsModal } from "./transfer-credits-modal";
 
 type CompanySidebarProps = {
   company: SubCompany;
@@ -20,6 +23,7 @@ type CompanySidebarProps = {
 
 export function CompanySidebar({ company, className }: CompanySidebarProps) {
   const pathname = usePathname();
+  const [transferOpen, setTransferOpen] = useState(false);
 
   const activeSegment = COMPANY_NAV_ITEMS.find((item) =>
     pathname.startsWith(companyNavHref(company.id, item.segment))
@@ -92,7 +96,24 @@ export function CompanySidebar({ company, className }: CompanySidebarProps) {
             </Link>
           );
         })}
+
+        <div className="mt-4 border-t border-border pt-4">
+          <Button
+            variant="outline"
+            className="w-full justify-start gap-2"
+            onClick={() => setTransferOpen(true)}
+          >
+            <Coins className="size-4" />
+            Transfer Credits
+          </Button>
+        </div>
       </nav>
+
+      <TransferCreditsModal
+        company={company}
+        open={transferOpen}
+        onOpenChange={setTransferOpen}
+      />
     </aside>
   );
 }

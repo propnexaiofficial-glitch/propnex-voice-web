@@ -7,6 +7,7 @@ import { AddCreditsPanel } from "@/features/billing/components/add-credits-panel
 import { BillingHistoryTable } from "@/features/billing/components/billing-history-table";
 import { CreditBalanceCard } from "@/features/billing/components/credit-balance-card";
 import { AssignedChannelsPanel } from "@/features/billing/components/assigned-channels-panel";
+import { CreditBreakdownCard } from "@/features/billing/components/credit-breakdown-card";
 import { useBilling } from "@/features/billing/hooks/use-billing";
 
 export function BillingPageContent() {
@@ -15,6 +16,7 @@ export function BillingPageContent() {
     assignedChannels,
     billingHistory,
     purchaseCredits,
+    hasPendingCreditRequest,
   } = useBilling();
 
   return (
@@ -38,9 +40,11 @@ export function BillingPageContent() {
       <div className="grid gap-6 lg:grid-cols-3">
         <CreditBalanceCard summary={summary} className="lg:col-span-1" />
         <div className="lg:col-span-2">
-          <AddCreditsPanel onPurchase={purchaseCredits} currentBalance={summary.balance} />
+          <AddCreditsPanel onPurchase={purchaseCredits} currentBalance={summary.balance} isPending={hasPendingCreditRequest} />
         </div>
       </div>
+
+      <CreditBreakdownCard />
 
       {/* <AssignedChannelsPanel channels={assignedChannels} /> */}
 

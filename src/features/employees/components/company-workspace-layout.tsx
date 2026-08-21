@@ -1,6 +1,7 @@
 "use client";
 
 import { CompanySidebar } from "@/features/employees/components/company-sidebar";
+import { PendingCompanyView } from "@/features/employees/components/pending-company-view";
 import type { SubCompany } from "@/features/employees/types";
 
 type CompanyWorkspaceLayoutProps = {
@@ -12,6 +13,10 @@ export function CompanyWorkspaceLayout({
   company,
   children,
 }: CompanyWorkspaceLayoutProps) {
+  if (company.status.toUpperCase() === "PENDING") {
+    return <PendingCompanyView company={company} />;
+  }
+
   return (
     <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
       <CompanySidebar company={company} />

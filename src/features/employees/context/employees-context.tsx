@@ -31,19 +31,23 @@ export function EmployeesProvider({ children }: { children: ReactNode }) {
   const [companies, setCompanies] = useState<SubCompany[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchCompanies = useCallback(async () => {
+  const fetchCompanies = useCallback(async (isPolling = false) => {
     try {
-      setLoading(true);
-      const response = await axios.get(`${API_BASE}/sub-companies`);
+      if (!isPolling) setLoading(true);
+      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+      const response = await axios.get(`${API_BASE}/sub-companies`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const mapped: SubCompany[] = response.data.map((item: any) => ({
         id: item._id,
         name: item.companyName,
         contactEmail: item.companyEmail,
-        contactPhone: "",
-        creditsUsed: 0,
-        creditsLimit: 2000,
-        inboundCalls: 0,
-        outboundCalls: 0,
+        contactPhone: item.contactPhone || "",
+        creditsUsed: item.creditsUsed || 0,
+        creditsRemaining: item.creditsRemaining || 0,
+        creditsLimit: item.creditsRemaining !== undefined ? item.creditsRemaining + (item.creditsUsed || 0) : 2000,
+        inboundCalls: item.inboundCalls || 0,
+        outboundCalls: item.outboundCalls || 0,
         isPremium: false,
         status: item.status || "active",
         joinedDate: item.createdAt
@@ -54,12 +58,23 @@ export function EmployeesProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Failed to fetch sub-companies:", error);
     } finally {
-      setLoading(false);
+      if (!isPolling) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     fetchCompanies();
+  }, [fetchCompanies]);
+
+  // Poll unconditionally every 2 seconds for real-time updates of credits, status, etc.
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetchCompanies(true);
+    }, 2000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
   }, [fetchCompanies]);
 
   const getCompanyById = useCallback(
@@ -73,9 +88,13 @@ export function EmployeesProvider({ children }: { children: ReactNode }) {
   );
 
   const addCompany = useCallback(async (form: AddCompanyForm) => {
+    const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
     const response = await axios.post(`${API_BASE}/sub-companies`, {
       companyName: form.name,
       companyEmail: form.contactEmail,
+      allocatedCredits: form.allocatedCredits,
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
     });
 
     const item = response.data;
@@ -83,13 +102,13 @@ export function EmployeesProvider({ children }: { children: ReactNode }) {
       id: item._id,
       name: item.companyName,
       contactEmail: item.companyEmail,
-      contactPhone: "",
+      contactPhone: item.contactPhone || "",
       creditsUsed: 0,
-      creditsLimit: 2000,
+      creditsLimit: form.allocatedCredits,
       inboundCalls: 0,
       outboundCalls: 0,
       isPremium: false,
-      status: item.status || "active",
+      status: item.status || "pending",
       joinedDate: item.createdAt
         ? new Date(item.createdAt).toISOString().slice(0, 10)
         : new Date().toISOString().slice(0, 10),

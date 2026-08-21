@@ -32,6 +32,8 @@ export type InboundCallApiItem = {
   updatedAt: string;
   customerNumber?: string | null;
   assignedNumber?: string | null;
+  providerWebhook?: any;
+  phoneNumber?: string | null;
 };
 
 export type CallListApiResponse = {
@@ -63,6 +65,7 @@ export async function fetchInboundCalls(
   if (params.provider) query.set("provider", params.provider);
   if (params.page) query.set("page", String(params.page));
   if (params.limit) query.set("limit", String(params.limit));
+  if (params.direction) query.set("direction", params.direction);
 
   let token = "";
   let companyId = params.companyId || "";
@@ -97,7 +100,13 @@ export async function fetchInboundCalls(
   });
 
   if (!res.ok) {
-    throw new Error(`Inbound calls API error: ${res.status} ${res.statusText}`);
+    let errMsg = res.statusText;
+    try {
+      const errData = await res.json();
+      if (errData && errData.error) errMsg = errData.error;
+      else if (errData && errData.message) errMsg = errData.message;
+    } catch(e) {}
+    throw new Error(`Inbound calls API error: ${res.status} ${errMsg}`);
   }
 
   return res.json() as Promise<CallListApiResponse>;
