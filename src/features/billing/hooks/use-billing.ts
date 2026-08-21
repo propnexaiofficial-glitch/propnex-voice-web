@@ -35,7 +35,7 @@ export function useBilling() {
       if (response.ok) {
         const data = await response.json();
         if (Array.isArray(data)) {
-          setHistory(data);
+          setHistory(data as BillingHistoryItem[]);
         }
       }
 
