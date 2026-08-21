@@ -11,13 +11,21 @@ type DashboardSummaryProps = {
 
 export function DashboardSummary({ className }: DashboardSummaryProps) {
   const [stats, setStats] = useState(() => {
-    // Create an initial state where values are "..." or 0 to avoid flashing fake data
     return mockStats.map(stat => ({
       ...stat,
       value: "..."
     }));
   });
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem("dashboardStats");
+      if (cached) {
+        setStats(JSON.parse(cached));
+      }
+    } catch(e) {}
+  }, []);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -41,6 +49,9 @@ export function DashboardSummary({ className }: DashboardSummaryProps) {
           updatedStats[3] = { ...updatedStats[3], value: data.creditsUsed.toLocaleString(), change: data.creditsTrend, changeLabel: "vs last month" };
           
           setStats(updatedStats);
+          try {
+            localStorage.setItem("dashboardStats", JSON.stringify(updatedStats));
+          } catch(e) {}
         }
       } catch (err) {
         console.error("Failed to fetch dashboard stats", err);
