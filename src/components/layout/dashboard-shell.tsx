@@ -32,7 +32,7 @@ function DashboardShellInner({
   const [isRemindDisabled, setIsRemindDisabled] = useState(false);
   const [creditsRemaining, setCreditsRemaining] = useState<number | null>(null);
 
-  const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
+  const [timeLeft, setTimeLeft] = useState<{ months: number; days: number; hours: number; minutes: number; seconds: number } | null>(null);
 
   useEffect(() => {
     if (isBlocked && blockedUntilDate) {
@@ -42,13 +42,18 @@ function DashboardShellInner({
         const difference = future - now;
 
         if (difference <= 0) {
-          setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+          setTimeLeft({ months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 });
           clearInterval(timer);
           // Reload to re-check status if time is up
           window.location.reload();
         } else {
+          const totalDays = Math.floor(difference / (1000 * 60 * 60 * 24));
+          const months = Math.floor(totalDays / 30);
+          const days = totalDays % 30;
+          
           setTimeLeft({
-            days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+            months,
+            days,
             hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
             minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
             seconds: Math.floor((difference % (1000 * 60)) / 1000),
@@ -343,28 +348,37 @@ function DashboardShellInner({
             <h2 className="text-2xl font-bold tracking-tight text-white">
               Account Suspended
             </h2>
-            <p className="text-sm text-muted-foreground">
-              Your account has been suspended by the administrator. You will regain access when the timer expires.
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Your account has been suspended by the administrator for <strong>6 months</strong>. 
+              You will regain access automatically when the timer below expires.
             </p>
           </div>
           
           {timeLeft && (
-            <div className="flex justify-center gap-4 mt-6 mb-2">
+            <div className="flex justify-center gap-3 mt-6 mb-2">
+              <div className="flex flex-col items-center">
+                <span className="text-3xl font-mono font-bold text-white bg-zinc-800/80 rounded-lg w-16 h-16 flex items-center justify-center shadow-inner border border-zinc-700/50">{String(timeLeft.months).padStart(2, '0')}</span>
+                <span className="text-[10px] text-muted-foreground mt-2 font-semibold tracking-wider uppercase">Months</span>
+              </div>
+              <div className="text-2xl font-bold text-zinc-600 self-start mt-4">:</div>
               <div className="flex flex-col items-center">
                 <span className="text-3xl font-mono font-bold text-white bg-zinc-800/80 rounded-lg w-16 h-16 flex items-center justify-center shadow-inner border border-zinc-700/50">{String(timeLeft.days).padStart(2, '0')}</span>
-                <span className="text-xs text-muted-foreground mt-2 font-medium tracking-wider uppercase">Days</span>
+                <span className="text-[10px] text-muted-foreground mt-2 font-semibold tracking-wider uppercase">Days</span>
               </div>
+              <div className="text-2xl font-bold text-zinc-600 self-start mt-4">:</div>
               <div className="flex flex-col items-center">
                 <span className="text-3xl font-mono font-bold text-white bg-zinc-800/80 rounded-lg w-16 h-16 flex items-center justify-center shadow-inner border border-zinc-700/50">{String(timeLeft.hours).padStart(2, '0')}</span>
-                <span className="text-xs text-muted-foreground mt-2 font-medium tracking-wider uppercase">Hours</span>
+                <span className="text-[10px] text-muted-foreground mt-2 font-semibold tracking-wider uppercase">Hours</span>
               </div>
+              <div className="text-2xl font-bold text-zinc-600 self-start mt-4">:</div>
               <div className="flex flex-col items-center">
                 <span className="text-3xl font-mono font-bold text-white bg-zinc-800/80 rounded-lg w-16 h-16 flex items-center justify-center shadow-inner border border-zinc-700/50">{String(timeLeft.minutes).padStart(2, '0')}</span>
-                <span className="text-xs text-muted-foreground mt-2 font-medium tracking-wider uppercase">Mins</span>
+                <span className="text-[10px] text-muted-foreground mt-2 font-semibold tracking-wider uppercase">Mins</span>
               </div>
+              <div className="text-2xl font-bold text-zinc-600 self-start mt-4">:</div>
               <div className="flex flex-col items-center">
                 <span className="text-3xl font-mono font-bold text-white bg-zinc-800/80 rounded-lg w-16 h-16 flex items-center justify-center shadow-inner border border-zinc-700/50">{String(timeLeft.seconds).padStart(2, '0')}</span>
-                <span className="text-xs text-muted-foreground mt-2 font-medium tracking-wider uppercase">Secs</span>
+                <span className="text-[10px] text-muted-foreground mt-2 font-semibold tracking-wider uppercase">Secs</span>
               </div>
             </div>
           )}
