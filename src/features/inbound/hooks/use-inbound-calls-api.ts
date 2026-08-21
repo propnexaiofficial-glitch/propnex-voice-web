@@ -27,9 +27,10 @@ function formatDuration(seconds: number): string {
 }
 
 function mapApiItemToCallRecord(item: any, fallbackAssignedNumber: string): CallRecord {
+  const pNum = typeof item.phoneNumber === 'string' ? item.phoneNumber : item.phoneNumber?.number;
   return {
     id: item.id || item.publicId,
-    customerNumber: item.customerNumber || item.phoneNumber || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown",
+    customerNumber: item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown",
     assignedNumber: item.providerWebhook?.callid || item.providerWebhook?.calledno || fallbackAssignedNumber,
     callDateTime: item.startedAt || new Date().toISOString(),
     duration: formatDuration(item.durationSeconds || 0),
@@ -126,7 +127,8 @@ export function useInboundCallsApi(
     if (search && search.trim()) {
       const q = search.toLowerCase();
       items = items.filter((item) => {
-        const customerNum = (item.customerNumber || item.phoneNumber || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
+        const pNum = typeof item.phoneNumber === 'string' ? item.phoneNumber : item.phoneNumber?.number;
+        const customerNum = String(item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
         return (
           item.publicId?.toLowerCase().includes(q) ||
           (item.providerCallId ?? "").toLowerCase().includes(q) ||
@@ -147,7 +149,8 @@ export function useInboundCallsApi(
     if (callerNumber && callerNumber.trim()) {
       const q = callerNumber.toLowerCase();
       items = items.filter((item) => {
-         const num = (item.customerNumber || item.phoneNumber || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
+         const pNum = typeof item.phoneNumber === 'string' ? item.phoneNumber : item.phoneNumber?.number;
+         const num = String(item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
          return num.includes(q);
       });
     }
