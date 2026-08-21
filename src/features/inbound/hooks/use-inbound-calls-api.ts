@@ -68,9 +68,11 @@ export function useInboundCallsApi(
 
   const { search, status, dateFrom, dateTo, assignedNumber, callerNumber, minDuration } = filters;
 
+  const cacheKey = `calls_cache_${direction}_${companyId}_${page}`;
+
   useEffect(() => {
     try {
-      const cached = localStorage.getItem(`inbound_calls_cache_${page}`);
+      const cached = localStorage.getItem(cacheKey);
       if (cached) {
         const parsed = JSON.parse(cached);
         setState((prev) => ({
@@ -82,7 +84,7 @@ export function useInboundCallsApi(
         }));
       }
     } catch (e) {}
-  }, [page]);
+  }, [page, cacheKey]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -113,7 +115,7 @@ export function useInboundCallsApi(
         });
 
         try {
-          localStorage.setItem(`inbound_calls_cache_${page}`, JSON.stringify({
+          localStorage.setItem(cacheKey, JSON.stringify({
             rawItems: res.data || [],
             rawTotal: res.meta?.total || 0,
             rawTotalPages: res.meta?.totalPages || 1,
