@@ -34,7 +34,9 @@ export function useBilling() {
       });
       if (response.ok) {
         const data = await response.json();
-        setHistory(data);
+        if (Array.isArray(data)) {
+          setHistory(data);
+        }
       }
 
       // Poll pending topup status to auto-lock/unlock the Purchase button
@@ -45,7 +47,9 @@ export function useBilling() {
         const pendingData = await pendingRes.json();
         setHasPendingCreditRequest(!!pendingData.hasPending);
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error("Billing fetch error:", e);
+    }
   }, [apiBase]);
 
   useEffect(() => {
