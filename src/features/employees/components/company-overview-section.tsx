@@ -120,8 +120,8 @@ export function CompanyOverviewSection({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <CallPreviewPanel calls={realPreviewCalls} direction="inbound" />
-        <CallPreviewPanel calls={realPreviewCalls} direction="outbound" />
+        <CallPreviewPanel calls={realPreviewCalls} direction="inbound" isLocked={!company.contactPhone} />
+        <CallPreviewPanel calls={realPreviewCalls} direction="outbound" isLocked={!company.contactPhone} />
       </div>
     </div>
   );

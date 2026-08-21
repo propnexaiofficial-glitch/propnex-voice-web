@@ -10,12 +10,14 @@ type CallPreviewPanelProps = {
   calls: CallPreview[];
   direction: "inbound" | "outbound";
   className?: string;
+  isLocked?: boolean;
 };
 
 export function CallPreviewPanel({
   calls,
   direction,
   className,
+  isLocked,
 }: CallPreviewPanelProps) {
   const filtered = calls.filter((c) => c.direction === direction);
   const Icon = direction === "inbound" ? PhoneIncoming : PhoneOutgoing;
@@ -26,12 +28,18 @@ export function CallPreviewPanel({
       <div className="mb-3 flex items-center gap-2 border-b border-border pb-3">
         <Icon className="size-4 shrink-0 text-foreground" />
         <h4 className="text-sm font-semibold">{label} Preview</h4>
-        <span className="ml-auto text-[11px] text-muted-foreground">
-          {filtered.length} recent
-        </span>
+        {!isLocked && (
+          <span className="ml-auto text-[11px] text-muted-foreground">
+            {filtered.length} recent
+          </span>
+        )}
       </div>
 
-      {filtered.length === 0 ? (
+      {isLocked ? (
+        <p className="flex flex-1 items-center justify-center py-6 text-center text-xs text-muted-foreground">
+          Waiting for phone assignment
+        </p>
+      ) : filtered.length === 0 ? (
         <p className="flex flex-1 items-center justify-center py-6 text-center text-xs text-muted-foreground">
           No {direction} calls yet
         </p>

@@ -24,13 +24,27 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
+    const targetCompanyId = searchParams.get("companyId");
+    
+    let companyIdToQuery = member.companyId;
+
+    if (targetCompanyId && targetCompanyId !== member.companyId) {
+      // Check if targetCompanyId is a sub-company of the user's company
+      const subCompany = await prisma.company.findFirst({
+        where: { id: targetCompanyId, parentCompanyId: member.companyId }
+      });
+      if (subCompany) {
+        companyIdToQuery = targetCompanyId;
+      }
+    }
+
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "10", 10);
     const skip = (page - 1) * limit;
 
     const calls = await prisma.callLog.findMany({
       where: { 
-        companyId: member.companyId,
+        companyId: companyIdToQuery,
         direction: "INBOUND"
       },
       orderBy: { startedAt: "desc" },
@@ -43,7 +57,7 @@ export async function GET(req: NextRequest) {
 
     const total = await prisma.callLog.count({
       where: { 
-        companyId: member.companyId,
+        companyId: companyIdToQuery,
         direction: "INBOUND"
       }
     });

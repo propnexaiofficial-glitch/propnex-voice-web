@@ -52,10 +52,16 @@ function matchesDateRange(
   return true;
 }
 
+import { useEmployeesContext } from "@/features/employees/context/employees-context";
+
 export function CompanyCallsSection({
   companyId,
   direction,
 }: CompanyCallsSectionProps) {
+  const { getCompanyById } = useEmployeesContext();
+  const company = getCompanyById(companyId);
+  const isLocked = !company?.contactPhone;
+
   const [filters, setFilters] = useState<CallLogFilters>(DEFAULT_CALL_FILTERS);
   const [page, setPage] = useState(1);
   const [selectedCall, setSelectedCall] = useState<CallRecord | null>(null);
@@ -115,7 +121,7 @@ export function CompanyCallsSection({
           </div>
         </div>
 
-        {direction === "outbound" && (
+        {direction === "outbound" && !isLocked && (
           <Button variant="outline" className="gap-2" onClick={() => setUploadOpen(true)}>
             <Upload className="size-4" />
             Upload CSV
@@ -130,7 +136,12 @@ export function CompanyCallsSection({
         searchId={`${companyId}-${direction}-search`}
       />
 
-      {paginatedCalls.length === 0 ? (
+      {isLocked ? (
+        <EmptyState
+          title="Phone Number Pending"
+          description="Please wait for the admin to assign a phone number to unlock this feature."
+        />
+      ) : paginatedCalls.length === 0 ? (
         <EmptyState
           title={`No ${direction} calls yet`}
           description="Call records for this sub-company will appear here once available."
