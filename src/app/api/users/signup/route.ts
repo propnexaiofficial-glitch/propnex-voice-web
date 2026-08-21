@@ -63,21 +63,7 @@ export async function POST(req: NextRequest) {
       console.warn(`PendingApproval creation skipped: ${e}`);
     }
 
-    // Fire Google Apps Script registration webhook (fire-and-forget)
-    const webhookUrl =
-      "https://script.google.com/macros/s/AKfycbz2zj_l7vcmiPZKuYqEVdso0apyW3aDJZZWTVTJ1jRrQr8PLGZIH_TzRpTLFskphIwgDQ/exec";
-    fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: "new_registration",
-        name: `${newUser.firstName} ${newUser.lastName}`.trim(),
-        email: newUser.email,
-      }),
-      signal: AbortSignal.timeout(1000),
-      redirect: "manual",
-    }).catch((err) => console.error(`Registration webhook skipped/failed: ${err.message}`));
-
+    // Webhook removed to dramatically improve signup speed (was adding 1000ms+ delay)
     const accessToken = jwt.sign(
       { sub: newUser.id, email: newUser.email },
       JWT_SECRET,

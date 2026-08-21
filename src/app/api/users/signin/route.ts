@@ -16,7 +16,15 @@ export async function POST(req: NextRequest) {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    const user = await prisma.user.findUnique({ 
+      where: { email: normalizedEmail },
+      include: {
+        companyMembers: {
+          where: { status: "ACTIVE" },
+          include: { company: { select: { id: true, contractId: true, status: true } } }
+        }
+      }
+    });
 
     if (!user) {
       return NextResponse.json({ message: "Invalid email or password" }, { status: 401 });
@@ -24,7 +32,6 @@ export async function POST(req: NextRequest) {
 
     const userAny = user as any;
 
-    // Check for password hash (locally registered users)
     if (!userAny.passwordHash) {
       return NextResponse.json(
         { message: "This account uses a different sign-in method. Please contact support." },
@@ -41,24 +48,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Your account has been suspended. Please contact support." }, { status: 403 });
     }
 
-    // Fetch company details if the user is linked to a company
     let companyId: string | null = null;
     let contractId: string | null = null;
     let companyStatus: string | null = null;
 
-    try {
-      const member = await (prisma as any).companyMember.findFirst({
-        where: { userId: user.id, status: "ACTIVE" },
-        include: { company: { select: { id: true, contractId: true, status: true } } },
-      });
+    if (userAny.companyMembers && userAny.companyMembers.length > 0) {
+      const member = userAny.companyMembers[0];
       if (member?.company) {
         companyId = member.company.id;
         contractId = member.company.contractId;
         companyStatus = member.company.status;
       }
-    } catch (e) {
-      // Non-fatal: user just won't have company info
-      console.warn("Could not fetch company for user:", e);
     }
 
     const accessToken = jwt.sign(
