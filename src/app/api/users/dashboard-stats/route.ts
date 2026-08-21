@@ -36,7 +36,12 @@ export async function GET(req: NextRequest) {
       where: { companyId: member.companyId, isActive: true }
     });
 
-    const creditsUsed = member.company.creditBalance?.creditsUsed || 0;
+    const callStats = await prisma.callLog.aggregate({
+      where: { companyId: member.companyId },
+      _sum: { creditsUsed: true }
+    });
+
+    const creditsUsed = callStats._sum.creditsUsed || 0;
 
     return NextResponse.json({
       inboundCalls,
