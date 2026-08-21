@@ -69,11 +69,28 @@ export function useInboundCallsApi(
   const { search, status, dateFrom, dateTo, assignedNumber, callerNumber, minDuration } = filters;
 
   useEffect(() => {
+    try {
+      const cached = localStorage.getItem(`inbound_calls_cache_${page}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        setState((prev) => ({
+          ...prev,
+          rawItems: parsed.rawItems || [],
+          rawTotal: parsed.rawTotal || 0,
+          rawTotalPages: parsed.rawTotalPages || 1,
+          loading: false, // Turn off loading instantly
+        }));
+      }
+    } catch (e) {}
+  }, [page]);
+
+  useEffect(() => {
     let isCancelled = false;
 
     const load = async (isPolling = false) => {
       if (!isPolling) {
-        setState((prev) => ({ ...prev, loading: true, error: null }));
+        // Only set loading to true if we don't have cached data yet
+        setState((prev) => ({ ...prev, loading: prev.rawItems.length === 0, error: null }));
       }
 
       try {
@@ -94,6 +111,14 @@ export function useInboundCallsApi(
           loading: false,
           error: null,
         });
+
+        try {
+          localStorage.setItem(`inbound_calls_cache_${page}`, JSON.stringify({
+            rawItems: res.data || [],
+            rawTotal: res.meta?.total || 0,
+            rawTotalPages: res.meta?.totalPages || 1,
+          }));
+        } catch(e) {}
       } catch (err) {
         if (isCancelled) return;
         const message =

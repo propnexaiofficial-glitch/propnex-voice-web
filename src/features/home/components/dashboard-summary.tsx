@@ -82,7 +82,7 @@ export function DashboardSummary({ className }: DashboardSummaryProps) {
           Voice AI performance overview for your account
         </p>
       </div>
-      <div className={cn("grid gap-4 sm:grid-cols-2 xl:grid-cols-4", loading && "opacity-60")}>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat, index) => (
           <StatCard key={stat.id} stat={stat} index={index} />
         ))}
