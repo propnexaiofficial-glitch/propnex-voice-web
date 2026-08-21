@@ -18,6 +18,7 @@ type CallLogFiltersBarProps = {
   onReset: () => void;
   searchId?: string;
   className?: string;
+  hideAssignedNumber?: boolean;
 };
 
 export function CallLogFiltersBar({
@@ -26,6 +27,7 @@ export function CallLogFiltersBar({
   onReset,
   searchId = "call-log-search",
   className,
+  hideAssignedNumber = false,
 }: CallLogFiltersBarProps) {
   const update = (patch: Partial<CallLogFilters>) => {
     onChange({ ...filters, ...patch });
@@ -59,24 +61,26 @@ export function CallLogFiltersBar({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="space-y-1.5">
-          <label
-            htmlFor={`${searchId}-assigned`}
-            className="text-xs font-medium text-muted-foreground"
-          >
-            Assigned number
-          </label>
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              id={`${searchId}-assigned`}
-              placeholder="Filter assigned..."
-              value={filters.assignedNumber}
-              onChange={(e) => update({ assignedNumber: e.target.value })}
-              className="pl-10"
-            />
+        {!hideAssignedNumber && (
+          <div className="space-y-1.5">
+            <label
+              htmlFor={`${searchId}-assigned`}
+              className="text-xs font-medium text-muted-foreground"
+            >
+              Assigned number
+            </label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id={`${searchId}-assigned`}
+                placeholder="Filter assigned..."
+                value={filters.assignedNumber}
+                onChange={(e) => update({ assignedNumber: e.target.value })}
+                className="pl-10"
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="space-y-1.5">
           <label
