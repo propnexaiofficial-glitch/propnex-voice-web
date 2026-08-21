@@ -251,7 +251,9 @@ function DashboardShellInner({
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(async () => {
+    let isMounted = true;
+
+    const fetchUser = async () => {
       try {
         const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
         if (!token) return;
@@ -262,6 +264,8 @@ function DashboardShellInner({
             cache: "no-store"
           });
         
+        if (!isMounted) return;
+
         if (response.ok) {
           const data = await response.json();
           if (data.user) {
