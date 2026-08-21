@@ -9,12 +9,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
+  serverExternalPackages: ["bcryptjs", "jsonwebtoken", "@prisma/client"],
   async rewrites() {
     return [
       // NOTE: /api/users/signup and /api/users/signin are handled by Next.js API route handlers
