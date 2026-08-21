@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
     let contractId: string | null = null;
     let companyStatus: string | null = null;
     let creditBalance: any = undefined;
+    let assignedNumber: string | null = null;
 
     if (userAny.memberships && userAny.memberships.length > 0) {
       const member = userAny.memberships[0];
@@ -60,6 +61,15 @@ export async function POST(req: NextRequest) {
         contractId = member.company.contractId;
         companyStatus = member.company.status;
         creditBalance = member.company.creditBalance;
+        
+        const phoneRecord = await (prisma as any).phoneNumber.findFirst({
+          where: { companyId: member.company.id, status: "ACTIVE" }
+        });
+        if (phoneRecord) {
+          assignedNumber = phoneRecord.number;
+        } else {
+          assignedNumber = "Not Assigned";
+        }
       }
     }
 
@@ -82,6 +92,7 @@ export async function POST(req: NextRequest) {
         contractId,
         companyStatus,
         creditBalance,
+        assignedNumber,
       },
     });
   } catch (err: any) {

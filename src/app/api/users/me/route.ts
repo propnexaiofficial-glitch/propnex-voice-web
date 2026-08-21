@@ -37,6 +37,7 @@ export async function GET(req: NextRequest) {
     let companyStatus: string | null = null;
     let companyBlockedUntil: string | null = null;
     let creditBalance: any = undefined;
+    let assignedNumber: string | null = null;
 
     try {
       const member = await (prisma as any).companyMember.findFirst({
@@ -60,9 +61,19 @@ export async function GET(req: NextRequest) {
         companyStatus = member.company.status;
         companyBlockedUntil = member.company.blockedUntil;
         creditBalance = member.company.creditBalance;
+        
+        // Fetch the assigned phone number for this company
+        const phoneRecord = await (prisma as any).phoneNumber.findFirst({
+          where: { companyId: member.company.id, status: "ACTIVE" }
+        });
+        if (phoneRecord) {
+          assignedNumber = phoneRecord.number;
+        } else {
+          assignedNumber = "Not Assigned";
+        }
       }
     } catch (e) {
-      console.warn("Could not fetch company for user:", e);
+      console.warn("Could not fetch company details for user:", e);
     }
 
     return NextResponse.json({
@@ -77,6 +88,7 @@ export async function GET(req: NextRequest) {
         companyStatus,
         companyBlockedUntil,
         creditBalance,
+        assignedNumber,
       },
     });
   } catch (err: any) {
