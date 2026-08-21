@@ -13,11 +13,13 @@ import { cn } from "@/lib/utils";
 type DashboardHeaderProps = {
   title?: string;
   className?: string;
+  isLockedOut?: boolean;
 };
 
 export function DashboardHeader({
   title = "Dashboard",
   className,
+  isLockedOut,
 }: DashboardHeaderProps) {
   const [firstName, setFirstName] = useState("");
 
@@ -42,7 +44,7 @@ export function DashboardHeader({
         className
       )}
     >
-      <MobileSidebar />
+      <MobileSidebar isLockedOut={isLockedOut} />
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-col gap-0.5">

@@ -31,7 +31,10 @@ export function SidebarNav({ onNavigate, className, isLockedOut }: SidebarNavPro
         const Icon = item.icon;
         const isBilling = item.href === "/dashboard/billing";
         const isComingSoon = item.comingSoon && !isLockedOut;
-        const isDisabled = (isLockedOut && !isBilling) || isComingSoon;
+        
+        if (isLockedOut && !isBilling) return null;
+        
+        const isDisabled = isComingSoon;
 
         return (
           <Link
