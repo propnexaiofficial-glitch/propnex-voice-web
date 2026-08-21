@@ -202,9 +202,10 @@ function DashboardShellInner({
               if (data.user.creditBalance !== undefined) {
                 setCreditsRemaining(data.user.creditBalance?.creditsRemaining || 0);
               }
-              if (data.user.status === "SUSPENDED") {
+              if (data.user.status === "SUSPENDED" || data.user.companyStatus === "SUSPENDED") {
                 setIsBlocked(true);
-                setBlockedUntilDate(data.user.blockedUntil);
+                // Also parse blockedUntil if needed, but company uses blockedUntil which we aren't fetching, so we can just lock them out.
+                // setBlockedUntilDate(data.user.blockedUntil);
                 setIsWaiting(false);
                 setIsWaitingNumber(false);
                 setIsRejected(false);
@@ -266,9 +267,9 @@ function DashboardShellInner({
             if (data.user.creditBalance !== undefined) {
               setCreditsRemaining(data.user.creditBalance?.creditsRemaining || 0);
             }
-            if (data.user.status === "SUSPENDED") {
+            if (data.user.status === "SUSPENDED" || data.user.companyStatus === "SUSPENDED") {
               setIsBlocked(true);
-              setBlockedUntilDate(data.user.blockedUntil);
+              // setBlockedUntilDate(data.user.blockedUntil);
               setIsWaiting(false);
               setIsWaitingNumber(false);
               setIsRejected(false);
