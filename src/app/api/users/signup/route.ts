@@ -33,26 +33,28 @@ export async function POST(req: NextRequest) {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Check for duplicate
-    const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-    if (existing) {
-      return NextResponse.json({ message: "Email already registered" }, { status: 409 });
-    }
-
     const passwordHash = await bcrypt.hash(password, 10);
     const clerkUserId = `local_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
-    const newUser = await prisma.user.create({
-      data: {
-        email: normalizedEmail,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        phone: phone || null,
-        passwordHash,
-        clerkUserId,
-        status: "ACTIVE",
-      } as any,
-    });
+    let newUser;
+    try {
+      newUser = await prisma.user.create({
+        data: {
+          email: normalizedEmail,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          phone: phone || null,
+          passwordHash,
+          clerkUserId,
+          status: "ACTIVE",
+        } as any,
+      });
+    } catch (e: any) {
+      if (e.code === 'P2002') {
+        return NextResponse.json({ message: "Email already registered" }, { status: 409 });
+      }
+      throw e;
+    }
 
     // Create PendingApproval so admin panel gets notified
     try {

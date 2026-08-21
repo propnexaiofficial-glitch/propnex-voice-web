@@ -73,16 +73,6 @@ export function SignUpPageContent() {
         confirmPassword,
       });
 
-      // Notify Admin Panel
-      try {
-        await fetch("/api/pending-approvals", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        });
-      } catch (adminErr) {
-        console.error("Failed to notify admin panel:", adminErr);
-      }
 
       router.push(AUTH_ROUTES.signIn);
     } catch (err: any) {
