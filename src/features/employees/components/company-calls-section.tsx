@@ -12,6 +12,7 @@ import { CallLogTable } from "@/components/tables/call-log-table";
 import { TablePagination } from "@/components/tables/table-pagination";
 import { useInboundCallsApi, INBOUND_API_PAGE_SIZE } from "@/features/inbound/hooks/use-inbound-calls-api";
 import { UploadCsvModal } from "@/features/outbound/components/upload-csv-modal";
+import { TransferCreditsModal } from "@/features/employees/components/transfer-credits-modal";
 import {
   DEFAULT_CALL_FILTERS,
   type CallLogFilters,
@@ -60,13 +61,15 @@ export function CompanyCallsSection({
 }: CompanyCallsSectionProps) {
   const { getCompanyById } = useEmployeesContext();
   const company = getCompanyById(companyId);
-  const isLocked = !company?.contactPhone;
+  const isOutOfCredits = (company?.creditsRemaining ?? 0) <= 0;
+  const isLocked = !company?.contactPhone || isOutOfCredits;
 
   const [filters, setFilters] = useState<CallLogFilters>(DEFAULT_CALL_FILTERS);
   const [page, setPage] = useState(1);
   const [selectedCall, setSelectedCall] = useState<CallRecord | null>(null);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [transferOpen, setTransferOpen] = useState(false);
 
   const {
     calls: paginatedCalls,
@@ -139,9 +142,15 @@ export function CompanyCallsSection({
 
       {isLocked ? (
         <EmptyState
-          title="Phone Number Pending"
-          description="Please wait for the admin to assign a phone number to unlock this feature."
-        />
+          title={isOutOfCredits ? "Locked (0 Credits)" : "Phone Number Pending"}
+          description={isOutOfCredits ? "This sub-company has run out of credits. Please add credits to restore access to call logs and capabilities." : "Please wait for the admin to assign a phone number to unlock this feature."}
+        >
+          {isOutOfCredits && (
+            <Button onClick={() => setTransferOpen(true)} className="mt-4 bg-primary text-primary-foreground hover:bg-primary/90">
+              Add Credits
+            </Button>
+          )}
+        </EmptyState>
       ) : paginatedCalls.length === 0 ? (
         <EmptyState
           title={`No ${direction} calls yet`}
@@ -177,6 +186,14 @@ export function CompanyCallsSection({
           onUpload={handleUpload}
           title="Upload CSV — Sub-Company Outbound"
           description="Upload a contact list to launch a general outbound calling campaign for this sub-company. CSV should include a phone number column."
+        />
+      )}
+
+      {company && (
+        <TransferCreditsModal
+          company={company}
+          open={transferOpen}
+          onOpenChange={setTransferOpen}
         />
       )}
     </div>
