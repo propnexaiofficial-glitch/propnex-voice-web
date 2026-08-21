@@ -11,7 +11,9 @@ export function useOutboundCalls() {
     status: "all",
     dateFrom: "",
     dateTo: "",
-    durationSort: "default",
+    assignedNumber: "",
+    callerNumber: "",
+    minDuration: "",
   });
   
   const [page, setPage] = useState(1);
@@ -19,7 +21,7 @@ export function useOutboundCalls() {
   return {
     filters,
     updateFilters: (next: CallLogFilters) => { setFilters(next); setPage(1); },
-    resetFilters: () => { setFilters({ search: "", status: "all", dateFrom: "", dateTo: "", durationSort: "default" }); setPage(1); },
+    resetFilters: () => { setFilters({ search: "", status: "all", dateFrom: "", dateTo: "", assignedNumber: "", callerNumber: "", minDuration: "" }); setPage(1); },
     calls: [],
     totalCalls: 0,
     page,
