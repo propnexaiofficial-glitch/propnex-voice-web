@@ -300,7 +300,7 @@ function DashboardShellInner({
               setIsBlocked(false);
             }
           }
-        } else if (response.status === 401) {
+        } else if (response.status === 401 || response.status === 404) {
           localStorage.removeItem("user");
           localStorage.removeItem("accessToken");
           localStorage.removeItem("access_token");
