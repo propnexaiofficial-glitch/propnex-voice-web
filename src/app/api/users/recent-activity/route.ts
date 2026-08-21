@@ -31,13 +31,24 @@ export async function GET(req: NextRequest) {
     
     const companyIdsToQuery = [member.companyId, ...subCompanies.map((c: any) => c.id)];
 
-    const recentCalls = await prisma.callLog.findMany({
-      where: { 
-        companyId: { in: companyIdsToQuery }
-      },
-      orderBy: { startedAt: "desc" },
-      take: 5
-    });
+    // Run a separate query for each companyId to perfectly utilize the [companyId, startedAt] index
+    // and avoid MongoDB in-memory sort limits when using the $in operator.
+    const promises = companyIdsToQuery.map(cId => 
+      prisma.callLog.findMany({
+        where: { companyId: cId },
+        orderBy: { startedAt: "desc" },
+        take: 20
+      })
+    );
+    
+    const results = await Promise.all(promises);
+    
+    // Merge and sort the results in memory
+    const allRecentCalls = results.flat().sort((a, b) => 
+      new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
+    );
+    
+    const recentCalls = allRecentCalls.slice(0, 20);
 
     const activity = recentCalls.map(call => ({
       id: call.id,

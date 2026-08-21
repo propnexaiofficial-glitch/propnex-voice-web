@@ -65,7 +65,7 @@ export function RecentActivity({ className }: RecentActivityProps) {
     // Initial fetch
     fetchActivity();
     
-    // Poll every 10 seconds for real-time top ups
+    // Poll every 10 seconds for real-time updates
     const interval = setInterval(fetchActivity, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -81,7 +81,7 @@ export function RecentActivity({ className }: RecentActivityProps) {
         </p>
       </div>
 
-      <div className="glass-card divide-y divide-border rounded-2xl relative min-h-[200px]">
+      <div className="glass-card divide-y divide-border rounded-2xl relative min-h-[200px] max-h-[400px] overflow-y-auto custom-scrollbar">
         {loading && data.length === 0 ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <Loader2 className="size-6 animate-spin text-muted-foreground" />
