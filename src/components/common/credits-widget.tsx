@@ -38,9 +38,8 @@ export function CreditsWidget({
     };
 
     fetchCredits();
-    // Re-check periodically in case CreditsOverviewCard updates localStorage
-    const interval = setInterval(fetchCredits, 5000);
-    return () => clearInterval(interval);
+    window.addEventListener("user-updated", fetchCredits);
+    return () => window.removeEventListener("user-updated", fetchCredits);
   }, []);
 
   const formattedCredits = balance.toLocaleString();

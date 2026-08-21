@@ -18,23 +18,13 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
   const [usagePercent, setUsagePercent] = useState(0);
 
   useEffect(() => {
-    const fetchCredits = async () => {
+    const syncCredits = () => {
       try {
-        const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-        if (!token) return;
-
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
-        const response = await fetch(`${apiBase}/users/me`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.user && data.user.creditBalance) {
-            // Update localStorage just to keep it in sync
-            localStorage.setItem("user", JSON.stringify(data.user));
-            
-            const cb = data.user.creditBalance;
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          if (user.creditBalance) {
+            const cb = user.creditBalance;
             setBalance(cb.creditsRemaining || 0);
             setUsedThisMonth(cb.creditsUsed || 0);
             const limit = 10000;
@@ -43,23 +33,13 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
           }
         }
       } catch (err) {
-        // Fallback to local storage on error
-        try {
-          const storedUser = localStorage.getItem("user");
-          if (storedUser) {
-            const user = JSON.parse(storedUser);
-            if (user.creditBalance) {
-              setBalance(user.creditBalance.creditsRemaining || 0);
-              setUsedThisMonth(user.creditBalance.creditsUsed || 0);
-            }
-          }
-        } catch(e) {}
+        console.error("Error parsing user from localStorage", err);
       }
     };
 
-    fetchCredits(); // initial load
-    const interval = setInterval(fetchCredits, 10000); // Poll every 10 seconds
-    return () => clearInterval(interval);
+    syncCredits(); // initial load
+    window.addEventListener("user-updated", syncCredits);
+    return () => window.removeEventListener("user-updated", syncCredits);
   }, []);
 
   return (
