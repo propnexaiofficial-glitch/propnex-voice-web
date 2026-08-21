@@ -25,14 +25,17 @@ export async function GET(req: NextRequest) {
 
     const subCompanies = await prisma.company.findMany({
       where: { parentCompanyId: member.companyId },
-      include: { creditBalance: true }
+      include: { 
+        creditBalance: true,
+        phoneNumbers: { take: 1, select: { number: true } }
+      }
     });
 
-    const formatted = subCompanies.map(c => ({
+    const formatted = subCompanies.map((c: any) => ({
       _id: c.id,
       companyName: c.name,
       companyEmail: "",
-      contactPhone: "",
+      contactPhone: c.phoneNumbers?.[0]?.number || "",
       creditsUsed: c.creditBalance?.creditsUsed || 0,
       creditsRemaining: c.creditBalance?.creditsRemaining || 0,
       inboundCalls: 0,
