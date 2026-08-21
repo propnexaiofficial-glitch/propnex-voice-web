@@ -24,6 +24,7 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
   );
 
   const isPending = company.status.toUpperCase() === "PENDING" || !company.contactPhone;
+  const isLocked = company.creditsRemaining <= 0;
 
   return (
     <motion.div
@@ -36,20 +37,22 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
         href={`/dashboard/employees/${company.id}/overview`} 
         className={cn(
           "group flex h-full flex-col gap-3 rounded-xl border border-border bg-card px-4 py-3.5 transition-all hover:border-foreground/20 hover:bg-accent/50",
-          isPending && "border-amber-500/30 bg-amber-500/5 hover:border-amber-500/50"
+          isPending && "border-amber-500/30 bg-amber-500/5 hover:border-amber-500/50",
+          isLocked && "border-red-500/30 bg-red-500/5 hover:border-red-500/50 grayscale hover:grayscale-0 transition-all"
         )}
       >
         <div className="flex items-center gap-3">
           <div className={cn(
             "flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors",
+            isLocked ? "bg-red-500/10 text-red-500" :
             isPending ? "bg-amber-500/10 text-amber-500" : "bg-muted text-foreground group-hover:bg-accent"
           )}>
-            {isPending ? <Lock className="size-4" /> : <Building2 className="size-4" />}
+            {isLocked || isPending ? <Lock className="size-4" /> : <Building2 className="size-4" />}
           </div>
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <p className="truncate text-sm font-semibold">{company.name}</p>
+              <p className={cn("truncate text-sm font-semibold", isLocked && "text-red-500")}>{company.name}</p>
               {company.isPremium && <PremiumBadge size="sm" />}
             </div>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
@@ -62,21 +65,24 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            {company.creditsRemaining < 50 && (
+            {company.creditsRemaining > 0 && company.creditsRemaining < 50 && (
               <Badge variant="destructive" className="animate-pulse bg-red-500/10 text-red-500 hover:bg-red-500/20 text-[10px]">
                 Low Credit
               </Badge>
             )}
             <Badge
-              variant={isPending ? "secondary" : company.status === "active" ? "success" : "secondary"}
-              className={cn("text-[10px]", isPending && "bg-amber-500/10 text-amber-500 hover:bg-amber-500/20")}
+              variant={isLocked ? "destructive" : isPending ? "secondary" : company.status === "active" ? "success" : "secondary"}
+              className={cn("text-[10px]", 
+                isLocked ? "bg-red-500 text-white hover:bg-red-600" :
+                isPending && "bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"
+              )}
             >
-              {isPending ? "PENDING" : company.status}
+              {isLocked ? "LOCKED (0 Credits)" : isPending ? "PENDING" : company.status}
             </Badge>
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className={cn("space-y-3", isLocked && "opacity-60")}>
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-[11px]">
               <span className="text-muted-foreground">Credits Allocated: {company.creditsLimit.toLocaleString()}</span>

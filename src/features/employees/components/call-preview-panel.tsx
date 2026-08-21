@@ -10,7 +10,8 @@ type CallPreviewPanelProps = {
   calls: CallPreview[];
   direction: "inbound" | "outbound";
   className?: string;
-  isLocked?: boolean;
+  isLocked?: boolean | string;
+  onAddCredits?: () => void;
 };
 
 export function CallPreviewPanel({
@@ -18,6 +19,7 @@ export function CallPreviewPanel({
   direction,
   className,
   isLocked,
+  onAddCredits,
 }: CallPreviewPanelProps) {
   const filtered = calls.filter((c) => c.direction === direction);
   const Icon = direction === "inbound" ? PhoneIncoming : PhoneOutgoing;
@@ -36,9 +38,20 @@ export function CallPreviewPanel({
       </div>
 
       {isLocked ? (
-        <p className="flex flex-1 items-center justify-center py-6 text-center text-xs text-muted-foreground">
-          Waiting for phone assignment
-        </p>
+        <div className="flex flex-1 flex-col items-center justify-center py-6 text-center">
+          <p className="text-xs text-muted-foreground mb-3">
+            {typeof isLocked === "string" ? isLocked : "Waiting for phone assignment"}
+          </p>
+          {onAddCredits && (
+            <button 
+              type="button"
+              onClick={onAddCredits}
+              className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Add Credits
+            </button>
+          )}
+        </div>
       ) : filtered.length === 0 ? (
         <p className="flex flex-1 items-center justify-center py-6 text-center text-xs text-muted-foreground">
           No {direction} calls yet

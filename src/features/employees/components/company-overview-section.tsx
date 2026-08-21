@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { Building2, Mail, Phone, ArrowUpRight } from "lucide-react";
 
 import { PremiumBadge } from "@/components/common/premium-badge";
 import { Badge } from "@/components/ui/badge";
 import { CallPreviewPanel } from "@/features/employees/components/call-preview-panel";
+import { TransferCreditsModal } from "@/features/employees/components/transfer-credits-modal";
 import type { CallPreview, SubCompany } from "@/features/employees/types";
 import { useInboundCallsApi } from "@/features/inbound/hooks/use-inbound-calls-api";
 import { DEFAULT_CALL_FILTERS } from "@/types/call";
@@ -18,6 +20,7 @@ type CompanyOverviewSectionProps = {
 export function CompanyOverviewSection({
   company,
 }: CompanyOverviewSectionProps) {
+  const [transferOpen, setTransferOpen] = useState(false);
   const { calls: inboundCallsRaw } = useInboundCallsApi(DEFAULT_CALL_FILTERS, 1, 0, true, company.id, "inbound");
   const { calls: outboundCallsRaw } = useInboundCallsApi(DEFAULT_CALL_FILTERS, 1, 0, true, company.id, "outbound");
 
@@ -58,12 +61,12 @@ export function CompanyOverviewSection({
                 <h2 className="text-lg font-semibold">{company.name}</h2>
                 {company.isPremium && <PremiumBadge size="sm" />}
                 <Badge
-                  variant={company.status === "active" ? "success" : "secondary"}
-                  className="text-[10px]"
+                  variant={company.creditsRemaining <= 0 ? "destructive" : company.status === "active" ? "success" : "secondary"}
+                  className={cn("text-[10px]", company.creditsRemaining <= 0 && "bg-red-500 text-white")}
                 >
-                  {company.status}
+                  {company.creditsRemaining <= 0 ? "LOCKED" : company.status}
                 </Badge>
-                {(company.creditsRemaining ?? company.creditsLimit ?? 0) < 50 && (
+                {(company.creditsRemaining ?? company.creditsLimit ?? 0) > 0 && (company.creditsRemaining ?? company.creditsLimit ?? 0) < 50 && (
                   <Badge variant="destructive" className="text-[10px] uppercase font-bold animate-pulse">
                     Low Credit
                   </Badge>
@@ -138,9 +141,25 @@ export function CompanyOverviewSection({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <CallPreviewPanel calls={realPreviewCalls} direction="inbound" isLocked={!company.contactPhone} />
-        <CallPreviewPanel calls={realPreviewCalls} direction="outbound" isLocked={!company.contactPhone} />
+        <CallPreviewPanel 
+          calls={realPreviewCalls} 
+          direction="inbound" 
+          isLocked={company.creditsRemaining <= 0 ? "Locked (0 Credits)" : !company.contactPhone} 
+          onAddCredits={company.creditsRemaining <= 0 ? () => setTransferOpen(true) : undefined}
+        />
+        <CallPreviewPanel 
+          calls={realPreviewCalls} 
+          direction="outbound" 
+          isLocked={company.creditsRemaining <= 0 ? "Locked (0 Credits)" : !company.contactPhone} 
+          onAddCredits={company.creditsRemaining <= 0 ? () => setTransferOpen(true) : undefined}
+        />
       </div>
+
+      <TransferCreditsModal
+        company={company}
+        open={transferOpen}
+        onOpenChange={setTransferOpen}
+      />
     </div>
   );
 }

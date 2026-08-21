@@ -142,10 +142,14 @@ export function TransferCreditsModal({
             </button>
             <button
               type="button"
-              onClick={() => setAction("REDUCE")}
+              onClick={() => {
+                if (company.creditsRemaining > 0) setAction("REDUCE");
+              }}
+              disabled={company.creditsRemaining <= 0}
               className={cn(
                 "flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all",
-                action === "REDUCE" ? "bg-background text-foreground shadow-sm ring-1 ring-border" : "text-muted-foreground hover:text-foreground"
+                action === "REDUCE" ? "bg-background text-foreground shadow-sm ring-1 ring-border" : "text-muted-foreground hover:text-foreground",
+                company.creditsRemaining <= 0 && "opacity-50 cursor-not-allowed"
               )}
             >
               Withdraw Credits
