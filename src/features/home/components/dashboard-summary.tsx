@@ -50,10 +50,10 @@ export function DashboardSummary({ className }: DashboardSummaryProps) {
           // Update the structure with real values
           const updatedStats = [...stats];
           
-          updatedStats[0] = { ...updatedStats[0], value: data.inboundCalls.toLocaleString(), change: data.inboundTrend, changeLabel: "vs last month" };
-          updatedStats[1] = { ...updatedStats[1], value: data.outboundCalls.toLocaleString(), change: data.outboundTrend, changeLabel: "vs last month" };
-          updatedStats[2] = { ...updatedStats[2], value: data.activeAgents.toLocaleString(), change: data.agentsTrend, changeLabel: "new this week" };
-          updatedStats[3] = { ...updatedStats[3], value: data.creditsUsed.toLocaleString(), change: data.creditsTrend, changeLabel: "vs last month" };
+          updatedStats[0] = { ...updatedStats[0], value: data.inboundCalls !== undefined ? data.inboundCalls.toLocaleString() : "0", change: data.inboundTrend !== undefined ? data.inboundTrend : 100, changeLabel: "vs last month" };
+          updatedStats[1] = { ...updatedStats[1], value: data.outboundCalls !== undefined ? data.outboundCalls.toLocaleString() : "0", change: data.outboundTrend !== undefined ? data.outboundTrend : 0, changeLabel: "vs last month" };
+          updatedStats[2] = { ...updatedStats[2], value: data.activeAgents !== undefined ? data.activeAgents.toLocaleString() : "0", change: data.agentsTrend !== undefined ? data.agentsTrend : 0, changeLabel: "new this week" };
+          updatedStats[3] = { ...updatedStats[3], value: data.creditsUsed !== undefined ? data.creditsUsed.toLocaleString() : "0", change: data.creditsTrend !== undefined ? data.creditsTrend : 0, changeLabel: "vs last month" };
           
           setStats(updatedStats);
           try {
