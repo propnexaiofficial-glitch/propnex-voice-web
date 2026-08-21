@@ -32,7 +32,7 @@ function DashboardShellInner({
   const [isRemindDisabled, setIsRemindDisabled] = useState(false);
   const [creditsRemaining, setCreditsRemaining] = useState<number | null>(null);
 
-  const [timeLeft, setTimeLeft] = useState<{ months: number; days: number; hours: number; minutes: number; seconds: number } | null>(null);
+  const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
 
   useEffect(() => {
     if (isBlocked && blockedUntilDate) {
@@ -42,18 +42,13 @@ function DashboardShellInner({
         const difference = future - now;
 
         if (difference <= 0) {
-          setTimeLeft({ months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 });
+          setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
           clearInterval(timer);
           // Reload to re-check status if time is up
           window.location.reload();
         } else {
-          const totalDays = Math.floor(difference / (1000 * 60 * 60 * 24));
-          const months = Math.floor(totalDays / 30);
-          const days = totalDays % 30;
-          
           setTimeLeft({
-            months,
-            days,
+            days: Math.floor(difference / (1000 * 60 * 60 * 24)),
             hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
             minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
             seconds: Math.floor((difference % (1000 * 60)) / 1000),
@@ -171,7 +166,11 @@ function DashboardShellInner({
           if (user.creditBalance !== undefined) {
             setCreditsRemaining(user.creditBalance?.creditsRemaining || 0);
           }
-          if (user.approvalStatus === "REJECTED") {
+          if (user.status === "SUSPENDED" || user.companyStatus === "SUSPENDED") {
+            setIsBlocked(true);
+            setBlockedUntilDate(user.companyBlockedUntil || user.blockedUntil);
+            needsRefresh = true;
+          } else if (user.approvalStatus === "REJECTED") {
             setIsRejected(true);
             needsRefresh = true;
           } else if (!user.companyId && !user.contractId) {
@@ -356,11 +355,6 @@ function DashboardShellInner({
           
           {timeLeft && (
             <div className="flex justify-center gap-3 mt-6 mb-2">
-              <div className="flex flex-col items-center">
-                <span className="text-3xl font-mono font-bold text-white bg-zinc-800/80 rounded-lg w-16 h-16 flex items-center justify-center shadow-inner border border-zinc-700/50">{String(timeLeft.months).padStart(2, '0')}</span>
-                <span className="text-[10px] text-muted-foreground mt-2 font-semibold tracking-wider uppercase">Months</span>
-              </div>
-              <div className="text-2xl font-bold text-zinc-600 self-start mt-4">:</div>
               <div className="flex flex-col items-center">
                 <span className="text-3xl font-mono font-bold text-white bg-zinc-800/80 rounded-lg w-16 h-16 flex items-center justify-center shadow-inner border border-zinc-700/50">{String(timeLeft.days).padStart(2, '0')}</span>
                 <span className="text-[10px] text-muted-foreground mt-2 font-semibold tracking-wider uppercase">Days</span>
