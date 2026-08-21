@@ -51,10 +51,16 @@ export function useInboundCallsApi(
   companyId?: string,
   direction?: "inbound" | "outbound"
 ): UseInboundCallsApiState {
-  const [state, setState] = useState<UseInboundCallsApiState>({
-    calls: [],
-    total: 0,
-    totalPages: 1,
+  const [state, setState] = useState<{
+    rawItems: any[];
+    rawTotal: number;
+    rawTotalPages: number;
+    loading: boolean;
+    error: string | null;
+  }>({
+    rawItems: [],
+    rawTotal: 0,
+    rawTotalPages: 1,
     loading: true,
     error: null,
   });
@@ -80,79 +86,10 @@ export function useInboundCallsApi(
 
         if (isCancelled) return;
 
-        let items = res.data as any[];
-
-        let fallbackAssignedNumber = "Unknown";
-        try {
-          const userStr = localStorage.getItem("user");
-          if (userStr) {
-            const user = JSON.parse(userStr);
-            fallbackAssignedNumber = user.assignedNumber || "Unknown";
-          }
-        } catch (e) {}
-
-        // Client-side search filters
-        if (search && search.trim()) {
-          const q = search.toLowerCase();
-          items = items.filter((item) => {
-            const customerNum = (item.customerNumber || item.phoneNumber || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
-            return (
-              item.publicId?.toLowerCase().includes(q) ||
-              (item.providerCallId ?? "").toLowerCase().includes(q) ||
-              (item.phoneNumberId ?? "").toLowerCase().includes(q) ||
-              customerNum.includes(q)
-            );
-          });
-        }
-
-        if (assignedNumber && assignedNumber.trim()) {
-          const q = assignedNumber.toLowerCase();
-          items = items.filter((item) => {
-             const num = (item.assignedNumber && item.assignedNumber !== "Unknown" ? item.assignedNumber : fallbackAssignedNumber).toLowerCase();
-             return num.includes(q);
-          });
-        }
-
-        if (callerNumber && callerNumber.trim()) {
-          const q = callerNumber.toLowerCase();
-          items = items.filter((item) => {
-             const num = (item.customerNumber || item.phoneNumber || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
-             return num.includes(q);
-          });
-        }
-
-        if (dateFrom || dateTo) {
-          items = items.filter((item) => {
-            const d = item.startedAt.slice(0, 10);
-            if (dateFrom && d < dateFrom) return false;
-            if (dateTo && d > dateTo) return false;
-            return true;
-          });
-        }
-
-        if (minDuration && minDuration.trim()) {
-          const minSec = parseFloat(minDuration);
-          if (!isNaN(minSec)) {
-             items = items.filter((item) => (item.durationSeconds || 0) >= minSec);
-          }
-        }
-
-        const isFilteredLocally = Boolean(
-          (search && search.trim()) || 
-          dateFrom || dateTo || 
-          (assignedNumber && assignedNumber.trim()) || 
-          (callerNumber && callerNumber.trim()) || 
-          (minDuration && minDuration.trim())
-        );
-        const finalTotal = isFilteredLocally ? items.length : (res.meta?.total || items.length);
-        const finalTotalPages = isFilteredLocally 
-          ? (Math.ceil(items.length / PAGE_SIZE) || 1) 
-          : (res.meta?.totalPages || Math.ceil(finalTotal / PAGE_SIZE) || 1);
-
         setState({
-          calls: items.map((item: any) => mapApiItemToCallRecord(item, fallbackAssignedNumber)),
-          total: finalTotal,
-          totalPages: finalTotalPages,
+          rawItems: res.data || [],
+          rawTotal: res.meta?.total || 0,
+          rawTotalPages: res.meta?.totalPages || 1,
           loading: false,
           error: null,
         });
@@ -178,9 +115,82 @@ export function useInboundCallsApi(
       isCancelled = true;
       clearInterval(intervalId);
     };
-  }, [search, status, dateFrom, dateTo, assignedNumber, callerNumber, minDuration, page, retryKey, hasAssignedNumber, companyId, direction]);
+  }, [status, page, retryKey, hasAssignedNumber, companyId, direction]);
 
-  return state;
+  const fallbackAssignedNumber = "Unknown"; // Can fetch from localStorage if needed, omitted here to keep synchronous filtering fast.
+
+  const processedState = useMemo(() => {
+    let items = state.rawItems;
+
+    // Client-side search filters
+    if (search && search.trim()) {
+      const q = search.toLowerCase();
+      items = items.filter((item) => {
+        const customerNum = (item.customerNumber || item.phoneNumber || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
+        return (
+          item.publicId?.toLowerCase().includes(q) ||
+          (item.providerCallId ?? "").toLowerCase().includes(q) ||
+          (item.phoneNumberId ?? "").toLowerCase().includes(q) ||
+          customerNum.includes(q)
+        );
+      });
+    }
+
+    if (assignedNumber && assignedNumber.trim()) {
+      const q = assignedNumber.toLowerCase();
+      items = items.filter((item) => {
+         const num = (item.assignedNumber && item.assignedNumber !== "Unknown" ? item.assignedNumber : fallbackAssignedNumber).toLowerCase();
+         return num.includes(q);
+      });
+    }
+
+    if (callerNumber && callerNumber.trim()) {
+      const q = callerNumber.toLowerCase();
+      items = items.filter((item) => {
+         const num = (item.customerNumber || item.phoneNumber || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
+         return num.includes(q);
+      });
+    }
+
+    if (dateFrom || dateTo) {
+      items = items.filter((item) => {
+        const d = (item.startedAt || "").slice(0, 10);
+        if (dateFrom && d < dateFrom) return false;
+        if (dateTo && d > dateTo) return false;
+        return true;
+      });
+    }
+
+    if (minDuration && minDuration.trim()) {
+      const minSec = parseFloat(minDuration);
+      if (!isNaN(minSec)) {
+         items = items.filter((item) => (item.durationSeconds || 0) >= minSec);
+      }
+    }
+
+    const isFilteredLocally = Boolean(
+      (search && search.trim()) || 
+      dateFrom || dateTo || 
+      (assignedNumber && assignedNumber.trim()) || 
+      (callerNumber && callerNumber.trim()) || 
+      (minDuration && minDuration.trim())
+    );
+    
+    const finalTotal = isFilteredLocally ? items.length : state.rawTotal;
+    const finalTotalPages = isFilteredLocally 
+      ? (Math.ceil(items.length / PAGE_SIZE) || 1) 
+      : state.rawTotalPages;
+
+    return {
+      calls: items.map((item: any) => mapApiItemToCallRecord(item, fallbackAssignedNumber)),
+      total: finalTotal,
+      totalPages: finalTotalPages,
+      loading: state.loading,
+      error: state.error,
+    };
+  }, [state, search, dateFrom, dateTo, assignedNumber, callerNumber, minDuration]);
+
+  return processedState;
 }
 
 export { PAGE_SIZE as INBOUND_API_PAGE_SIZE };
