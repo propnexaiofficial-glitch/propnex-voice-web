@@ -204,8 +204,7 @@ function DashboardShellInner({
               }
               if (data.user.status === "SUSPENDED" || data.user.companyStatus === "SUSPENDED") {
                 setIsBlocked(true);
-                // Also parse blockedUntil if needed, but company uses blockedUntil which we aren't fetching, so we can just lock them out.
-                // setBlockedUntilDate(data.user.blockedUntil);
+                setBlockedUntilDate(data.user.companyBlockedUntil || data.user.blockedUntil);
                 setIsWaiting(false);
                 setIsWaitingNumber(false);
                 setIsRejected(false);
@@ -269,7 +268,7 @@ function DashboardShellInner({
             }
             if (data.user.status === "SUSPENDED" || data.user.companyStatus === "SUSPENDED") {
               setIsBlocked(true);
-              // setBlockedUntilDate(data.user.blockedUntil);
+              setBlockedUntilDate(data.user.companyBlockedUntil || data.user.blockedUntil);
               setIsWaiting(false);
               setIsWaitingNumber(false);
               setIsRejected(false);
