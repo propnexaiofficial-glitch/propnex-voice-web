@@ -86,12 +86,13 @@ export async function fetchInboundCalls(
   }
 
   if (companyId) query.set("companyId", companyId);
+  query.set("t", Date.now().toString());
 
   const endpoint = params.direction === "OUTBOUND" ? "outbound" : "inbound";
   const url = `${API_BASE_URL}/api/calls/${endpoint}${query.toString() ? `?${query}` : ""}`;
 
   const res = await fetch(url, {
-    next: { revalidate: 0 },
+    cache: "no-store",
     headers: { 
       "Content-Type": "application/json",
       ...(token ? { "Authorization": `Bearer ${token}` } : {}),
