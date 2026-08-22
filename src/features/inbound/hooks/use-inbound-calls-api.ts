@@ -70,7 +70,7 @@ export function useInboundCallsApi(
 
   const { search, status, dateFrom, dateTo, assignedNumber, callerNumber, minDuration } = filters;
 
-  const cacheKey = `calls_cache_v3_${direction}_${companyId}_${page}`;
+  const cacheKey = `calls_cache_v5_${direction}_${companyId}_${page}`;
 
   useEffect(() => {
     try {
