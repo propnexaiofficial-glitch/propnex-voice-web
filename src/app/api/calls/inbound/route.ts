@@ -52,9 +52,27 @@ export async function GET(req: NextRequest) {
     // Fetch skip + limit from EACH company to guarantee correct global sorting and pagination
     const fetchLimit = skip + limit;
     
+    // Get all phone numbers owned by these companies
+    const phones = await prisma.phoneNumber.findMany({
+      where: { 
+        OR: [
+          { companyId: { in: companyIdsToQuery } },
+          { assignedParentTenantId: { in: companyIdsToQuery } }
+        ]
+      },
+      select: { id: true }
+    });
+    const phoneIds = phones.map(p => p.id);
+
     const promises = companyIdsToQuery.map(cId => 
       prisma.callLog.findMany({
-        where: { companyId: cId, direction: "INBOUND" },
+        where: { 
+          OR: [
+            { companyId: cId },
+            { phoneNumberId: { in: phoneIds } }
+          ],
+          direction: "INBOUND" 
+        },
         orderBy: { startedAt: "desc" },
         take: fetchLimit,
         include: { phoneNumber: true }
@@ -64,7 +82,10 @@ export async function GET(req: NextRequest) {
     const results = await Promise.all(promises);
     
     // Merge, sort globally by date, and then paginate
-    const allCalls = results.flat().sort((a, b) => 
+    // Need to deduplicate since multiple cIds could fetch the same call via phoneNumberId
+    const uniqueCallsMap = new Map();
+    results.flat().forEach(call => uniqueCallsMap.set(call.id, call));
+    const allCalls = Array.from(uniqueCallsMap.values()).sort((a, b) => 
       new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
     );
     
@@ -72,7 +93,10 @@ export async function GET(req: NextRequest) {
 
     const total = await prisma.callLog.count({
       where: { 
-        companyId: { in: companyIdsToQuery },
+        OR: [
+          { companyId: { in: companyIdsToQuery } },
+          { phoneNumberId: { in: phoneIds } }
+        ],
         direction: "INBOUND"
       }
     });
