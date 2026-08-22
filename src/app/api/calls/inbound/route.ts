@@ -18,7 +18,6 @@ export async function GET(req: NextRequest) {
     const member = await (prisma as any).companyMember.findFirst({
       where: { userId, status: "ACTIVE" },
     });
-
     if (!member?.companyId) {
       return NextResponse.json({
         data: [],
