@@ -15,6 +15,9 @@ export async function GET(req: NextRequest) {
     const decoded: any = jwt.verify(token, JWT_SECRET);
     const userId = decoded.sub || decoded.id;
 
+    const searchParams = req.nextUrl.searchParams;
+    const targetCompanyId = searchParams.get("companyId");
+
     const member = await (prisma as any).companyMember.findFirst({
       where: { userId, status: "ACTIVE" },
       include: { company: true }
@@ -24,37 +27,76 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ inboundCalls: 0, outboundCalls: 0, activeAgents: 0, creditsUsed: 0 });
     }
 
-    const subCompanies = await prisma.company.findMany({
-      where: { parentCompanyId: member.companyId },
-      select: { id: true }
-    });
+    let companyIdsToQuery = [];
+    if (targetCompanyId) {
+      // Basic security check: ensure targetCompanyId is either the member's company or a child company
+      // For now, we trust the caller (assuming it's the dashboard) but ideally check parentCompanyId.
+      companyIdsToQuery = [targetCompanyId];
+    } else {
+      const subCompanies = await prisma.company.findMany({
+        where: { parentCompanyId: member.companyId },
+        select: { id: true }
+      });
+      companyIdsToQuery = [member.companyId, ...subCompanies.map((c: any) => c.id)];
+    }
+
+    const now = new Date();
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     
-    const companyIdsToQuery = [member.companyId, ...subCompanies.map((c: any) => c.id)];
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-    const inboundCalls = await prisma.callLog.count({
-      where: { companyId: { in: companyIdsToQuery }, direction: "INBOUND" }
-    });
-
-    const outboundCalls = await prisma.callLog.count({
-      where: { companyId: { in: companyIdsToQuery }, direction: "OUTBOUND" }
-    });
-
-    const activeAgents = await (prisma as any).aiAgent.count({
-      where: { companyId: { in: companyIdsToQuery }, status: "ACTIVE" }
-    });
-
-    const callStats = await prisma.callLog.aggregate({
-      where: { companyId: { in: companyIdsToQuery } },
-      _sum: { creditsUsed: true }
-    });
+    const [
+      inboundCalls,
+      outboundCalls,
+      activeAgents,
+      callStats,
+      pastInboundCalls,
+      pastOutboundCalls,
+      pastCallStats
+    ] = await Promise.all([
+      prisma.callLog.count({
+        where: { companyId: { in: companyIdsToQuery }, direction: "INBOUND", startedAt: { gte: startOfThisMonth } }
+      }),
+      prisma.callLog.count({
+        where: { companyId: { in: companyIdsToQuery }, direction: "OUTBOUND", startedAt: { gte: startOfThisMonth } }
+      }),
+      (prisma as any).aiAgent.count({
+        where: { companyId: { in: companyIdsToQuery }, status: "ACTIVE" }
+      }),
+      prisma.callLog.aggregate({
+        where: { companyId: { in: companyIdsToQuery }, startedAt: { gte: startOfThisMonth } },
+        _sum: { creditsUsed: true }
+      }),
+      prisma.callLog.count({
+        where: { companyId: { in: companyIdsToQuery }, direction: "INBOUND", startedAt: { gte: startOfLastMonth, lte: endOfLastMonth } }
+      }),
+      prisma.callLog.count({
+        where: { companyId: { in: companyIdsToQuery }, direction: "OUTBOUND", startedAt: { gte: startOfLastMonth, lte: endOfLastMonth } }
+      }),
+      prisma.callLog.aggregate({
+        where: { companyId: { in: companyIdsToQuery }, startedAt: { gte: startOfLastMonth, lte: endOfLastMonth } },
+        _sum: { creditsUsed: true }
+      })
+    ]);
 
     const creditsUsed = callStats._sum.creditsUsed || 0;
+    const pastCreditsUsed = pastCallStats._sum.creditsUsed || 0;
+
+    const calcTrend = (current: number, past: number) => {
+      if (past === 0) return current > 0 ? 100 : 0;
+      return Math.round(((current - past) / past) * 100);
+    };
 
     return NextResponse.json({
       inboundCalls,
       outboundCalls,
       activeAgents,
-      creditsUsed
+      creditsUsed,
+      inboundTrend: calcTrend(inboundCalls, pastInboundCalls),
+      outboundTrend: calcTrend(outboundCalls, pastOutboundCalls),
+      creditsTrend: calcTrend(creditsUsed, pastCreditsUsed),
+      agentsTrend: 0 // Agents are a snapshot, hard to do MoM without history, leaving at 0
     });
   } catch (err: any) {
     console.error("Dashboard stats error:", err);

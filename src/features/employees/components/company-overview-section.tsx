@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Building2, Mail, Phone, ArrowUpRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Building2, Mail, Phone, ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
 
 import { PremiumBadge } from "@/components/common/premium-badge";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,41 @@ export function CompanyOverviewSection({
   const [transferOpen, setTransferOpen] = useState(false);
   const { calls: inboundCallsRaw } = useInboundCallsApi(DEFAULT_CALL_FILTERS, 1, 0, true, company.id, "inbound");
   const { calls: outboundCallsRaw } = useInboundCallsApi(DEFAULT_CALL_FILTERS, 1, 0, true, company.id, "outbound");
+
+  const [stats, setStats] = useState({
+    creditsUsed: company.creditsUsed,
+    inboundCalls: company.inboundCalls,
+    outboundCalls: company.outboundCalls,
+    creditsTrend: 0,
+    inboundTrend: 0,
+    outboundTrend: 0,
+  });
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        const res = await fetch(`/api/users/dashboard-stats?companyId=${company.id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setStats({
+            creditsUsed: data.creditsUsed !== undefined ? data.creditsUsed : company.creditsUsed,
+            inboundCalls: data.inboundCalls !== undefined ? data.inboundCalls : company.inboundCalls,
+            outboundCalls: data.outboundCalls !== undefined ? data.outboundCalls : company.outboundCalls,
+            creditsTrend: data.creditsTrend || 0,
+            inboundTrend: data.inboundTrend || 0,
+            outboundTrend: data.outboundTrend || 0,
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    loadStats();
+  }, [company.id, company.creditsUsed, company.inboundCalls, company.outboundCalls]);
 
   const usagePercent = Math.round(
     (company.creditsUsed / company.creditsLimit) * 100
@@ -47,6 +82,18 @@ export function CompanyOverviewSection({
   }));
 
   const realPreviewCalls = [...inboundPreviews, ...outboundPreviews];
+
+  const getTrendIcon = (trend: number) => {
+    if (trend > 0) return <ArrowUpRight className="size-3 text-emerald-500" />;
+    if (trend < 0) return <ArrowDownRight className="size-3 text-destructive" />;
+    return <Minus className="size-3 text-muted-foreground" />;
+  };
+
+  const getTrendColor = (trend: number) => {
+    if (trend > 0) return "text-emerald-500";
+    if (trend < 0) return "text-destructive";
+    return "text-muted-foreground";
+  };
 
   return (
     <div className="space-y-4">
@@ -98,24 +145,27 @@ export function CompanyOverviewSection({
           {[
             {
               label: "Credits Used",
-              value: company.creditsUsed.toLocaleString(),
+              value: stats.creditsUsed.toLocaleString(),
               accent: "text-foreground",
-              change: "+100%",
+              change: stats.creditsTrend > 0 ? `+${stats.creditsTrend}%` : `${stats.creditsTrend}%`,
+              trendValue: stats.creditsTrend,
               changeLabel: "vs last month",
             },
             {
               label: "Inbound Calls",
-              value: company.inboundCalls.toLocaleString(),
+              value: stats.inboundCalls.toLocaleString(),
               accent: "",
-              change: "+0%",
+              change: stats.inboundTrend > 0 ? `+${stats.inboundTrend}%` : `${stats.inboundTrend}%`,
+              trendValue: stats.inboundTrend,
               changeLabel: "vs last month",
             },
             {
               label: "Outbound Calls",
-              value: company.outboundCalls.toLocaleString(),
+              value: stats.outboundCalls.toLocaleString(),
               accent: "",
-              change: "+0%",
-              changeLabel: "new this week",
+              change: stats.outboundTrend > 0 ? `+${stats.outboundTrend}%` : `${stats.outboundTrend}%`,
+              trendValue: stats.outboundTrend,
+              changeLabel: "vs last month",
             },
           ].map((stat) => (
             <div
@@ -129,8 +179,8 @@ export function CompanyOverviewSection({
                 {stat.value}
               </p>
               <div className="mt-2 flex items-center justify-center gap-1 text-[10px]">
-                <ArrowUpRight className="size-3 text-emerald-500" />
-                <span className="font-medium text-emerald-500">
+                {getTrendIcon(stat.trendValue)}
+                <span className={cn("font-medium", getTrendColor(stat.trendValue))}>
                   {stat.change}
                 </span>
                 <span className="text-muted-foreground">{stat.changeLabel}</span>
