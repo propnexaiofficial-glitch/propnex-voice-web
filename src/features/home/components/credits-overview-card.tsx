@@ -68,25 +68,25 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
           </div>
           <div>
             <p className="text-sm font-semibold">Credit Balance</p>
-            <p className="text-xs text-muted-foreground">Total available credits</p>
+            <p className="text-xs text-muted-foreground">Your available credits (In-Hand)</p>
           </div>
         </div>
 
         <div>
           <p className="text-3xl font-bold tracking-tight">
-            {totalBalance.toLocaleString()}
+            {mainBalance.toLocaleString()}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">credits remaining</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4 rounded-xl border border-border bg-card/50 p-3">
           <div>
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">In Hand (Main)</p>
-            <p className="mt-1 font-semibold">{mainBalance.toLocaleString()}</p>
-          </div>
-          <div>
             <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Assigned (Sub)</p>
             <p className="mt-1 font-semibold">{subRemaining.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Grand Total</p>
+            <p className="mt-1 font-semibold">{totalBalance.toLocaleString()}</p>
           </div>
         </div>
 
