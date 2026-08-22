@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
         },
         orderBy: { startedAt: "desc" },
         take: fetchLimit,
-        include: { phoneNumber: true }
+        include: { phoneNumber: true, lead: true }
       })
     );
     

@@ -28,10 +28,11 @@ function formatDuration(seconds: number): string {
 
 function mapApiItemToCallRecord(item: any, fallbackAssignedNumber: string): CallRecord {
   const pNum = typeof item.phoneNumber === 'string' ? item.phoneNumber : item.phoneNumber?.number;
+  const leadPhone = item.lead?.phone;
   return {
     id: item.id || item.publicId,
-    customerNumber: item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown",
-    assignedNumber: item.providerWebhook?.callid || item.providerWebhook?.calledno || fallbackAssignedNumber,
+    customerNumber: leadPhone || item.customerNumber || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown",
+    assignedNumber: pNum || item.providerWebhook?.callid || item.providerWebhook?.calledno || fallbackAssignedNumber,
     callDateTime: item.startedAt || new Date().toISOString(),
     duration: formatDuration(item.durationSeconds || 0),
     durationSeconds: item.durationSeconds || 0,
@@ -155,7 +156,8 @@ export function useInboundCallsApi(
       const q = search.toLowerCase();
       items = items.filter((item) => {
         const pNum = typeof item.phoneNumber === 'string' ? item.phoneNumber : item.phoneNumber?.number;
-        const customerNum = String(item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
+        const leadPhone = item.lead?.phone;
+        const customerNum = String(leadPhone || item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
         return (
           item.publicId?.toLowerCase().includes(q) ||
           (item.providerCallId ?? "").toLowerCase().includes(q) ||
@@ -177,7 +179,8 @@ export function useInboundCallsApi(
       const q = callerNumber.toLowerCase();
       items = items.filter((item) => {
          const pNum = typeof item.phoneNumber === 'string' ? item.phoneNumber : item.phoneNumber?.number;
-         const num = String(item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
+         const leadPhone = item.lead?.phone;
+         const num = String(leadPhone || item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
          return num.includes(q);
       });
     }
