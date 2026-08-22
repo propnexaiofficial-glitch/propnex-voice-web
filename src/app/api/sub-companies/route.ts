@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
         cli: (companyName.substring(0, 3) || "SUB").toUpperCase() + "-" + Math.random().toString(36).substring(2, 6).toUpperCase(),
         companyCode: "CC-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase(),
         parentCompanyId: member.companyId,
-        status: "ACTIVE",
+        status: "PENDING",
         tenantType: "CHILD"
       }
     });
