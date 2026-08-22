@@ -49,18 +49,26 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "10", 10);
     const skip = (page - 1) * limit;
 
-    const calls = await prisma.callLog.findMany({
-      where: { 
-        companyId: { in: companyIdsToQuery },
-        direction: "INBOUND"
-      },
-      orderBy: { startedAt: "desc" },
-      skip,
-      take: limit,
-      include: {
-        phoneNumber: true
-      }
-    });
+    // Fetch skip + limit from EACH company to guarantee correct global sorting and pagination
+    const fetchLimit = skip + limit;
+    
+    const promises = companyIdsToQuery.map(cId => 
+      prisma.callLog.findMany({
+        where: { companyId: cId, direction: "INBOUND" },
+        orderBy: { startedAt: "desc" },
+        take: fetchLimit,
+        include: { phoneNumber: true }
+      })
+    );
+    
+    const results = await Promise.all(promises);
+    
+    // Merge, sort globally by date, and then paginate
+    const allCalls = results.flat().sort((a, b) => 
+      new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
+    );
+    
+    const calls = allCalls.slice(skip, skip + limit);
 
     const total = await prisma.callLog.count({
       where: { 
