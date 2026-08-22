@@ -15,6 +15,10 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     
+    if (typeof body.amount !== 'number' || body.amount < 5000) {
+      return NextResponse.json({ error: "invalid_amount", message: "Minimum top-up request must be at least 5,000 credits." }, { status: 400 });
+    }
+    
     // Check if already pending
     const existing = await prisma.supportRequest.findFirst({
       where: { userId, reason: "BILLING_CREDITS", status: "NEW" }
