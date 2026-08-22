@@ -99,7 +99,7 @@ export function ProfileCard({ className }: ProfileCardProps) {
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
                       {field.label}
                     </p>
-                    <p className="truncate text-sm font-medium">{field.value}</p>
+                    <p className="break-all text-sm font-medium">{field.value}</p>
                   </div>
                 </div>
               );
