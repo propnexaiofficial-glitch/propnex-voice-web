@@ -11,6 +11,7 @@ import { fetchInboundCalls } from "@/lib/api-client";
 
 type UseInboundCallsApiState = {
   calls: CallRecord[];
+  rawCalls?: any[];
   total: number;
   totalPages: number;
   loading: boolean;
@@ -216,6 +217,7 @@ export function useInboundCallsApi(
 
     return {
       calls: items.map((item: any) => mapApiItemToCallRecord(item, fallbackAssignedNumber)),
+      rawCalls: items,
       total: finalTotal,
       totalPages: finalTotalPages,
       loading: state.loading,

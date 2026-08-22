@@ -76,6 +76,7 @@ export function InboundPageContent() {
 
   const {
     calls,
+    rawCalls,
     total,
     totalPages,
     loading,
@@ -133,6 +134,19 @@ export function InboundPageContent() {
       />
 
       {/* ── Error ── */}
+      {rawCalls && rawCalls.length > 0 && (
+        <div style={{ padding: 16, background: 'rgba(255,0,0,0.1)', border: '1px solid red', marginBottom: 16, borderRadius: 8 }}>
+          <h3 style={{ color: 'red' }}>DEBUG: Raw API response for first call:</h3>
+          <pre style={{ color: 'white', overflow: 'auto', maxHeight: 300, fontSize: 11 }}>
+            {JSON.stringify({ 
+              phoneNumber: rawCalls[0]?.phoneNumber, 
+              lead: rawCalls[0]?.lead, 
+              phoneNumberId: rawCalls[0]?.phoneNumberId, 
+              leadId: rawCalls[0]?.leadId 
+            }, null, 2)}
+          </pre>
+        </div>
+      )}
       {error && !loading && (
         <ErrorBanner message={error} onRetry={handleRetry} />
       )}
