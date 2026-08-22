@@ -325,11 +325,9 @@ function DashboardShellInner({
   }, [isWaiting, isRejected, isWaitingNumber]);
 
   useEffect(() => {
-    if (!isLoading && !isRejected && creditsRemaining !== null) {
-      if (creditsRemaining <= 0 && pathname !== "/dashboard/billing") {
-        router.push("/dashboard/billing");
-      }
-    }
+    // Only redirect to billing if they explicitly want to purchase credits, 
+    // we no longer hard-lock the dashboard because admins might have assigned 
+    // all their credits to sub-companies but still need to view the dashboard.
   }, [isLoading, isRejected, creditsRemaining, pathname, router]);
 
   if (isLoading) {
@@ -492,7 +490,7 @@ function DashboardShellInner({
     );
   }
 
-  const isLockedOut = creditsRemaining !== null && creditsRemaining <= 0;
+  const isLockedOut = false; // We no longer lock the UI, backend handles credit limits
 
   return (
     <div className="flex min-h-screen bg-background page-mesh-bg">

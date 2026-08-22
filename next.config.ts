@@ -18,21 +18,21 @@ const nextConfig: NextConfig = {
       beforeFiles: [
         {
           source: "/api/users/:path*",
-          destination: "http://200.234.34.240:3002/api/users/:path*",
+          destination: "http://200.234.34.240:3001/api/users/:path*",
         },
         {
           source: "/api/webhook/:path*",
-          destination: "http://200.234.34.240:3002/api/webhook/:path*",
+          destination: "http://200.234.34.240:3001/api/webhook/:path*",
         },
         {
           source: "/api/calls/inbound",
-          destination: "http://200.234.34.240:3002/api/users/calls/inbound",
+          destination: "http://200.234.34.240:3001/api/users/calls/inbound",
         },
       ],
       fallback: [
         {
           source: "/api/:path*",
-          destination: "http://200.234.34.240:3002/api/:path*",
+          destination: "http://200.234.34.240:3001/api/:path*",
         },
       ],
     };

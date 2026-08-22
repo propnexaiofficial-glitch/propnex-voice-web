@@ -56,7 +56,7 @@ export function CreditsWidget({
   const limit = 10000;
   const usagePercent = grandUsed > 0 ? Math.max(1, Math.min(100, Math.round((grandUsed / limit) * 100))) : 0;
 
-  const formattedCredits = grandTotal.toLocaleString();
+  const formattedCredits = balance.toLocaleString();
 
   if (variant === "sidebar") {
     return (
