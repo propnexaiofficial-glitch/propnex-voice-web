@@ -82,24 +82,24 @@ export async function GET(req: NextRequest) {
     const results = await Promise.all(promises);
     
     // Merge, sort globally by date, and then paginate
-    // Need to deduplicate since multiple cIds could fetch the same call via phoneNumberId
+    // Deduplicate by callLogId (the webhook log_id) so the same physical call
+    // only appears once even if stored for both parent and sub-company.
     const uniqueCallsMap = new Map();
-    results.flat().forEach(call => uniqueCallsMap.set(call.id, call));
+    results.flat().forEach(call => {
+      const key = call.callLogId || call.id;
+      // Prefer the record that has a phoneNumberId (sub-company record is more specific)
+      if (!uniqueCallsMap.has(key) || call.phoneNumberId) {
+        uniqueCallsMap.set(key, call);
+      }
+    });
     const allCalls = Array.from(uniqueCallsMap.values()).sort((a, b) => 
       new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
     );
     
     const calls = allCalls.slice(skip, skip + limit);
 
-    const total = await prisma.callLog.count({
-      where: { 
-        OR: [
-          { companyId: { in: companyIdsToQuery } },
-          { phoneNumberId: { in: phoneIds } }
-        ],
-        direction: "INBOUND"
-      }
-    });
+    // Use the deduplicated count for accurate pagination (not raw DB row count)
+    const total = uniqueCallsMap.size;
 
     return NextResponse.json({
       data: calls,
