@@ -325,12 +325,11 @@ function DashboardShellInner({
   }, [isWaiting, isRejected, isWaitingNumber]);
 
   useEffect(() => {
-    if (!isLoading && !isRejected && creditsRemaining !== null) {
-      if (creditsRemaining <= 0 && pathname !== "/dashboard/billing") {
-        router.push("/dashboard/billing");
-      }
+    // Redirect to billing if credits are zero or below to ensure they can't bypass the block
+    if (!isLoading && !isRejected && !isWaiting && !isBlocked && creditsRemaining !== null && creditsRemaining <= 0 && pathname !== "/dashboard/billing") {
+      router.push("/dashboard/billing");
     }
-  }, [isLoading, isRejected, creditsRemaining, pathname, router]);
+  }, [isLoading, isRejected, isWaiting, isBlocked, creditsRemaining, pathname, router]);
 
   if (isLoading) {
     return <div className="flex min-h-screen items-center justify-center bg-background"><div className="animate-spin h-8 w-8 rounded-full border-4 border-fuchsia-500 border-r-transparent" /></div>;

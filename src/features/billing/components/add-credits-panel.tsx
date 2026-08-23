@@ -27,15 +27,12 @@ export function AddCreditsPanel({ onPurchase, currentBalance, isPending = false 
       return;
     }
 
-    if (amount <= 0) {
-      setError("Please enter a valid amount.");
+    if (amount < 5000) {
+      setError("Minimum amount of credits you can request is 5,000.");
       return;
     }
 
-    if (currentBalance + amount > 10000) {
-      setError(`Cannot exceed 10,000 maximum limit. You can request up to ${10000 - currentBalance} more credits.`);
-      return;
-    }
+
 
     setLoading(true);
     const result = await onPurchase(amount);

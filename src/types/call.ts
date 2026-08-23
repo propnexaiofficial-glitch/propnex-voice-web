@@ -1,4 +1,4 @@
-export type CallStatus = "completed" | "missed" | "failed";
+export type CallStatus = "completed" | "missed" | "failed" | "ringing" | "active" | "answered";
 
 export type CallDirection = "inbound" | "outbound";
 
@@ -22,6 +22,7 @@ export type CallRecord = {
   recordingUrl?: string;
   transcriptUrl?: string;
   transcript: TranscriptLine[];
+  liveStartedAt?: string; // ISO timestamp for live duration counter
 };
 
 export type CallLogFilters = {

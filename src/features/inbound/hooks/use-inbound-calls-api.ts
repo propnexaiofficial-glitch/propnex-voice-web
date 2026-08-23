@@ -11,6 +11,7 @@ import { fetchInboundCalls } from "@/lib/api-client";
 
 type UseInboundCallsApiState = {
   calls: CallRecord[];
+  rawCalls?: any[];
   total: number;
   totalPages: number;
   loading: boolean;
@@ -26,21 +27,34 @@ function formatDuration(seconds: number): string {
   return m > 0 ? `${m}m ${s}s` : `${s}s`;
 }
 
+function mapStatus(raw: string | undefined): CallRecord["status"] {
+  const s = (raw ?? "").toLowerCase();
+  if (s === "ringing" || s === "dispatching" || s === "queued_at_provider") return "ringing";
+  if (s === "answered") return "answered";
+  if (s === "completed") return "completed";
+  if (s === "failed" || s === "cancelled") return "failed";
+  if (s === "missed" || s === "no_answer" || s === "voicemail" || s === "busy") return "missed";
+  return "missed";
+}
+
 function mapApiItemToCallRecord(item: any, fallbackAssignedNumber: string): CallRecord {
   const pNum = typeof item.phoneNumber === 'string' ? item.phoneNumber : item.phoneNumber?.number;
+  const leadPhone = item.lead?.phone;
+  const mappedStatus = mapStatus(item.status);
+  const isLive = mappedStatus === "ringing" || mappedStatus === "answered";
   return {
     id: item.id || item.publicId,
-    customerNumber: item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown",
-    assignedNumber: item.providerWebhook?.callid || item.providerWebhook?.calledno || fallbackAssignedNumber,
+    customerNumber: leadPhone || item.customerNumber || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown",
+    assignedNumber: pNum || item.assignedNumber || item.providerWebhook?.callid || item.providerWebhook?.calledno || fallbackAssignedNumber,
     callDateTime: item.startedAt || new Date().toISOString(),
-    duration: formatDuration(item.durationSeconds || 0),
+    duration: isLive ? "Live" : formatDuration(item.durationSeconds || 0),
     durationSeconds: item.durationSeconds || 0,
-    status: item.status?.toLowerCase() === "completed" ? "completed" : 
-            item.status?.toLowerCase() === "failed" ? "failed" : "missed",
+    status: mappedStatus,
     creditsUsed: item.creditsUsed || 0,
     recordingUrl: item.recordingUrl || undefined,
     transcriptUrl: item.transcriptUrl || undefined,
     transcript: [],
+    liveStartedAt: isLive ? (item.startedAt || new Date().toISOString()) : undefined,
   };
 }
 
@@ -68,7 +82,7 @@ export function useInboundCallsApi(
 
   const { search, status, dateFrom, dateTo, assignedNumber, callerNumber, minDuration } = filters;
 
-  const cacheKey = `calls_cache_${direction}_${companyId}_${page}`;
+  const cacheKey = `calls_cache_v5_${direction}_${companyId}_${page}`;
 
   useEffect(() => {
     try {
@@ -155,7 +169,8 @@ export function useInboundCallsApi(
       const q = search.toLowerCase();
       items = items.filter((item) => {
         const pNum = typeof item.phoneNumber === 'string' ? item.phoneNumber : item.phoneNumber?.number;
-        const customerNum = String(item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
+        const leadPhone = item.lead?.phone;
+        const customerNum = String(leadPhone || item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
         return (
           item.publicId?.toLowerCase().includes(q) ||
           (item.providerCallId ?? "").toLowerCase().includes(q) ||
@@ -177,7 +192,8 @@ export function useInboundCallsApi(
       const q = callerNumber.toLowerCase();
       items = items.filter((item) => {
          const pNum = typeof item.phoneNumber === 'string' ? item.phoneNumber : item.phoneNumber?.number;
-         const num = String(item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
+         const leadPhone = item.lead?.phone;
+         const num = String(leadPhone || item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
          return num.includes(q);
       });
     }
@@ -213,6 +229,7 @@ export function useInboundCallsApi(
 
     return {
       calls: items.map((item: any) => mapApiItemToCallRecord(item, fallbackAssignedNumber)),
+      rawCalls: items,
       total: finalTotal,
       totalPages: finalTotalPages,
       loading: state.loading,

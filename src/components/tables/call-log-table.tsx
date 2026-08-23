@@ -1,6 +1,7 @@
 "use client";
 
-import { FileText } from "lucide-react";
+import { FileText, Phone } from "lucide-react";
+import { useState, useEffect } from "react";
 
 import { RecordingPlayer } from "@/components/common/recording-player";
 import { StatusBadge } from "@/components/common/status-badge";
@@ -27,6 +28,29 @@ function getCallId(call: CallRecord) {
   return call.id.toUpperCase().replace(/^IN-/, "INB-").replace(/^OUT-/, "OUT-");
 }
 
+/** Counts up from the call start time, refreshing every second */
+function LiveDuration({ startedAt }: { startedAt: string }) {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    const start = new Date(startedAt).getTime();
+    const tick = () => {
+      setElapsed(Math.floor((Date.now() - start) / 1000));
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [startedAt]);
+
+  const m = Math.floor(elapsed / 60);
+  const s = elapsed % 60;
+  return (
+    <span className="inline-flex items-center gap-1 font-mono text-sm text-emerald-500 font-semibold">
+      <Phone className="size-3 animate-pulse" />
+      {m > 0 ? `${m}m ${String(s).padStart(2, "0")}s` : `${String(s).padStart(2, "0")}s`}
+    </span>
+  );
+}
 
 export function CallLogTable({
   calls,
@@ -42,12 +66,9 @@ export function CallLogTable({
         <table className="w-full min-w-[960px] text-sm">
           <thead>
             <tr className="border-b border-border bg-white/5">
-
-
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                 Customer Number
               </th>
-
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                 Assigned Number
               </th>
@@ -72,54 +93,70 @@ export function CallLogTable({
             </tr>
           </thead>
           <tbody>
-            {calls.map((call) => (
-              <tr
-                key={call.id}
-                className="border-b border-border/60 transition-colors last:border-0 hover:bg-white/5"
-              >
-
-                <td className="px-4 py-3 text-muted-foreground">
-                  {call.customerNumber}
-                </td>
-
-                <td className="px-4 py-3 text-muted-foreground">
-                  {call.assignedNumber}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
-                  {formatCallDate(call.callDateTime)}
-                </td>
-                <td className="px-4 py-3 tabular-nums">{call.duration}</td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={call.status} />
-                </td>
-                <td className="px-4 py-3">
-                  {call.status === "completed" ? (
-                    <RecordingPlayer
-                      durationSeconds={call.durationSeconds}
-                      audioUrl={call.recordingUrl}
-                      compact
-                    />
-                  ) : (
-                    <span className="text-xs text-muted-foreground">—</span>
+            {calls.map((call) => {
+              const isLive = call.status === "ringing" || call.status === "answered";
+              return (
+                <tr
+                  key={call.id}
+                  className={cn(
+                    "border-b border-border/60 transition-colors last:border-0 hover:bg-white/5",
+                    isLive && "bg-emerald-500/5"
                   )}
-                </td>
-                <td className="px-4 py-3">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 gap-1.5 text-xs"
-                    disabled={!call.transcriptUrl}
-                    onClick={() => onViewTranscript(call)}
-                  >
-                    <FileText className="size-3.5" />
-                    View
-                  </Button>
-                </td>
-                <td className="px-4 py-3 text-right tabular-nums font-medium text-foreground">
-                  {call.creditsUsed}
-                </td>
-              </tr>
-            ))}
+                >
+                  <td className="px-4 py-3 font-medium">
+                    {call.customerNumber}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {call.assignedNumber}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
+                    {formatCallDate(call.callDateTime)}
+                  </td>
+                  <td className="px-4 py-3 tabular-nums">
+                    {isLive && call.liveStartedAt ? (
+                      <LiveDuration startedAt={call.liveStartedAt} />
+                    ) : (
+                      call.duration
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={call.status} />
+                  </td>
+                  <td className="px-4 py-3">
+                    {call.status === "completed" ? (
+                      <RecordingPlayer
+                        durationSeconds={call.durationSeconds}
+                        audioUrl={call.recordingUrl}
+                        compact
+                      />
+                    ) : isLive ? (
+                      <span className="text-xs text-emerald-500 font-medium">In progress…</span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 gap-1.5 text-xs"
+                      disabled={!call.transcriptUrl || isLive}
+                      onClick={() => onViewTranscript(call)}
+                    >
+                      <FileText className="size-3.5" />
+                      View
+                    </Button>
+                  </td>
+                  <td className="px-4 py-3 text-right tabular-nums font-medium text-foreground">
+                    {isLive ? (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    ) : (
+                      call.creditsUsed
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
