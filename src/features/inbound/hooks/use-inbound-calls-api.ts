@@ -177,14 +177,16 @@ export function useInboundCallsApi(
       items = items.filter((item) => {
         const pNum = typeof item.phoneNumber === 'string' ? item.phoneNumber : item.phoneNumber?.number;
         const leadPhone = item.lead?.phone;
-        const customerNumRaw = String(leadPhone || item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown");
+        const customerNumRaw = String(leadPhone || item.customerNumber || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown");
+        const assignedNumRaw = String(pNum || item.assignedNumber || item.providerWebhook?.callid || item.providerWebhook?.calledno || fallbackAssignedNumber);
         const customerNum = customerNumRaw.toLowerCase();
         return (
           item.publicId?.toLowerCase().includes(q) ||
           (item.providerCallId ?? "").toLowerCase().includes(q) ||
           (item.phoneNumberId ?? "").toLowerCase().includes(q) ||
           customerNum.includes(q) ||
-          (qPhone && cleanPhone(customerNumRaw).includes(qPhone))
+          (qPhone && cleanPhone(customerNumRaw).includes(qPhone)) ||
+          (qPhone && cleanPhone(assignedNumRaw).includes(qPhone))
         );
       });
     }
@@ -192,7 +194,9 @@ export function useInboundCallsApi(
     if (assignedNumber && assignedNumber.trim()) {
       const q = cleanPhone(assignedNumber);
       items = items.filter((item) => {
-         const num = cleanPhone(item.assignedNumber && item.assignedNumber !== "Unknown" ? item.assignedNumber : fallbackAssignedNumber);
+         const pNum = typeof item.phoneNumber === 'string' ? item.phoneNumber : item.phoneNumber?.number;
+         const assignedNumRaw = String(pNum || item.assignedNumber || item.providerWebhook?.callid || item.providerWebhook?.calledno || fallbackAssignedNumber);
+         const num = cleanPhone(assignedNumRaw);
          return num.includes(q);
       });
     }
@@ -200,9 +204,9 @@ export function useInboundCallsApi(
     if (callerNumber && callerNumber.trim()) {
       const q = cleanPhone(callerNumber);
       items = items.filter((item) => {
-         const pNum = typeof item.phoneNumber === 'string' ? item.phoneNumber : item.phoneNumber?.number;
          const leadPhone = item.lead?.phone;
-         const num = cleanPhone(String(leadPhone || item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown"));
+         const customerNumRaw = String(leadPhone || item.customerNumber || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown");
+         const num = cleanPhone(customerNumRaw);
          return num.includes(q);
       });
     }
