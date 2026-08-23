@@ -92,11 +92,14 @@ export function RecordingPlayer({
 
     const handleError = () => {
       if (!isMounted) return;
-      if (retryCount < 2) { // Reduced to 2 retries to avoid long spinners
-        // Retry after 2 seconds (S3 eventual consistency)
+      // VoiceLink recordings can take up to 60-90s to process after call ends.
+      // Retry with exponential backoff: 3s, 6s, 12s, 20s, 30s, 30s = up to ~100s
+      const delays = [3000, 6000, 12000, 20000, 30000, 30000];
+      if (retryCount < delays.length) {
+        const delay = delays[retryCount];
         setTimeout(() => {
           if (isMounted) setRetryCount((prev) => prev + 1);
-        }, 2000);
+        }, delay);
       } else {
         setHasError(true);
         setIsValidating(false);
@@ -184,6 +187,10 @@ export function RecordingPlayer({
             className="h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
             onClick={(e) => {
               e.stopPropagation();
+              // Clear cached failure so retry works fresh
+              if (typeof window !== 'undefined' && audioUrl) {
+                sessionStorage.removeItem(`rec_fail_${audioUrl}`);
+              }
               setHasError(false);
               setIsValidating(true);
               setRetryCount(0);
