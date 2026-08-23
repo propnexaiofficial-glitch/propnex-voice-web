@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Mail, Phone, User } from "lucide-react";
+import { Building2, Mail, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 function getInitials(name: string) {
-  if (!name) return "U";
+  if (!name || name.trim() === "") return "U";
   return name
     .split(" ")
     .map((part) => part[0])
@@ -18,40 +18,62 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
+/** Read user from localStorage synchronously — no loading state */
+function readUserFromStorage(): any {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem("user");
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return null;
+}
+
 type ProfileCardProps = {
   className?: string;
 };
 
 export function ProfileCard({ className }: ProfileCardProps) {
-  const [user, setUser] = useState<any>(null);
+  // Initialize synchronously from localStorage → no loading flash
+  const [user, setUser] = useState<any>(() => readUserFromStorage());
 
   useEffect(() => {
-    const fetchUser = () => {
+    // Silently refresh user data in background (no loading state shown)
+    const refresh = () => {
       try {
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
-          setUser(JSON.parse(storedUser));
+          const parsed = JSON.parse(storedUser);
+          setUser(parsed);
         }
-      } catch (e) {}
+      } catch {}
     };
 
-    fetchUser();
-    // Optional: listen to custom events if user data changes, but polling or just initial load is usually fine here
-    const interval = setInterval(fetchUser, 5000);
-    return () => clearInterval(interval);
+    // Also listen for user-updated event (fired when credits widget re-fetches)
+    window.addEventListener("user-updated", refresh);
+
+    // Poll quietly every 30 seconds — much less aggressive than 5s
+    const interval = setInterval(refresh, 30_000);
+    return () => {
+      window.removeEventListener("user-updated", refresh);
+      clearInterval(interval);
+    };
   }, []);
 
-  const fullName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : "Loading...";
-  const email = user?.email || "loading...";
-  const phone = user?.phone || "loading...";
-  const assignedNumber = user?.assignedNumber || "Not Assigned";
-  const company = user?.companyId ? "PropNex AI Technology" : "No Company"; // We don't have the company name in the JWT payload easily, so placeholder for now
+  const fullName = user
+    ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email?.split("@")[0] || "User"
+    : "User";
+  const email = user?.email || "—";
+  const phone = user?.phone || "—";
+  const companyName = user?.company?.name || user?.companyName || (user?.companyId ? "PropNex AI Technology" : "No Company");
+  const assignedNumbers = Array.isArray(user?.assignedNumbers)
+    ? user.assignedNumbers.join(", ")
+    : user?.assignedNumber || "Not Assigned";
 
   const profileFields = [
     { label: "Email", value: email, icon: Mail },
     { label: "Phone", value: phone, icon: Phone },
-    { label: "Company", value: company, icon: Building2 },
-    { label: "Assigned Number", value: assignedNumber, icon: Phone },
+    { label: "Company", value: companyName, icon: Building2 },
+    { label: "Assigned Number", value: assignedNumbers, icon: Phone },
   ];
 
   return (
@@ -80,7 +102,7 @@ export function ProfileCard({ className }: ProfileCardProps) {
               <Badge variant="success">Active</Badge>
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              Account owner · {company}
+              Account owner · {companyName}
             </p>
           </div>
 
