@@ -316,11 +316,22 @@ function DashboardShellInner({
     };
 
     fetchUser();
-    const interval = setInterval(fetchUser, 10000);
+    
+    // Poll every 5 seconds for real-time credit & call updates
+    const interval = setInterval(fetchUser, 5000);
+
+    // Refresh immediately when user switches back to the tab
+    const handleFocus = () => fetchUser();
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") fetchUser();
+    });
 
     return () => {
       isMounted = false;
       clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("visibilitychange", handleFocus);
     };
   }, [isWaiting, isRejected, isWaitingNumber]);
 
