@@ -43,7 +43,10 @@ export function CreditsWidget({
 
     // 2. Fetch fresh from server and update localStorage + state
     try {
-      const token = localStorage.getItem("token");
+      const token =
+        localStorage.getItem("accessToken") ||
+        localStorage.getItem("access_token") ||
+        localStorage.getItem("token");
       if (!token) return;
       const res = await fetch("/api/users/me", {
         headers: { Authorization: `Bearer ${token}` },
@@ -60,8 +63,10 @@ export function CreditsWidget({
         if (refreshCompanies) refreshCompanies(true);
         window.dispatchEvent(new Event("user-updated"));
       }
-    } catch (e) {}
-  }, [refetchCompanies]);
+    } catch (e) {
+      console.error("Failed to sync credits", e);
+    }
+  }, [refreshCompanies]);
 
   useEffect(() => {
     // Initial load
