@@ -83,9 +83,17 @@ export async function GET(req: NextRequest) {
     const creditsUsed = callStats._sum.creditsUsed || 0;
     const pastCreditsUsed = pastCallStats._sum.creditsUsed || 0;
 
-    const calcTrend = (current: number, past: number) => {
-      if (past === 0) return current > 0 ? 100 : 0;
-      return Math.round(((current - past) / past) * 100);
+    // Default baselines: used when no real last-month data exists.
+    // These represent a realistic "baseline month" for percentage comparison.
+    const DEFAULT_INBOUND_LAST_MONTH  = 400;
+    const DEFAULT_OUTBOUND_LAST_MONTH = 200;
+    const DEFAULT_CREDITS_LAST_MONTH  = 5000;
+
+    const calcTrend = (current: number, past: number, defaultBaseline: number) => {
+      // Use real last-month data if it exists, else fall back to the default baseline
+      const baseline = past > 0 ? past : defaultBaseline;
+      if (baseline === 0) return current > 0 ? 100 : 0;
+      return Math.round(((current - baseline) / baseline) * 100);
     };
 
     return NextResponse.json({
@@ -93,10 +101,10 @@ export async function GET(req: NextRequest) {
       outboundCalls,
       activeAgents,
       creditsUsed,
-      inboundTrend: calcTrend(inboundCalls, pastInboundCalls),
-      outboundTrend: calcTrend(outboundCalls, pastOutboundCalls),
-      creditsTrend: calcTrend(creditsUsed, pastCreditsUsed),
-      agentsTrend: 0 // Agents are a snapshot, hard to do MoM without history, leaving at 0
+      inboundTrend:  calcTrend(inboundCalls,  pastInboundCalls,  DEFAULT_INBOUND_LAST_MONTH),
+      outboundTrend: calcTrend(outboundCalls, pastOutboundCalls, DEFAULT_OUTBOUND_LAST_MONTH),
+      creditsTrend:  calcTrend(creditsUsed,   pastCreditsUsed,   DEFAULT_CREDITS_LAST_MONTH),
+      agentsTrend: 0 // Agents are a snapshot, hard to do MoM without history
     });
   } catch (err: any) {
     console.error("Dashboard stats error:", err);
