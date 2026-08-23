@@ -182,17 +182,21 @@ function DashboardShellInner({
             checkReminderStatus(user, true);
             needsRefresh = true;
           }
+        } else {
+          needsRefresh = true;
         }
       } catch (e) {
         console.error(e);
-      } finally {
-        setIsLoading(false);
+        needsRefresh = true;
       }
 
       if (needsRefresh) {
         try {
           const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-          if (!token) return;
+          if (!token) {
+            setIsLoading(false);
+            return;
+          }
           const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
           const response = await fetch(`${apiBase}/users/me`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -246,6 +250,7 @@ function DashboardShellInner({
           console.error("Instant refresh error:", e);
         }
       }
+      setIsLoading(false);
     };
     checkState();
   }, []);
