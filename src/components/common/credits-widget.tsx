@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Coins, Plus, Building2, User } from "lucide-react";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,32 +25,80 @@ export function CreditsWidget({
 }: CreditsWidgetProps) {
   const [balance, setBalance] = useState(0);
   const [mainUsed, setMainUsed] = useState(0);
-  const { companies } = useEmployeesContext();
+  const { companies, refreshCompanies } = useEmployeesContext();
+
+  // ── Read from localStorage AND re-fetch from server ──────────────────────
+  const syncCredits = useCallback(async () => {
+    // 1. Immediately show cached value
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        if (user.creditBalance) {
+          setBalance(user.creditBalance.creditsRemaining || 0);
+          setMainUsed(user.creditBalance.creditsUsed || 0);
+        }
+      }
+    } catch (e) {}
+
+    // 2. Fetch fresh from server and update localStorage + state
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const res = await fetch("/api/users/me", {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const fresh = await res.json();
+        localStorage.setItem("user", JSON.stringify(fresh));
+        if (fresh.creditBalance) {
+          setBalance(fresh.creditBalance.creditsRemaining || 0);
+          setMainUsed(fresh.creditBalance.creditsUsed || 0);
+        }
+        // Also refresh sub-company list so their credits update too
+        if (refreshCompanies) refreshCompanies(true);
+        window.dispatchEvent(new Event("user-updated"));
+      }
+    } catch (e) {}
+  }, [refetchCompanies]);
 
   useEffect(() => {
-    const fetchCredits = () => {
+    // Initial load
+    syncCredits();
+
+    // Refresh on window focus (when admin comes back from admin panel)
+    const onFocus = () => syncCredits();
+    window.addEventListener("focus", onFocus);
+
+    // Refresh every 60 seconds
+    const interval = setInterval(syncCredits, 60_000);
+
+    // Refresh on custom events
+    const onUserUpdated = () => {
       try {
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
           const user = JSON.parse(storedUser);
           if (user.creditBalance) {
-            const rem = user.creditBalance.creditsRemaining || 0;
-            const used = user.creditBalance.creditsUsed || 0;
-            setBalance(rem);
-            setMainUsed(used);
+            setBalance(user.creditBalance.creditsRemaining || 0);
+            setMainUsed(user.creditBalance.creditsUsed || 0);
           }
         }
       } catch (e) {}
     };
+    window.addEventListener("user-updated", onUserUpdated);
 
-    fetchCredits();
-    window.addEventListener("user-updated", fetchCredits);
-    return () => window.removeEventListener("user-updated", fetchCredits);
-  }, []);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("user-updated", onUserUpdated);
+      clearInterval(interval);
+    };
+  }, [syncCredits]);
 
   const totalSubCompanyCredits = companies.reduce((acc, c) => acc + (c.creditsRemaining || 0), 0);
   const grandTotal = balance + totalSubCompanyCredits;
-  
+
   const totalSubCompanyUsed = companies.reduce((acc, c) => acc + (c.creditsUsed || 0), 0);
   const grandUsed = Math.max(0, mainUsed) + Math.max(0, totalSubCompanyUsed);
   const limit = 10000;
@@ -128,6 +176,7 @@ export function CreditsWidget({
         </div>
         <div className="max-h-[300px] overflow-y-auto">
           <div className="flex flex-col">
+            {/* Main account row */}
             <div className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors border-b border-border/50">
               <div className="flex items-center gap-2 overflow-hidden mr-3">
                 <User className="size-3.5 text-muted-foreground shrink-0" />
@@ -138,10 +187,11 @@ export function CreditsWidget({
                 balance <= 0 && "text-red-500 border-red-500/20 bg-red-500/10"
               )}>
                 <Coins className="size-3 opacity-70" />
-                <span>{balance}</span>
+                <span>{balance.toLocaleString()}</span>
               </div>
             </div>
 
+            {/* Sub-company rows */}
             {companies.map((company) => (
               <div key={company.id} className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors border-b border-border/50">
                 <div className="flex items-center gap-2 overflow-hidden mr-3">
@@ -153,12 +203,14 @@ export function CreditsWidget({
                   (company.creditsRemaining ?? 0) <= 0 && "text-red-500 border-red-500/20 bg-red-500/10"
                 )}>
                   <Coins className="size-3 opacity-70" />
-                  <span>{company.creditsRemaining ?? 0}</span>
+                  <span>{(company.creditsRemaining ?? 0).toLocaleString()}</span>
                 </div>
               </div>
             ))}
           </div>
         </div>
+
+        {/* Grand total */}
         <div className="p-3 border-t border-border/50 bg-muted/30 flex items-center justify-between">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total</span>
           <div className="flex items-center gap-1.5 text-sm font-bold text-foreground">
