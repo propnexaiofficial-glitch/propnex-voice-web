@@ -16,50 +16,11 @@ type CreditsOverviewCardProps = {
   className?: string;
 };
 
+import { useUserContext } from "@/features/auth/context/user-context";
+
 export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
-  const [mainBalance, setMainBalance] = useState(() => {
-    if (typeof window === "undefined") return 0;
-    try {
-      const raw = localStorage.getItem("user");
-      if (raw) {
-        const user = JSON.parse(raw);
-        return user.creditBalance?.creditsRemaining || 0;
-      }
-    } catch {}
-    return 0;
-  });
-  const [mainUsed, setMainUsed] = useState(() => {
-    if (typeof window === "undefined") return 0;
-    try {
-      const raw = localStorage.getItem("user");
-      if (raw) {
-        const user = JSON.parse(raw);
-        return user.creditBalance?.creditsUsed || 0;
-      }
-    } catch {}
-    return 0;
-  });
+  const { mainBalance, mainUsed } = useUserContext();
   const { companies } = useEmployeesContext();
-
-  useEffect(() => {
-    const syncCredits = () => {
-      try {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-          const user = JSON.parse(storedUser);
-          if (user.creditBalance) {
-            const cb = user.creditBalance;
-            setMainBalance(cb.creditsRemaining || 0);
-            setMainUsed(cb.creditsUsed || 0);
-          }
-        }
-      } catch (err) {}
-    };
-
-    syncCredits();
-    window.addEventListener("user-updated", syncCredits);
-    return () => window.removeEventListener("user-updated", syncCredits);
-  }, []);
 
   const subUsed = companies.reduce((acc, c) => acc + (c.creditsUsed || 0), 0);
   const subRemaining = companies.reduce((acc, c) => acc + (c.creditsRemaining || 0), 0);

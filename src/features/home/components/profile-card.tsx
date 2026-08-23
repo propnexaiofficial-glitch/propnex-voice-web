@@ -32,32 +32,10 @@ type ProfileCardProps = {
   className?: string;
 };
 
+import { useUserContext } from "@/features/auth/context/user-context";
+
 export function ProfileCard({ className }: ProfileCardProps) {
-  // Initialize synchronously from localStorage → no loading flash
-  const [user, setUser] = useState<any>(() => readUserFromStorage());
-
-  useEffect(() => {
-    // Silently refresh user data in background (no loading state shown)
-    const refresh = () => {
-      try {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-          const parsed = JSON.parse(storedUser);
-          setUser(parsed);
-        }
-      } catch {}
-    };
-
-    // Also listen for user-updated event (fired when credits widget re-fetches)
-    window.addEventListener("user-updated", refresh);
-
-    // Poll quietly every 30 seconds — much less aggressive than 5s
-    const interval = setInterval(refresh, 30_000);
-    return () => {
-      window.removeEventListener("user-updated", refresh);
-      clearInterval(interval);
-    };
-  }, []);
+  const { user } = useUserContext();
 
   const fullName = user
     ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email?.split("@")[0] || "User"

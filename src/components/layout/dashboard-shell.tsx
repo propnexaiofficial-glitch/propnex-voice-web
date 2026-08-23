@@ -567,12 +567,16 @@ function DashboardShellInner({
   );
 }
 
+import { UserProvider } from "@/features/auth/context/user-context";
+
 export function DashboardShell({ children, className }: DashboardShellProps) {
   return (
-    <TooltipProvider>
-      <EmployeesProvider>
-        <DashboardShellInner className={className}>{children}</DashboardShellInner>
-      </EmployeesProvider>
-    </TooltipProvider>
+    <UserProvider>
+      <TooltipProvider>
+        <EmployeesProvider>
+          <DashboardShellInner className={className}>{children}</DashboardShellInner>
+        </EmployeesProvider>
+      </TooltipProvider>
+    </UserProvider>
   );
 }
