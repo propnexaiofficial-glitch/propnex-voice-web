@@ -27,6 +27,12 @@ function formatDuration(seconds: number): string {
   return m > 0 ? `${m}m ${s}s` : `${s}s`;
 }
 
+function cleanPhone(phone: string): string {
+  if (!phone) return "";
+  const digitsOnly = phone.replace(/\D/g, "");
+  return digitsOnly.replace(/^0+/, "");
+}
+
 function mapStatus(raw: string | undefined): CallRecord["status"] {
   const s = (raw ?? "").toLowerCase();
   if (s === "ringing" || s === "dispatching" || s === "queued_at_provider") return "ringing";
@@ -167,33 +173,36 @@ export function useInboundCallsApi(
     // Client-side search filters
     if (search && search.trim()) {
       const q = search.toLowerCase();
+      const qPhone = cleanPhone(search);
       items = items.filter((item) => {
         const pNum = typeof item.phoneNumber === 'string' ? item.phoneNumber : item.phoneNumber?.number;
         const leadPhone = item.lead?.phone;
-        const customerNum = String(leadPhone || item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
+        const customerNumRaw = String(leadPhone || item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown");
+        const customerNum = customerNumRaw.toLowerCase();
         return (
           item.publicId?.toLowerCase().includes(q) ||
           (item.providerCallId ?? "").toLowerCase().includes(q) ||
           (item.phoneNumberId ?? "").toLowerCase().includes(q) ||
-          customerNum.includes(q)
+          customerNum.includes(q) ||
+          (qPhone && cleanPhone(customerNumRaw).includes(qPhone))
         );
       });
     }
 
     if (assignedNumber && assignedNumber.trim()) {
-      const q = assignedNumber.toLowerCase();
+      const q = cleanPhone(assignedNumber);
       items = items.filter((item) => {
-         const num = (item.assignedNumber && item.assignedNumber !== "Unknown" ? item.assignedNumber : fallbackAssignedNumber).toLowerCase();
+         const num = cleanPhone(item.assignedNumber && item.assignedNumber !== "Unknown" ? item.assignedNumber : fallbackAssignedNumber);
          return num.includes(q);
       });
     }
 
     if (callerNumber && callerNumber.trim()) {
-      const q = callerNumber.toLowerCase();
+      const q = cleanPhone(callerNumber);
       items = items.filter((item) => {
          const pNum = typeof item.phoneNumber === 'string' ? item.phoneNumber : item.phoneNumber?.number;
          const leadPhone = item.lead?.phone;
-         const num = String(leadPhone || item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown").toLowerCase();
+         const num = cleanPhone(String(leadPhone || item.customerNumber || pNum || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown"));
          return num.includes(q);
       });
     }
