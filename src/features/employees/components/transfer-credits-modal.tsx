@@ -83,7 +83,7 @@ export function TransferCreditsModal({
         // Run these in the background without awaiting them to block the UI
         Promise.all([
           refreshCompanies(),
-          fetch(`${apiBase}/users/me`, {
+          fetch(`/api/users/me`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store"
           }).then(async (refreshRes) => {

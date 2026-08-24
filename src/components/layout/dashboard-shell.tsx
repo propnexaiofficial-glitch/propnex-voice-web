@@ -126,8 +126,7 @@ function DashboardShellInner({
         
         // Fetch updated user from backend to get the latest timestamp lock
         try {
-          const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
-          const refreshRes = await fetch(`${apiBase}/users/me`, {
+          const refreshRes = await fetch(`/api/users/me`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (refreshRes.ok) {
@@ -197,8 +196,7 @@ function DashboardShellInner({
             setIsLoading(false);
             return;
           }
-          const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
-          const response = await fetch(`${apiBase}/users/me`, {
+          const response = await fetch(`/api/users/me`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store"
           });
@@ -263,8 +261,7 @@ function DashboardShellInner({
         const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
         if (!token) return;
 
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
-          const response = await fetch(`${apiBase}/users/me`, {
+          const response = await fetch(`/api/users/me`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store"
           });
