@@ -85,18 +85,19 @@ export async function GET(req: NextRequest) {
     const creditsUsedByCalls = callStats._sum.creditsUsed || 0;
     const pastCreditsUsed = pastCallStats._sum.creditsUsed || 0;
 
-    // Read total credits used directly from the creditBalance record.
-    // This field tracks ALL credits deducted from the main balance
-    // (both consumed by calls AND allocated to sub-companies),
-    // so it shows the correct total: e.g. 10,000 purchased - 8,800 remaining = 1,200 used.
-    let creditsUsed = creditsUsedByCalls; // fallback
+    // Credits Used = Main account creditsUsed + ALL sub-company creditsUsed
+    // e.g. Main: 1,086.25 + Sub: 113.75 = 1,200 ✓
+    // This matches the "Main Used + Sub Used" shown in the credit balance card.
+    let creditsUsed = creditsUsedByCalls; // fallback to call log sum
     try {
-      const mainCreditBalance = await (prisma as any).creditBalance.findFirst({
-        where: { companyId: member.companyId },
+      const allCreditBalances = await (prisma as any).creditBalance.findMany({
+        where: { companyId: { in: companyIdsToQuery } },
         select: { creditsUsed: true }
       });
-      if (mainCreditBalance && mainCreditBalance.creditsUsed != null) {
-        creditsUsed = mainCreditBalance.creditsUsed;
+      if (allCreditBalances && allCreditBalances.length > 0) {
+        creditsUsed = allCreditBalances.reduce(
+          (acc: number, cb: any) => acc + (cb.creditsUsed || 0), 0
+        );
       }
     } catch (e) {}
 
