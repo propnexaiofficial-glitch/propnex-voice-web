@@ -103,7 +103,11 @@ export function ProfileCard({ className }: ProfileCardProps) {
                     </p>
                     <div className="break-all text-sm font-medium">
                       {Array.isArray(field.value) ? (
-                        field.value.map((v, i) => <div key={i}>{v}</div>)
+                        field.value.map((v, i) => (
+                          <div key={i}>
+                            {i + 1} - {v}
+                          </div>
+                        ))
                       ) : (
                         field.value
                       )}
