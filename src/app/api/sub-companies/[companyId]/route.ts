@@ -86,10 +86,21 @@ export async function DELETE(
 
       // 5. Unassign phone numbers (technically onDelete: SetNull handles this, 
       // but we do it explicitly just in case, and optionally link back to parent)
-      await tx.phoneNumber.updateMany({
+      const phoneNumbers = await tx.phoneNumber.findMany({ 
         where: { companyId: companyId },
-        data: { companyId: null, assignedParentTenantId: parentCompanyId },
+        select: { id: true, phoneNumberId: true, publicId: true }
       });
+      for (const phone of phoneNumbers) {
+        await tx.phoneNumber.update({
+          where: { id: phone.id },
+          data: {
+            companyId: null, 
+            assignedParentTenantId: parentCompanyId,
+            phoneNumberId: `${phone.phoneNumberId}-sub-${companyId.slice(-4)}`,
+            publicId: `${phone.publicId}-sub-${companyId.slice(-4)}`,
+          }
+        });
+      }
 
       // 6. Delete the sub-company (Cascades to CreditBalance, CompanyMember, etc.)
       await tx.company.delete({
