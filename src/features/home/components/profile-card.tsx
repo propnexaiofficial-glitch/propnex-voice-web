@@ -36,6 +36,19 @@ export function ProfileCard({ className }: ProfileCardProps) {
   const mainNumbers = detailedNumbers.filter((d) => d.isMain);
   const subNumbers = detailedNumbers.filter((d) => !d.isMain);
 
+  const groupNumbers = (numbers: any[]) => {
+    const grouped: Record<string, string[]> = {};
+    for (const d of numbers) {
+      const name = d.companyName || "Unknown";
+      if (!grouped[name]) grouped[name] = [];
+      if (d.number) grouped[name].push(d.number);
+    }
+    return Object.entries(grouped).map(([companyName, nums]) => ({ companyName, numbers: nums }));
+  };
+
+  const groupedMainNumbers = groupNumbers(mainNumbers);
+  const groupedSubNumbers = groupNumbers(subNumbers);
+
   // Fallback for when detailed numbers aren't available yet
   const hasFallbackNumbers = detailedNumbers.length === 0 && user?.assignedNumber && user.assignedNumber !== "Not Assigned";
   const fallbackNumbers = hasFallbackNumbers
@@ -151,24 +164,28 @@ export function ProfileCard({ className }: ProfileCardProps) {
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold border-b border-border pb-1">
                   Main Company
                 </p>
-                {mainNumbers.length > 0 ? (
-                  mainNumbers.map((d, i) => {
-                    const num = d.number || "";
-                    const last3 = num.replace(/\s/g, "").slice(-3);
-                    return (
-                      <div key={i} className="flex items-center gap-1.5">
-                        <span className="size-1.5 rounded-full bg-green-500 shrink-0" />
-                        <span className="text-xs text-muted-foreground truncate">{d.companyName}</span>
-                        <span
-                          title={num}
-                          className="text-xs font-mono ml-auto shrink-0 cursor-default group relative"
-                        >
-                          <span className="group-hover:hidden font-semibold text-foreground">•••{last3}</span>
-                          <span className="hidden group-hover:inline font-semibold text-primary">{num}</span>
-                        </span>
-                      </div>
-                    );
-                  })
+                {groupedMainNumbers.length > 0 ? (
+                  groupedMainNumbers.map((group, i) => (
+                    <div key={i} className="flex items-center gap-1.5 flex-wrap">
+                      <span className="size-1.5 rounded-full bg-green-500 shrink-0" />
+                      <span className="text-xs text-muted-foreground mr-1">{group.companyName}</span>
+                      {group.numbers.map((num, idx) => {
+                        const last3 = num.replace(/\s/g, "").slice(-3);
+                        return (
+                          <span key={idx} className="flex items-center">
+                            <span
+                              title={num}
+                              className="text-xs font-mono shrink-0 cursor-default group relative"
+                            >
+                              <span className="group-hover:hidden font-semibold text-foreground">•••{last3}</span>
+                              <span className="hidden group-hover:inline font-semibold text-primary">{num}</span>
+                            </span>
+                            {idx < group.numbers.length - 1 && <span className="text-muted-foreground ml-0.5">,</span>}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  ))
                 ) : fallbackNumbers.length > 0 ? (
                   fallbackNumbers.map((num: string, i: number) => {
                     const last3 = num.replace(/\s/g, "").slice(-3);
@@ -195,24 +212,30 @@ export function ProfileCard({ className }: ProfileCardProps) {
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold border-b border-border pb-1">
                   Sub-Companies
                 </p>
-                {subNumbers.length > 0 ? (
-                  subNumbers.map((d, i) => {
-                    const num = d.number || "";
-                    const last3 = num.replace(/\s/g, "").slice(-3);
-                    return (
-                      <div key={i} className="flex items-center gap-1.5">
-                        <span className="size-1.5 rounded-full bg-blue-500 shrink-0" />
-                        <span className="text-xs text-muted-foreground truncate">{d.companyName}</span>
-                        <span
-                          title={num}
-                          className="text-xs font-mono ml-auto shrink-0 cursor-default group relative"
-                        >
-                          <span className="group-hover:hidden font-semibold text-foreground">•••{last3}</span>
-                          <span className="hidden group-hover:inline font-semibold text-primary">{num}</span>
-                        </span>
+                {groupedSubNumbers.length > 0 ? (
+                  groupedSubNumbers.map((group, i) => (
+                    <div key={i} className="flex items-start gap-1.5 flex-wrap">
+                      <span className="size-1.5 rounded-full bg-blue-500 shrink-0 mt-1" />
+                      <span className="text-xs text-muted-foreground mr-1">{group.companyName}</span>
+                      <div className="flex flex-wrap items-center gap-1 ml-auto">
+                        {group.numbers.map((num, idx) => {
+                          const last3 = num.replace(/\s/g, "").slice(-3);
+                          return (
+                            <span key={idx} className="flex items-center">
+                              <span
+                                title={num}
+                                className="text-xs font-mono shrink-0 cursor-default group relative"
+                              >
+                                <span className="group-hover:hidden font-semibold text-foreground">•••{last3}</span>
+                                <span className="hidden group-hover:inline font-semibold text-primary">{num}</span>
+                              </span>
+                              {idx < group.numbers.length - 1 && <span className="text-muted-foreground ml-0.5">,</span>}
+                            </span>
+                          );
+                        })}
                       </div>
-                    );
-                  })
+                    </div>
+                  ))
                 ) : (
                   <span className="text-xs text-muted-foreground italic">None</span>
                 )}
