@@ -28,7 +28,8 @@ export function DashboardSummary({ className }: DashboardSummaryProps) {
           ...stat,
           value: parsed[i]?.value !== undefined ? parsed[i].value : stat.value,
           change: parsed[i]?.change !== undefined ? parsed[i].change : stat.change,
-          changeLabel: parsed[i]?.changeLabel !== undefined ? parsed[i].changeLabel : stat.changeLabel
+          changeLabel: parsed[i]?.changeLabel !== undefined ? parsed[i].changeLabel : stat.changeLabel,
+          isNewAccount: parsed[i]?.isNewAccount !== undefined ? parsed[i].isNewAccount : stat.isNewAccount
         })));
       }
     } catch(e) {}
