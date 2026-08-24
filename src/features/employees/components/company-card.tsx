@@ -32,8 +32,8 @@ type CompanyCardProps = {
 export function CompanyCard({ company, index = 0, className }: CompanyCardProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
-
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const usagePercent = Math.round(
     (company.creditsUsed / company.creditsLimit) * 100
@@ -45,16 +45,19 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setDeleteError(null);
     setIsDeleteDialogOpen(true);
   };
 
   const executeDelete = async () => {
     try {
       setIsDeleting(true);
+      setDeleteError(null);
+      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
       const res = await fetch(`/api/sub-companies/${company.id}`, {
         method: "DELETE",
         headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
+          "Authorization": `Bearer ${token}`
         }
       });
       
@@ -65,9 +68,8 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
 
       window.location.reload();
     } catch (error: any) {
-      alert(error.message);
+      setDeleteError(error.message || "An unexpected error occurred");
       setIsDeleting(false);
-      setIsDeleteDialogOpen(false);
     }
   };
 
@@ -169,7 +171,7 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
       </Link>
 
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent onClick={(e) => e.stopPropagation()}>
+        <DialogContent onClick={(e) => e.stopPropagation()} className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Delete Sub-Company</DialogTitle>
             <DialogDescription>
@@ -177,11 +179,14 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
               Credits will be returned to your main account, and call logs will be preserved. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
+          {deleteError && (
+            <p className="text-sm font-medium text-destructive">{deleteError}</p>
+          )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isDeleting}>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isDeleting} className="hover:bg-accent hover:text-accent-foreground transition-colors">
               Cancel
             </Button>
-            <Button variant="destructive" onClick={executeDelete} disabled={isDeleting}>
+            <Button variant="destructive" onClick={executeDelete} disabled={isDeleting} className="hover:bg-red-600 transition-colors">
               {isDeleting ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Trash2 className="mr-2 size-4" />}
               Delete Sub-Company
             </Button>
