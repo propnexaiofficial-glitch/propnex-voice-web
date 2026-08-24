@@ -6,7 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "propnex_secret_jwt_key_2026_key";
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { companyId: string } }
+  { params }: { params: Promise<{ companyId: string }> }
 ) {
   try {
     const authHeader = req.headers.get("authorization");
@@ -19,7 +19,7 @@ export async function DELETE(
     const userId = decoded.sub || decoded.id;
 
     // Support accessing params async in Next.js 15+ if needed, but in standard Next 14 this works.
-    const companyId = params.companyId;
+    const companyId = (await params).companyId;
 
     // 1. Authenticate user and verify they belong to the parent company
     const member = await (prisma as any).companyMember.findFirst({

@@ -121,10 +121,11 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
               </Badge>
             )}
             <Badge
-              variant={isLocked ? "destructive" : isPending ? "secondary" : company.status === "active" ? "success" : "secondary"}
+              variant={isLocked ? "destructive" : isPending ? "secondary" : company.status?.toUpperCase() === "ACTIVE" ? "success" : "secondary"}
               className={cn("text-[10px]", 
                 isLocked ? "bg-red-500 text-white hover:bg-red-600" :
-                isPending && "bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"
+                isPending ? "bg-amber-500/10 text-amber-500 hover:bg-amber-500/20" :
+                company.status?.toUpperCase() === "ACTIVE" ? "bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20" : ""
               )}
             >
               {isLocked ? "LOCKED (0 Credits)" : isPending ? "PENDING" : company.status}
