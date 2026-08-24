@@ -11,6 +11,15 @@ import { useRouter } from "next/navigation";
 
 import { PremiumBadge } from "@/components/common/premium-badge";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import type { SubCompany } from "@/features/employees/types";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +33,8 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
   const usagePercent = Math.round(
     (company.creditsUsed / company.creditsLimit) * 100
   );
@@ -31,34 +42,32 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
   const isPending = company.status.toUpperCase() === "PENDING" || !company.contactPhone;
   const isLocked = company.creditsRemaining <= 0;
 
-  const handleDelete = async (e: React.MouseEvent) => {
+  const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    if (!window.confirm(`Are you sure you want to delete ${company.name}? Credits will be returned to your main account.`)) {
-      return;
-    }
+    setIsDeleteDialogOpen(true);
+  };
 
+  const executeDelete = async () => {
     try {
       setIsDeleting(true);
       const res = await fetch(`/api/sub-companies/${company.id}`, {
         method: "DELETE",
         headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token")}` // if token based
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
         }
       });
       
-      // Since fetch doesn't throw on 4xx/5xx, we handle it:
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || "Failed to delete sub-company");
       }
 
-      // Success, refresh the page to update the list and credit balances
       window.location.reload();
     } catch (error: any) {
       alert(error.message);
       setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
     }
   };
 
@@ -120,7 +129,7 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
             </Badge>
             
             <button
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
               disabled={isDeleting}
               className="ml-1 flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-500 disabled:opacity-50"
               title="Delete Sub-Company"
@@ -158,6 +167,27 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
           </div>
         </div>
       </Link>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent onClick={(e) => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle>Delete Sub-Company</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete <strong>{company.name}</strong>? 
+              Credits will be returned to your main account, and call logs will be preserved. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={executeDelete} disabled={isDeleting}>
+              {isDeleting ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Trash2 className="mr-2 size-4" />}
+              Delete Sub-Company
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div>
 
   );
