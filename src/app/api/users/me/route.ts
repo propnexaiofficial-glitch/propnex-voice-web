@@ -4,6 +4,8 @@ import prisma from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET || "propnex_secret_jwt_key_2026_key";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const authHeader = req.headers.get("authorization");
@@ -65,10 +67,7 @@ export async function GET(req: NextRequest) {
         // Fetch the assigned phone numbers for this company AND its sub-companies
         const phoneRecords = await (prisma as any).phoneNumber.findMany({
           where: { 
-            OR: [
-              { companyId: member.company.id },
-              { company: { parentCompanyId: member.company.id } }
-            ],
+            companyId: member.company.id,
             status: "ACTIVE" 
           }
         });
