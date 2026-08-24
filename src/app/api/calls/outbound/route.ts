@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
       if (callerNumber) {
         const core = getCoreNumber(callerNumber);
         if (core) {
-          whereClause.customerNumber = { contains: core };
+          whereClause.lead = { phone: { contains: core } };
         }
       }
 
@@ -107,12 +107,12 @@ export async function GET(req: NextRequest) {
         const core = getCoreNumber(search);
         if (core) {
           whereClause.OR = [
-            { customerNumber: { contains: core } },
+            { lead: { phone: { contains: core } } },
             { phoneNumber: { number: { contains: core } } },
           ];
         } else {
           whereClause.OR = [
-            { customerNumber: { contains: search } },
+            { lead: { phone: { contains: search } } },
             { phoneNumber: { number: { contains: search } } },
           ];
         }
