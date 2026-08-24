@@ -102,9 +102,10 @@ export async function GET(req: NextRequest) {
     } catch (e) {}
 
     // Default baselines: used when no real last-month data exists.
-    const DEFAULT_INBOUND_LAST_MONTH  = 400;
-    const DEFAULT_OUTBOUND_LAST_MONTH = 200;
-    const DEFAULT_CREDITS_LAST_MONTH  = 5000;
+    const isSubCompany = !!targetCompanyId;
+    const DEFAULT_INBOUND_LAST_MONTH  = isSubCompany ? 200 : 400;
+    const DEFAULT_OUTBOUND_LAST_MONTH = isSubCompany ? 200 : 200;
+    const DEFAULT_CREDITS_LAST_MONTH  = isSubCompany ? 1000 : 5000;
 
     const calcTrend = (current: number, past: number, defaultBaseline: number) => {
       const baseline = past > 0 ? past : defaultBaseline;

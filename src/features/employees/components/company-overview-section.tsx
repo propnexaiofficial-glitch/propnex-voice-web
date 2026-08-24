@@ -36,7 +36,7 @@ export function CompanyOverviewSection({
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
         if (!token) return;
         const res = await fetch(`/api/users/dashboard-stats?companyId=${company.id}`, {
           headers: { Authorization: `Bearer ${token}` }
