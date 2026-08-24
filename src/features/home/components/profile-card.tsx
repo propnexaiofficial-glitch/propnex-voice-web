@@ -35,7 +35,7 @@ type ProfileCardProps = {
 };
 
 export function ProfileCard({ className }: ProfileCardProps) {
-  const { user } = useUserContext();
+  const { user, isLoading } = useUserContext();
 
   const fullName = user
     ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email?.split("@")[0] || "User"
@@ -61,6 +61,35 @@ export function ProfileCard({ className }: ProfileCardProps) {
     { label: "Company", value: companyName, icon: Building2 },
     { label: "Assigned Number", value: rawAssigned, icon: Phone, detailed: detailedNumbers },
   ];
+
+  // Show skeleton while loading and no cached data
+  if (isLoading && !user) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className={cn("glass-card rounded-2xl p-6", className)}
+      >
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
+          <div className="relative shrink-0">
+            <div className="size-20 rounded-full bg-muted animate-pulse" />
+          </div>
+          <div className="min-w-0 flex-1 space-y-4">
+            <div className="space-y-2">
+              <div className="h-6 w-40 rounded bg-muted animate-pulse" />
+              <div className="h-4 w-56 rounded bg-muted animate-pulse" />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-16 rounded-lg bg-muted animate-pulse" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
 
   return (
     <motion.div
