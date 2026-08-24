@@ -38,8 +38,8 @@ export function StatCard({ stat, index = 0, className }: StatCardProps) {
 
       {stat.isNewAccount ? (
         <div className="mt-3 flex items-center gap-1.5 text-xs">
-          <span className="inline-flex items-center rounded-sm bg-muted-foreground/20 px-2 py-0.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-            Gathering Data...
+          <span className="inline-flex items-center rounded-sm bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-500">
+            Storing data for next month
           </span>
         </div>
       ) : stat.change !== undefined && (
