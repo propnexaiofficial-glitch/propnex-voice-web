@@ -4,8 +4,10 @@
 
 import Link from "next/link";
 
-import { Building2, Lock } from "lucide-react";
+import { Building2, Lock, Trash2, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { PremiumBadge } from "@/components/common/premium-badge";
 import { Badge } from "@/components/ui/badge";
@@ -19,12 +21,46 @@ type CompanyCardProps = {
 };
 
 export function CompanyCard({ company, index = 0, className }: CompanyCardProps) {
+  const router = useRouter();
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const usagePercent = Math.round(
     (company.creditsUsed / company.creditsLimit) * 100
   );
 
   const isPending = company.status.toUpperCase() === "PENDING" || !company.contactPhone;
   const isLocked = company.creditsRemaining <= 0;
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!window.confirm(`Are you sure you want to delete ${company.name}? Credits will be returned to your main account.`)) {
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      const res = await fetch(`/api/sub-companies/${company.id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}` // if token based
+        }
+      });
+      
+      // Since fetch doesn't throw on 4xx/5xx, we handle it:
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to delete sub-company");
+      }
+
+      // Success, refresh the page to update the list and credit balances
+      window.location.reload();
+    } catch (error: any) {
+      alert(error.message);
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <motion.div
@@ -82,6 +118,15 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
             >
               {isLocked ? "LOCKED (0 Credits)" : isPending ? "PENDING" : company.status}
             </Badge>
+            
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="ml-1 flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-500 disabled:opacity-50"
+              title="Delete Sub-Company"
+            >
+              {isDeleting ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
+            </button>
           </div>
         </div>
 
