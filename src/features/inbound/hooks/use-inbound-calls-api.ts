@@ -50,18 +50,21 @@ function mapApiItemToCallRecord(item: any, fallbackAssignedNumber: string): Call
   const isLive = mappedStatus === "ringing" || mappedStatus === "answered";
 
   let fallbackCustomerPhone = item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber;
-  if (!fallbackCustomerPhone && item.providerWebhook?.call) {
-    if (item.direction === "INBOUND") {
-      fallbackCustomerPhone = item.providerWebhook.call.from;
+  let fallbackAssignedRaw = undefined;
+  if (item.providerWebhook?.call) {
+    if (item.direction === "INBOUND" || !item.direction) {
+      if (!fallbackCustomerPhone) fallbackCustomerPhone = item.providerWebhook.call.from;
+      fallbackAssignedRaw = item.providerWebhook.call.to;
     } else if (item.direction === "OUTBOUND") {
-      fallbackCustomerPhone = item.providerWebhook.call.to;
+      if (!fallbackCustomerPhone) fallbackCustomerPhone = item.providerWebhook.call.to;
+      fallbackAssignedRaw = item.providerWebhook.call.from;
     }
   }
 
   return {
     id: item.id || item.publicId,
     customerNumber: leadPhone || item.customerNumber || fallbackCustomerPhone || "Unknown",
-    assignedNumber: pNum || item.assignedNumber || item.providerWebhook?.callid || item.providerWebhook?.calledno || fallbackAssignedNumber,
+    assignedNumber: pNum || item.assignedNumber || fallbackAssignedRaw || item.providerWebhook?.callid || item.providerWebhook?.calledno || fallbackAssignedNumber,
     callDateTime: item.startedAt || new Date().toISOString(),
     duration: isLive ? "Live" : formatDuration(item.durationSeconds || 0),
     durationSeconds: item.durationSeconds || 0,
