@@ -194,24 +194,21 @@ export function CompanyOverviewSection({
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 {stat.label}
               </p>
+              <p className={cn("mt-1 text-xl font-bold tabular-nums", stat.accent)}>
+                {stat.value}
+              </p>
               {isLoading ? (
-                <div className="mt-1 flex flex-col items-center gap-2">
-                  <div className="h-7 w-16 animate-pulse rounded bg-muted-foreground/20"></div>
-                  <div className="h-3 w-24 animate-pulse rounded bg-muted-foreground/10"></div>
+                <div className="mt-2 flex items-center justify-center">
+                  <div className="h-3 w-20 animate-pulse rounded bg-muted-foreground/20"></div>
                 </div>
               ) : (
-                <>
-                  <p className={cn("mt-1 text-xl font-bold tabular-nums", stat.accent)}>
-                    {stat.value}
-                  </p>
-                  <div className="mt-2 flex items-center justify-center gap-1 text-[10px]">
-                    {getTrendIcon(stat.trendValue)}
-                    <span className={cn("font-medium", getTrendColor(stat.trendValue))}>
-                      {stat.change}
-                    </span>
-                    <span className="text-muted-foreground">{stat.changeLabel}</span>
-                  </div>
-                </>
+                <div className="mt-2 flex items-center justify-center gap-1 text-[10px]">
+                  {getTrendIcon(stat.trendValue)}
+                  <span className={cn("font-medium", getTrendColor(stat.trendValue))}>
+                    {stat.change}
+                  </span>
+                  <span className="text-muted-foreground">{stat.changeLabel}</span>
+                </div>
               )}
             </div>
           ))}
