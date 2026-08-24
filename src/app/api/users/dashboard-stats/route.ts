@@ -29,6 +29,19 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ inboundCalls: 0, outboundCalls: 0, activeAgents: 0, creditsUsed: 0 });
     }
 
+    const companyToVerifyId = targetCompanyId || member.companyId;
+    const targetCompanyRecord = await prisma.company.findUnique({
+      where: { id: companyToVerifyId },
+      select: { createdAt: true }
+    });
+
+    // Check if account is < 30 days old
+    const now = new Date();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(now.getDate() - 30);
+    const isNewAccount = targetCompanyRecord?.createdAt ? new Date(targetCompanyRecord.createdAt) > thirtyDaysAgo : false;
+
+
     let companyIdsToQuery = [];
     if (targetCompanyId) {
       // Basic security check: ensure targetCompanyId is either the member's company or a child company
@@ -101,16 +114,10 @@ export async function GET(req: NextRequest) {
       }
     } catch (e) {}
 
-    // Default baselines: used when no real last-month data exists.
-    const isSubCompany = !!targetCompanyId;
-    const DEFAULT_INBOUND_LAST_MONTH  = isSubCompany ? 200 : 400;
-    const DEFAULT_OUTBOUND_LAST_MONTH = isSubCompany ? 200 : 200;
-    const DEFAULT_CREDITS_LAST_MONTH  = isSubCompany ? 1000 : 5000;
-
-    const calcTrend = (current: number, past: number, defaultBaseline: number) => {
-      const baseline = past > 0 ? past : defaultBaseline;
-      if (baseline === 0) return current > 0 ? 100 : 0;
-      return Math.round(((current - baseline) / baseline) * 100);
+    // We no longer use fake baselines. If past is 0, they get a +100% or 0% naturally.
+    const calcTrend = (current: number, past: number) => {
+      if (past === 0) return current > 0 ? 100 : 0;
+      return Math.round(((current - past) / past) * 100);
     };
 
     return NextResponse.json({
@@ -118,9 +125,10 @@ export async function GET(req: NextRequest) {
       outboundCalls,
       activeAgents,
       creditsUsed,
-      inboundTrend:  calcTrend(inboundCalls,  pastInboundCalls,  DEFAULT_INBOUND_LAST_MONTH),
-      outboundTrend: calcTrend(outboundCalls, pastOutboundCalls, DEFAULT_OUTBOUND_LAST_MONTH),
-      creditsTrend:  calcTrend(creditsUsedByCalls, pastCreditsUsed, DEFAULT_CREDITS_LAST_MONTH),
+      isNewAccount,
+      inboundTrend:  isNewAccount ? 0 : calcTrend(inboundCalls,  pastInboundCalls),
+      outboundTrend: isNewAccount ? 0 : calcTrend(outboundCalls, pastOutboundCalls),
+      creditsTrend:  isNewAccount ? 0 : calcTrend(creditsUsedByCalls, pastCreditsUsed),
       agentsTrend: 0
     });
   } catch (err: any) {

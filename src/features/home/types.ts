@@ -6,6 +6,7 @@ export type DashboardStat = {
   value: string | number;
   change?: number;
   changeLabel?: string;
+  isNewAccount?: boolean;
   icon: LucideIcon;
   accent: "purple" | "blue" | "green" | "gold";
 };

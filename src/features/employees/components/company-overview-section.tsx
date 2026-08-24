@@ -36,6 +36,7 @@ export function CompanyOverviewSection({
       creditsTrend: 0,
       inboundTrend: 0,
       outboundTrend: 0,
+      isNewAccount: false,
     }
   );
 
@@ -61,6 +62,7 @@ export function CompanyOverviewSection({
             creditsTrend: data.creditsTrend || 0,
             inboundTrend: data.inboundTrend || 0,
             outboundTrend: data.outboundTrend || 0,
+            isNewAccount: data.isNewAccount || false,
           };
           statsCache[company.id] = newStats;
           setStats(newStats);
@@ -181,6 +183,7 @@ export function CompanyOverviewSection({
               change: stats.creditsTrend > 0 ? `+${stats.creditsTrend}%` : `${stats.creditsTrend}%`,
               trendValue: stats.creditsTrend,
               changeLabel: "vs last month",
+              isNewAccount: stats.isNewAccount,
             },
             {
               label: "Inbound Calls",
@@ -189,6 +192,7 @@ export function CompanyOverviewSection({
               change: stats.inboundTrend > 0 ? `+${stats.inboundTrend}%` : `${stats.inboundTrend}%`,
               trendValue: stats.inboundTrend,
               changeLabel: "vs last month",
+              isNewAccount: stats.isNewAccount,
             },
             {
               label: "Outbound Calls",
@@ -197,6 +201,7 @@ export function CompanyOverviewSection({
               change: stats.outboundTrend > 0 ? `+${stats.outboundTrend}%` : `${stats.outboundTrend}%`,
               trendValue: stats.outboundTrend,
               changeLabel: "vs last month",
+              isNewAccount: stats.isNewAccount,
             },
           ].map((stat) => (
             <div
@@ -212,6 +217,12 @@ export function CompanyOverviewSection({
               {isLoading ? (
                 <div className="mt-2 flex items-center justify-center">
                   <div className="h-3 w-20 animate-pulse rounded bg-muted-foreground/20"></div>
+                </div>
+              ) : stat.isNewAccount ? (
+                <div className="mt-2 flex items-center justify-center">
+                  <span className="inline-flex items-center rounded-sm bg-muted-foreground/20 px-2 py-0.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                    Gathering Data...
+                  </span>
                 </div>
               ) : (
                 <div className="mt-2 flex items-center justify-center gap-1 text-[10px]">

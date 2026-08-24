@@ -36,7 +36,13 @@ export function StatCard({ stat, index = 0, className }: StatCardProps) {
         </p>
       </div>
 
-      {stat.change !== undefined && (
+      {stat.isNewAccount ? (
+        <div className="mt-3 flex items-center gap-1.5 text-xs">
+          <span className="inline-flex items-center rounded-sm bg-muted-foreground/20 px-2 py-0.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+            Gathering Data...
+          </span>
+        </div>
+      ) : stat.change !== undefined && (
         <div className="mt-3 flex items-center gap-1.5 text-xs">
           {isPositive ? (
             <ArrowUpRight className="size-3.5 text-emerald-500" />
