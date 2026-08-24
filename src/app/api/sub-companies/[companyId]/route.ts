@@ -75,15 +75,19 @@ export async function DELETE(
         where: { companyId: companyId },
         select: { id: true, callLogId: true, publicId: true }
       });
-      for (const log of callLogs) {
-        await tx.callLog.update({
-          where: { id: log.id },
-          data: {
-            companyId: parentCompanyId,
-            callLogId: `${log.callLogId}-sub-${companyId.slice(-4)}`,
-            publicId: `${log.publicId}-sub-${companyId.slice(-4)}`,
-          }
-        });
+      if (callLogs.length > 0) {
+        await Promise.all(
+          callLogs.map((log) =>
+            tx.callLog.update({
+              where: { id: log.id },
+              data: {
+                companyId: parentCompanyId,
+                callLogId: `${log.callLogId}-sub-${companyId.slice(-4)}`,
+                publicId: `${log.publicId}-sub-${companyId.slice(-4)}`,
+              }
+            })
+          )
+        );
       }
 
       // 5. Unassign phone numbers (technically onDelete: SetNull handles this, 
@@ -92,74 +96,76 @@ export async function DELETE(
         where: { companyId: companyId },
         select: { id: true, phoneNumberId: true, publicId: true, number: true }
       });
-      for (const phone of phoneNumbers) {
-        await tx.phoneNumber.update({
-          where: { id: phone.id },
-          data: {
-            companyId: null, 
-            assignedParentTenantId: parentCompanyId,
-            phoneNumberId: `${phone.phoneNumberId}-sub-${companyId.slice(-4)}`,
-            publicId: `${phone.publicId}-sub-${companyId.slice(-4)}`,
-            number: `${phone.number}-sub-${companyId.slice(-4)}`,
-          }
-        });
+      if (phoneNumbers.length > 0) {
+        await Promise.all(
+          phoneNumbers.map((phone) =>
+            tx.phoneNumber.update({
+              where: { id: phone.id },
+              data: {
+                companyId: null,
+                assignedParentTenantId: parentCompanyId,
+                phoneNumberId: `${phone.phoneNumberId}-sub-${companyId.slice(-4)}`,
+                publicId: `${phone.publicId}-sub-${companyId.slice(-4)}`,
+                number: `${phone.number}-sub-${companyId.slice(-4)}`,
+              }
+            })
+          )
+        );
       }
 
       // 6. Hard-delete sub-company assets manually to prevent MongoDB Prisma relation cascade errors
-      const id = companyId;
-      await tx.campaignInvitation.deleteMany({ where: { companyId: id } });
-      await tx.supportRequest.deleteMany({ where: { companyId: id } });
-      await tx.billingQuote.deleteMany({ where: { companyId: id } });
-      await tx.callInternalNote.deleteMany({ where: { companyId: id } });
-      await tx.callTranscript.deleteMany({ where: { callLog: { companyId: id } } });
-      await tx.callLogProviderEvent.deleteMany({ where: { callLog: { companyId: id } } });
-      await tx.contactRetryJob.deleteMany({ where: { companyId: id } });
-      await tx.campaignDocument.deleteMany({ where: { companyId: id } });
-      await tx.campaignActivity.deleteMany({ where: { companyId: id } });
+      await Promise.all([
+        tx.campaignInvitation.deleteMany({ where: { companyId: companyId } }),
+        tx.supportRequest.deleteMany({ where: { companyId: companyId } }),
+        tx.billingQuote.deleteMany({ where: { companyId: companyId } }),
+        tx.callInternalNote.deleteMany({ where: { companyId: companyId } }),
+        tx.callTranscript.deleteMany({ where: { callLog: { companyId: companyId } } }),
+        tx.callLogProviderEvent.deleteMany({ where: { callLog: { companyId: companyId } } }),
+        tx.contactRetryJob.deleteMany({ where: { companyId: companyId } }),
+        tx.campaignDocument.deleteMany({ where: { companyId: companyId } }),
+        tx.campaignActivity.deleteMany({ where: { companyId: companyId } }),
+        
+        tx.callLog.deleteMany({ where: { companyId: companyId } }),
+        tx.dialerCall.deleteMany({ where: { companyId: companyId } }),
+        tx.campaignExecution.deleteMany({ where: { companyId: companyId } }),
+        tx.campaign.deleteMany({ where: { companyId: companyId } }),
+        tx.outboundCampaign.deleteMany({ where: { companyId: companyId } }),
+        tx.lead.deleteMany({ where: { companyId: companyId } }),
+        tx.leadSource.deleteMany({ where: { companyId: companyId } }),
+        tx.leadPipelineStage.deleteMany({ where: { companyId: companyId } }),
+        tx.uploadedContact.deleteMany({ where: { companyId: companyId } }),
+        tx.agentCommunicationChannel.deleteMany({ where: { companyId: companyId } }),
+        tx.agentPromptTemplate.deleteMany({ where: { companyId: companyId } }),
+        tx.knowledgeSource.deleteMany({ where: { companyId: companyId } }),
+        tx.aiAgent.deleteMany({ where: { companyId: companyId } }),
+        tx.companyChannel.deleteMany({ where: { companyId: companyId } }),
+        tx.companySetupConfig.deleteMany({ where: { companyId: companyId } }),
+        tx.companyContact.deleteMany({ where: { companyId: companyId } }),
+        tx.companyBillingRates.deleteMany({ where: { companyId: companyId } }),
+        tx.billingSubscription.deleteMany({ where: { companyId: companyId } }),
+        tx.billingInvoice.deleteMany({ where: { companyId: companyId } }),
+        tx.creditUsage.deleteMany({ where: { companyId: companyId } }),
+        tx.creditBalance.deleteMany({ where: { companyId: companyId } }),
+        tx.phoneNumber.deleteMany({ where: { companyId: companyId } }),
+        tx.invitation.deleteMany({ where: { companyId: companyId } }),
+        tx.companyMember.deleteMany({ where: { companyId: companyId } }),
+        tx.apiKey.deleteMany({ where: { companyId: companyId } }),
+        tx.auditLog.deleteMany({ where: { companyId: companyId } }),
+        tx.notification.deleteMany({ where: { companyId: companyId } }),
+        tx.systemEvent.deleteMany({ where: { companyId: companyId } }),
+        tx.analyticsSnapshot.deleteMany({ where: { companyId: companyId } }),
+        tx.schedulerEvent.deleteMany({ where: { companyId: companyId } }),
+        tx.integration.deleteMany({ where: { companyId: companyId } }),
+        tx.webhookEndpoint.deleteMany({ where: { companyId: companyId } }),
+        tx.csvImportBatch.deleteMany({ where: { companyId: companyId } }),
+        tx.role.deleteMany({ where: { companyId: companyId } }),
+        tx.channel.deleteMany({ where: { companyId: companyId } }),
+        tx.companyResourceSequence.deleteMany({ where: { companyId: companyId } }),
+      ]);
       
-      // Call logs are reparented above, but this deletes any leftovers that weren't
-      await tx.callLog.deleteMany({ where: { companyId: id } });
-      await tx.dialerCall.deleteMany({ where: { companyId: id } });
-      await tx.campaignExecution.deleteMany({ where: { companyId: id } });
-      await tx.campaign.deleteMany({ where: { companyId: id } });
-      await tx.outboundCampaign.deleteMany({ where: { companyId: id } });
-      await tx.lead.deleteMany({ where: { companyId: id } });
-      await tx.leadSource.deleteMany({ where: { companyId: id } });
-      await tx.leadPipelineStage.deleteMany({ where: { companyId: id } });
-      await tx.uploadedContact.deleteMany({ where: { companyId: id } });
-      await tx.agentCommunicationChannel.deleteMany({ where: { companyId: id } });
-      await tx.agentPromptTemplate.deleteMany({ where: { companyId: id } });
-      await tx.knowledgeSource.deleteMany({ where: { companyId: id } });
-      await tx.aiAgent.deleteMany({ where: { companyId: id } });
-      await tx.companyChannel.deleteMany({ where: { companyId: id } });
-      await tx.companySetupConfig.deleteMany({ where: { companyId: id } });
-      await tx.companyContact.deleteMany({ where: { companyId: id } });
-      await tx.companyBillingRates.deleteMany({ where: { companyId: id } });
-      await tx.billingSubscription.deleteMany({ where: { companyId: id } });
-      await tx.billingInvoice.deleteMany({ where: { companyId: id } });
-      await tx.creditUsage.deleteMany({ where: { companyId: id } });
-      await tx.creditBalance.deleteMany({ where: { companyId: id } });
-      await tx.phoneNumber.deleteMany({ where: { companyId: id } });
-      await tx.invitation.deleteMany({ where: { companyId: id } });
-      await tx.companyMember.deleteMany({ where: { companyId: id } });
-      await tx.apiKey.deleteMany({ where: { companyId: id } });
-      await tx.auditLog.deleteMany({ where: { companyId: id } });
-      await tx.notification.deleteMany({ where: { companyId: id } });
-      await tx.systemEvent.deleteMany({ where: { companyId: id } });
-      await tx.analyticsSnapshot.deleteMany({ where: { companyId: id } });
-      await tx.schedulerEvent.deleteMany({ where: { companyId: id } });
-      await tx.integration.deleteMany({ where: { companyId: id } });
-      await tx.webhookEndpoint.deleteMany({ where: { companyId: id } });
-      await tx.csvImportBatch.deleteMany({ where: { companyId: id } });
-      await tx.role.deleteMany({ where: { companyId: id } });
-      await tx.channel.deleteMany({ where: { companyId: id } });
-      await tx.companyResourceSequence.deleteMany({ where: { companyId: id } });
-
       // Finally delete the company itself
-      await tx.company.delete({
-        where: { id: companyId },
-      });
-    }, { maxWait: 15000, timeout: 30000 });
+      await tx.company.delete({ where: { id: companyId } });
+    }, { maxWait: 15000, timeout: 60000 });
 
     return NextResponse.json({ success: true, message: "Sub-company deleted and credits rolled back" });
   } catch (err: any) {
