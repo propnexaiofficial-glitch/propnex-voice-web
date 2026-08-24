@@ -55,7 +55,6 @@ export async function GET(req: NextRequest) {
       companyIdsToQuery = [member.companyId, ...subCompanies.map((c: any) => c.id)];
     }
 
-    const now = new Date();
     const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
