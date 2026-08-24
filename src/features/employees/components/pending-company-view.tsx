@@ -58,38 +58,40 @@ export function PendingCompanyView({ company }: PendingCompanyViewProps) {
     setReminderMessage(null);
 
     try {
-      const token =
-        localStorage.getItem("accessToken") || localStorage.getItem("access_token");
       const storedUser = localStorage.getItem("user");
       const user = storedUser ? JSON.parse(storedUser) : {};
 
-      // Hit the admin panel's number-requests API.
-      // The backend deduplicates: if a notification already exists it only
-      // updates the timestamp and sends the email — it does NOT create a new record.
       const adminBase =
         process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
 
-      const res = await fetch(`${adminBase}/api/number-requests`, {
+      // Send to the sub-company reminder endpoint which notifies the admin
+      // via the Sub-Company Verifications bell (NOT the number-requests area).
+      // Backend enforces 24h lock per subcompany. It returns 429 if already locked.
+      const res = await fetch(`${adminBase}/api/sub-company-reminder`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: user.email || "",
           companyId: company.id,
+          companyName: company.name,
+          email: user.email || "",
           name: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unknown",
         }),
       });
 
-      if (res.ok || res.status === 200) {
+      if (res.status === 429) {
+        // Server-side 24h lock already active
+        localStorage.setItem(storageKey, Date.now().toString());
+        setCanRemind(false);
+        const data = await res.json().catch(() => ({}));
+        const hoursLeft = data.hoursLeft ? `${Math.ceil(data.hoursLeft)}h` : "24h";
+        setTimeRemaining(hoursLeft);
+        setReminderMessage("A reminder was already sent recently. Please wait 24 hours.");
+      } else if (res.ok) {
         // Lock locally for 24h
         localStorage.setItem(storageKey, Date.now().toString());
         setCanRemind(false);
         setTimeRemaining("24h 0m");
-        setReminderMessage("Reminder sent! The admin has been notified by email.");
-      } else if (res.status === 429) {
-        // Backend 24h lock
-        localStorage.setItem(storageKey, Date.now().toString());
-        setCanRemind(false);
-        setReminderMessage("You can only send a reminder once every 24 hours.");
+        setReminderMessage("Reminder sent! The admin has been notified in their verification area.");
       } else {
         setReminderMessage("Failed to send reminder. Please try again.");
       }
