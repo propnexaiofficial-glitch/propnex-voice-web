@@ -85,32 +85,27 @@ export async function GET(req: NextRequest) {
     const creditsUsedByCalls = callStats._sum.creditsUsed || 0;
     const pastCreditsUsed = pastCallStats._sum.creditsUsed || 0;
 
-    // Also include credits that have been allocated to sub-companies (they left the main balance)
-    let subCompanyAllocated = 0;
+    // Read total credits used directly from the creditBalance record.
+    // This field tracks ALL credits deducted from the main balance
+    // (both consumed by calls AND allocated to sub-companies),
+    // so it shows the correct total: e.g. 10,000 purchased - 8,800 remaining = 1,200 used.
+    let creditsUsed = creditsUsedByCalls; // fallback
     try {
-      if (!targetCompanyId) {
-        // Sum of what sub-companies currently hold (remaining) + what they used
-        const subCreditBalances = await (prisma as any).creditBalance.findMany({
-          where: { companyId: { in: companyIdsToQuery.filter((id: string) => id !== member.companyId) } },
-          select: { creditsRemaining: true, creditsUsed: true }
-        });
-        subCompanyAllocated = subCreditBalances.reduce(
-          (acc: number, cb: any) => acc + (cb.creditsRemaining || 0) + (cb.creditsUsed || 0), 0
-        );
+      const mainCreditBalance = await (prisma as any).creditBalance.findFirst({
+        where: { companyId: member.companyId },
+        select: { creditsUsed: true }
+      });
+      if (mainCreditBalance && mainCreditBalance.creditsUsed != null) {
+        creditsUsed = mainCreditBalance.creditsUsed;
       }
     } catch (e) {}
 
-    // Total credits used = actual call usage + what was permanently allocated to sub-companies
-    const creditsUsed = creditsUsedByCalls + subCompanyAllocated;
-
     // Default baselines: used when no real last-month data exists.
-    // These represent a realistic "baseline month" for percentage comparison.
     const DEFAULT_INBOUND_LAST_MONTH  = 400;
     const DEFAULT_OUTBOUND_LAST_MONTH = 200;
     const DEFAULT_CREDITS_LAST_MONTH  = 5000;
 
     const calcTrend = (current: number, past: number, defaultBaseline: number) => {
-      // Use real last-month data if it exists, else fall back to the default baseline
       const baseline = past > 0 ? past : defaultBaseline;
       if (baseline === 0) return current > 0 ? 100 : 0;
       return Math.round(((current - baseline) / baseline) * 100);
@@ -124,7 +119,7 @@ export async function GET(req: NextRequest) {
       inboundTrend:  calcTrend(inboundCalls,  pastInboundCalls,  DEFAULT_INBOUND_LAST_MONTH),
       outboundTrend: calcTrend(outboundCalls, pastOutboundCalls, DEFAULT_OUTBOUND_LAST_MONTH),
       creditsTrend:  calcTrend(creditsUsedByCalls, pastCreditsUsed, DEFAULT_CREDITS_LAST_MONTH),
-      agentsTrend: 0 // Agents are a snapshot, hard to do MoM without history
+      agentsTrend: 0
     });
   } catch (err: any) {
     console.error("Dashboard stats error:", err);
