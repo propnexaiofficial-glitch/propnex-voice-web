@@ -90,7 +90,7 @@ export async function DELETE(
       // but we do it explicitly just in case, and optionally link back to parent)
       const phoneNumbers = await tx.phoneNumber.findMany({ 
         where: { companyId: companyId },
-        select: { id: true, phoneNumberId: true, publicId: true }
+        select: { id: true, phoneNumberId: true, publicId: true, number: true }
       });
       for (const phone of phoneNumbers) {
         await tx.phoneNumber.update({
@@ -100,6 +100,7 @@ export async function DELETE(
             assignedParentTenantId: parentCompanyId,
             phoneNumberId: `${phone.phoneNumberId}-sub-${companyId.slice(-4)}`,
             publicId: `${phone.publicId}-sub-${companyId.slice(-4)}`,
+            number: `${phone.number}-sub-${companyId.slice(-4)}`,
           }
         });
       }
