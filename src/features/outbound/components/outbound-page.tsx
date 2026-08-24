@@ -92,6 +92,7 @@ export function OutboundPageContent() {
         onChange={updateFilters}
         onReset={resetFilters}
         searchId="outbound-search"
+        loading={loading}
       />
 
       {error ? (

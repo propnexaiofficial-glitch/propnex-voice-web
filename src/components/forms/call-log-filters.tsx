@@ -1,6 +1,7 @@
 "use client";
 
-import { Filter, RotateCcw, Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Filter, RotateCcw, Search, Loader2 } from "lucide-react";
 
 import { SelectField } from "@/components/forms/select-field";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ type CallLogFiltersBarProps = {
   searchId?: string;
   className?: string;
   hideAssignedNumber?: boolean;
+  loading?: boolean;
 };
 
 export function CallLogFiltersBar({
@@ -28,9 +30,21 @@ export function CallLogFiltersBar({
   searchId = "call-log-search",
   className,
   hideAssignedNumber = false,
+  loading = false,
 }: CallLogFiltersBarProps) {
+  const [localFilters, setLocalFilters] = useState<CallLogFilters>(filters);
+
+  // Sync with external filters if they reset or change externally
+  useEffect(() => {
+    setLocalFilters(filters);
+  }, [filters]);
+
   const update = (patch: Partial<CallLogFilters>) => {
-    onChange({ ...filters, ...patch });
+    setLocalFilters((prev) => ({ ...prev, ...patch }));
+  };
+
+  const handleSearch = () => {
+    onChange(localFilters);
   };
 
   const hasActiveFilters =
@@ -40,29 +54,47 @@ export function CallLogFiltersBar({
     filters.dateTo !== DEFAULT_CALL_FILTERS.dateTo ||
     filters.assignedNumber !== DEFAULT_CALL_FILTERS.assignedNumber ||
     filters.callerNumber !== DEFAULT_CALL_FILTERS.callerNumber ||
-    filters.minDuration !== DEFAULT_CALL_FILTERS.minDuration;
+    filters.minDuration !== DEFAULT_CALL_FILTERS.minDuration ||
+    filters.durationUnit !== DEFAULT_CALL_FILTERS.durationUnit;
 
   return (
     <div className={cn("glass-card rounded-2xl p-4", className)}>
       <div className="mb-4 flex items-center gap-2">
         <Filter className="size-4 text-foreground" />
         <h3 className="text-sm font-semibold">Filters</h3>
-        {hasActiveFilters && (
+        <div className="ml-auto flex items-center gap-2">
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1.5 text-xs"
+              onClick={onReset}
+              disabled={loading}
+            >
+              <RotateCcw className="size-3.5" />
+              Reset
+            </Button>
+          )}
           <Button
-            variant="ghost"
+            variant="default"
             size="sm"
-            className="ml-auto h-8 gap-1.5 text-xs"
-            onClick={onReset}
+            className="h-8 gap-1.5 text-xs"
+            onClick={handleSearch}
+            disabled={loading}
           >
-            <RotateCcw className="size-3.5" />
-            Reset
+            {loading ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Search className="size-3.5" />
+            )}
+            Search
           </Button>
-        )}
+        </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
         {!hideAssignedNumber && (
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 lg:col-span-1">
             <label
               htmlFor={`${searchId}-assigned`}
               className="text-xs font-medium text-muted-foreground"
@@ -74,15 +106,16 @@ export function CallLogFiltersBar({
               <Input
                 id={`${searchId}-assigned`}
                 placeholder="Filter assigned..."
-                value={filters.assignedNumber}
+                value={localFilters.assignedNumber}
                 onChange={(e) => update({ assignedNumber: e.target.value })}
                 className="pl-10"
+                disabled={loading}
               />
             </div>
           </div>
         )}
 
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 lg:col-span-1">
           <label
             htmlFor={`${searchId}-caller`}
             className="text-xs font-medium text-muted-foreground"
@@ -94,21 +127,24 @@ export function CallLogFiltersBar({
             <Input
               id={`${searchId}-caller`}
               placeholder="Filter caller..."
-              value={filters.callerNumber}
+              value={localFilters.callerNumber}
               onChange={(e) => update({ callerNumber: e.target.value })}
               className="pl-10"
+              disabled={loading}
             />
           </div>
         </div>
 
         <SelectField
           label="Status"
-          value={filters.status}
+          value={localFilters.status}
           onChange={(e) =>
             update({
               status: e.target.value as CallLogFilters["status"],
             })
           }
+          className="lg:col-span-1"
+          disabled={loading}
         >
           {CALL_STATUS_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -117,7 +153,7 @@ export function CallLogFiltersBar({
           ))}
         </SelectField>
 
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 lg:col-span-1">
           <label
             htmlFor={`${searchId}-from`}
             className="text-xs font-medium text-muted-foreground"
@@ -127,12 +163,13 @@ export function CallLogFiltersBar({
           <Input
             id={`${searchId}-from`}
             type="date"
-            value={filters.dateFrom}
+            value={localFilters.dateFrom}
             onChange={(e) => update({ dateFrom: e.target.value })}
+            disabled={loading}
           />
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 lg:col-span-1">
           <label
             htmlFor={`${searchId}-to`}
             className="text-xs font-medium text-muted-foreground"
@@ -142,27 +179,45 @@ export function CallLogFiltersBar({
           <Input
             id={`${searchId}-to`}
             type="date"
-            value={filters.dateTo}
+            value={localFilters.dateTo}
             onChange={(e) => update({ dateTo: e.target.value })}
+            disabled={loading}
           />
         </div>
 
-        <div className="space-y-1.5">
-          <label
-            htmlFor={`${searchId}-duration`}
-            className="text-xs font-medium text-muted-foreground"
+        <div className="flex gap-2 lg:col-span-1">
+          <div className="space-y-1.5 flex-1">
+            <label
+              htmlFor={`${searchId}-duration`}
+              className="text-xs font-medium text-muted-foreground truncate"
+            >
+              Min Duration
+            </label>
+            <Input
+              id={`${searchId}-duration`}
+              type="number"
+              min="0"
+              step="any"
+              placeholder="e.g. 2"
+              value={localFilters.minDuration}
+              onChange={(e) => update({ minDuration: e.target.value })}
+              disabled={loading}
+            />
+          </div>
+          <SelectField
+            label="Unit"
+            value={localFilters.durationUnit}
+            onChange={(e) =>
+              update({
+                durationUnit: e.target.value as "sec" | "min",
+              })
+            }
+            disabled={loading}
+            className="w-20"
           >
-            Min Duration (sec)
-          </label>
-          <Input
-            id={`${searchId}-duration`}
-            type="number"
-            min="0"
-            step="any"
-            placeholder="e.g. 2"
-            value={filters.minDuration}
-            onChange={(e) => update({ minDuration: e.target.value })}
-          />
+            <option value="sec">Sec</option>
+            <option value="min">Min</option>
+          </SelectField>
         </div>
       </div>
     </div>

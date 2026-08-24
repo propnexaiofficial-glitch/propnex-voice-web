@@ -50,12 +50,15 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
             {isLocked || isPending ? <Lock className="size-4" /> : <Building2 className="size-4" />}
           </div>
 
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 flex flex-col gap-0.5">
             <div className="flex items-center gap-2">
               <p className={cn("truncate text-sm font-semibold", isLocked && "text-red-500")}>{company.name}</p>
               {company.isPremium && <PremiumBadge size="sm" />}
             </div>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground truncate">
+              Assigned Number <span className="opacity-50 mx-1">•</span> <span className="font-medium text-foreground">{company.contactPhone || "_____"}</span>
+            </p>
+            <p className="text-[11px] text-muted-foreground">
               Joined{" "}
               {new Date(company.joinedDate).toLocaleDateString("en-SG", {
                 month: "short",

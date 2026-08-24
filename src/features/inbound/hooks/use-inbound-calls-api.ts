@@ -86,7 +86,7 @@ export function useInboundCallsApi(
     error: null,
   });
 
-  const { search, status, dateFrom, dateTo, assignedNumber, callerNumber, minDuration } = filters;
+  const { search, status, dateFrom, dateTo, assignedNumber, callerNumber, minDuration, durationUnit } = filters;
 
   const cacheKey = `calls_cache_v5_${direction}_${companyId}_${page}`;
 
@@ -122,6 +122,13 @@ export function useInboundCallsApi(
           limit: PAGE_SIZE,
           companyId,
           direction: direction === "inbound" ? "INBOUND" : direction === "outbound" ? "OUTBOUND" : undefined,
+          search,
+          assignedNumber,
+          callerNumber,
+          dateFrom,
+          dateTo,
+          minDuration,
+          durationUnit,
         });
 
         if (isCancelled) return;
@@ -163,92 +170,22 @@ export function useInboundCallsApi(
       isCancelled = true;
       clearInterval(intervalId);
     };
-  }, [status, page, retryKey, hasAssignedNumber, companyId, direction]);
+  }, [status, page, retryKey, hasAssignedNumber, companyId, direction, search, assignedNumber, callerNumber, dateFrom, dateTo, minDuration, durationUnit]);
 
   const fallbackAssignedNumber = "Unknown"; // Can fetch from localStorage if needed, omitted here to keep synchronous filtering fast.
 
   const processedState = useMemo(() => {
     let items = state.rawItems;
 
-    // Client-side search filters
-    if (search && search.trim()) {
-      const q = search.toLowerCase();
-      const qPhone = cleanPhone(search);
-      items = items.filter((item) => {
-        const pNum = typeof item.phoneNumber === 'string' ? item.phoneNumber : item.phoneNumber?.number;
-        const leadPhone = item.lead?.phone;
-        const customerNumRaw = String(leadPhone || item.customerNumber || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown");
-        const assignedNumRaw = String(pNum || item.assignedNumber || item.providerWebhook?.callid || item.providerWebhook?.calledno || fallbackAssignedNumber);
-        const customerNum = customerNumRaw.toLowerCase();
-        return (
-          item.publicId?.toLowerCase().includes(q) ||
-          (item.providerCallId ?? "").toLowerCase().includes(q) ||
-          (item.phoneNumberId ?? "").toLowerCase().includes(q) ||
-          customerNum.includes(q) ||
-          (qPhone && cleanPhone(customerNumRaw).includes(qPhone)) ||
-          (qPhone && cleanPhone(assignedNumRaw).includes(qPhone))
-        );
-      });
-    }
-
-    if (assignedNumber && assignedNumber.trim()) {
-      const q = cleanPhone(assignedNumber);
-      items = items.filter((item) => {
-         const pNum = typeof item.phoneNumber === 'string' ? item.phoneNumber : item.phoneNumber?.number;
-         const assignedNumRaw = String(pNum || item.assignedNumber || item.providerWebhook?.callid || item.providerWebhook?.calledno || fallbackAssignedNumber);
-         const num = cleanPhone(assignedNumRaw);
-         return num.includes(q);
-      });
-    }
-
-    if (callerNumber && callerNumber.trim()) {
-      const q = cleanPhone(callerNumber);
-      items = items.filter((item) => {
-         const leadPhone = item.lead?.phone;
-         const customerNumRaw = String(leadPhone || item.customerNumber || item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber || "Unknown");
-         const num = cleanPhone(customerNumRaw);
-         return num.includes(q);
-      });
-    }
-
-    if (dateFrom || dateTo) {
-      items = items.filter((item) => {
-        const d = (item.startedAt || "").slice(0, 10);
-        if (dateFrom && d < dateFrom) return false;
-        if (dateTo && d > dateTo) return false;
-        return true;
-      });
-    }
-
-    if (minDuration && minDuration.trim()) {
-      const minSec = parseFloat(minDuration);
-      if (!isNaN(minSec)) {
-         items = items.filter((item) => (item.durationSeconds || 0) >= minSec);
-      }
-    }
-
-    const isFilteredLocally = Boolean(
-      (search && search.trim()) || 
-      dateFrom || dateTo || 
-      (assignedNumber && assignedNumber.trim()) || 
-      (callerNumber && callerNumber.trim()) || 
-      (minDuration && minDuration.trim())
-    );
-    
-    const finalTotal = isFilteredLocally ? items.length : state.rawTotal;
-    const finalTotalPages = isFilteredLocally 
-      ? (Math.ceil(items.length / PAGE_SIZE) || 1) 
-      : state.rawTotalPages;
-
     return {
       calls: items.map((item: any) => mapApiItemToCallRecord(item, fallbackAssignedNumber)),
       rawCalls: items,
-      total: finalTotal,
-      totalPages: finalTotalPages,
+      total: state.rawTotal,
+      totalPages: state.rawTotalPages,
       loading: state.loading,
       error: state.error,
     };
-  }, [state, search, dateFrom, dateTo, assignedNumber, callerNumber, minDuration]);
+  }, [state, search, dateFrom, dateTo, assignedNumber, callerNumber, minDuration, durationUnit]);
 
   return processedState;
 }

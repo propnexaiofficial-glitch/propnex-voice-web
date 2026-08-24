@@ -24,10 +24,6 @@ const nextConfig: NextConfig = {
           source: "/api/webhook/:path*",
           destination: "http://200.234.34.240:3001/api/webhook/:path*",
         },
-        {
-          source: "/api/calls/inbound",
-          destination: "http://200.234.34.240:3001/api/users/calls/inbound",
-        },
       ],
       fallback: [
         {

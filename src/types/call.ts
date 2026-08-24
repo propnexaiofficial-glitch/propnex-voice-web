@@ -33,6 +33,7 @@ export type CallLogFilters = {
   assignedNumber: string;
   callerNumber: string;
   minDuration: string;
+  durationUnit: "sec" | "min";
 };
 
 export const DEFAULT_CALL_FILTERS: CallLogFilters = {
@@ -43,6 +44,7 @@ export const DEFAULT_CALL_FILTERS: CallLogFilters = {
   assignedNumber: "",
   callerNumber: "",
   minDuration: "",
+  durationUnit: "sec",
 };
 
 export const CALL_STATUS_OPTIONS: { value: CallStatus | "all"; label: string }[] =

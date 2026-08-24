@@ -130,6 +130,7 @@ export function InboundPageContent() {
         filters={filters}
         onChange={handleFiltersChange}
         onReset={handleResetFilters}
+        loading={loading}
       />
 
       {/* ── Error ── */}

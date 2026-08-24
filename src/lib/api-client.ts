@@ -54,6 +54,13 @@ export type CallListParams = {
   provider?: string;
   page?: number;
   limit?: number;
+  search?: string;
+  assignedNumber?: string;
+  callerNumber?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  minDuration?: string;
+  durationUnit?: "sec" | "min";
 };
 
 export async function fetchInboundCalls(
@@ -66,6 +73,13 @@ export async function fetchInboundCalls(
   if (params.page) query.set("page", String(params.page));
   if (params.limit) query.set("limit", String(params.limit));
   if (params.direction) query.set("direction", params.direction);
+  if (params.search) query.set("search", params.search);
+  if (params.assignedNumber) query.set("assignedNumber", params.assignedNumber);
+  if (params.callerNumber) query.set("callerNumber", params.callerNumber);
+  if (params.dateFrom) query.set("dateFrom", params.dateFrom);
+  if (params.dateTo) query.set("dateTo", params.dateTo);
+  if (params.minDuration) query.set("minDuration", params.minDuration);
+  if (params.durationUnit) query.set("durationUnit", params.durationUnit);
 
   let token = "";
   let companyId = params.companyId || "";

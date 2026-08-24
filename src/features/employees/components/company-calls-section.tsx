@@ -138,6 +138,7 @@ export function CompanyCallsSection({
         onReset={resetFilters}
         searchId={`${companyId}-${direction}-search`}
         hideAssignedNumber={true}
+        loading={loading}
       />
 
       {isLocked ? (
