@@ -3,6 +3,7 @@ export type SubCompany = {
   name: string;
   contactEmail: string;
   contactPhone: string;
+  assignedNumbers: string[]; // all phone numbers assigned to this sub-company
   creditsUsed: number;
   creditsLimit: number;
   creditsRemaining: number;

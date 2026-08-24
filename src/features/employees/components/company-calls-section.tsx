@@ -62,7 +62,8 @@ export function CompanyCallsSection({
   const { getCompanyById } = useEmployeesContext();
   const company = getCompanyById(companyId);
   const isOutOfCredits = (company?.creditsRemaining ?? 0) <= 0;
-  const isLocked = !company?.contactPhone || isOutOfCredits;
+  const hasAnyNumber = !!(company?.contactPhone || company?.assignedNumbers?.length);
+  const isLocked = !hasAnyNumber || isOutOfCredits;
 
   const [filters, setFilters] = useState<CallLogFilters>(DEFAULT_CALL_FILTERS);
   const [page, setPage] = useState(1);
@@ -137,7 +138,7 @@ export function CompanyCallsSection({
         onChange={updateFilters}
         onReset={resetFilters}
         searchId={`${companyId}-${direction}-search`}
-        hideAssignedNumber={true}
+        hideAssignedNumber={false}
         loading={loading}
       />
 

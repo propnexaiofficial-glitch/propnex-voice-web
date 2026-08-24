@@ -119,11 +119,27 @@ export function CompanyOverviewSection({
                   </Badge>
                 )}
               </div>
-              <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5">
-                  <Phone className="size-3 shrink-0" />
-                  {company.contactPhone || "Pending Assignment..."}
-                </span>
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] text-muted-foreground font-medium">Assigned Numbers</span>
+                {(company.assignedNumbers?.length ? company.assignedNumbers : company.contactPhone ? [company.contactPhone] : []).length === 0 ? (
+                  <span className="text-xs text-amber-500">Pending Assignment...</span>
+                ) : (
+                  <div className="flex flex-wrap gap-1.5">
+                    {(company.assignedNumbers?.length ? company.assignedNumbers : [company.contactPhone]).filter(Boolean).map((num, i) => {
+                      const last3 = (num as string).replace(/\s/g, "").slice(-3);
+                      return (
+                        <span
+                          key={i}
+                          title={num as string}
+                          className="group inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-xs font-mono cursor-default"
+                        >
+                          <span className="group-hover:hidden">•••{last3}</span>
+                          <span className="hidden group-hover:inline text-primary">{num}</span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -192,15 +208,15 @@ export function CompanyOverviewSection({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <CallPreviewPanel 
-          calls={realPreviewCalls} 
+          calls={inboundPreviews} 
           direction="inbound" 
-          isLocked={company.creditsRemaining <= 0 ? "Locked (0 Credits)" : !company.contactPhone} 
+          isLocked={company.creditsRemaining <= 0 ? "Locked (0 Credits)" : !(company.contactPhone || company.assignedNumbers?.length)} 
           onAddCredits={company.creditsRemaining <= 0 ? () => setTransferOpen(true) : undefined}
         />
         <CallPreviewPanel 
-          calls={realPreviewCalls} 
+          calls={outboundPreviews} 
           direction="outbound" 
-          isLocked={company.creditsRemaining <= 0 ? "Locked (0 Credits)" : !company.contactPhone} 
+          isLocked={company.creditsRemaining <= 0 ? "Locked (0 Credits)" : !(company.contactPhone || company.assignedNumbers?.length)} 
           onAddCredits={company.creditsRemaining <= 0 ? () => setTransferOpen(true) : undefined}
         />
       </div>

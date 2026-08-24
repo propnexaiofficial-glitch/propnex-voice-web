@@ -39,8 +39,14 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
     (company.creditsUsed / company.creditsLimit) * 100
   );
 
-  const isPending = company.status.toUpperCase() === "PENDING" || !company.contactPhone;
+  const isPending = company.status.toUpperCase() === "PENDING";
   const isLocked = company.creditsRemaining <= 0;
+  const allNumbers = company.assignedNumbers?.length
+    ? company.assignedNumbers
+    : company.contactPhone
+    ? [company.contactPhone]
+    : [];
+  const hasNumbers = allNumbers.length > 0;
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -102,9 +108,28 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
               <p className={cn("truncate text-sm font-semibold", isLocked && "text-red-500")}>{company.name}</p>
               {company.isPremium && <PremiumBadge size="sm" />}
             </div>
-            <p className="text-[11px] text-muted-foreground truncate">
-              Assigned Number <span className="opacity-50 mx-1">•</span> <span className="font-medium text-foreground">{company.contactPhone || "_____"}</span>
-            </p>
+            <div className="flex flex-col gap-0.5">
+              <p className="text-[11px] text-muted-foreground truncate">
+                Assigned Numbers{" "}
+                <span className="opacity-50 mx-1">•</span>
+                {!hasNumbers ? (
+                  <span className="font-medium text-amber-500">Pending...</span>
+                ) : (
+                  <span className="font-medium text-foreground">
+                    {allNumbers.map((num, i) => {
+                      const last3 = num.replace(/\s/g, "").slice(-3);
+                      return (
+                        <span key={i} title={num} className="cursor-default group relative">
+                          {i > 0 && <span className="opacity-40 mx-0.5">,</span>}
+                          <span className="font-mono tracking-wide group-hover:hidden">•••{last3}</span>
+                          <span className="font-mono tracking-wide hidden group-hover:inline text-primary">{num}</span>
+                        </span>
+                      );
+                    })}
+                  </span>
+                )}
+              </p>
+            </div>
             <p className="text-[11px] text-muted-foreground">
               Joined{" "}
               {new Date(company.joinedDate).toLocaleDateString("en-SG", {

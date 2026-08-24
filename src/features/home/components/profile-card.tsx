@@ -134,7 +134,7 @@ export function ProfileCard({ className }: ProfileCardProps) {
             </div>
           </div>
 
-          {/* Assigned Numbers — Two visible sections */}
+          {/* Assigned Numbers — Two visible sections with masked display */}
           <div className="rounded-lg border border-border bg-muted/20 px-3 py-3 space-y-3">
             <div className="flex items-center gap-2">
               <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
@@ -152,20 +152,39 @@ export function ProfileCard({ className }: ProfileCardProps) {
                   Main Company
                 </p>
                 {mainNumbers.length > 0 ? (
-                  mainNumbers.map((d, i) => (
-                    <div key={i} className="flex items-center gap-1.5">
-                      <span className="size-1.5 rounded-full bg-green-500 shrink-0" />
-                      <span className="text-xs text-muted-foreground truncate">{d.companyName}</span>
-                      <span className="text-xs font-semibold text-foreground ml-auto shrink-0">{d.number}</span>
-                    </div>
-                  ))
+                  mainNumbers.map((d, i) => {
+                    const num = d.number || "";
+                    const last3 = num.replace(/\s/g, "").slice(-3);
+                    return (
+                      <div key={i} className="flex items-center gap-1.5">
+                        <span className="size-1.5 rounded-full bg-green-500 shrink-0" />
+                        <span className="text-xs text-muted-foreground truncate">{d.companyName}</span>
+                        <span
+                          title={num}
+                          className="text-xs font-mono ml-auto shrink-0 cursor-default group relative"
+                        >
+                          <span className="group-hover:hidden font-semibold text-foreground">•••{last3}</span>
+                          <span className="hidden group-hover:inline font-semibold text-primary">{num}</span>
+                        </span>
+                      </div>
+                    );
+                  })
                 ) : fallbackNumbers.length > 0 ? (
-                  fallbackNumbers.map((num: string, i: number) => (
-                    <div key={i} className="flex items-center gap-1.5">
-                      <span className="size-1.5 rounded-full bg-green-500 shrink-0" />
-                      <span className="text-xs font-semibold text-foreground">{num}</span>
-                    </div>
-                  ))
+                  fallbackNumbers.map((num: string, i: number) => {
+                    const last3 = num.replace(/\s/g, "").slice(-3);
+                    return (
+                      <div key={i} className="flex items-center gap-1.5">
+                        <span className="size-1.5 rounded-full bg-green-500 shrink-0" />
+                        <span
+                          title={num}
+                          className="text-xs font-mono cursor-default group relative"
+                        >
+                          <span className="group-hover:hidden font-semibold text-foreground">•••{last3}</span>
+                          <span className="hidden group-hover:inline font-semibold text-primary">{num}</span>
+                        </span>
+                      </div>
+                    );
+                  })
                 ) : (
                   <span className="text-xs text-muted-foreground italic">Not Assigned</span>
                 )}
@@ -177,13 +196,23 @@ export function ProfileCard({ className }: ProfileCardProps) {
                   Sub-Companies
                 </p>
                 {subNumbers.length > 0 ? (
-                  subNumbers.map((d, i) => (
-                    <div key={i} className="flex items-center gap-1.5">
-                      <span className="size-1.5 rounded-full bg-blue-500 shrink-0" />
-                      <span className="text-xs text-muted-foreground truncate">{d.companyName}</span>
-                      <span className="text-xs font-semibold text-foreground ml-auto shrink-0">{d.number}</span>
-                    </div>
-                  ))
+                  subNumbers.map((d, i) => {
+                    const num = d.number || "";
+                    const last3 = num.replace(/\s/g, "").slice(-3);
+                    return (
+                      <div key={i} className="flex items-center gap-1.5">
+                        <span className="size-1.5 rounded-full bg-blue-500 shrink-0" />
+                        <span className="text-xs text-muted-foreground truncate">{d.companyName}</span>
+                        <span
+                          title={num}
+                          className="text-xs font-mono ml-auto shrink-0 cursor-default group relative"
+                        >
+                          <span className="group-hover:hidden font-semibold text-foreground">•••{last3}</span>
+                          <span className="hidden group-hover:inline font-semibold text-primary">{num}</span>
+                        </span>
+                      </div>
+                    );
+                  })
                 ) : (
                   <span className="text-xs text-muted-foreground italic">None</span>
                 )}

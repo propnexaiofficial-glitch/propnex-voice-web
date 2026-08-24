@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
       where: { parentCompanyId: member.companyId },
       include: { 
         creditBalance: true,
-        phoneNumbers: { take: 1, select: { number: true } }
+        phoneNumbers: { select: { number: true } } // return ALL assigned numbers
       }
     });
 
@@ -39,14 +39,16 @@ export async function GET(req: NextRequest) {
     });
 
     const formatted = subCompanies.map((c: any) => {
-      const inbound = callCounts.find(cc => cc.companyId === c.id && cc.direction === "INBOUND")?._count._all || 0;
-      const outbound = callCounts.find(cc => cc.companyId === c.id && cc.direction === "OUTBOUND")?._count._all || 0;
+      const inbound = callCounts.find((cc: any) => cc.companyId === c.id && cc.direction === "INBOUND")?._count._all || 0;
+      const outbound = callCounts.find((cc: any) => cc.companyId === c.id && cc.direction === "OUTBOUND")?._count._all || 0;
+      const allNumbers: string[] = (c.phoneNumbers || []).map((p: any) => p.number).filter(Boolean);
 
       return {
         _id: c.id,
         companyName: c.name,
         companyEmail: "",
-        contactPhone: c.phoneNumbers?.[0]?.number || "",
+        contactPhone: allNumbers[0] || "",       // first number (backward-compat)
+        assignedNumbers: allNumbers,              // ALL numbers
         creditsUsed: c.creditBalance?.creditsUsed || 0,
         creditsRemaining: c.creditBalance?.creditsRemaining || 0,
         inboundCalls: inbound,

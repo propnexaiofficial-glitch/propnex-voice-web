@@ -13,7 +13,9 @@ export function CompanyWorkspaceLayout({
   company,
   children,
 }: CompanyWorkspaceLayoutProps) {
-  const isLocked = !company.contactPhone || company.status.toUpperCase() === "PENDING";
+  // Unlocked if ANY number is assigned, regardless of how many
+  const hasAnyNumber = !!(company.contactPhone || company.assignedNumbers?.length);
+  const isLocked = !hasAnyNumber || company.status.toUpperCase() === "PENDING";
   if (isLocked) {
     return <PendingCompanyView company={company} />;
   }
