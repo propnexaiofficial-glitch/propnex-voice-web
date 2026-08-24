@@ -68,10 +68,21 @@ export async function DELETE(
       }
 
       // 4. Preserve Call Logs: Reassign to parent company so they remain visible
-      await tx.callLog.updateMany({
+      // We must iterate and append a suffix to prevent unique constraint errors on companyId_callLogId
+      const callLogs = await tx.callLog.findMany({ 
         where: { companyId: companyId },
-        data: { companyId: parentCompanyId },
+        select: { id: true, callLogId: true, publicId: true }
       });
+      for (const log of callLogs) {
+        await tx.callLog.update({
+          where: { id: log.id },
+          data: {
+            companyId: parentCompanyId,
+            callLogId: `${log.callLogId}-sub-${companyId.slice(-4)}`,
+            publicId: `${log.publicId}-sub-${companyId.slice(-4)}`,
+          }
+        });
+      }
 
       // 5. Unassign phone numbers (technically onDelete: SetNull handles this, 
       // but we do it explicitly just in case, and optionally link back to parent)
