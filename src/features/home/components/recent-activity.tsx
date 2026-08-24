@@ -14,6 +14,17 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 
+function formatDate(iso: string) {
+  try {
+    return new Intl.DateTimeFormat("en-SG", {
+      day: "numeric", month: "short", year: "numeric",
+      hour: "numeric", minute: "numeric", hour12: true
+    }).format(new Date(iso));
+  } catch (e) {
+    return iso;
+  }
+}
+
 const typeConfig: Record<
   RecentActivityItem["type"],
   { icon: typeof PhoneIncoming }
@@ -113,7 +124,7 @@ export function RecentActivity({ className }: RecentActivityProps) {
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-sm font-medium">{item.title}</p>
                     <span className="shrink-0 text-xs text-muted-foreground">
-                      {item.timestamp}
+                      {formatDate(item.timestamp)}
                     </span>
                   </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">

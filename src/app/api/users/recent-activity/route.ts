@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
       type: call.direction === "INBOUND" ? "inbound" : "outbound",
       title: `${call.direction === "INBOUND" ? "Inbound" : "Outbound"} Call`,
       description: `Call with ${call.durationSeconds}s duration`,
-      timestamp: new Date(call.startedAt).toLocaleString()
+      timestamp: call.startedAt.toISOString()
     }));
 
     return NextResponse.json(activity);
