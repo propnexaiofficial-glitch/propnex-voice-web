@@ -12,6 +12,9 @@ import { useInboundCallsApi } from "@/features/inbound/hooks/use-inbound-calls-a
 import { DEFAULT_CALL_FILTERS } from "@/types/call";
 import { cn } from "@/lib/utils";
 
+// Simple module-level cache to prevent flickering on tab switches
+const statsCache: Record<string, any> = {};
+
 type CompanyOverviewSectionProps = {
   company: SubCompany;
   previewCalls?: CallPreview[];
@@ -25,16 +28,23 @@ export function CompanyOverviewSection({
   const { calls: inboundCallsRaw } = useInboundCallsApi(DEFAULT_CALL_FILTERS, 1, 0, true, company.id, "inbound");
   const { calls: outboundCallsRaw } = useInboundCallsApi(DEFAULT_CALL_FILTERS, 1, 0, true, company.id, "outbound");
 
-  const [stats, setStats] = useState({
-    creditsUsed: company.creditsUsed,
-    inboundCalls: company.inboundCalls,
-    outboundCalls: company.outboundCalls,
-    creditsTrend: 0,
-    inboundTrend: 0,
-    outboundTrend: 0,
-  });
+  const [stats, setStats] = useState(
+    statsCache[company.id] || {
+      creditsUsed: company.creditsUsed,
+      inboundCalls: company.inboundCalls,
+      outboundCalls: company.outboundCalls,
+      creditsTrend: 0,
+      inboundTrend: 0,
+      outboundTrend: 0,
+    }
+  );
 
   useEffect(() => {
+    if (statsCache[company.id]) {
+      setIsLoading(false);
+      return;
+    }
+    
     const loadStats = async () => {
       try {
         const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
@@ -44,14 +54,16 @@ export function CompanyOverviewSection({
         });
         if (res.ok) {
           const data = await res.json();
-          setStats({
+          const newStats = {
             creditsUsed: data.creditsUsed !== undefined ? data.creditsUsed : company.creditsUsed,
             inboundCalls: data.inboundCalls !== undefined ? data.inboundCalls : company.inboundCalls,
             outboundCalls: data.outboundCalls !== undefined ? data.outboundCalls : company.outboundCalls,
             creditsTrend: data.creditsTrend || 0,
             inboundTrend: data.inboundTrend || 0,
             outboundTrend: data.outboundTrend || 0,
-          });
+          };
+          statsCache[company.id] = newStats;
+          setStats(newStats);
         }
       } catch (e) {
         console.error(e);
