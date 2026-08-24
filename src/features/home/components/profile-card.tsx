@@ -1,12 +1,14 @@
 "use client";
 
-import { Building2, Mail, Phone } from "lucide-react";
+import { Building2, Info, Mail, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useUserContext } from "@/features/auth/context/user-context";
 
 function getInitials(name: string) {
   if (!name || name.trim() === "") return "U";
@@ -32,8 +34,6 @@ type ProfileCardProps = {
   className?: string;
 };
 
-import { useUserContext } from "@/features/auth/context/user-context";
-
 export function ProfileCard({ className }: ProfileCardProps) {
   const { user } = useUserContext();
 
@@ -43,17 +43,23 @@ export function ProfileCard({ className }: ProfileCardProps) {
   const email = user?.email || "—";
   const phone = user?.phone || "—";
   const companyName = user?.company?.name || user?.companyName || (user?.companyId ? "PropNex AI Technology" : "No Company");
-  const rawAssigned = Array.isArray(user?.assignedNumbers) && user.assignedNumbers.length > 0
-    ? user.assignedNumbers
-    : user?.assignedNumber 
-      ? user.assignedNumber.split(",").map((s: string) => s.trim()) 
-      : ["Not Assigned"];
+  
+  const detailedNumbers = user?.assignedNumbersDetailed || [];
+  
+  // Backwards compatibility if detailed numbers aren't fetched yet
+  const rawAssigned = detailedNumbers.length > 0 
+    ? detailedNumbers.map((d: any) => d.number)
+    : Array.isArray(user?.assignedNumbers) && user.assignedNumbers.length > 0
+      ? user.assignedNumbers
+      : user?.assignedNumber 
+        ? user.assignedNumber.split(",").map((s: string) => s.trim()) 
+        : ["Not Assigned"];
 
   const profileFields = [
     { label: "Email", value: email, icon: Mail },
     { label: "Phone", value: phone, icon: Phone },
     { label: "Company", value: companyName, icon: Building2 },
-    { label: "Assigned Number", value: rawAssigned, icon: Phone },
+    { label: "Assigned Number", value: rawAssigned, icon: Phone, detailed: detailedNumbers },
   ];
 
   return (
@@ -98,9 +104,42 @@ export function ProfileCard({ className }: ProfileCardProps) {
                     <Icon className="size-4 text-muted-foreground" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                      {field.label}
-                    </p>
+                    <div className="flex items-center gap-1">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {field.label}
+                      </p>
+                      {field.detailed && field.detailed.length > 0 && (
+                        <TooltipProvider delayDuration={100}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="size-3 cursor-help text-muted-foreground hover:text-foreground transition-colors" />
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="text-xs p-3">
+                              <div className="space-y-3">
+                                <div>
+                                  <div className="font-semibold text-muted-foreground mb-1">Main Company</div>
+                                  {field.detailed.filter((d: any) => d.isMain).length > 0 ? (
+                                    field.detailed.filter((d: any) => d.isMain).map((d: any, i: number) => (
+                                      <div key={i} className="font-medium text-foreground">{d.companyName} - {d.number}</div>
+                                    ))
+                                  ) : (
+                                    <div className="italic text-muted-foreground">None</div>
+                                  )}
+                                </div>
+                                {field.detailed.filter((d: any) => !d.isMain).length > 0 && (
+                                  <div>
+                                    <div className="font-semibold text-muted-foreground mb-1">Sub-Companies</div>
+                                    {field.detailed.filter((d: any) => !d.isMain).map((d: any, i: number) => (
+                                      <div key={i} className="font-medium text-foreground">{d.companyName} - {d.number}</div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </div>
                     <div className="break-all text-sm font-medium">
                       {Array.isArray(field.value) ? (
                         field.value.map((v, i) => (

@@ -67,12 +67,24 @@ export async function GET(req: NextRequest) {
         // Fetch the assigned phone numbers for this company AND its sub-companies
         const phoneRecords = await (prisma as any).phoneNumber.findMany({
           where: { 
-            companyId: member.company.id,
+            OR: [
+              { companyId: member.company.id },
+              { company: { parentCompanyId: member.company.id } }
+            ],
             status: "ACTIVE" 
-          }
+          },
+          include: { company: { select: { name: true } } }
         });
+
+        let assignedNumbersDetailed: any[] = [];
+        
         if (phoneRecords && phoneRecords.length > 0) {
           assignedNumber = phoneRecords.map((r: any) => r.number).join(", ");
+          assignedNumbersDetailed = phoneRecords.map((r: any) => ({
+             isMain: r.companyId === member.company.id,
+             companyName: r.company?.name || "Unknown Company",
+             number: r.number
+          }));
         } else {
           assignedNumber = "Not Assigned";
         }
@@ -94,6 +106,7 @@ export async function GET(req: NextRequest) {
         companyBlockedUntil,
         creditBalance,
         assignedNumber,
+        assignedNumbersDetailed,
       },
     });
   } catch (err: any) {
