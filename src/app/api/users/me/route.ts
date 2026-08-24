@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
     let companyBlockedUntil: string | null = null;
     let creditBalance: any = undefined;
     let assignedNumber: string | null = null;
+    let assignedNumbersDetailed: any[] = [];
 
     try {
       const member = await (prisma as any).companyMember.findFirst({
@@ -75,8 +76,6 @@ export async function GET(req: NextRequest) {
           },
           include: { company: { select: { name: true } } }
         });
-
-        let assignedNumbersDetailed: any[] = [];
         
         if (phoneRecords && phoneRecords.length > 0) {
           assignedNumber = phoneRecords.map((r: any) => r.number).join(", ");
