@@ -92,9 +92,9 @@ export function CallLogFiltersBar({
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {!hideAssignedNumber && (
-          <div className="space-y-1.5 lg:col-span-1">
+          <div className="space-y-1.5">
             <label
               htmlFor={`${searchId}-assigned`}
               className="text-xs font-medium text-muted-foreground"
@@ -115,7 +115,7 @@ export function CallLogFiltersBar({
           </div>
         )}
 
-        <div className="space-y-1.5 lg:col-span-1">
+        <div className="space-y-1.5">
           <label
             htmlFor={`${searchId}-caller`}
             className="text-xs font-medium text-muted-foreground"
@@ -143,7 +143,6 @@ export function CallLogFiltersBar({
               status: e.target.value as CallLogFilters["status"],
             })
           }
-          className="lg:col-span-1"
           disabled={loading}
         >
           {CALL_STATUS_OPTIONS.map((option) => (
@@ -153,7 +152,7 @@ export function CallLogFiltersBar({
           ))}
         </SelectField>
 
-        <div className="space-y-1.5 lg:col-span-1">
+        <div className="space-y-1.5">
           <label
             htmlFor={`${searchId}-from`}
             className="text-xs font-medium text-muted-foreground"
@@ -169,7 +168,7 @@ export function CallLogFiltersBar({
           />
         </div>
 
-        <div className="space-y-1.5 lg:col-span-1">
+        <div className="space-y-1.5">
           <label
             htmlFor={`${searchId}-to`}
             className="text-xs font-medium text-muted-foreground"
@@ -185,11 +184,11 @@ export function CallLogFiltersBar({
           />
         </div>
 
-        <div className="flex gap-2 lg:col-span-1">
-          <div className="space-y-1.5 flex-1">
+        <div className="flex gap-2">
+          <div className="space-y-1.5 min-w-0 flex-1">
             <label
               htmlFor={`${searchId}-duration`}
-              className="text-xs font-medium text-muted-foreground truncate"
+              className="text-xs font-medium text-muted-foreground truncate block"
             >
               Min Duration
             </label>
@@ -213,7 +212,7 @@ export function CallLogFiltersBar({
               })
             }
             disabled={loading}
-            className="w-20"
+            className="w-[85px] shrink-0"
           >
             <option value="sec">Sec</option>
             <option value="min">Min</option>
