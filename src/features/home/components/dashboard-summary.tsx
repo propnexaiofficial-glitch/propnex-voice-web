@@ -40,8 +40,7 @@ export function DashboardSummary({ className }: DashboardSummaryProps) {
         const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
         if (!token) return;
 
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
-        const response = await fetch(`${apiBase}/users/dashboard-stats`, {
+        const response = await fetch(`/api/users/dashboard-stats`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
