@@ -112,6 +112,9 @@ export async function DELETE(
       await tx.callInternalNote.deleteMany({ where: { companyId: id } });
       await tx.callTranscript.deleteMany({ where: { callLog: { companyId: id } } });
       await tx.callLogProviderEvent.deleteMany({ where: { callLog: { companyId: id } } });
+      await tx.contactRetryJob.deleteMany({ where: { companyId: id } });
+      await tx.campaignDocument.deleteMany({ where: { companyId: id } });
+      await tx.campaignActivity.deleteMany({ where: { companyId: id } });
       
       // Call logs are reparented above, but this deletes any leftovers that weren't
       await tx.callLog.deleteMany({ where: { companyId: id } });
