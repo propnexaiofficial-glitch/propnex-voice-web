@@ -43,15 +43,17 @@ export function ProfileCard({ className }: ProfileCardProps) {
   const email = user?.email || "—";
   const phone = user?.phone || "—";
   const companyName = user?.company?.name || user?.companyName || (user?.companyId ? "PropNex AI Technology" : "No Company");
-  const assignedNumbers = Array.isArray(user?.assignedNumbers)
-    ? user.assignedNumbers.join(", ")
-    : user?.assignedNumber || "Not Assigned";
+  const rawAssigned = Array.isArray(user?.assignedNumbers) && user.assignedNumbers.length > 0
+    ? user.assignedNumbers
+    : user?.assignedNumber 
+      ? user.assignedNumber.split(",").map((s: string) => s.trim()) 
+      : ["Not Assigned"];
 
   const profileFields = [
     { label: "Email", value: email, icon: Mail },
     { label: "Phone", value: phone, icon: Phone },
     { label: "Company", value: companyName, icon: Building2 },
-    { label: "Assigned Number", value: assignedNumbers, icon: Phone },
+    { label: "Assigned Number", value: rawAssigned, icon: Phone },
   ];
 
   return (
@@ -99,7 +101,13 @@ export function ProfileCard({ className }: ProfileCardProps) {
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
                       {field.label}
                     </p>
-                    <p className="break-all text-sm font-medium">{field.value}</p>
+                    <div className="break-all text-sm font-medium">
+                      {Array.isArray(field.value) ? (
+                        field.value.map((v, i) => <div key={i}>{v}</div>)
+                      ) : (
+                        field.value
+                      )}
+                    </div>
                   </div>
                 </div>
               );
