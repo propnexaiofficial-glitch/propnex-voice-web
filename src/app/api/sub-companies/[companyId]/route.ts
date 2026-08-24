@@ -56,13 +56,15 @@ export async function DELETE(
 
     // Run deletion in a transaction to ensure data integrity
     await prisma.$transaction(async (tx) => {
-      // 3. Rollback credits to parent company
+      // 3. Rollback credits and preserve creditsUsed to parent company
       const remainingCredits = subCompany.creditBalance?.creditsRemaining || 0;
-      if (remainingCredits > 0) {
+      const usedCredits = subCompany.creditBalance?.creditsUsed || 0;
+      if (remainingCredits > 0 || usedCredits > 0) {
         await tx.creditBalance.update({
           where: { companyId: parentCompanyId },
           data: {
             creditsRemaining: { increment: remainingCredits },
+            creditsUsed: { increment: usedCredits },
           },
         });
       }
