@@ -6,12 +6,14 @@ type EmptyStateProps = {
   title?: string;
   description?: string;
   className?: string;
+  children?: React.ReactNode;
 };
 
 export function EmptyState({
   title = "No data yet",
   description = "Content will appear here once available.",
   className,
+  children,
 }: EmptyStateProps) {
   return (
     <div
@@ -23,8 +25,11 @@ export function EmptyState({
       <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-muted">
         <Inbox className="size-7 text-muted-foreground" />
       </div>
-      <h3 className="text-lg font-semibold">{title}</h3>
-      <p className="mt-1 max-w-sm text-sm text-muted-foreground">{description}</p>
+      <h3 className="text-xl font-bold tracking-tight">{title}</h3>
+      <p className="mt-2 max-w-[260px] text-sm text-muted-foreground">
+        {description}
+      </p>
+      {children}
     </div>
   );
 }

@@ -245,7 +245,7 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isDeleting} className="hover:bg-accent hover:text-accent-foreground transition-colors">
               Cancel
             </Button>
-            <Button variant="destructive" onClick={executeDelete} disabled={isDeleting} className="hover:bg-red-600 transition-colors">
+            <Button variant="default" onClick={executeDelete} disabled={isDeleting} className="bg-red-500 hover:bg-red-600 text-white transition-colors">
               {isDeleting ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Trash2 className="mr-2 size-4" />}
               Delete Sub-Company
             </Button>

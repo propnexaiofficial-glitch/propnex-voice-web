@@ -11,7 +11,7 @@ export type SubCompany = {
   inboundCalls: number;
   outboundCalls: number;
   isPremium: boolean;
-  status: "active" | "inactive" | "pending";
+  status: "active" | "inactive" | "pending" | "ACTIVE" | "INACTIVE" | "SUSPENDED" | "DELETED" | "PENDING";
   joinedDate: string;
 };
 
