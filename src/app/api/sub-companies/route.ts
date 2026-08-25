@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
       where: { parentCompanyId: member.companyId },
       include: { 
         creditBalance: true,
-        phoneNumbers: { select: { number: true, direction: true } }
+        phoneNumbers: { select: { number: true, direction: true, channels: true } }
       }
     });
 
