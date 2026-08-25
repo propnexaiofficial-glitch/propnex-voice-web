@@ -83,6 +83,15 @@ export function CompanyCallsSection({
 
   useEffect(() => {
     const key = `last_${direction}_number_request_${companyId}`;
+    
+    if (hasAssignedNumber) {
+      // If they already have a number, clear the lock and don't show the error
+      localStorage.removeItem(key);
+      setIsRequestLocked(false);
+      setRemindMessage(null);
+      return;
+    }
+
     const lastRequest = localStorage.getItem(key);
     if (lastRequest) {
       const hoursSince = (Date.now() - parseInt(lastRequest)) / (1000 * 60 * 60);
@@ -93,7 +102,7 @@ export function CompanyCallsSection({
         localStorage.removeItem(key);
       }
     }
-  }, [direction, companyId]);
+  }, [direction, companyId, hasAssignedNumber]);
 
   const handleRemindAdmin = async () => {
     try {

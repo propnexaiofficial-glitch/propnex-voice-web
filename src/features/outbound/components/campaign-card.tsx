@@ -63,6 +63,15 @@ export function CampaignCard({
 
   useEffect(() => {
     const key = companyId ? `last_outbound_number_request_${companyId}` : "last_outbound_number_request";
+    
+    if (hasOutboundNumber) {
+      // If they already have a number, clear the lock and don't show the error
+      localStorage.removeItem(key);
+      setIsLocked(false);
+      setRemindMessage(null);
+      return;
+    }
+
     const lastRequest = localStorage.getItem(key);
     if (lastRequest) {
       const hoursSince = (Date.now() - parseInt(lastRequest)) / (1000 * 60 * 60);
@@ -73,7 +82,7 @@ export function CampaignCard({
         localStorage.removeItem(key);
       }
     }
-  }, [companyId]);
+  }, [companyId, hasOutboundNumber]);
 
   const handleRemindAdmin = async () => {
     try {
