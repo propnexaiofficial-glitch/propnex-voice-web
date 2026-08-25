@@ -65,30 +65,46 @@ export function CompanyCallsSection({
   const isOutOfCredits = (company?.creditsRemaining ?? 0) <= 0;
   const isLocked = company?.status === "SUSPENDED" || company?.status === "DELETED";
 
-  const [hasOutboundNumber, setHasOutboundNumber] = useState(true);
+  const [hasAssignedNumber, setHasAssignedNumber] = useState(true);
   const [reminding, setReminding] = useState(false);
   const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);
+  const [isRequestLocked, setIsRequestLocked] = useState(false);
 
   useEffect(() => {
-    if (direction !== "outbound") return;
-    const checkOutboundNumber = () => {
+    const key = `last_${direction}_number_request`;
+    const lastRequest = localStorage.getItem(key);
+    if (lastRequest) {
+      const hoursSince = (Date.now() - parseInt(lastRequest)) / (1000 * 60 * 60);
+      if (hoursSince < 24) {
+        setIsRequestLocked(true);
+        setRemindMessage({ text: "You can only request once every 24 hours.", type: "error" });
+      } else {
+        localStorage.removeItem(key);
+      }
+    }
+  }, [direction]);
+
+  useEffect(() => {
+    const checkAssignedNumber = async () => {
       try {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-          const user = JSON.parse(storedUser);
-          const detailedNumbers = user.assignedNumbersDetailed || [];
-          // Find numbers for this specific company
+        const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
+        const res = await fetch(`${adminBase}/api/numbers`);
+        if (res.ok) {
+          const numbers = await res.json();
+          const detailedNumbers = numbers.numbers || numbers;
           const companyNumbers = detailedNumbers.filter((n: any) => n.companyId === companyId);
-          const hasOutbound = companyNumbers.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH");
-          setHasOutboundNumber(hasOutbound);
+          const hasNumber = companyNumbers.some((n: any) => 
+            n.direction === direction.toUpperCase() || n.direction === "BOTH"
+          );
+          setHasAssignedNumber(hasNumber);
         }
       } catch (e) {
         console.error(e);
       }
     };
-    checkOutboundNumber();
-    window.addEventListener("user-updated", checkOutboundNumber);
-    return () => window.removeEventListener("user-updated", checkOutboundNumber);
+    checkAssignedNumber();
+    window.addEventListener("user-updated", checkAssignedNumber);
+    return () => window.removeEventListener("user-updated", checkAssignedNumber);
   }, [direction, companyId]);
 
   const handleRemindAdmin = async () => {
@@ -114,8 +130,12 @@ export function CompanyCallsSection({
 
       if (res.ok) {
         setRemindMessage({ text: "Reminder sent successfully! Admin notified.", type: "success" });
+        localStorage.setItem(`last_${direction}_number_request`, Date.now().toString());
+        setIsRequestLocked(true);
       } else if (res.status === 429) {
         setRemindMessage({ text: "You can only request once every 24 hours.", type: "error" });
+        localStorage.setItem(`last_${direction}_number_request`, Date.now().toString());
+        setIsRequestLocked(true);
       } else {
         setRemindMessage({ text: "Failed to send reminder. Please try again.", type: "error" });
       }
@@ -185,19 +205,19 @@ export function CompanyCallsSection({
           </div>
         </div>
 
-        {direction === "outbound" && !isLocked && (
+        {!isLocked && (
           <div className="flex flex-col gap-2 items-end">
-            {!hasOutboundNumber ? (
-              <Button onClick={handleRemindAdmin} disabled={reminding} className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white">
-                <PhoneOutgoing className="size-4" />
-                {reminding ? "Sending..." : "Request Outbound Number"}
+            {!hasAssignedNumber ? (
+              <Button onClick={handleRemindAdmin} disabled={reminding || isRequestLocked} className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white">
+                {direction === "outbound" ? <PhoneOutgoing className="size-4" /> : <PhoneIncoming className="size-4" />}
+                {reminding ? "Sending..." : (isRequestLocked ? "Request Sent" : `Request ${direction === "outbound" ? "Outbound" : "Inbound"} Number`)}
               </Button>
-            ) : (
+            ) : direction === "outbound" ? (
               <Button variant="outline" className="gap-2" onClick={() => setUploadOpen(true)}>
                 <Upload className="size-4" />
                 Upload CSV
               </Button>
-            )}
+            ) : null}
             {remindMessage && (
               <p className={`text-xs ${remindMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
                 {remindMessage.text}

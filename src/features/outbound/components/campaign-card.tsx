@@ -12,7 +12,7 @@ import {
   Info,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -57,6 +57,20 @@ export function CampaignCard({
 
   const [reminding, setReminding] = useState(false);
   const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);
+  const [isLocked, setIsLocked] = useState(false);
+
+  useEffect(() => {
+    const lastRequest = localStorage.getItem("last_outbound_number_request");
+    if (lastRequest) {
+      const hoursSince = (Date.now() - parseInt(lastRequest)) / (1000 * 60 * 60);
+      if (hoursSince < 24) {
+        setIsLocked(true);
+        setRemindMessage({ text: "You can only request once every 24 hours.", type: "error" });
+      } else {
+        localStorage.removeItem("last_outbound_number_request");
+      }
+    }
+  }, []);
 
   const handleRemindAdmin = async () => {
     try {
@@ -81,8 +95,12 @@ export function CampaignCard({
 
       if (res.ok) {
         setRemindMessage({ text: "Reminder sent successfully! Admin notified.", type: "success" });
+        localStorage.setItem("last_outbound_number_request", Date.now().toString());
+        setIsLocked(true);
       } else if (res.status === 429) {
         setRemindMessage({ text: "You can only request once every 24 hours.", type: "error" });
+        localStorage.setItem("last_outbound_number_request", Date.now().toString());
+        setIsLocked(true);
       } else {
         setRemindMessage({ text: "Failed to send reminder. Please try again.", type: "error" });
       }
@@ -192,9 +210,9 @@ export function CampaignCard({
             )}
 
             {!hasOutboundNumber && !isComingSoon ? (
-              <Button onClick={handleRemindAdmin} disabled={reminding} className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white">
+              <Button onClick={handleRemindAdmin} disabled={reminding || isLocked} className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white">
                 <PhoneOutgoing className="size-4" />
-                {reminding ? "Sending..." : "Request Outbound Number"}
+                {reminding ? "Sending..." : (isLocked ? "Request Sent" : "Request Outbound Number")}
               </Button>
             ) : campaign.status === "idle" || campaign.status === "completed" ? (
               <Button variant="outline" className="gap-2" onClick={onUploadClick}>
