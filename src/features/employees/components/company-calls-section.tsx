@@ -156,6 +156,7 @@ export function CompanyCallsSection({
     startCampaign,
     pauseCampaign,
     resumeCampaign,
+    editLead,
   } = useCampaign();
 
   const {
@@ -203,6 +204,7 @@ export function CompanyCallsSection({
           onStart={startCampaign}
           onPause={pauseCampaign}
           onResume={resumeCampaign}
+          onEditLead={editLead}
           hasOutboundNumber={hasAssignedNumber}
           companyId={companyId}
         />

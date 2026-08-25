@@ -10,13 +10,17 @@ import {
   Upload,
   Users,
   Info,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 import type { Campaign } from "@/features/outbound/types";
 import { cn } from "@/lib/utils";
 
@@ -38,10 +42,51 @@ type CampaignCardProps = {
   onStart: () => void;
   onPause: () => void;
   onResume: () => void;
+  onEditLead?: (index: number, newLead: any) => void;
   hasOutboundNumber?: boolean;
   className?: string;
   companyId?: string;
 };
+
+function LeadRow({ lead, idx, onSave }: { lead: any; idx: number; onSave: (newLead: any) => void }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [name, setName] = useState(lead.name);
+  const [phone, setPhone] = useState(lead.phone);
+
+  const handleSave = () => {
+    onSave({ ...lead, name, phone });
+    setIsEditing(false);
+  };
+
+  if (isEditing) {
+    return (
+      <div className="flex gap-2 items-center bg-muted/50 p-2 rounded border border-border">
+        <Input value={name} onChange={(e) => setName(e.target.value)} className="h-7 text-xs flex-1" placeholder="Name" />
+        <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="h-7 text-xs flex-1" placeholder="Phone" />
+        <Button size="icon" variant="ghost" className="h-6 w-6 text-green-500" onClick={handleSave}>
+          <Check className="size-3" />
+        </Button>
+        <Button size="icon" variant="ghost" className="h-6 w-6 text-red-500" onClick={() => setIsEditing(false)}>
+          <X className="size-3" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex justify-between items-center text-xs border-b border-border pb-1 hover:bg-muted/30 p-1 -mx-1 px-1 rounded transition-colors group">
+      <div className="flex items-center gap-2 overflow-hidden">
+        <span className={cn("truncate max-w-[120px]", lead.called && "line-through text-red-400")}>{lead.name}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className={cn("font-mono", lead.called && "line-through text-red-400")}>{lead.phone}</span>
+        <button onClick={() => setIsEditing(true)} className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground">
+          <Pencil className="size-3" />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export function CampaignCard({
   campaign,
@@ -50,6 +95,7 @@ export function CampaignCard({
   onStart,
   onPause,
   onResume,
+  onEditLead,
   hasOutboundNumber = true,
   className,
   companyId,
@@ -202,24 +248,21 @@ export function CampaignCard({
         <div className="flex flex-col gap-2 items-end">
           <div className="flex flex-wrap gap-2 items-center">
             {campaign.status === "ready" && campaign.leads && campaign.leads.length > 0 && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-muted/50 hover:bg-muted transition-colors">
-                      <Info className="size-5 text-muted-foreground" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-sm max-h-60 overflow-y-auto p-4 space-y-2">
-                    <p className="font-semibold mb-2">Ready to Call ({campaign.leads.length} Leads)</p>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <div className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-muted/50 hover:bg-muted transition-colors">
+                    <Info className="size-5 text-muted-foreground" />
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-[350px] max-h-80 overflow-y-auto p-4 space-y-2 z-50">
+                  <p className="font-semibold mb-2">Ready to Call ({campaign.leads.length} Leads)</p>
+                  <div className="space-y-2">
                     {campaign.leads.map((lead: any, idx: number) => (
-                      <div key={idx} className="flex justify-between items-center text-xs border-b border-border pb-1">
-                        <span className={cn(lead.called && "line-through text-red-400")}>{lead.name}</span>
-                        <span className={cn("font-mono", lead.called && "line-through text-red-400")}>{lead.phone}</span>
-                      </div>
+                      <LeadRow key={idx} lead={lead} idx={idx} onSave={(newLead) => onEditLead?.(idx, newLead)} />
                     ))}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                  </div>
+                </PopoverContent>
+              </Popover>
             )}
 
             {!hasOutboundNumber && !isComingSoon ? (

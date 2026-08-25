@@ -40,6 +40,7 @@ export function OutboundPageContent() {
     startCampaign,
     pauseCampaign,
     resumeCampaign,
+    editLead,
   } = useCampaign();
 
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -92,6 +93,7 @@ export function OutboundPageContent() {
           onStart={startCampaign}
           onPause={pauseCampaign}
           onResume={resumeCampaign}
+          onEditLead={editLead}
         />
       </div>
 

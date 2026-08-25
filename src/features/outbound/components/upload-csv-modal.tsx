@@ -72,9 +72,8 @@ export function UploadCsvModal({
     let invalidCount = 0;
 
     data.forEach(row => {
-      const phoneVal = row[phoneKey] || row[Object.keys(data[0]).find(k => k.toLowerCase() === phoneKey)!];
-      const actualNameKey = nameKey ? Object.keys(data[0]).find(k => k.toLowerCase() === nameKey) : undefined;
-      const nameVal = actualNameKey ? row[actualNameKey] : "Unknown";
+      const phoneVal = row[phoneKey];
+      const nameVal = nameKey ? row[nameKey] : "Unknown";
       
       if (phoneVal) {
         const formatted = formatIndianNumber(phoneVal.toString());

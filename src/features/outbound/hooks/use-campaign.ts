@@ -86,6 +86,15 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
     );
   }, []);
 
+  const editLead = useCallback((index: number, updatedLead: any) => {
+    setCampaign((prev) => {
+      if (!prev.leads) return prev;
+      const newLeads = [...prev.leads];
+      newLeads[index] = updatedLead;
+      return { ...prev, leads: newLeads };
+    });
+  }, []);
+
   const progressPercent =
     campaign.totalContacts > 0
       ? Math.round((campaign.completedCalls / campaign.totalContacts) * 100)
@@ -99,5 +108,6 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
     startCampaign,
     pauseCampaign,
     resumeCampaign,
+    editLead,
   };
 }
