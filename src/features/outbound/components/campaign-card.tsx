@@ -9,12 +9,14 @@ import {
   Sparkles,
   Upload,
   Users,
+  Info,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Campaign } from "@/features/outbound/types";
 import { cn } from "@/lib/utils";
 
@@ -164,18 +166,39 @@ export function CampaignCard({
         </div>
 
         <div className="flex flex-col gap-2 items-end">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 items-center">
+            {campaign.status === "ready" && campaign.leads && campaign.leads.length > 0 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-muted/50 hover:bg-muted transition-colors">
+                      <Info className="size-5 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-sm max-h-60 overflow-y-auto p-4 space-y-2">
+                    <p className="font-semibold mb-2">Ready to Call ({campaign.leads.length} Leads)</p>
+                    {campaign.leads.map((lead: any, idx: number) => (
+                      <div key={idx} className="flex justify-between items-center text-xs border-b border-border pb-1">
+                        <span className={cn(lead.called && "line-through text-red-400")}>{lead.name}</span>
+                        <span className={cn("font-mono", lead.called && "line-through text-red-400")}>{lead.phone}</span>
+                      </div>
+                    ))}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+
             {!hasOutboundNumber && !isComingSoon ? (
               <Button onClick={handleRemindAdmin} disabled={reminding} className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white">
                 <PhoneOutgoing className="size-4" />
                 {reminding ? "Sending..." : "Request Outbound Number"}
               </Button>
-            ) : (
+            ) : campaign.status === "idle" || campaign.status === "completed" ? (
               <Button variant="outline" className="gap-2" onClick={onUploadClick}>
                 <Upload className="size-4" />
                 Upload CSV
               </Button>
-            )}
+            ) : null}
 
           {campaign.status === "ready" && (
             <Button className="gap-2" onClick={onStart}>

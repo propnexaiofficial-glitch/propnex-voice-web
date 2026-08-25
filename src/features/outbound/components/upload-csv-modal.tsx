@@ -1,7 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { FileSpreadsheet, Upload } from "lucide-react";
+import { FileSpreadsheet, Upload, AlertCircle } from "lucide-react";
+import Papa from "papaparse";
+import * as xlsx from "xlsx";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,11 +15,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+export type ExtractedLead = {
+  name: string;
+  phone: string;
+  called?: boolean;
+};
 
 type UploadCsvModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUpload: (fileName: string) => void;
+  onUpload: (fileName: string, leads: ExtractedLead[]) => void;
   title?: string;
   description?: string;
 };
@@ -26,28 +35,123 @@ export function UploadCsvModal({
   open,
   onOpenChange,
   onUpload,
-  title = "Upload CSV",
-  description = "Upload a list of customer numbers to start an outbound calling campaign. CSV should include a phone number column.",
+  title = "Upload Contacts",
+  description = "Upload a list of customer numbers (.csv or .xlsx) to start an outbound calling campaign. We will automatically extract names and format numbers to the Indian standard.",
 }: UploadCsvModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [extractedLeads, setExtractedLeads] = useState<ExtractedLead[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  const formatIndianNumber = (numStr: string): string => {
+    let cleaned = numStr.toString().replace(/\D/g, "");
+    if (cleaned.length === 10) return `+91${cleaned}`;
+    if (cleaned.length === 11 && cleaned.startsWith("0")) return `+91${cleaned.substring(1)}`;
+    if (cleaned.length === 12 && cleaned.startsWith("91")) return `+${cleaned}`;
+    return "";
+  };
+
+  const processData = (data: any[]) => {
+    const leads: ExtractedLead[] = [];
+    
+    if (data.length === 0) {
+      setError("The file is empty.");
+      return;
+    }
+
+    const headers = Object.keys(data[0]).map(k => k.toLowerCase());
+    const phoneKey = Object.keys(data[0]).find(k => k.toLowerCase().includes("phone") || k.toLowerCase().includes("number") || k.toLowerCase().includes("mobile"));
+    const nameKey = Object.keys(data[0]).find(k => k.toLowerCase().includes("name"));
+
+    if (!phoneKey) {
+      setError("Could not find a 'phone' or 'number' column in the file.");
+      return;
+    }
+
+    let invalidCount = 0;
+
+    data.forEach(row => {
+      const phoneVal = row[phoneKey] || row[Object.keys(data[0]).find(k => k.toLowerCase() === phoneKey)!];
+      const actualNameKey = nameKey ? Object.keys(data[0]).find(k => k.toLowerCase() === nameKey) : undefined;
+      const nameVal = actualNameKey ? row[actualNameKey] : "Unknown";
+      
+      if (phoneVal) {
+        const formatted = formatIndianNumber(phoneVal.toString());
+        if (formatted) {
+          leads.push({ name: nameVal ? nameVal.toString().trim() : "Unknown", phone: formatted });
+        } else {
+          invalidCount++;
+        }
+      }
+    });
+
+    if (leads.length === 0) {
+      setError("No valid 10-digit Indian numbers were found in the file.");
+      return;
+    }
+
+    setExtractedLeads(leads);
+    setError(invalidCount > 0 ? `Found ${leads.length} valid numbers. Ignored ${invalidCount} invalid numbers.` : null);
+  };
 
   const handleFile = (file: File | null) => {
     if (!file) return;
-    if (!file.name.endsWith(".csv")) return;
+    setError(null);
+    setExtractedLeads([]);
+
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (ext !== "csv" && ext !== "xlsx") {
+      setError("Please upload a .csv or .xlsx file.");
+      return;
+    }
+
     setSelectedFile(file);
+
+    if (ext === "csv") {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          processData(results.data);
+        },
+        error: () => {
+          setError("Failed to parse CSV file.");
+        }
+      });
+    } else if (ext === "xlsx") {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = e.target?.result;
+          const workbook = xlsx.read(data, { type: "array" });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const jsonData = xlsx.utils.sheet_to_json(worksheet);
+          processData(jsonData);
+        } catch (err) {
+          setError("Failed to parse Excel file.");
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
   };
 
   const handleConfirm = () => {
-    if (!selectedFile) return;
-    onUpload(selectedFile.name);
+    if (!selectedFile || extractedLeads.length === 0) return;
+    onUpload(selectedFile.name, extractedLeads);
     setSelectedFile(null);
+    setExtractedLeads([]);
+    setError(null);
     onOpenChange(false);
   };
 
   const handleClose = (nextOpen: boolean) => {
-    if (!nextOpen) setSelectedFile(null);
+    if (!nextOpen) {
+      setSelectedFile(null);
+      setExtractedLeads([]);
+      setError(null);
+    }
     onOpenChange(nextOpen);
   };
 
@@ -85,38 +189,45 @@ export function UploadCsvModal({
             <Upload className="size-6 text-foreground" />
           </div>
           <p className="mt-3 text-sm font-medium">
-            Drag & drop your CSV file here
+            Drag & drop your file here
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            or click to browse · .csv only
+            or click to browse · .csv or .xlsx
           </p>
           <input
             ref={inputRef}
             type="file"
-            accept=".csv"
+            accept=".csv,.xlsx"
             className="hidden"
             onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
           />
         </div>
 
-        {selectedFile && (
-          <div className="flex items-center gap-3 rounded-xl border border-border bg-white/5 px-4 py-3">
+        {error && (
+          <Alert variant={extractedLeads.length > 0 ? "default" : "destructive"} className="mt-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {selectedFile && extractedLeads.length > 0 && (
+          <div className="flex items-center gap-3 rounded-xl border border-border bg-white/5 px-4 py-3 mt-2">
             <FileSpreadsheet className="size-5 text-emerald-400" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{selectedFile.name}</p>
               <p className="text-xs text-muted-foreground">
-                {(selectedFile.size / 1024).toFixed(1)} KB
+                Ready to dial {extractedLeads.length} leads
               </p>
             </div>
           </div>
         )}
 
-        <DialogFooter>
+        <DialogFooter className="mt-4">
           <Button variant="outline" onClick={() => handleClose(false)}>
             Cancel
           </Button>
-          <Button disabled={!selectedFile} onClick={handleConfirm}>
-            Upload & Continue
+          <Button disabled={!selectedFile || extractedLeads.length === 0} onClick={handleConfirm}>
+            Upload & Extract Leads
           </Button>
         </DialogFooter>
       </DialogContent>

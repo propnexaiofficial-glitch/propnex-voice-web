@@ -5,17 +5,19 @@ export type CampaignStatus = "idle" | "ready" | "running" | "completed" | "pause
 export type Campaign = {
   id: string;
   name: string;
-  status: CampaignStatus;
+  status: "idle" | "ready" | "running" | "paused" | "completed";
   totalContacts: number;
+  uploadedFileName?: string;
   completedCalls: number;
   successfulCalls: number;
   failedCalls: number;
-  uploadedFileName?: string;
   startedAt?: string;
   comingSoon?: boolean;
+  leads?: any[];
 };
 
 export type UploadCsvState = {
   fileName: string;
   contactCount: number;
+  leads?: any[];
 };
