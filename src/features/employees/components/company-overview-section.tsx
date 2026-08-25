@@ -106,9 +106,8 @@ export function CompanyOverviewSection({
     : [];
   const hasNumbers = allNumbers.length > 0;
   
-  const inboundNumbers = allNumbers.filter(n => n.direction !== "OUTBOUND").map(n => n.number);
-  const outboundNumbers = allNumbers.filter(n => n.direction === "OUTBOUND").map(n => n.number);
-  const channels = company.channels || 0;
+  const inboundNumbers = allNumbers.filter(n => n.direction !== "OUTBOUND");
+  const outboundNumbers = allNumbers.filter(n => n.direction === "OUTBOUND");
 
   const realPreviewCalls = [...inboundPreviews, ...outboundPreviews];
 
@@ -165,11 +164,20 @@ export function CompanyOverviewSection({
                           <p className="font-semibold text-xs border-b border-border pb-1">Inbound Info</p>
                           <div className="text-xs">
                             <span className="text-muted-foreground">Numbers: </span>
-                            {inboundNumbers.length > 0 ? inboundNumbers.join(", ") : "None"}
-                          </div>
-                          <div className="text-xs">
-                            <span className="text-muted-foreground">Channels: </span>
-                            {channels}
+                            {inboundNumbers.length > 0 ? (
+                              <div className="mt-1 space-y-1">
+                                {inboundNumbers.map((num, i) => (
+                                  <div key={i} className="flex items-center gap-2">
+                                    <span>{num.number}</span>
+                                    {num.channels != null && (
+                                      <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded">
+                                        ({num.channels} channels)
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : "None"}
                           </div>
                         </TooltipContent>
                       </Tooltip>
@@ -183,11 +191,20 @@ export function CompanyOverviewSection({
                           <p className="font-semibold text-xs border-b border-border pb-1">Outbound Info</p>
                           <div className="text-xs">
                             <span className="text-muted-foreground">Numbers: </span>
-                            {outboundNumbers.length > 0 ? outboundNumbers.join(", ") : "None"}
-                          </div>
-                          <div className="text-xs">
-                            <span className="text-muted-foreground">Channels: </span>
-                            {channels}
+                            {outboundNumbers.length > 0 ? (
+                              <div className="mt-1 space-y-1">
+                                {outboundNumbers.map((num, i) => (
+                                  <div key={i} className="flex items-center gap-2">
+                                    <span>{num.number}</span>
+                                    {num.channels != null && (
+                                      <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded">
+                                        ({num.channels} channels)
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : "None"}
                           </div>
                         </TooltipContent>
                       </Tooltip>

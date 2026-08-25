@@ -39,13 +39,13 @@ export function ProfileCard({ className }: ProfileCardProps) {
   const subNumbers = detailedNumbers.filter((d) => !d.isMain);
 
   const groupNumbers = (numbers: any[]) => {
-    const grouped: Record<string, { inbound: string[], outbound: string[], channels: number }> = {};
+    const grouped: Record<string, { inbound: { number: string; channels: number | null }[], outbound: { number: string; channels: number | null }[] }> = {};
     for (const d of numbers) {
       const name = d.companyName || "Unknown";
-      if (!grouped[name]) grouped[name] = { inbound: [], outbound: [], channels: d.channels || 0 };
+      if (!grouped[name]) grouped[name] = { inbound: [], outbound: [] };
       if (d.number) {
-         if (d.direction === "OUTBOUND") grouped[name].outbound.push(d.number);
-         else grouped[name].inbound.push(d.number); // Default to inbound if missing
+         if (d.direction === "OUTBOUND") grouped[name].outbound.push({ number: d.number, channels: d.channels || null });
+         else grouped[name].inbound.push({ number: d.number, channels: d.channels || null }); // Default to inbound if missing
       }
     }
     return Object.entries(grouped).map(([companyName, data]) => ({ companyName, ...data }));
@@ -188,11 +188,20 @@ export function ProfileCard({ className }: ProfileCardProps) {
                               <p className="font-semibold text-xs border-b border-border pb-1">Inbound Info</p>
                               <div className="text-xs">
                                 <span className="text-muted-foreground">Numbers: </span>
-                                {group.inbound.length > 0 ? group.inbound.join(", ") : "None"}
-                              </div>
-                              <div className="text-xs">
-                                <span className="text-muted-foreground">Channels: </span>
-                                {group.channels}
+                                {group.inbound.length > 0 ? (
+                                  <div className="mt-1 space-y-1">
+                                    {group.inbound.map((n, idx) => (
+                                      <div key={idx} className="flex items-center gap-2">
+                                        <span>{n.number}</span>
+                                        {n.channels != null && (
+                                          <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded">
+                                            ({n.channels} channels)
+                                          </span>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : "None"}
                               </div>
                             </TooltipContent>
                           </Tooltip>
@@ -207,11 +216,20 @@ export function ProfileCard({ className }: ProfileCardProps) {
                               <p className="font-semibold text-xs border-b border-border pb-1">Outbound Info</p>
                               <div className="text-xs">
                                 <span className="text-muted-foreground">Numbers: </span>
-                                {group.outbound.length > 0 ? group.outbound.join(", ") : "None"}
-                              </div>
-                              <div className="text-xs">
-                                <span className="text-muted-foreground">Channels: </span>
-                                {group.channels}
+                                {group.outbound.length > 0 ? (
+                                  <div className="mt-1 space-y-1">
+                                    {group.outbound.map((n, idx) => (
+                                      <div key={idx} className="flex items-center gap-2">
+                                        <span>{n.number}</span>
+                                        {n.channels != null && (
+                                          <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded">
+                                            ({n.channels} channels)
+                                          </span>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : "None"}
                               </div>
                             </TooltipContent>
                           </Tooltip>
@@ -262,11 +280,20 @@ export function ProfileCard({ className }: ProfileCardProps) {
                               <p className="font-semibold text-xs border-b border-border pb-1">Inbound Info</p>
                               <div className="text-xs">
                                 <span className="text-muted-foreground">Numbers: </span>
-                                {group.inbound.length > 0 ? group.inbound.join(", ") : "None"}
-                              </div>
-                              <div className="text-xs">
-                                <span className="text-muted-foreground">Channels: </span>
-                                {group.channels}
+                                {group.inbound.length > 0 ? (
+                                  <div className="mt-1 space-y-1">
+                                    {group.inbound.map((n, idx) => (
+                                      <div key={idx} className="flex items-center gap-2">
+                                        <span>{n.number}</span>
+                                        {n.channels != null && (
+                                          <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded">
+                                            ({n.channels} channels)
+                                          </span>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : "None"}
                               </div>
                             </TooltipContent>
                           </Tooltip>
@@ -281,11 +308,20 @@ export function ProfileCard({ className }: ProfileCardProps) {
                               <p className="font-semibold text-xs border-b border-border pb-1">Outbound Info</p>
                               <div className="text-xs">
                                 <span className="text-muted-foreground">Numbers: </span>
-                                {group.outbound.length > 0 ? group.outbound.join(", ") : "None"}
-                              </div>
-                              <div className="text-xs">
-                                <span className="text-muted-foreground">Channels: </span>
-                                {group.channels}
+                                {group.outbound.length > 0 ? (
+                                  <div className="mt-1 space-y-1">
+                                    {group.outbound.map((n, idx) => (
+                                      <div key={idx} className="flex items-center gap-2">
+                                        <span>{n.number}</span>
+                                        {n.channels != null && (
+                                          <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded">
+                                            ({n.channels} channels)
+                                          </span>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : "None"}
                               </div>
                             </TooltipContent>
                           </Tooltip>
