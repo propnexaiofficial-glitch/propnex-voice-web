@@ -5,6 +5,7 @@ import { PhoneOutgoing } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { TranscriptDrawer } from "@/components/common/transcript-drawer";
+import { useEffect } from "react";
 import { EmptyState } from "@/components/common/empty-state";
 import { CallLogFiltersBar } from "@/components/forms/call-log-filters";
 import { CallLogTable } from "@/components/tables/call-log-table";
@@ -49,6 +50,27 @@ export function OutboundPageContent() {
     setTranscriptOpen(true);
   };
 
+  const [hasOutboundNumber, setHasOutboundNumber] = useState(true);
+
+  useEffect(() => {
+    const checkOutboundNumber = () => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          const detailedNumbers = user.assignedNumbersDetailed || [];
+          const hasOutbound = detailedNumbers.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH");
+          setHasOutboundNumber(hasOutbound);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    checkOutboundNumber();
+    window.addEventListener("user-updated", checkOutboundNumber);
+    return () => window.removeEventListener("user-updated", checkOutboundNumber);
+  }, []);
+
   return (
     <div className="space-y-6">
       <motion.div
@@ -80,6 +102,7 @@ export function OutboundPageContent() {
         <CampaignCard
           campaign={outboundCampaign}
           progressPercent={progressPercent}
+          hasOutboundNumber={hasOutboundNumber}
           onUploadClick={() => setUploadOpen(true)}
           onStart={startCampaign}
           onPause={pauseCampaign}

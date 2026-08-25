@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { PhoneIncoming, PhoneOutgoing, Upload } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -60,10 +60,67 @@ export function CompanyCallsSection({
   direction,
 }: CompanyCallsSectionProps) {
   const { getCompanyById } = useEmployeesContext();
-  const company = getCompanyById(companyId);
+  const { companies } = useEmployeesContext();
+  const company = companies.find((c) => c.id === companyId);
   const isOutOfCredits = (company?.creditsRemaining ?? 0) <= 0;
-  const hasAnyNumber = !!(company?.contactPhone || company?.assignedNumbers?.length);
-  const isLocked = !hasAnyNumber || isOutOfCredits;
+  const isLocked = company?.status === "SUSPENDED" || company?.status === "DELETED";
+
+  const [hasOutboundNumber, setHasOutboundNumber] = useState(true);
+  const [reminding, setReminding] = useState(false);
+  const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);
+
+  useEffect(() => {
+    if (direction !== "outbound") return;
+    const checkOutboundNumber = () => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          const detailedNumbers = user.assignedNumbersDetailed || [];
+          // Find numbers for this specific company
+          const companyNumbers = detailedNumbers.filter((n: any) => n.companyId === companyId);
+          const hasOutbound = companyNumbers.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH");
+          setHasOutboundNumber(hasOutbound);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    checkOutboundNumber();
+    window.addEventListener("user-updated", checkOutboundNumber);
+    return () => window.removeEventListener("user-updated", checkOutboundNumber);
+  }, [direction, companyId]);
+
+  const handleRemindAdmin = async () => {
+    try {
+      setReminding(true);
+      setRemindMessage(null);
+      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+      const storedUserStr = localStorage.getItem("user");
+      const user = storedUserStr ? JSON.parse(storedUserStr) : {};
+      const email = user.email || user.id || "default";
+
+      const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
+      const res = await fetch(`${adminBase}/api/number-requests`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          companyId,
+          name: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unknown"
+        })
+      });
+
+      if (res.ok) {
+        setRemindMessage({ text: "Reminder sent successfully! Admin notified.", type: "success" });
+      } else {
+        setRemindMessage({ text: "Failed to send reminder. Please try again.", type: "error" });
+      }
+    } catch (e) {
+      setRemindMessage({ text: "Error sending reminder.", type: "error" });
+    }
+    setReminding(false);
+  };
 
   const [filters, setFilters] = useState<CallLogFilters>(DEFAULT_CALL_FILTERS);
   const [page, setPage] = useState(1);
@@ -126,10 +183,24 @@ export function CompanyCallsSection({
         </div>
 
         {direction === "outbound" && !isLocked && (
-          <Button variant="outline" className="gap-2" onClick={() => setUploadOpen(true)}>
-            <Upload className="size-4" />
-            Upload CSV
-          </Button>
+          <div className="flex flex-col gap-2 items-end">
+            {!hasOutboundNumber ? (
+              <Button onClick={handleRemindAdmin} disabled={reminding} className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white">
+                <PhoneOutgoing className="size-4" />
+                {reminding ? "Sending..." : "Request Outbound Number"}
+              </Button>
+            ) : (
+              <Button variant="outline" className="gap-2" onClick={() => setUploadOpen(true)}>
+                <Upload className="size-4" />
+                Upload CSV
+              </Button>
+            )}
+            {remindMessage && (
+              <p className={`text-xs ${remindMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                {remindMessage.text}
+              </p>
+            )}
+          </div>
         )}
       </motion.div>
 

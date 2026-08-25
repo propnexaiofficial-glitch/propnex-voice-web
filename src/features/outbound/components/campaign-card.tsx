@@ -11,6 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ type CampaignCardProps = {
   onStart: () => void;
   onPause: () => void;
   onResume: () => void;
+  hasOutboundNumber?: boolean;
   className?: string;
 };
 
@@ -45,10 +47,45 @@ export function CampaignCard({
   onStart,
   onPause,
   onResume,
+  hasOutboundNumber = true,
   className,
 }: CampaignCardProps) {
   const status = statusConfig[campaign.status];
   const isComingSoon = campaign.comingSoon === true;
+
+  const [reminding, setReminding] = useState(false);
+  const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);
+
+  const handleRemindAdmin = async () => {
+    try {
+      setReminding(true);
+      setRemindMessage(null);
+      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+      const storedUserStr = localStorage.getItem("user");
+      const user = storedUserStr ? JSON.parse(storedUserStr) : {};
+      const email = user.email || user.id || "default";
+
+      const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
+      const res = await fetch(`${adminBase}/api/number-requests`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          companyId: user.companyId || null,
+          name: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unknown"
+        })
+      });
+
+      if (res.ok) {
+        setRemindMessage({ text: "Reminder sent successfully! Admin notified.", type: "success" });
+      } else {
+        setRemindMessage({ text: "Failed to send reminder. Please try again.", type: "error" });
+      }
+    } catch (e) {
+      setRemindMessage({ text: "Error sending reminder.", type: "error" });
+    }
+    setReminding(false);
+  };
 
   if (isComingSoon) {
     return (
@@ -126,11 +163,19 @@ export function CampaignCard({
           )}
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" className="gap-2" onClick={onUploadClick}>
-            <Upload className="size-4" />
-            Upload CSV
-          </Button>
+        <div className="flex flex-col gap-2 items-end">
+          <div className="flex flex-wrap gap-2">
+            {!hasOutboundNumber && !isComingSoon ? (
+              <Button onClick={handleRemindAdmin} disabled={reminding} className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white">
+                <PhoneOutgoing className="size-4" />
+                {reminding ? "Sending..." : "Request Outbound Number"}
+              </Button>
+            ) : (
+              <Button variant="outline" className="gap-2" onClick={onUploadClick}>
+                <Upload className="size-4" />
+                Upload CSV
+              </Button>
+            )}
 
           {campaign.status === "ready" && (
             <Button className="gap-2" onClick={onStart}>
@@ -151,6 +196,12 @@ export function CampaignCard({
               <Play className="size-4" />
               Resume
             </Button>
+          )}
+          </div>
+          {remindMessage && (
+            <p className={`text-xs ${remindMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+              {remindMessage.text}
+            </p>
           )}
         </div>
       </div>
