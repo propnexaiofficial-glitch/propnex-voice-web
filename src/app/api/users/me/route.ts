@@ -76,14 +76,7 @@ export async function GET(req: NextRequest) {
             ],
             status: "ACTIVE" 
           },
-          select: {
-            id: true,
-            number: true,
-            direction: true,
-            channels: true,
-            companyId: true,
-            company: { select: { name: true } }
-          }
+          include: { company: { select: { name: true } } }
         });
         
         if (phoneRecords && phoneRecords.length > 0) {
@@ -92,7 +85,7 @@ export async function GET(req: NextRequest) {
              isMain: r.companyId === member.company.id,
              companyName: r.company?.name || "Unknown Company",
              number: r.number,
-             direction: r.direction,
+             direction: r.direction || null,
              channels: r.channels ?? null,
           }));
         } else {

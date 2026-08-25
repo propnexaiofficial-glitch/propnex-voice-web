@@ -44,8 +44,15 @@ export function ProfileCard({ className }: ProfileCardProps) {
       const name = d.companyName || "Unknown";
       if (!grouped[name]) grouped[name] = { inbound: [], outbound: [] };
       if (d.number) {
-         if (d.direction === "OUTBOUND") grouped[name].outbound.push({ number: d.number, channels: d.channels || null });
-         else grouped[name].inbound.push({ number: d.number, channels: d.channels || null }); // Default to inbound if missing
+        const entry = { number: d.number, channels: d.channels ?? null };
+        if (d.direction === "OUTBOUND") {
+          grouped[name].outbound.push(entry);
+        } else if (d.direction === "BOTH") {
+          grouped[name].inbound.push(entry);
+          grouped[name].outbound.push(entry);
+        } else {
+          grouped[name].inbound.push(entry); // INBOUND or null defaults to inbound
+        }
       }
     }
     return Object.entries(grouped).map(([companyName, data]) => ({ companyName, ...data }));

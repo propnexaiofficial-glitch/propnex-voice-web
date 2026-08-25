@@ -47,7 +47,6 @@ export async function GET(
 
     const phoneNumbers = await (prisma as any).phoneNumber.findMany({
       where: { companyId, status: "ACTIVE" },
-      select: { number: true, direction: true, channels: true },
     });
 
     return NextResponse.json({ numbers: phoneNumbers });
