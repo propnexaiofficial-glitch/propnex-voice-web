@@ -50,7 +50,7 @@ export function OutboundPageContent() {
     setTranscriptOpen(true);
   };
 
-  const [hasOutboundNumber, setHasOutboundNumber] = useState(true);
+  const [hasOutboundNumber, setHasOutboundNumber] = useState(false);
 
   useEffect(() => {
     const checkOutboundNumber = () => {

@@ -67,7 +67,7 @@ export function CompanyCallsSection({
   const isOutOfCredits = (company?.creditsRemaining ?? 0) <= 0;
   const isLocked = company?.status === "SUSPENDED" || company?.status === "DELETED";
 
-  const [hasAssignedNumber, setHasAssignedNumber] = useState(true);
+  const [hasAssignedNumber, setHasAssignedNumber] = useState(false);
   const [reminding, setReminding] = useState(false);
   const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);
   const [isRequestLocked, setIsRequestLocked] = useState(false);
