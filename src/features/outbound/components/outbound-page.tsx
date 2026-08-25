@@ -16,6 +16,7 @@ import { leadReactivationCampaign } from "@/features/outbound/data";
 import { useCampaign } from "@/features/outbound/hooks/use-campaign";
 import { useOutboundCalls } from "@/features/outbound/hooks/use-outbound-calls";
 import type { CallRecord } from "@/types/call";
+import { useUserContext } from "@/features/auth/context/user-context";
 
 export function OutboundPageContent() {
   const {
@@ -50,49 +51,10 @@ export function OutboundPageContent() {
     setTranscriptOpen(true);
   };
 
-  const [hasOutboundNumber, setHasOutboundNumber] = useState(false);
-
-  useEffect(() => {
-    const checkOutboundNumber = () => {
-      try {
-        const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-        const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
-        const storedUser = localStorage.getItem("user");
-        let companyId = null;
-        if (storedUser) {
-          companyId = JSON.parse(storedUser).companyId;
-        }
-
-        fetch(`${adminBase}/api/numbers`, {
-          headers: {
-            "Authorization": `Bearer ${token}`
-          }
-        })
-        .then(res => res.json())
-        .then(numbers => {
-          const detailedNumbers = numbers.numbers || numbers;
-          const companyNumbers = detailedNumbers.filter((n: any) => n.companyId === companyId);
-          const hasOutbound = companyNumbers.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH");
-          setHasOutboundNumber(hasOutbound);
-        })
-        .catch(err => {
-          console.error("Failed to fetch numbers", err);
-          // Fallback to local storage if API fails
-          if (storedUser) {
-            const user = JSON.parse(storedUser);
-            const detailedNumbers = user.assignedNumbersDetailed || [];
-            const hasOutbound = detailedNumbers.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH");
-            setHasOutboundNumber(hasOutbound);
-          }
-        });
-      } catch (e) {
-        console.error(e);
-      }
-    };
-    checkOutboundNumber();
-    window.addEventListener("user-updated", checkOutboundNumber);
-    return () => window.removeEventListener("user-updated", checkOutboundNumber);
-  }, []);
+  const { user } = useUserContext();
+  const hasOutboundNumber = user?.assignedNumbersDetailed?.some(
+    (n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH"
+  ) ?? false;
 
   return (
     <div className="space-y-6">

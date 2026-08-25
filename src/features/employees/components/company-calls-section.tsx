@@ -67,7 +67,16 @@ export function CompanyCallsSection({
   const isOutOfCredits = (company?.creditsRemaining ?? 0) <= 0;
   const isLocked = company?.status === "SUSPENDED" || company?.status === "DELETED";
 
-  const [hasAssignedNumber, setHasAssignedNumber] = useState(false);
+  const hasAssignedNumber = useMemo(() => {
+    if (!company?.assignedNumbers) return false;
+    return company.assignedNumbers.some((n: any) =>
+      // If direction is missing on a legacy record, assume it works for both, or check explicitly
+      !n.direction || 
+      n.direction === direction.toUpperCase() || 
+      n.direction === "BOTH"
+    );
+  }, [company, direction]);
+
   const [reminding, setReminding] = useState(false);
   const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);
   const [isRequestLocked, setIsRequestLocked] = useState(false);
@@ -84,30 +93,6 @@ export function CompanyCallsSection({
         localStorage.removeItem(key);
       }
     }
-  }, [direction, companyId]);
-
-  useEffect(() => {
-    const checkAssignedNumber = async () => {
-      try {
-        const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-        const res = await fetch(`/api/sub-companies/${companyId}/numbers`, {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const numbers: any[] = data.numbers || [];
-          const hasNumber = numbers.some((n: any) =>
-            n.direction === direction.toUpperCase() || n.direction === "BOTH"
-          );
-          setHasAssignedNumber(hasNumber);
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    };
-    checkAssignedNumber();
-    window.addEventListener("user-updated", checkAssignedNumber);
-    return () => window.removeEventListener("user-updated", checkAssignedNumber);
   }, [direction, companyId]);
 
   const handleRemindAdmin = async () => {
