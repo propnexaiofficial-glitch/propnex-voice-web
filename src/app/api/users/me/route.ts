@@ -76,7 +76,14 @@ export async function GET(req: NextRequest) {
             ],
             status: "ACTIVE" 
           },
-          include: { company: { select: { name: true, channels: true } } }
+          select: {
+            id: true,
+            number: true,
+            direction: true,
+            channels: true,
+            companyId: true,
+            company: { select: { name: true } }
+          }
         });
         
         if (phoneRecords && phoneRecords.length > 0) {
@@ -86,7 +93,7 @@ export async function GET(req: NextRequest) {
              companyName: r.company?.name || "Unknown Company",
              number: r.number,
              direction: r.direction,
-             channels: r.companyId === member.company.id ? mainChannels : r.company?.channels
+             channels: r.channels ?? null,
           }));
         } else {
           assignedNumber = "Not Assigned";

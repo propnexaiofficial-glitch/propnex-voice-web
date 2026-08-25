@@ -90,17 +90,13 @@ export function CompanyCallsSection({
     const checkAssignedNumber = async () => {
       try {
         const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-        const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
-        const res = await fetch(`${adminBase}/api/numbers`, {
-          headers: {
-            "Authorization": `Bearer ${token}`
-          }
+        const res = await fetch(`/api/sub-companies/${companyId}/numbers`, {
+          headers: { "Authorization": `Bearer ${token}` }
         });
         if (res.ok) {
-          const numbers = await res.json();
-          const detailedNumbers = numbers.numbers || numbers;
-          const companyNumbers = detailedNumbers.filter((n: any) => n.companyId === companyId);
-          const hasNumber = companyNumbers.some((n: any) => 
+          const data = await res.json();
+          const numbers: any[] = data.numbers || [];
+          const hasNumber = numbers.some((n: any) =>
             n.direction === direction.toUpperCase() || n.direction === "BOTH"
           );
           setHasAssignedNumber(hasNumber);
