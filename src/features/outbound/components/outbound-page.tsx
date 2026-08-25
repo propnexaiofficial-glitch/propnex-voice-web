@@ -51,10 +51,10 @@ export function OutboundPageContent() {
     setTranscriptOpen(true);
   };
 
-  const { user } = useUserContext();
-  const hasOutboundNumber = user?.assignedNumbersDetailed?.some(
+  const { user, isLoading } = useUserContext();
+  const hasOutboundNumber = isLoading ? true : (user?.assignedNumbersDetailed?.some(
     (n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH"
-  ) ?? false;
+  ) ?? false);
 
   return (
     <div className="space-y-6">

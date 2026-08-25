@@ -61,13 +61,13 @@ export function CompanyCallsSection({
   companyId,
   direction,
 }: CompanyCallsSectionProps) {
-  const { getCompanyById } = useEmployeesContext();
-  const { companies } = useEmployeesContext();
+  const { getCompanyById, companies, loading } = useEmployeesContext();
   const company = companies.find((c) => c.id === companyId);
   const isOutOfCredits = (company?.creditsRemaining ?? 0) <= 0;
   const isLocked = company?.status === "SUSPENDED" || company?.status === "DELETED";
 
   const hasAssignedNumber = useMemo(() => {
+    if (loading) return true;
     if (!company?.assignedNumbers) return false;
     return company.assignedNumbers.some((n: any) =>
       // If direction is missing on a legacy record, assume it works for both, or check explicitly
@@ -75,7 +75,7 @@ export function CompanyCallsSection({
       n.direction === direction.toUpperCase() || 
       n.direction === "BOTH"
     );
-  }, [company, direction]);
+  }, [company, direction, loading]);
 
   const [reminding, setReminding] = useState(false);
   const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);
