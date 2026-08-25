@@ -55,13 +55,36 @@ export function OutboundPageContent() {
   useEffect(() => {
     const checkOutboundNumber = () => {
       try {
+        const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+        const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
         const storedUser = localStorage.getItem("user");
+        let companyId = null;
         if (storedUser) {
-          const user = JSON.parse(storedUser);
-          const detailedNumbers = user.assignedNumbersDetailed || [];
-          const hasOutbound = detailedNumbers.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH");
-          setHasOutboundNumber(hasOutbound);
+          companyId = JSON.parse(storedUser).companyId;
         }
+
+        fetch(`${adminBase}/api/numbers`, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        })
+        .then(res => res.json())
+        .then(numbers => {
+          const detailedNumbers = numbers.numbers || numbers;
+          const companyNumbers = detailedNumbers.filter((n: any) => n.companyId === companyId);
+          const hasOutbound = companyNumbers.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH");
+          setHasOutboundNumber(hasOutbound);
+        })
+        .catch(err => {
+          console.error("Failed to fetch numbers", err);
+          // Fallback to local storage if API fails
+          if (storedUser) {
+            const user = JSON.parse(storedUser);
+            const detailedNumbers = user.assignedNumbersDetailed || [];
+            const hasOutbound = detailedNumbers.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH");
+            setHasOutboundNumber(hasOutbound);
+          }
+        });
       } catch (e) {
         console.error(e);
       }

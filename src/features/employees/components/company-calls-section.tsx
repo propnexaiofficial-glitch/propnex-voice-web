@@ -12,6 +12,8 @@ import { CallLogTable } from "@/components/tables/call-log-table";
 import { TablePagination } from "@/components/tables/table-pagination";
 import { useInboundCallsApi, INBOUND_API_PAGE_SIZE } from "@/features/inbound/hooks/use-inbound-calls-api";
 import { UploadCsvModal } from "@/features/outbound/components/upload-csv-modal";
+import { CampaignCard } from "@/features/outbound/components/campaign-card";
+import { useCampaign } from "@/features/outbound/hooks/use-campaign";
 import { TransferCreditsModal } from "@/features/employees/components/transfer-credits-modal";
 import {
   DEFAULT_CALL_FILTERS,
@@ -71,7 +73,7 @@ export function CompanyCallsSection({
   const [isRequestLocked, setIsRequestLocked] = useState(false);
 
   useEffect(() => {
-    const key = `last_${direction}_number_request`;
+    const key = `last_${direction}_number_request_${companyId}`;
     const lastRequest = localStorage.getItem(key);
     if (lastRequest) {
       const hoursSince = (Date.now() - parseInt(lastRequest)) / (1000 * 60 * 60);
@@ -82,13 +84,18 @@ export function CompanyCallsSection({
         localStorage.removeItem(key);
       }
     }
-  }, [direction]);
+  }, [direction, companyId]);
 
   useEffect(() => {
     const checkAssignedNumber = async () => {
       try {
+        const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
         const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
-        const res = await fetch(`${adminBase}/api/numbers`);
+        const res = await fetch(`${adminBase}/api/numbers`, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
         if (res.ok) {
           const numbers = await res.json();
           const detailedNumbers = numbers.numbers || numbers;
@@ -130,11 +137,11 @@ export function CompanyCallsSection({
 
       if (res.ok) {
         setRemindMessage({ text: "Reminder sent successfully! Admin notified.", type: "success" });
-        localStorage.setItem(`last_${direction}_number_request`, Date.now().toString());
+        localStorage.setItem(`last_${direction}_number_request_${companyId}`, Date.now().toString());
         setIsRequestLocked(true);
       } else if (res.status === 429) {
         setRemindMessage({ text: "You can only request once every 24 hours.", type: "error" });
-        localStorage.setItem(`last_${direction}_number_request`, Date.now().toString());
+        localStorage.setItem(`last_${direction}_number_request_${companyId}`, Date.now().toString());
         setIsRequestLocked(true);
       } else {
         setRemindMessage({ text: "Failed to send reminder. Please try again.", type: "error" });
@@ -151,6 +158,15 @@ export function CompanyCallsSection({
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
+
+  const {
+    campaign: outboundCampaign,
+    progressPercent,
+    handleUpload: handleCampaignUpload,
+    startCampaign,
+    pauseCampaign,
+    resumeCampaign,
+  } = useCampaign();
 
   const {
     calls: paginatedCalls,
@@ -182,50 +198,57 @@ export function CompanyCallsSection({
     setTranscriptOpen(true);
   };
 
-  const handleUpload = (fileName: string) => {
-    // In a real app, this would process the CSV and start the campaign.
-    // For now, it just closes the modal.
+  const handleUpload = (fileName: string, leads: any[] = []) => {
+    handleCampaignUpload(fileName, leads);
     setUploadOpen(false);
   };
 
   return (
     <div className="space-y-5">
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between gap-4"
-      >
-        <div className="flex items-center gap-2">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
-            <Icon className="size-5 text-foreground" />
+      {direction === "outbound" ? (
+        <CampaignCard
+          campaign={outboundCampaign}
+          progressPercent={progressPercent}
+          onUploadClick={() => setUploadOpen(true)}
+          onStart={startCampaign}
+          onPause={pauseCampaign}
+          onResume={resumeCampaign}
+          hasOutboundNumber={hasAssignedNumber}
+          companyId={companyId}
+        />
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-2">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+              <Icon className="size-5 text-foreground" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">{title}</h2>
+              <p className="text-sm text-muted-foreground">{description}</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-lg font-semibold">{title}</h2>
-            <p className="text-sm text-muted-foreground">{description}</p>
-          </div>
-        </div>
 
-        {!isLocked && (
-          <div className="flex flex-col gap-2 items-end">
-            {!hasAssignedNumber ? (
-              <Button onClick={handleRemindAdmin} disabled={reminding || isRequestLocked} className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white">
-                {direction === "outbound" ? <PhoneOutgoing className="size-4" /> : <PhoneIncoming className="size-4" />}
-                {reminding ? "Sending..." : (isRequestLocked ? "Request Sent" : `Request ${direction === "outbound" ? "Outbound" : "Inbound"} Number`)}
-              </Button>
-            ) : direction === "outbound" ? (
-              <Button variant="outline" className="gap-2" onClick={() => setUploadOpen(true)}>
-                <Upload className="size-4" />
-                Upload CSV
-              </Button>
-            ) : null}
-            {remindMessage && (
-              <p className={`text-xs ${remindMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
-                {remindMessage.text}
-              </p>
-            )}
-          </div>
-        )}
-      </motion.div>
+          {!isLocked && (
+            <div className="flex flex-col gap-2 items-end">
+              {!hasAssignedNumber ? (
+                <Button onClick={handleRemindAdmin} disabled={reminding || isRequestLocked} className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white">
+                  <PhoneIncoming className="size-4" />
+                  {reminding ? "Sending..." : (isRequestLocked ? "Request Sent" : "Request Inbound Number")}
+                </Button>
+              ) : null}
+              {remindMessage && (
+                <p className={`text-xs ${remindMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                  {remindMessage.text}
+                </p>
+              )}
+            </div>
+          )}
+        </motion.div>
+      )}
 
       <CallLogFiltersBar
         filters={filters}

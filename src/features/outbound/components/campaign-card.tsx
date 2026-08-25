@@ -40,6 +40,7 @@ type CampaignCardProps = {
   onResume: () => void;
   hasOutboundNumber?: boolean;
   className?: string;
+  companyId?: string;
 };
 
 export function CampaignCard({
@@ -51,6 +52,7 @@ export function CampaignCard({
   onResume,
   hasOutboundNumber = true,
   className,
+  companyId,
 }: CampaignCardProps) {
   const status = statusConfig[campaign.status];
   const isComingSoon = campaign.comingSoon === true;
@@ -60,17 +62,18 @@ export function CampaignCard({
   const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => {
-    const lastRequest = localStorage.getItem("last_outbound_number_request");
+    const key = companyId ? `last_outbound_number_request_${companyId}` : "last_outbound_number_request";
+    const lastRequest = localStorage.getItem(key);
     if (lastRequest) {
       const hoursSince = (Date.now() - parseInt(lastRequest)) / (1000 * 60 * 60);
       if (hoursSince < 24) {
         setIsLocked(true);
         setRemindMessage({ text: "You can only request once every 24 hours.", type: "error" });
       } else {
-        localStorage.removeItem("last_outbound_number_request");
+        localStorage.removeItem(key);
       }
     }
-  }, []);
+  }, [companyId]);
 
   const handleRemindAdmin = async () => {
     try {
@@ -80,6 +83,7 @@ export function CampaignCard({
       const storedUserStr = localStorage.getItem("user");
       const user = storedUserStr ? JSON.parse(storedUserStr) : {};
       const email = user.email || user.id || "default";
+      const key = companyId ? `last_outbound_number_request_${companyId}` : "last_outbound_number_request";
 
       const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
       const res = await fetch(`${adminBase}/api/number-requests`, {
@@ -87,7 +91,7 @@ export function CampaignCard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
-          companyId: user.companyId || null,
+          companyId: companyId || user.companyId || null,
           name: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unknown",
           type: "OUTBOUND"
         })
@@ -95,11 +99,11 @@ export function CampaignCard({
 
       if (res.ok) {
         setRemindMessage({ text: "Reminder sent successfully! Admin notified.", type: "success" });
-        localStorage.setItem("last_outbound_number_request", Date.now().toString());
+        localStorage.setItem(key, Date.now().toString());
         setIsLocked(true);
       } else if (res.status === 429) {
         setRemindMessage({ text: "You can only request once every 24 hours.", type: "error" });
-        localStorage.setItem("last_outbound_number_request", Date.now().toString());
+        localStorage.setItem(key, Date.now().toString());
         setIsLocked(true);
       } else {
         setRemindMessage({ text: "Failed to send reminder. Please try again.", type: "error" });
