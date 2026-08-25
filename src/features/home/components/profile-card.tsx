@@ -192,12 +192,7 @@ export function ProfileCard({ className }: ProfileCardProps) {
                                   <div className="mt-1 space-y-1">
                                     {group.inbound.map((n, idx) => (
                                       <div key={idx} className="flex items-center gap-2">
-                                        <span>{n.number}</span>
-                                        {n.channels != null && (
-                                          <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded">
-                                            ({n.channels} channels)
-                                          </span>
-                                        )}
+                                        <span>{n.number} | Ch - {n.channels || 0}</span>
                                       </div>
                                     ))}
                                   </div>
@@ -220,12 +215,7 @@ export function ProfileCard({ className }: ProfileCardProps) {
                                   <div className="mt-1 space-y-1">
                                     {group.outbound.map((n, idx) => (
                                       <div key={idx} className="flex items-center gap-2">
-                                        <span>{n.number}</span>
-                                        {n.channels != null && (
-                                          <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded">
-                                            ({n.channels} channels)
-                                          </span>
-                                        )}
+                                        <span>{n.number} | Ch - {n.channels || 0}</span>
                                       </div>
                                     ))}
                                   </div>
@@ -284,12 +274,7 @@ export function ProfileCard({ className }: ProfileCardProps) {
                                   <div className="mt-1 space-y-1">
                                     {group.inbound.map((n, idx) => (
                                       <div key={idx} className="flex items-center gap-2">
-                                        <span>{n.number}</span>
-                                        {n.channels != null && (
-                                          <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded">
-                                            ({n.channels} channels)
-                                          </span>
-                                        )}
+                                        <span>{n.number} | Ch - {n.channels || 0}</span>
                                       </div>
                                     ))}
                                   </div>
@@ -312,12 +297,7 @@ export function ProfileCard({ className }: ProfileCardProps) {
                                   <div className="mt-1 space-y-1">
                                     {group.outbound.map((n, idx) => (
                                       <div key={idx} className="flex items-center gap-2">
-                                        <span>{n.number}</span>
-                                        {n.channels != null && (
-                                          <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded">
-                                            ({n.channels} channels)
-                                          </span>
-                                        )}
+                                        <span>{n.number} | Ch - {n.channels || 0}</span>
                                       </div>
                                     ))}
                                   </div>

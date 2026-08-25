@@ -135,12 +135,7 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
                               <div className="mt-1 space-y-1">
                                 {inboundNumbers.map((num, i) => (
                                   <div key={i} className="flex items-center gap-2">
-                                    <span>{num.number}</span>
-                                    {num.channels != null && (
-                                      <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded">
-                                        ({num.channels} channels)
-                                      </span>
-                                    )}
+                                    <span>{num.number} | Ch - {num.channels || 0}</span>
                                   </div>
                                 ))}
                               </div>
@@ -162,12 +157,7 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
                               <div className="mt-1 space-y-1">
                                 {outboundNumbers.map((num, i) => (
                                   <div key={i} className="flex items-center gap-2">
-                                    <span>{num.number}</span>
-                                    {num.channels != null && (
-                                      <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded">
-                                        ({num.channels} channels)
-                                      </span>
-                                    )}
+                                    <span>{num.number} | Ch - {num.channels || 0}</span>
                                   </div>
                                 ))}
                               </div>
