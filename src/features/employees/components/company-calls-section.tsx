@@ -107,12 +107,15 @@ export function CompanyCallsSection({
         body: JSON.stringify({
           email,
           companyId,
-          name: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unknown"
+          name: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unknown",
+          type: direction.toUpperCase()
         })
       });
 
       if (res.ok) {
         setRemindMessage({ text: "Reminder sent successfully! Admin notified.", type: "success" });
+      } else if (res.status === 429) {
+        setRemindMessage({ text: "You can only request once every 24 hours.", type: "error" });
       } else {
         setRemindMessage({ text: "Failed to send reminder. Please try again.", type: "error" });
       }

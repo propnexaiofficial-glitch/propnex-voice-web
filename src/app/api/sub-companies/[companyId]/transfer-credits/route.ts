@@ -6,7 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "propnex_secret_jwt_key_2026_key";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { companyId: string } }
+  { params }: { params: Promise<{ companyId: string }> }
 ) {
   try {
     const authHeader = req.headers.get("authorization");
@@ -44,7 +44,7 @@ export async function POST(
     }
 
     // Fetch the target sub-company
-    const subCompanyId = params.companyId;
+    const subCompanyId = (await params).companyId;
     const subCompany = await prisma.company.findFirst({
       where: { id: subCompanyId, parentCompanyId: parentCompany.id },
       include: { creditBalance: true }
