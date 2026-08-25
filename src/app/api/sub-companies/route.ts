@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
       where: { parentCompanyId: member.companyId },
       include: { 
         creditBalance: true,
-        phoneNumbers: { select: { number: true } } // return ALL assigned numbers
+        phoneNumbers: { select: { number: true, direction: true } }
       }
     });
 
@@ -48,7 +48,8 @@ export async function GET(req: NextRequest) {
         companyName: c.name,
         companyEmail: "",
         contactPhone: allNumbers[0] || "",       // first number (backward-compat)
-        assignedNumbers: allNumbers,              // ALL numbers
+        assignedNumbers: c.phoneNumbers || [], // Return the full objects {number, direction}
+        channels: c.channels || 0,
         creditsUsed: c.creditBalance?.creditsUsed || 0,
         creditsRemaining: c.creditBalance?.creditsRemaining || 0,
         inboundCalls: inbound,

@@ -45,14 +45,15 @@ export async function GET(req: NextRequest) {
     try {
       const member = await (prisma as any).companyMember.findFirst({
         where: { userId: user.id, status: "ACTIVE" },
-        include: { 
+          include: { 
           company: { 
             select: { 
               id: true, 
               contractId: true, 
               status: true, 
               blockedUntil: true,
-              creditBalance: true
+              creditBalance: true,
+              channels: true
             } 
           } 
         },
@@ -64,6 +65,7 @@ export async function GET(req: NextRequest) {
         companyStatus = member.company.status;
         companyBlockedUntil = member.company.blockedUntil;
         creditBalance = member.company.creditBalance;
+        const mainChannels = member.company.channels;
         
         // Fetch the assigned phone numbers for this company AND its sub-companies
         const phoneRecords = await (prisma as any).phoneNumber.findMany({
@@ -74,7 +76,7 @@ export async function GET(req: NextRequest) {
             ],
             status: "ACTIVE" 
           },
-          include: { company: { select: { name: true } } }
+          include: { company: { select: { name: true, channels: true } } }
         });
         
         if (phoneRecords && phoneRecords.length > 0) {
@@ -82,7 +84,9 @@ export async function GET(req: NextRequest) {
           assignedNumbersDetailed = phoneRecords.map((r: any) => ({
              isMain: r.companyId === member.company.id,
              companyName: r.company?.name || "Unknown Company",
-             number: r.number
+             number: r.number,
+             direction: r.direction,
+             channels: r.companyId === member.company.id ? mainChannels : r.company?.channels
           }));
         } else {
           assignedNumber = "Not Assigned";

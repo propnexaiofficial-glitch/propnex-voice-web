@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 
-import { Building2, Lock, Trash2, Loader2 } from "lucide-react";
+import { Building2, Lock, Trash2, Loader2, PhoneIncoming, PhoneOutgoing } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -20,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { SubCompany } from "@/features/employees/types";
 import { cn } from "@/lib/utils";
 
@@ -44,9 +45,13 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
   const allNumbers = company.assignedNumbers?.length
     ? company.assignedNumbers
     : company.contactPhone
-    ? [company.contactPhone]
+    ? [{ number: company.contactPhone }]
     : [];
   const hasNumbers = allNumbers.length > 0;
+
+  const inboundNumbers = allNumbers.filter(n => n.direction !== "OUTBOUND").map(n => n.number);
+  const outboundNumbers = allNumbers.filter(n => n.direction === "OUTBOUND").map(n => n.number);
+  const channels = company.channels || 0;
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -115,18 +120,46 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
                 {!hasNumbers ? (
                   <span className="font-medium text-amber-500">Pending...</span>
                 ) : (
-                  <span className="font-medium text-foreground">
-                    {allNumbers.map((num, i) => {
-                      const last3 = num.replace(/\s/g, "").slice(-3);
-                      return (
-                        <span key={i} title={num} className="cursor-default group relative">
-                          {i > 0 && <span className="opacity-40 mx-0.5">,</span>}
-                          <span className="font-mono tracking-wide group-hover:hidden">•••{last3}</span>
-                          <span className="font-mono tracking-wide hidden group-hover:inline text-primary">{num}</span>
-                        </span>
-                      );
-                    })}
-                  </span>
+                  <TooltipProvider>
+                    <div className="flex items-center gap-2">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center justify-center size-5 rounded bg-muted/50 hover:bg-muted transition-colors cursor-default" onClick={(e) => e.preventDefault()}>
+                            <PhoneIncoming className="size-3 text-blue-500" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="flex flex-col gap-1.5 p-3" onClick={(e) => e.preventDefault()}>
+                          <p className="font-semibold text-xs border-b border-border pb-1">Inbound Info</p>
+                          <div className="text-xs">
+                            <span className="text-muted-foreground">Numbers: </span>
+                            {inboundNumbers.length > 0 ? inboundNumbers.join(", ") : "None"}
+                          </div>
+                          <div className="text-xs">
+                            <span className="text-muted-foreground">Channels: </span>
+                            {channels}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center justify-center size-5 rounded bg-muted/50 hover:bg-muted transition-colors cursor-default" onClick={(e) => e.preventDefault()}>
+                            <PhoneOutgoing className="size-3 text-orange-500" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="flex flex-col gap-1.5 p-3" onClick={(e) => e.preventDefault()}>
+                          <p className="font-semibold text-xs border-b border-border pb-1">Outbound Info</p>
+                          <div className="text-xs">
+                            <span className="text-muted-foreground">Numbers: </span>
+                            {outboundNumbers.length > 0 ? outboundNumbers.join(", ") : "None"}
+                          </div>
+                          <div className="text-xs">
+                            <span className="text-muted-foreground">Channels: </span>
+                            {channels}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </TooltipProvider>
                 )}
               </p>
             </div>

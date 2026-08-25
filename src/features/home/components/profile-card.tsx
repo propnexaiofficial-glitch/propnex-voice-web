@@ -5,8 +5,10 @@ import { motion } from "framer-motion";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useUserContext } from "@/features/auth/context/user-context";
+import { PhoneIncoming, PhoneOutgoing } from "lucide-react";
 
 function getInitials(name: string) {
   if (!name || name.trim() === "") return "U";
@@ -37,13 +39,16 @@ export function ProfileCard({ className }: ProfileCardProps) {
   const subNumbers = detailedNumbers.filter((d) => !d.isMain);
 
   const groupNumbers = (numbers: any[]) => {
-    const grouped: Record<string, string[]> = {};
+    const grouped: Record<string, { inbound: string[], outbound: string[], channels: number }> = {};
     for (const d of numbers) {
       const name = d.companyName || "Unknown";
-      if (!grouped[name]) grouped[name] = [];
-      if (d.number) grouped[name].push(d.number);
+      if (!grouped[name]) grouped[name] = { inbound: [], outbound: [], channels: d.channels || 0 };
+      if (d.number) {
+         if (d.direction === "OUTBOUND") grouped[name].outbound.push(d.number);
+         else grouped[name].inbound.push(d.number); // Default to inbound if missing
+      }
     }
-    return Object.entries(grouped).map(([companyName, nums]) => ({ companyName, numbers: nums }));
+    return Object.entries(grouped).map(([companyName, data]) => ({ companyName, ...data }));
   };
 
   const groupedMainNumbers = groupNumbers(mainNumbers);
@@ -158,89 +163,141 @@ export function ProfileCard({ className }: ProfileCardProps) {
               </p>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 pl-11">
-              {/* Main Company Numbers */}
-              <div className="space-y-1.5">
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold border-b border-border pb-1">
-                  Main Company
-                </p>
-                {groupedMainNumbers.length > 0 ? (
-                  groupedMainNumbers.map((group, i) => (
-                    <div key={i} className="flex items-center gap-1.5 flex-wrap">
-                      <span className="size-1.5 rounded-full bg-green-500 shrink-0" />
-                      <span className="text-xs text-muted-foreground mr-1">{group.companyName}</span>
-                      {group.numbers.map((num, idx) => {
-                        const last3 = num.replace(/\s/g, "").slice(-3);
-                        return (
-                          <span key={idx} className="flex items-center">
-                            <span
-                              title={num}
-                              className="text-xs font-mono shrink-0 cursor-default group relative"
-                            >
-                              <span className="group-hover:hidden font-semibold text-foreground">•••{last3}</span>
-                              <span className="hidden group-hover:inline font-semibold text-primary">{num}</span>
-                            </span>
-                            {idx < group.numbers.length - 1 && <span className="text-muted-foreground ml-0.5">,</span>}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  ))
-                ) : fallbackNumbers.length > 0 ? (
-                  fallbackNumbers.map((num: string, i: number) => {
-                    const last3 = num.replace(/\s/g, "").slice(-3);
-                    return (
-                      <div key={i} className="flex items-center gap-1.5">
-                        <span className="size-1.5 rounded-full bg-green-500 shrink-0" />
-                        <span
-                          title={num}
-                          className="text-xs font-mono cursor-default group relative"
-                        >
-                          <span className="group-hover:hidden font-semibold text-foreground">•••{last3}</span>
-                          <span className="hidden group-hover:inline font-semibold text-primary">{num}</span>
-                        </span>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <span className="text-xs text-muted-foreground italic">Not Assigned</span>
-                )}
-              </div>
+            <TooltipProvider>
+              <div className="grid gap-3 sm:grid-cols-2 pl-11">
+                {/* Main Company Numbers */}
+                <div className="space-y-1.5">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold border-b border-border pb-1">
+                    Main Company
+                  </p>
+                  {groupedMainNumbers.length > 0 ? (
+                    groupedMainNumbers.map((group, i) => (
+                      <div key={i} className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-1.5">
+                          <span className="size-1.5 rounded-full bg-green-500 shrink-0" />
+                          <span className="text-xs text-muted-foreground mr-1 truncate max-w-[120px]" title={group.companyName}>{group.companyName}</span>
+                        </div>
+                        <div className="flex items-center gap-2 mr-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center justify-center size-6 rounded-md bg-muted/50 hover:bg-muted cursor-default transition-colors">
+                                <PhoneIncoming className="size-3 text-blue-500" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="flex flex-col gap-1.5 p-3">
+                              <p className="font-semibold text-xs border-b border-border pb-1">Inbound Info</p>
+                              <div className="text-xs">
+                                <span className="text-muted-foreground">Numbers: </span>
+                                {group.inbound.length > 0 ? group.inbound.join(", ") : "None"}
+                              </div>
+                              <div className="text-xs">
+                                <span className="text-muted-foreground">Channels: </span>
+                                {group.channels}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
 
-              {/* Sub-Company Numbers */}
-              <div className="space-y-1.5">
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold border-b border-border pb-1">
-                  Sub-Companies
-                </p>
-                {groupedSubNumbers.length > 0 ? (
-                  groupedSubNumbers.map((group, i) => (
-                    <div key={i} className="flex items-start gap-1.5 flex-wrap">
-                      <span className="size-1.5 rounded-full bg-blue-500 shrink-0 mt-1" />
-                      <span className="text-xs text-muted-foreground mr-1">{group.companyName}</span>
-                      <div className="flex flex-wrap items-center gap-1 ml-auto">
-                        {group.numbers.map((num, idx) => {
-                          const last3 = num.replace(/\s/g, "").slice(-3);
-                          return (
-                            <span key={idx} className="flex items-center">
-                              <span
-                                title={num}
-                                className="text-xs font-mono shrink-0 cursor-default group relative"
-                              >
-                                <span className="group-hover:hidden font-semibold text-foreground">•••{last3}</span>
-                                <span className="hidden group-hover:inline font-semibold text-primary">{num}</span>
-                              </span>
-                              {idx < group.numbers.length - 1 && <span className="text-muted-foreground ml-0.5">,</span>}
-                            </span>
-                          );
-                        })}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center justify-center size-6 rounded-md bg-muted/50 hover:bg-muted cursor-default transition-colors">
+                                <PhoneOutgoing className="size-3 text-orange-500" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="flex flex-col gap-1.5 p-3">
+                              <p className="font-semibold text-xs border-b border-border pb-1">Outbound Info</p>
+                              <div className="text-xs">
+                                <span className="text-muted-foreground">Numbers: </span>
+                                {group.outbound.length > 0 ? group.outbound.join(", ") : "None"}
+                              </div>
+                              <div className="text-xs">
+                                <span className="text-muted-foreground">Channels: </span>
+                                {group.channels}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
                       </div>
-                    </div>
-                  ))
-                ) : (
-                  <span className="text-xs text-muted-foreground italic">None</span>
-                )}
+                    ))
+                  ) : fallbackNumbers.length > 0 ? (
+                    fallbackNumbers.map((num: string, i: number) => {
+                      const last3 = num.replace(/\s/g, "").slice(-3);
+                      return (
+                        <div key={i} className="flex items-center gap-1.5">
+                          <span className="size-1.5 rounded-full bg-green-500 shrink-0" />
+                          <span
+                            title={num}
+                            className="text-xs font-mono cursor-default group relative"
+                          >
+                            <span className="group-hover:hidden font-semibold text-foreground">•••{last3}</span>
+                            <span className="hidden group-hover:inline font-semibold text-primary">{num}</span>
+                          </span>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">Not Assigned</span>
+                  )}
+                </div>
+
+                {/* Sub-Company Numbers */}
+                <div className="space-y-1.5">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold border-b border-border pb-1">
+                    Sub-Companies
+                  </p>
+                  {groupedSubNumbers.length > 0 ? (
+                    groupedSubNumbers.map((group, i) => (
+                      <div key={i} className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-1.5">
+                          <span className="size-1.5 rounded-full bg-blue-500 shrink-0" />
+                          <span className="text-xs text-muted-foreground mr-1 truncate max-w-[120px]" title={group.companyName}>{group.companyName}</span>
+                        </div>
+                        <div className="flex items-center gap-2 mr-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center justify-center size-6 rounded-md bg-muted/50 hover:bg-muted cursor-default transition-colors">
+                                <PhoneIncoming className="size-3 text-blue-500" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="flex flex-col gap-1.5 p-3">
+                              <p className="font-semibold text-xs border-b border-border pb-1">Inbound Info</p>
+                              <div className="text-xs">
+                                <span className="text-muted-foreground">Numbers: </span>
+                                {group.inbound.length > 0 ? group.inbound.join(", ") : "None"}
+                              </div>
+                              <div className="text-xs">
+                                <span className="text-muted-foreground">Channels: </span>
+                                {group.channels}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center justify-center size-6 rounded-md bg-muted/50 hover:bg-muted cursor-default transition-colors">
+                                <PhoneOutgoing className="size-3 text-orange-500" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="flex flex-col gap-1.5 p-3">
+                              <p className="font-semibold text-xs border-b border-border pb-1">Outbound Info</p>
+                              <div className="text-xs">
+                                <span className="text-muted-foreground">Numbers: </span>
+                                {group.outbound.length > 0 ? group.outbound.join(", ") : "None"}
+                              </div>
+                              <div className="text-xs">
+                                <span className="text-muted-foreground">Channels: </span>
+                                {group.channels}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">None</span>
+                  )}
+                </div>
               </div>
-            </div>
+            </TooltipProvider>
           </div>
         </div>
       </div>

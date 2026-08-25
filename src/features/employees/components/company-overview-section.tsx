@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Building2, Mail, Phone, ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
+import { Building2, Mail, Phone, ArrowUpRight, ArrowDownRight, Minus, PhoneIncoming, PhoneOutgoing } from "lucide-react";
 
 import { PremiumBadge } from "@/components/common/premium-badge";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CallPreviewPanel } from "@/features/employees/components/call-preview-panel";
 import { TransferCreditsModal } from "@/features/employees/components/transfer-credits-modal";
 import type { CallPreview, SubCompany } from "@/features/employees/types";
@@ -98,6 +99,17 @@ export function CompanyOverviewSection({
     direction: "outbound"
   }));
 
+  const allNumbers = company.assignedNumbers?.length
+    ? company.assignedNumbers
+    : company.contactPhone
+    ? [{ number: company.contactPhone }]
+    : [];
+  const hasNumbers = allNumbers.length > 0;
+  
+  const inboundNumbers = allNumbers.filter(n => n.direction !== "OUTBOUND").map(n => n.number);
+  const outboundNumbers = allNumbers.filter(n => n.direction === "OUTBOUND").map(n => n.number);
+  const channels = company.channels || 0;
+
   const realPreviewCalls = [...inboundPreviews, ...outboundPreviews];
 
   const getTrendIcon = (trend: number) => {
@@ -138,24 +150,49 @@ export function CompanyOverviewSection({
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-[11px] text-muted-foreground font-medium">Assigned Numbers</span>
-                {(company.assignedNumbers?.length ? company.assignedNumbers : company.contactPhone ? [company.contactPhone] : []).length === 0 ? (
+                {!hasNumbers ? (
                   <span className="text-xs text-amber-500">Pending Assignment...</span>
                 ) : (
-                  <div className="flex flex-wrap gap-1.5">
-                    {(company.assignedNumbers?.length ? company.assignedNumbers : [company.contactPhone]).filter(Boolean).map((num, i) => {
-                      const last3 = (num as string).replace(/\s/g, "").slice(-3);
-                      return (
-                        <span
-                          key={i}
-                          title={num as string}
-                          className="group inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-xs font-mono cursor-default"
-                        >
-                          <span className="group-hover:hidden">•••{last3}</span>
-                          <span className="hidden group-hover:inline text-primary">{num}</span>
-                        </span>
-                      );
-                    })}
-                  </div>
+                  <TooltipProvider>
+                    <div className="flex items-center gap-2">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center justify-center size-6 rounded-md bg-muted/50 hover:bg-muted transition-colors cursor-default" onClick={(e) => e.preventDefault()}>
+                            <PhoneIncoming className="size-3.5 text-blue-500" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="flex flex-col gap-1.5 p-3" onClick={(e) => e.preventDefault()}>
+                          <p className="font-semibold text-xs border-b border-border pb-1">Inbound Info</p>
+                          <div className="text-xs">
+                            <span className="text-muted-foreground">Numbers: </span>
+                            {inboundNumbers.length > 0 ? inboundNumbers.join(", ") : "None"}
+                          </div>
+                          <div className="text-xs">
+                            <span className="text-muted-foreground">Channels: </span>
+                            {channels}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center justify-center size-6 rounded-md bg-muted/50 hover:bg-muted transition-colors cursor-default" onClick={(e) => e.preventDefault()}>
+                            <PhoneOutgoing className="size-3.5 text-orange-500" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="flex flex-col gap-1.5 p-3" onClick={(e) => e.preventDefault()}>
+                          <p className="font-semibold text-xs border-b border-border pb-1">Outbound Info</p>
+                          <div className="text-xs">
+                            <span className="text-muted-foreground">Numbers: </span>
+                            {outboundNumbers.length > 0 ? outboundNumbers.join(", ") : "None"}
+                          </div>
+                          <div className="text-xs">
+                            <span className="text-muted-foreground">Channels: </span>
+                            {channels}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </TooltipProvider>
                 )}
               </div>
             </div>

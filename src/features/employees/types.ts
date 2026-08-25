@@ -3,7 +3,8 @@ export type SubCompany = {
   name: string;
   contactEmail: string;
   contactPhone: string;
-  assignedNumbers: string[]; // all phone numbers assigned to this sub-company
+  assignedNumbers: Array<{ number: string, direction?: string }>; // phone numbers assigned to this sub-company
+  channels?: number;
   creditsUsed: number;
   creditsLimit: number;
   creditsRemaining: number;

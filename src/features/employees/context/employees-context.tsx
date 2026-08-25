@@ -43,7 +43,10 @@ export function EmployeesProvider({ children }: { children: ReactNode }) {
         name: item.companyName,
         contactEmail: item.companyEmail,
         contactPhone: item.contactPhone || "",
-        assignedNumbers: Array.isArray(item.assignedNumbers) ? item.assignedNumbers : (item.contactPhone ? [item.contactPhone] : []),
+        assignedNumbers: Array.isArray(item.assignedNumbers) 
+          ? item.assignedNumbers 
+          : (item.contactPhone ? [{ number: item.contactPhone }] : []),
+        channels: item.channels || 0,
         creditsUsed: item.creditsUsed || 0,
         creditsRemaining: item.creditsRemaining || 0,
         creditsLimit: item.creditsRemaining !== undefined ? item.creditsRemaining + (item.creditsUsed || 0) : 2000,
@@ -104,7 +107,8 @@ export function EmployeesProvider({ children }: { children: ReactNode }) {
       name: item.companyName,
       contactEmail: item.companyEmail,
       contactPhone: item.contactPhone || "",
-      assignedNumbers: item.contactPhone ? [item.contactPhone] : [],
+      assignedNumbers: item.contactPhone ? [{ number: item.contactPhone }] : [],
+      channels: 0,
       creditsUsed: 0,
       creditsRemaining: form.allocatedCredits,
       creditsLimit: form.allocatedCredits,
