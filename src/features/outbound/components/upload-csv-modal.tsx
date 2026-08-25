@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+
 
 export type ExtractedLead = {
   name: string;
@@ -204,10 +204,10 @@ export function UploadCsvModal({
         </div>
 
         {error && (
-          <Alert variant={extractedLeads.length > 0 ? "default" : "destructive"} className="mt-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+          <div className={cn("mt-4 flex items-start gap-3 rounded-lg border p-4 text-sm", extractedLeads.length > 0 ? "border-border text-foreground" : "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive")}>
+            <AlertCircle className="mt-0.5 h-4 w-4" />
+            <div className="flex-1 leading-relaxed">{error}</div>
+          </div>
         )}
 
         {selectedFile && extractedLeads.length > 0 && (
