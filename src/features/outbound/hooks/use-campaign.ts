@@ -97,7 +97,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       }
 
       // Step 3: Loop through leads using concurrency and polling
-      let activeCalls = new Set<string>();
+      let activeCalls = new Map<string, number>();
+      let activeCallCount = 0;
       let completedCount = 0;
       let currentIndex = 0;
       const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
@@ -118,10 +119,10 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       };
 
       // We will loop until all leads are started AND activeCalls is empty
-      while (currentIndex < campaign.leads.length || activeCalls.size > 0) {
+      while (currentIndex < campaign.leads.length || activeCallCount > 0) {
         
         // Check if we can start more calls based on channel limits
-        while (activeCalls.size < channels && currentIndex < campaign.leads.length) {
+        while (activeCallCount < channels && currentIndex < campaign.leads.length) {
           const lead = campaign.leads[currentIndex];
           currentIndex++;
           
@@ -146,7 +147,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
               console.error(`Failed to push lead ${lead.phone} to Voicelink:`, errText);
               await markAsFailed(lead.phone);
             } else {
-              activeCalls.add(lead.phone);
+              activeCalls.set(lead.phone, (activeCalls.get(lead.phone) || 0) + 1);
+              activeCallCount++;
             }
           } catch (err: any) {
             console.error(`Failed to push lead ${lead.phone}:`, err.message);
@@ -155,7 +157,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         }
         
         // Polling loop: Wait 3 seconds, then check status of active calls
-        if (activeCalls.size > 0) {
+        if (activeCallCount > 0) {
            await new Promise(resolve => setTimeout(resolve, 3000));
            
            try {
@@ -168,14 +170,22 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
                const pollData = await pollRes.json();
                const dbCalls = pollData.data || [];
                
-               // For each active call, check if it has completed in the DB
-               for (const phone of Array.from(activeCalls)) {
+               // For each active call phone number, check how many are still pending/ringing in DB
+               for (const [phone, count] of Array.from(activeCalls.entries())) {
                  const corePhone = phone.replace(/\D/g, "").slice(-10);
-                 const matchingCall = dbCalls.find((c: any) => c.lead?.phone?.includes(corePhone));
+                 const matchingCalls = dbCalls.filter((c: any) => c.customerNumber?.includes(corePhone));
                  
-                 if (matchingCall && ["COMPLETED", "FAILED", "MISSED"].includes(matchingCall.status)) {
-                   activeCalls.delete(phone);
-                   completedCount++;
+                 const activeMatching = matchingCalls.filter((c: any) => ["pending", "ringing", "answered"].includes(c.status));
+                 
+                 if (activeMatching.length < count) {
+                   const finishedCount = count - activeMatching.length;
+                   if (activeMatching.length === 0) {
+                     activeCalls.delete(phone);
+                   } else {
+                     activeCalls.set(phone, activeMatching.length);
+                   }
+                   activeCallCount -= finishedCount;
+                   completedCount += finishedCount;
                    setCampaign(prev => ({ ...prev, completedCalls: completedCount }));
                  }
                }
