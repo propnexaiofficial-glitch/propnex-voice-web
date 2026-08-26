@@ -30,8 +30,14 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
   const startCampaign = useCallback(async () => {
     if (campaign.status !== "ready" || !campaign.leads || campaign.leads.length === 0) return;
     
+    // Deduplicate leads to match backend constraints and prevent double-calling
+    const uniqueLeads = Array.from(
+      new Map(campaign.leads.map(lead => [lead.phone, lead])).values()
+    );
+    
     setCampaign((prev) => ({
       ...prev,
+      leads: uniqueLeads,
       status: "running",
       startedAt: new Date().toISOString(),
       completedCalls: 0,
@@ -54,7 +60,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           companyId,
-          leads: campaign.leads,
+          leads: uniqueLeads,
         })
       });
 
@@ -118,12 +124,12 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         }
       };
 
-      // We will loop until all leads are started AND activeCalls is empty
-      while (currentIndex < campaign.leads.length || activeCallCount > 0) {
+      // We will loop until all leads are started AND activeCallCount is zero
+      while (currentIndex < uniqueLeads.length || activeCallCount > 0) {
         
         // Check if we can start more calls based on channel limits
-        while (activeCallCount < channels && currentIndex < campaign.leads.length) {
-          const lead = campaign.leads[currentIndex];
+        while (activeCallCount < channels && currentIndex < uniqueLeads.length) {
+          const lead = uniqueLeads[currentIndex];
           currentIndex++;
           
           try {
