@@ -13,6 +13,7 @@ import {
   Pencil,
   Check,
   X,
+  Trash2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -43,12 +44,13 @@ type CampaignCardProps = {
   onPause: () => void;
   onResume: () => void;
   onEditLead?: (index: number, newLead: any) => void;
+  onDeleteLead?: (index: number) => void;
   hasOutboundNumber?: boolean;
   className?: string;
   companyId?: string;
 };
 
-function LeadRow({ lead, idx, onSave }: { lead: any; idx: number; onSave: (newLead: any) => void }) {
+function LeadRow({ lead, idx, onSave, onDelete }: { lead: any; idx: number; onSave: (newLead: any) => void; onDelete?: () => void }) {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(lead.name);
   const [phone, setPhone] = useState(lead.phone);
@@ -92,11 +94,18 @@ function LeadRow({ lead, idx, onSave }: { lead: any; idx: number; onSave: (newLe
       <div className="flex items-center gap-2 overflow-hidden">
         <span className={cn("truncate max-w-[120px]", lead.called && "line-through text-muted-foreground", lead.isInvalid && "text-red-400 line-through")}>{lead.name}</span>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <span className={cn("font-mono", lead.called && "line-through text-muted-foreground", lead.isInvalid && "text-red-400 line-through")}>{lead.phone}</span>
-        <button onClick={() => setIsEditing(true)} className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground">
-          <Pencil className="size-3" />
-        </button>
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+          <button onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-foreground">
+            <Pencil className="size-3" />
+          </button>
+          {onDelete && (
+            <button onClick={onDelete} className="text-muted-foreground hover:text-red-500">
+              <Trash2 className="size-3" />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -272,7 +281,13 @@ export function CampaignCard({
                   <p className="font-semibold mb-2">Ready to Call ({campaign.leads.length} Leads)</p>
                   <div className="space-y-2">
                     {campaign.leads.map((lead: any, idx: number) => (
-                      <LeadRow key={idx} lead={lead} idx={idx} onSave={(newLead) => onEditLead?.(idx, newLead)} />
+                      <LeadRow 
+                        key={idx} 
+                        lead={lead} 
+                        idx={idx} 
+                        onSave={(newLead) => onEditLead?.(idx, newLead)} 
+                        onDelete={() => onDeleteLead?.(idx)}
+                      />
                     ))}
                   </div>
                 </PopoverContent>

@@ -249,6 +249,19 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
     });
   }, []);
 
+  const deleteLead = useCallback((index: number) => {
+    setCampaign((prev) => {
+      if (!prev.leads) return prev;
+      const newLeads = prev.leads.filter((_, i) => i !== index);
+      // Update total contacts count if a lead is deleted
+      return { 
+        ...prev, 
+        leads: newLeads,
+        totalContacts: prev.totalContacts > 0 ? prev.totalContacts - 1 : 0
+      };
+    });
+  }, []);
+
   const progressPercent =
     campaign.totalContacts > 0
       ? Math.round((campaign.completedCalls / campaign.totalContacts) * 100)
@@ -263,6 +276,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
     pauseCampaign,
     resumeCampaign,
     editLead,
+    deleteLead,
     alertData,
     setAlertData,
   };

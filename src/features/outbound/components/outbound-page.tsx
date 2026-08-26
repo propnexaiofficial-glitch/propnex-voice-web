@@ -51,6 +51,7 @@ export function OutboundPageContent() {
     pauseCampaign,
     resumeCampaign,
     editLead,
+    deleteLead,
     alertData,
     setAlertData,
   } = useCampaign();
@@ -112,6 +113,7 @@ export function OutboundPageContent() {
           onPause={pauseCampaign}
           onResume={resumeCampaign}
           onEditLead={editLead}
+          onDeleteLead={deleteLead}
         />
       </div>
 
