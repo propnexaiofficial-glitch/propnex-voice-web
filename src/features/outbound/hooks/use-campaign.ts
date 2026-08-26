@@ -98,8 +98,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       let activeCalls = new Set<string>();
       let completedCount = 0;
       let currentIndex = 0;
-      
-      const pnxToken = localStorage.getItem("token") || "";
+      const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
 
       // We will loop until all leads are started AND activeCalls is empty
       while (currentIndex < campaign.leads.length || activeCalls.size > 0) {

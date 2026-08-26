@@ -44,7 +44,7 @@ export function useOutboundCalls() {
       if (filters.search) query.set("search", filters.search);
       if (filters.minDuration) query.set("minDuration", filters.minDuration);
 
-      const token = localStorage.getItem("token") || "";
+      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
       const res = await fetch(`/api/calls/outbound?${query.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
