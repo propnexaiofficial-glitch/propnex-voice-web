@@ -54,7 +54,7 @@ export function OutboundPageContent() {
 
   const { user, isLoading } = useUserContext();
   const hasOutboundNumber = isLoading ? true : (user?.assignedNumbersDetailed?.some(
-    (n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH"
+    (n: any) => !n.direction || n.direction === "OUTBOUND" || n.direction === "BOTH"
   ) ?? false);
 
   return (
