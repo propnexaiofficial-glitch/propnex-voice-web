@@ -69,13 +69,8 @@ export function CompanyCallsSection({
   const hasAssignedNumber = useMemo(() => {
     if (isContextLoading) return true;
     if (!company?.assignedNumbers) return false;
-    return company.assignedNumbers.some((n: any) =>
-      // If direction is missing on a legacy record, assume it works for both, or check explicitly
-      !n.direction || 
-      n.direction === direction.toUpperCase() || 
-      n.direction === "BOTH"
-    );
-  }, [company, direction, isContextLoading]);
+    return company.assignedNumbers.length > 0;
+  }, [company, isContextLoading]);
 
   const [reminding, setReminding] = useState(false);
   const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);

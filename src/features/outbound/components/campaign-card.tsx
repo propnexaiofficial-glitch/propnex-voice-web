@@ -53,9 +53,23 @@ function LeadRow({ lead, idx, onSave }: { lead: any; idx: number; onSave: (newLe
   const [name, setName] = useState(lead.name);
   const [phone, setPhone] = useState(lead.phone);
 
+  const formatIndianNumber = (numStr: string): string => {
+    let cleaned = numStr.toString().replace(/\D/g, "");
+    if (cleaned.length === 10) return `+91${cleaned}`;
+    if (cleaned.length === 11 && cleaned.startsWith("0")) return `+91${cleaned.substring(1)}`;
+    if (cleaned.length === 12 && cleaned.startsWith("91")) return `+${cleaned}`;
+    return "";
+  };
+
   const handleSave = () => {
-    onSave({ ...lead, name, phone });
-    setIsEditing(false);
+    const formatted = formatIndianNumber(phone);
+    if (formatted) {
+      onSave({ ...lead, name, phone: formatted, isInvalid: false });
+      setIsEditing(false);
+    } else {
+      onSave({ ...lead, name, phone, isInvalid: true });
+      setIsEditing(false);
+    }
   };
 
   if (isEditing) {
@@ -76,10 +90,10 @@ function LeadRow({ lead, idx, onSave }: { lead: any; idx: number; onSave: (newLe
   return (
     <div className="flex justify-between items-center text-xs border-b border-border pb-1 hover:bg-muted/30 p-1 -mx-1 px-1 rounded transition-colors group">
       <div className="flex items-center gap-2 overflow-hidden">
-        <span className={cn("truncate max-w-[120px]", lead.called && "line-through text-red-400")}>{lead.name}</span>
+        <span className={cn("truncate max-w-[120px]", lead.called && "line-through text-muted-foreground", lead.isInvalid && "text-red-400 line-through")}>{lead.name}</span>
       </div>
       <div className="flex items-center gap-3">
-        <span className={cn("font-mono", lead.called && "line-through text-red-400")}>{lead.phone}</span>
+        <span className={cn("font-mono", lead.called && "line-through text-muted-foreground", lead.isInvalid && "text-red-400 line-through")}>{lead.phone}</span>
         <button onClick={() => setIsEditing(true)} className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground">
           <Pencil className="size-3" />
         </button>
@@ -278,7 +292,7 @@ export function CampaignCard({
             ) : null}
 
           {campaign.status === "ready" && (
-            <Button className="gap-2" onClick={onStart}>
+            <Button className="gap-2" onClick={onStart} disabled={campaign.leads?.some((l: any) => l.isInvalid)}>
               <Play className="size-4" />
               Start Campaign
             </Button>

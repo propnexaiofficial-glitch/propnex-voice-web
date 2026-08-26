@@ -53,9 +53,9 @@ export function OutboundPageContent() {
   };
 
   const { user, isLoading } = useUserContext();
-  const hasOutboundNumber = isLoading ? true : (user?.assignedNumbersDetailed?.some(
-    (n: any) => !n.direction || n.direction === "OUTBOUND" || n.direction === "BOTH"
-  ) ?? false);
+  const hasOutboundNumber = isLoading ? true : (
+    user?.assignedNumbersDetailed && user.assignedNumbersDetailed.length > 0
+  );
 
   return (
     <div className="space-y-6">

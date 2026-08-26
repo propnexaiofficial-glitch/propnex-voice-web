@@ -81,17 +81,18 @@ export function UploadCsvModal({
           leads.push({ name: nameVal ? nameVal.toString().trim() : "Unknown", phone: formatted });
         } else {
           invalidCount++;
+          leads.push({ name: nameVal ? nameVal.toString().trim() : "Unknown", phone: phoneVal.toString(), isInvalid: true });
         }
       }
     });
 
     if (leads.length === 0) {
-      setError("No valid 10-digit Indian numbers were found in the file.");
+      setError("No numbers were found in the file.");
       return;
     }
 
     setExtractedLeads(leads);
-    setError(invalidCount > 0 ? `Found ${leads.length} valid numbers. Ignored ${invalidCount} invalid numbers.` : null);
+    setError(invalidCount > 0 ? `Found ${leads.length - invalidCount} valid numbers. ${invalidCount} invalid numbers need correction.` : null);
   };
 
   const handleFile = (file: File | null) => {
