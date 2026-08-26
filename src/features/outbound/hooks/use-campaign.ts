@@ -106,22 +106,32 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
             },
             body: JSON.stringify({
               did_number: didNumber,
-              customer_number: lead.phone,
+              customer_number: lead.phone.replace(/\D/g, "").slice(-10), // Ensure exactly 10 digits
               country_code: "91",
               custom_parameters: JSON.stringify({ name: lead.name, companyId }),
             }),
           });
           
           if (!res.ok) {
-            console.error(`Failed to push lead ${lead.phone} to Voicelink.`);
+            const errText = await res.text();
+            console.error(`Failed to push lead ${lead.phone} to Voicelink:`, errText);
+            alert(`Failed to push lead ${lead.phone}: ${errText}`);
           }
         } catch (err: any) {
           console.error(`Failed to push lead ${lead.phone}:`, err.message);
+          alert(`Network error pushing lead ${lead.phone}. Check console.`);
         }
       }
 
       // Success
-    } catch (error) {
+      setCampaign((prev) => ({
+        ...prev,
+        status: "completed",
+        completedCalls: campaign.leads.length,
+      }));
+      alert(`Campaign started! ${campaign.leads.length} leads sent to Voicelink.`);
+      
+    } catch (error: any) {
       console.error("Failed to start campaign:", error);
       // Revert status on failure
       setCampaign((prev) => ({
