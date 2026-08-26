@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback } from "react";
 import type { CallLogFilters, CallRecord } from "@/types/call";
 import { useUserContext } from "@/features/auth/context/user-context";
