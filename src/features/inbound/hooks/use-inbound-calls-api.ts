@@ -77,6 +77,8 @@ function mapApiItemToCallRecord(item: any, fallbackAssignedNumber: string): Call
   };
 }
 
+const inboundCache: Record<string, any> = {};
+
 export function useInboundCallsApi(
   filters: CallLogFilters,
   page: number,
@@ -85,47 +87,42 @@ export function useInboundCallsApi(
   companyId?: string,
   direction?: "inbound" | "outbound"
 ): UseInboundCallsApiState {
+  const { search, status, dateFrom, dateTo, assignedNumber, callerNumber, minDuration, durationUnit } = filters;
+  const cacheKey = `calls_cache_v5_${direction}_${companyId}_${page}_${JSON.stringify(filters)}`;
+
   const [state, setState] = useState<{
     rawItems: any[];
     rawTotal: number;
     rawTotalPages: number;
     loading: boolean;
     error: string | null;
-  }>({
-    rawItems: [],
-    rawTotal: 0,
-    rawTotalPages: 1,
-    loading: true,
-    error: null,
+  }>(() => {
+    if (inboundCache[cacheKey]) {
+      return {
+        rawItems: inboundCache[cacheKey].rawItems,
+        rawTotal: inboundCache[cacheKey].rawTotal,
+        rawTotalPages: inboundCache[cacheKey].rawTotalPages,
+        loading: false,
+        error: null
+      };
+    }
+    return {
+      rawItems: [],
+      rawTotal: 0,
+      rawTotalPages: 1,
+      loading: true,
+      error: null,
+    };
   });
-
-  const { search, status, dateFrom, dateTo, assignedNumber, callerNumber, minDuration, durationUnit } = filters;
-
-  const cacheKey = `calls_cache_v5_${direction}_${companyId}_${page}`;
-
-  useEffect(() => {
-    try {
-      const cached = localStorage.getItem(cacheKey);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        setState((prev) => ({
-          ...prev,
-          rawItems: parsed.rawItems || [],
-          rawTotal: parsed.rawTotal || 0,
-          rawTotalPages: parsed.rawTotalPages || 1,
-          loading: false, // Turn off loading instantly
-        }));
-      }
-    } catch (e) {}
-  }, [page, cacheKey]);
 
   useEffect(() => {
     let isCancelled = false;
 
     const load = async (isPolling = false) => {
       if (!isPolling) {
-        // Only set loading to true if we don't have cached data yet
-        setState((prev) => ({ ...prev, loading: prev.rawItems.length === 0, error: null }));
+        if (!inboundCache[cacheKey]) {
+          setState((prev) => ({ ...prev, rawItems: [], loading: true, error: null }));
+        }
       }
 
       try {
@@ -154,13 +151,11 @@ export function useInboundCallsApi(
           error: null,
         });
 
-        try {
-          localStorage.setItem(cacheKey, JSON.stringify({
-            rawItems: res.data || [],
-            rawTotal: res.meta?.total || 0,
-            rawTotalPages: res.meta?.totalPages || 1,
-          }));
-        } catch(e) {}
+        inboundCache[cacheKey] = {
+          rawItems: res.data || [],
+          rawTotal: res.meta?.total || 0,
+          rawTotalPages: res.meta?.totalPages || 1,
+        };
       } catch (err) {
         if (isCancelled) return;
         const message =

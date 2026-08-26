@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { CallLogFilters, CallRecord } from "@/types/call";
 import { useUserContext } from "@/features/auth/context/user-context";
 
 const OUTBOUND_PAGE_SIZE = 8;
+const outboundCache: Record<string, any> = {};
 
 export function useOutboundCalls() {
   const { user } = useUserContext();
@@ -23,14 +24,25 @@ export function useOutboundCalls() {
   const [calls, setCalls] = useState<CallRecord[]>([]);
   const [totalCalls, setTotalCalls] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchCalls = useCallback(async (isBackground = false) => {
     if (!user?.companyId) return;
     
+    const cacheKey = `${user.companyId}-${page}-${JSON.stringify(filters)}`;
+    
     if (!isBackground) {
-      setLoading(true);
+      if (outboundCache[cacheKey]) {
+        // Optimistic UI from cache for tab switching and pagination
+        setCalls(outboundCache[cacheKey].calls);
+        setTotalCalls(outboundCache[cacheKey].total);
+        setTotalPages(outboundCache[cacheKey].pages);
+        setLoading(false); // don't show skeleton if we have cache
+      } else {
+        setCalls([]); // Clear old calls so skeleton loader shows
+        setLoading(true);
+      }
     }
     
     setError(null);
@@ -55,16 +67,22 @@ export function useOutboundCalls() {
       if (!res.ok) throw new Error("Failed to fetch calls");
       const data = await res.json();
       
-      setCalls(data.data || []);
-      setTotalCalls(data.meta?.total || 0);
-      setTotalPages(data.meta?.totalPages || 1);
+      const newCalls = data.data || [];
+      const newTotal = data.meta?.total || 0;
+      const newPages = data.meta?.totalPages || 1;
+
+      // Update cache
+      outboundCache[cacheKey] = { calls: newCalls, total: newTotal, pages: newPages };
+
+      setCalls(newCalls);
+      setTotalCalls(newTotal);
+      setTotalPages(newPages);
     } catch (err: any) {
       setError(err.message);
     } finally {
-      if (!isBackground) {
+      if (!isBackground || !outboundCache[cacheKey]) {
         setLoading(false);
       }
-
     }
   }, [page, filters, user?.companyId]);
 
