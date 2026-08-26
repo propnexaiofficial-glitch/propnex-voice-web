@@ -139,7 +139,7 @@ export function InboundPageContent() {
       )}
 
       {/* ── Content ── */}
-      {loading ? (
+      {loading && calls.length === 0 ? (
         <TableSkeleton />
       ) : calls.length === 0 && !error ? (
         <EmptyState
