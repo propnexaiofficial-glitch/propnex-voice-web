@@ -139,7 +139,24 @@ export async function GET(req: NextRequest) {
       new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
     );
     
-    const calls = allCalls.slice(skip, skip + limit);
+    const mappedCalls = allCalls.slice(skip, skip + limit).map(call => {
+      const minutes = Math.floor((call.durationSeconds || 0) / 60);
+      const seconds = (call.durationSeconds || 0) % 60;
+      return {
+        id: call.id,
+        callId: call.callLogId,
+        customerNumber: call.lead?.phone || "",
+        assignedNumber: call.phoneNumber?.number || "",
+        callDateTime: call.startedAt.toISOString(),
+        duration: minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`,
+        durationSeconds: call.durationSeconds || 0,
+        status: call.status.toLowerCase(),
+        creditsUsed: call.creditsUsed || 0,
+        recordingUrl: call.recordingUrl || undefined,
+        transcript: call.transcript || [],
+        liveStartedAt: (call.status === "RINGING" || call.status === "ANSWERED") ? call.startedAt.toISOString() : undefined,
+      };
+    });
 
     let total = 0;
     const countPromises = companyIdsToQuery.map(cId => 
@@ -149,7 +166,7 @@ export async function GET(req: NextRequest) {
     total = counts.reduce((sum, current) => sum + current, 0);
 
     return NextResponse.json({
-      data: calls,
+      data: mappedCalls,
       meta: {
         total,
         page,

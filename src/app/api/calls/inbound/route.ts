@@ -145,8 +145,27 @@ export async function GET(req: NextRequest) {
       })
     ]);
 
+    const mappedCalls = calls.map((call: any) => {
+      const minutes = Math.floor((call.durationSeconds || 0) / 60);
+      const seconds = (call.durationSeconds || 0) % 60;
+      return {
+        id: call.id,
+        callId: call.callLogId,
+        customerNumber: call.lead?.phone || "",
+        assignedNumber: call.phoneNumber?.number || "",
+        callDateTime: call.startedAt.toISOString(),
+        duration: minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`,
+        durationSeconds: call.durationSeconds || 0,
+        status: call.status.toLowerCase(),
+        creditsUsed: call.creditsUsed || 0,
+        recordingUrl: call.recordingUrl || undefined,
+        transcript: call.transcript || [],
+        liveStartedAt: (call.status === "RINGING" || call.status === "ANSWERED") ? call.startedAt.toISOString() : undefined,
+      };
+    });
+
     return NextResponse.json({
-      data: calls,
+      data: mappedCalls,
       meta: {
         total,
         page,
