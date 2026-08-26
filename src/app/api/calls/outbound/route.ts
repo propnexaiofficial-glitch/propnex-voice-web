@@ -179,3 +179,56 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ data: [], meta: { total: 0, page: 1, limit: 10, totalPages: 1 } });
   }
 }
+
+export async function PUT(req: NextRequest) {
+  try {
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+    
+    const token = authHeader.split(" ")[1];
+    const decoded: any = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.sub || decoded.id;
+
+    const member = await (prisma as any).companyMember.findFirst({
+      where: { userId, status: "ACTIVE" }
+    });
+
+    if (!member?.companyId) {
+      return NextResponse.json({ message: "No company found" }, { status: 400 });
+    }
+
+    const body = await req.json();
+    
+    if (body.action === "fail" && body.phone) {
+      const core = getCoreNumber(body.phone);
+      if (core) {
+        // Find the most recent PENDING call for this phone
+        const callLog = await prisma.callLog.findFirst({
+          where: {
+            companyId: member.companyId,
+            status: "PENDING",
+            lead: {
+              phone: { contains: core }
+            }
+          },
+          orderBy: { startedAt: "desc" }
+        });
+
+        if (callLog) {
+          await prisma.callLog.update({
+            where: { id: callLog.id },
+            data: { status: "FAILED" }
+          });
+          return NextResponse.json({ success: true });
+        }
+      }
+    }
+    
+    return NextResponse.json({ success: false, message: "Invalid request or no pending call found" });
+  } catch (err: any) {
+    console.error("Failed to update outbound call:", err);
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
+}

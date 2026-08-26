@@ -64,6 +64,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
 
       const responseData = await res.json();
       const didNumber = responseData.didNumber;
+      const channels = responseData.channels || 2; // Default to 2 if not provided
 
       if (!didNumber) {
         throw new Error("Failed to retrieve DID number from Vercel");
@@ -100,6 +101,21 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       let currentIndex = 0;
       const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
 
+      const markAsFailed = async (phone: string) => {
+        try {
+          await fetch(`/api/calls/outbound`, {
+            method: "PUT",
+            headers: { 
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${pnxToken}`
+            },
+            body: JSON.stringify({ action: "fail", phone })
+          });
+        } catch (e) {
+          console.error("Failed to mark call as failed in DB", e);
+        }
+      };
+
       // We will loop until all leads are started AND activeCalls is empty
       while (currentIndex < campaign.leads.length || activeCalls.size > 0) {
         
@@ -127,13 +143,13 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
             if (!res.ok) {
               const errText = await res.text();
               console.error(`Failed to push lead ${lead.phone} to Voicelink:`, errText);
-              alert(`Failed to push lead ${lead.phone}: ${errText}`);
+              await markAsFailed(lead.phone);
             } else {
               activeCalls.add(lead.phone);
             }
           } catch (err: any) {
             console.error(`Failed to push lead ${lead.phone}:`, err.message);
-            alert(`Network error pushing lead ${lead.phone}. Check console.`);
+            await markAsFailed(lead.phone);
           }
         }
         
