@@ -94,32 +94,79 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         throw new Error("Invalid authentication response from Voicelink");
       }
 
-      // Step 3: Loop through leads and send them securely to Voicelink
-      for (const lead of campaign.leads) {
-        try {
-          const res = await fetch(`${VOICELINK_API_URL}/v1/add_lead`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Accept": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              did_number: didNumber,
-              customer_number: lead.phone.replace(/\D/g, "").slice(-10), // Ensure exactly 10 digits
-              country_code: "91",
-              custom_parameters: JSON.stringify({ name: lead.name, companyId }),
-            }),
-          });
+      // Step 3: Loop through leads using concurrency and polling
+      let activeCalls = new Set<string>();
+      let completedCount = 0;
+      let currentIndex = 0;
+      
+      const pnxToken = localStorage.getItem("token") || "";
+
+      // We will loop until all leads are started AND activeCalls is empty
+      while (currentIndex < campaign.leads.length || activeCalls.size > 0) {
+        
+        // Check if we can start more calls based on channel limits
+        while (activeCalls.size < channels && currentIndex < campaign.leads.length) {
+          const lead = campaign.leads[currentIndex];
+          currentIndex++;
           
-          if (!res.ok) {
-            const errText = await res.text();
-            console.error(`Failed to push lead ${lead.phone} to Voicelink:`, errText);
-            alert(`Failed to push lead ${lead.phone}: ${errText}`);
+          try {
+            const res = await fetch(`${VOICELINK_API_URL}/v1/add_lead`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                did_number: didNumber,
+                customer_number: lead.phone.replace(/\D/g, "").slice(-10),
+                country_code: "91",
+                custom_parameters: JSON.stringify({ name: lead.name, companyId }),
+              }),
+            });
+            
+            if (!res.ok) {
+              const errText = await res.text();
+              console.error(`Failed to push lead ${lead.phone} to Voicelink:`, errText);
+              alert(`Failed to push lead ${lead.phone}: ${errText}`);
+            } else {
+              activeCalls.add(lead.phone);
+            }
+          } catch (err: any) {
+            console.error(`Failed to push lead ${lead.phone}:`, err.message);
+            alert(`Network error pushing lead ${lead.phone}. Check console.`);
           }
-        } catch (err: any) {
-          console.error(`Failed to push lead ${lead.phone}:`, err.message);
-          alert(`Network error pushing lead ${lead.phone}. Check console.`);
+        }
+        
+        // Polling loop: Wait 3 seconds, then check status of active calls
+        if (activeCalls.size > 0) {
+           await new Promise(resolve => setTimeout(resolve, 3000));
+           
+           try {
+             // Fetch latest outbound calls for this company
+             const pollRes = await fetch(`/api/calls/outbound?limit=50&companyId=${companyId}`, {
+               headers: { Authorization: `Bearer ${pnxToken}` }
+             });
+             
+             if (pollRes.ok) {
+               const pollData = await pollRes.json();
+               const dbCalls = pollData.data || [];
+               
+               // For each active call, check if it has completed in the DB
+               for (const phone of Array.from(activeCalls)) {
+                 const corePhone = phone.replace(/\D/g, "").slice(-10);
+                 const matchingCall = dbCalls.find((c: any) => c.lead?.phone?.includes(corePhone));
+                 
+                 if (matchingCall && ["COMPLETED", "FAILED", "MISSED"].includes(matchingCall.status)) {
+                   activeCalls.delete(phone);
+                   completedCount++;
+                   setCampaign(prev => ({ ...prev, completedCalls: completedCount }));
+                 }
+               }
+             }
+           } catch (pollErr) {
+             console.error("Failed to poll call status", pollErr);
+           }
         }
       }
 
@@ -129,7 +176,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         status: "completed",
         completedCalls: campaign.leads.length,
       }));
-      alert(`Campaign started! ${campaign.leads.length} leads sent to Voicelink.`);
+      alert(`Campaign completed! All ${campaign.leads.length} leads processed.`);
       
     } catch (error: any) {
       console.error("Failed to start campaign:", error);
