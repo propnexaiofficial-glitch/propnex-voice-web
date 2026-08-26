@@ -103,7 +103,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       let currentIndex = 0;
       const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
 
-      const markAsFailed = async (phone: string) => {
+      const markAsFailed = async (phone: string, assignedNumber: string) => {
         try {
           await fetch(`/api/calls/outbound`, {
             method: "PUT",
@@ -111,7 +111,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
               "Content-Type": "application/json",
               Authorization: `Bearer ${pnxToken}`
             },
-            body: JSON.stringify({ action: "fail", phone })
+            body: JSON.stringify({ action: "fail", phone, assignedNumber })
           });
         } catch (e) {
           console.error("Failed to mark call as failed in DB", e);
@@ -145,14 +145,14 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
             if (!res.ok) {
               const errText = await res.text();
               console.error(`Failed to push lead ${lead.phone} to Voicelink:`, errText);
-              await markAsFailed(lead.phone);
+              await markAsFailed(lead.phone, didNumber);
             } else {
               activeCalls.set(lead.phone, (activeCalls.get(lead.phone) || 0) + 1);
               activeCallCount++;
             }
           } catch (err: any) {
             console.error(`Failed to push lead ${lead.phone}:`, err.message);
-            await markAsFailed(lead.phone);
+            await markAsFailed(lead.phone, didNumber);
           }
         }
         

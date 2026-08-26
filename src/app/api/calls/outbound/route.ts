@@ -213,6 +213,11 @@ export async function PUT(req: NextRequest) {
       const core = getCoreNumber(body.phone);
       if (core) {
         // Mark ALL PENDING calls for this phone as FAILED to prevent stuck states
+        let updateData: any = { status: "FAILED" };
+        if (body.assignedNumber) {
+           updateData.providerWebhook = { did_number: body.assignedNumber };
+        }
+        
         const updated = await prisma.callLog.updateMany({
           where: {
             companyId: member.companyId,
@@ -221,7 +226,7 @@ export async function PUT(req: NextRequest) {
               phone: { contains: core }
             }
           },
-          data: { status: "FAILED" }
+          data: updateData
         });
 
         return NextResponse.json({ success: true, count: updated.count });
