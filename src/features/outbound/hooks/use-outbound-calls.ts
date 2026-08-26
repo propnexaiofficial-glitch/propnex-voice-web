@@ -26,9 +26,13 @@ export function useOutboundCalls() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCalls = useCallback(async () => {
+  const fetchCalls = useCallback(async (isBackground = false) => {
     if (!user?.companyId) return;
-    setLoading(true);
+    
+    if (!isBackground) {
+      setLoading(true);
+    }
+    
     setError(null);
     try {
       const query = new URLSearchParams();
@@ -57,16 +61,22 @@ export function useOutboundCalls() {
     } catch (err: any) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      if (!isBackground) {
+        setLoading(false);
+      }
+
     }
   }, [page, filters, user?.companyId]);
 
   useEffect(() => {
-    fetchCalls();
+    fetchCalls(false);
     
-    // Poll every 5 seconds for live dashboard updates
-    const interval = setInterval(fetchCalls, 5000);
-    return () => clearInterval(interval);
+    // Poll every 5s for live updates without triggering the skeleton loader
+    const id = setInterval(() => {
+      fetchCalls(true);
+    }, 5000);
+    
+    return () => clearInterval(id);
   }, [fetchCalls]);
 
   return {
