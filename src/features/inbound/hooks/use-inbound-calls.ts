@@ -1,81 +1,84 @@
-"use client";
+import { useState, useEffect, useCallback } from "react";
+import type { CallLogFilters, CallRecord } from "@/types/call";
+import { useUserContext } from "@/features/auth/context/user-context";
 
-import { useMemo, useState } from "react";
-
-import { inboundCalls, INBOUND_PAGE_SIZE } from "@/features/inbound/data";
-import { DEFAULT_CALL_FILTERS, type CallLogFilters, type CallRecord } from "@/types/call";
-
-function matchesSearch(call: CallRecord, search: string) {
-  if (!search.trim()) return true;
-  const query = search.toLowerCase();
-  const callId = call.callId ?? call.id;
-  const callerId = call.callerId ?? call.customerNumber;
-  return (
-    callId.toLowerCase().includes(query) ||
-    callerId.toLowerCase().includes(query) ||
-    call.customerNumber.toLowerCase().includes(query) ||
-    call.assignedNumber.toLowerCase().includes(query)
-  );
-}
-
-function matchesStatus(call: CallRecord, status: CallLogFilters["status"]) {
-  if (status === "all") return true;
-  return call.status === status;
-}
-
-function matchesDateRange(
-  call: CallRecord,
-  dateFrom: string,
-  dateTo: string
-) {
-  const callDate = call.callDateTime.slice(0, 10);
-  if (dateFrom && callDate < dateFrom) return false;
-  if (dateTo && callDate > dateTo) return false;
-  return true;
-}
+const INBOUND_PAGE_SIZE = 8;
 
 export function useInboundCalls() {
-  const [filters, setFilters] = useState<CallLogFilters>(DEFAULT_CALL_FILTERS);
+  const { user } = useUserContext();
+  const [filters, setFilters] = useState<CallLogFilters>({
+    search: "",
+    status: "all",
+    dateFrom: "",
+    dateTo: "",
+    assignedNumber: "",
+    callerNumber: "",
+    minDuration: "",
+    durationUnit: "sec",
+  });
+  
   const [page, setPage] = useState(1);
+  const [calls, setCalls] = useState<CallRecord[]>([]);
+  const [totalCalls, setTotalCalls] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredCalls = useMemo(() => {
-    return []; // Return empty array to disable mock data
-  }, [filters]);
+  const fetchCalls = useCallback(async () => {
+    if (!user?.companyId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const query = new URLSearchParams();
+      query.set("page", page.toString());
+      query.set("limit", INBOUND_PAGE_SIZE.toString());
+      query.set("companyId", user.companyId);
+      
+      if (filters.status && filters.status !== "all") query.set("status", filters.status.toUpperCase());
+      if (filters.assignedNumber) query.set("assignedNumber", filters.assignedNumber);
+      if (filters.callerNumber) query.set("callerNumber", filters.callerNumber);
+      if (filters.dateFrom) query.set("dateFrom", filters.dateFrom);
+      if (filters.dateTo) query.set("dateTo", filters.dateTo);
+      if (filters.search) query.set("search", filters.search);
+      if (filters.minDuration) query.set("minDuration", filters.minDuration);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredCalls.length / INBOUND_PAGE_SIZE)
-  );
-  const currentPage = Math.min(page, totalPages);
+      const token = localStorage.getItem("token") || "";
+      const res = await fetch(`/api/calls/inbound?${query.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error("Failed to fetch calls");
+      const data = await res.json();
+      
+      setCalls(data.data || []);
+      setTotalCalls(data.meta?.total || 0);
+      setTotalPages(data.meta?.totalPages || 1);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, filters, user?.companyId]);
 
-  const paginatedCalls = useMemo(() => {
-    const start = (currentPage - 1) * INBOUND_PAGE_SIZE;
-    return filteredCalls.slice(start, start + INBOUND_PAGE_SIZE);
-  }, [filteredCalls, currentPage]);
-
-  const updateFilters = (next: CallLogFilters) => {
-    setFilters(next);
-    setPage(1);
-  };
-
-  const resetFilters = () => {
-    setFilters(DEFAULT_CALL_FILTERS);
-    setPage(1);
-  };
-
-  const setCurrentPage = (nextPage: number) => {
-    setPage(Math.max(1, Math.min(nextPage, totalPages)));
-  };
+  useEffect(() => {
+    fetchCalls();
+    
+    // Poll every 5 seconds for live updates
+    const interval = setInterval(fetchCalls, 5000);
+    return () => clearInterval(interval);
+  }, [fetchCalls]);
 
   return {
     filters,
-    updateFilters,
-    resetFilters,
-    calls: paginatedCalls,
-    totalCalls: filteredCalls.length,
-    page: currentPage,
+    updateFilters: (next: CallLogFilters) => { setFilters(next); setPage(1); },
+    resetFilters: () => { setFilters({ search: "", status: "all", dateFrom: "", dateTo: "", assignedNumber: "", callerNumber: "", minDuration: "", durationUnit: "sec" }); setPage(1); },
+    calls,
+    totalCalls,
+    page,
     totalPages,
     pageSize: INBOUND_PAGE_SIZE,
-    setPage: setCurrentPage,
+    setPage,
+    loading,
+    error,
+    handleRetry: fetchCalls
   };
 }

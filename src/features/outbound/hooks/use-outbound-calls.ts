@@ -1,11 +1,11 @@
-"use client";
-
-import { useState } from "react";
-import type { CallLogFilters } from "@/types/call";
+import { useState, useEffect, useCallback } from "react";
+import type { CallLogFilters, CallRecord } from "@/types/call";
+import { useUserContext } from "@/features/auth/context/user-context";
 
 const OUTBOUND_PAGE_SIZE = 8;
 
 export function useOutboundCalls() {
+  const { user } = useUserContext();
   const [filters, setFilters] = useState<CallLogFilters>({
     search: "",
     status: "all",
@@ -14,22 +14,71 @@ export function useOutboundCalls() {
     assignedNumber: "",
     callerNumber: "",
     minDuration: "",
+    durationUnit: "sec",
   });
   
   const [page, setPage] = useState(1);
+  const [calls, setCalls] = useState<CallRecord[]>([]);
+  const [totalCalls, setTotalCalls] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchCalls = useCallback(async () => {
+    if (!user?.companyId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const query = new URLSearchParams();
+      query.set("page", page.toString());
+      query.set("limit", OUTBOUND_PAGE_SIZE.toString());
+      query.set("companyId", user.companyId);
+      
+      if (filters.status && filters.status !== "all") query.set("status", filters.status.toUpperCase());
+      if (filters.assignedNumber) query.set("assignedNumber", filters.assignedNumber);
+      if (filters.callerNumber) query.set("callerNumber", filters.callerNumber);
+      if (filters.dateFrom) query.set("dateFrom", filters.dateFrom);
+      if (filters.dateTo) query.set("dateTo", filters.dateTo);
+      if (filters.search) query.set("search", filters.search);
+      if (filters.minDuration) query.set("minDuration", filters.minDuration);
+
+      const token = localStorage.getItem("token") || "";
+      const res = await fetch(`/api/calls/outbound?${query.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error("Failed to fetch calls");
+      const data = await res.json();
+      
+      setCalls(data.data || []);
+      setTotalCalls(data.meta?.total || 0);
+      setTotalPages(data.meta?.totalPages || 1);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, filters, user?.companyId]);
+
+  useEffect(() => {
+    fetchCalls();
+    
+    // Poll every 5 seconds for live dashboard updates
+    const interval = setInterval(fetchCalls, 5000);
+    return () => clearInterval(interval);
+  }, [fetchCalls]);
 
   return {
     filters,
     updateFilters: (next: CallLogFilters) => { setFilters(next); setPage(1); },
-    resetFilters: () => { setFilters({ search: "", status: "all", dateFrom: "", dateTo: "", assignedNumber: "", callerNumber: "", minDuration: "" }); setPage(1); },
-    calls: [],
-    totalCalls: 0,
+    resetFilters: () => { setFilters({ search: "", status: "all", dateFrom: "", dateTo: "", assignedNumber: "", callerNumber: "", minDuration: "", durationUnit: "sec" }); setPage(1); },
+    calls,
+    totalCalls,
     page,
-    totalPages: 1,
+    totalPages,
     pageSize: OUTBOUND_PAGE_SIZE,
     setPage,
-    loading: false,
-    error: null,
-    handleRetry: () => {}
+    loading,
+    error,
+    handleRetry: fetchCalls
   };
 }
