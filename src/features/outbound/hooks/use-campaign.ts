@@ -62,6 +62,64 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         throw new Error(errorData.error || "Failed to start campaign");
       }
 
+      const responseData = await res.json();
+      const didNumber = responseData.didNumber;
+
+      if (!didNumber) {
+        throw new Error("Failed to retrieve DID number from Vercel");
+      }
+
+      // Step 2: Authenticate directly with Voicelink from the browser (Option 1 Bypass)
+      const VOICELINK_API_URL = "https://app.voicelink.co.in/api";
+      const loginRes = await fetch(`${VOICELINK_API_URL}/v1/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({
+          username: "propnex",
+          password: "PropnexAi2025@#",
+        }),
+      });
+
+      if (!loginRes.ok) {
+        throw new Error("Failed to authenticate with Voicelink from frontend");
+      }
+
+      const loginData = await loginRes.json();
+      const token = loginData.data?.access_token || loginData.access_token;
+
+      if (!token) {
+        throw new Error("Invalid authentication response from Voicelink");
+      }
+
+      // Step 3: Loop through leads and send them securely to Voicelink
+      for (const lead of campaign.leads) {
+        try {
+          const res = await fetch(`${VOICELINK_API_URL}/v1/add_lead`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              did_number: didNumber,
+              customer_number: lead.phone,
+              country_code: "91",
+              custom_parameters: JSON.stringify({ name: lead.name, companyId }),
+            }),
+          });
+          
+          if (!res.ok) {
+            console.error(`Failed to push lead ${lead.phone} to Voicelink.`);
+          }
+        } catch (err: any) {
+          console.error(`Failed to push lead ${lead.phone}:`, err.message);
+        }
+      }
+
       // Success
     } catch (error) {
       console.error("Failed to start campaign:", error);
