@@ -73,7 +73,7 @@ function mapApiItemToCallRecord(item: any, fallbackAssignedNumber: string): Call
     recordingUrl: item.recordingUrl || undefined,
     transcriptUrl: item.transcriptUrl || undefined,
     transcript: [],
-    liveStartedAt: isLive ? (item.startedAt || new Date().toISOString()) : undefined,
+    liveStartedAt: isLive ? (item.liveStartedAt || item.callDateTime || item.startedAt || new Date().toISOString()) : undefined,
   };
 }
 

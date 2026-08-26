@@ -153,7 +153,8 @@ export async function GET(req: NextRequest) {
         status: call.status.toLowerCase(),
         creditsUsed: call.creditsUsed || 0,
         recordingUrl: call.recordingUrl || undefined,
-        transcript: call.transcript || [],
+        transcriptUrl: call.transcriptUrl || undefined,
+        transcript: [],
         liveStartedAt: (call.status === "RINGING" || call.status === "ANSWERED") ? call.startedAt.toISOString() : undefined,
       };
     });

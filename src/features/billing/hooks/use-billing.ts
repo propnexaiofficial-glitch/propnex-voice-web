@@ -6,7 +6,7 @@ import type { BillingHistoryItem } from "@/features/billing/types";
 import { useEmployeesContext } from "@/features/employees/context/employees-context";
 
 export function useBilling() {
-  const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState<BillingHistoryItem[]>([]);
   const [mainBalance, setMainBalance] = useState(0);
   const [mainUsedThisMonth, setMainUsedThisMonth] = useState(0);
   const [hasPendingCreditRequest, setHasPendingCreditRequest] = useState(false);

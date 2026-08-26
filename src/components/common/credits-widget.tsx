@@ -60,7 +60,7 @@ export function CreditsWidget({
           setMainUsed(fresh.creditBalance.creditsUsed || 0);
         }
         // Also refresh sub-company list so their credits update too
-        if (refreshCompanies) refreshCompanies(true);
+        if (refreshCompanies) refreshCompanies();
         window.dispatchEvent(new Event("user-updated"));
       }
     } catch (e) {

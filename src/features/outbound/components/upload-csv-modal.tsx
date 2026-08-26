@@ -21,6 +21,7 @@ export type ExtractedLead = {
   name: string;
   phone: string;
   called?: boolean;
+  isInvalid?: boolean;
 };
 
 type UploadCsvModalProps = {

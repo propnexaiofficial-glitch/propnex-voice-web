@@ -190,11 +190,11 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       setCampaign((prev) => ({
         ...prev,
         status: "completed",
-        completedCalls: campaign.leads.length,
+        completedCalls: campaign.leads?.length || 0,
       }));
       setAlertData({
         title: "Campaign Completed",
-        description: `All ${campaign.leads.length} leads have been processed.`,
+        description: `All ${campaign.leads?.length || 0} leads have been processed.`,
       });
       
     } catch (error: any) {
