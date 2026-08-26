@@ -142,11 +142,18 @@ export async function GET(req: NextRequest) {
     const mappedCalls = allCalls.slice(skip, skip + limit).map(call => {
       const minutes = Math.floor((call.durationSeconds || 0) / 60);
       const seconds = (call.durationSeconds || 0) % 60;
+      
+      let fallbackAssignedNumber = "";
+      if (call.providerWebhook && typeof call.providerWebhook === 'object') {
+         const wh: any = call.providerWebhook;
+         fallbackAssignedNumber = wh.agentNumber || wh.did_number || wh.didNumber || wh.message?.call?.agent?.number || wh.call?.agent?.number || "";
+      }
+
       return {
         id: call.id,
         callId: call.callLogId,
         customerNumber: call.lead?.phone || "",
-        assignedNumber: call.phoneNumber?.number || "",
+        assignedNumber: call.phoneNumber?.number || fallbackAssignedNumber || "",
         callDateTime: call.startedAt.toISOString(),
         duration: minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`,
         durationSeconds: call.durationSeconds || 0,
