@@ -1,8 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { PhoneOutgoing } from "lucide-react";
+import { PhoneOutgoing, CheckCircle2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 import { TranscriptDrawer } from "@/components/common/transcript-drawer";
 import { useEffect } from "react";
@@ -41,6 +51,8 @@ export function OutboundPageContent() {
     pauseCampaign,
     resumeCampaign,
     editLead,
+    alertData,
+    setAlertData,
   } = useCampaign();
 
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -172,6 +184,29 @@ export function OutboundPageContent() {
         open={transcriptOpen}
         onOpenChange={setTranscriptOpen}
       />
+      
+      <Dialog open={!!alertData} onOpenChange={(open) => !open && setAlertData(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {alertData?.isError ? (
+                <AlertCircle className="h-5 w-5 text-destructive" />
+              ) : (
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+              )}
+              {alertData?.title}
+            </DialogTitle>
+            <DialogDescription>
+              {alertData?.description}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-end">
+            <Button type="button" variant="secondary" onClick={() => setAlertData(null)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -11,6 +11,7 @@ import type { Campaign, UploadCsvState } from "@/features/outbound/types";
 export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
   const [campaign, setCampaign] = useState<Campaign>(initialState);
   const [upload, setUpload] = useState<UploadCsvState | null>(null);
+  const [alertData, setAlertData] = useState<{ title: string; description: string; isError?: boolean } | null>(null);
 
   const handleUpload = useCallback((fileName: string, leads: any[] = []) => {
     setUpload({ fileName, contactCount: leads.length || MOCK_CSV_CONTACT_COUNT, leads });
@@ -191,7 +192,10 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         status: "completed",
         completedCalls: campaign.leads.length,
       }));
-      alert(`Campaign completed! All ${campaign.leads.length} leads processed.`);
+      setAlertData({
+        title: "Campaign Completed",
+        description: `All ${campaign.leads.length} leads have been processed.`,
+      });
       
     } catch (error: any) {
       console.error("Failed to start campaign:", error);
@@ -200,7 +204,11 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         ...prev,
         status: "ready",
       }));
-      alert(`Failed to start campaign: ${error instanceof Error ? error.message : "Unknown error"}`);
+      setAlertData({
+        title: "Campaign Failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred.",
+        isError: true,
+      });
     }
   }, [campaign.status, campaign.leads]);
 
@@ -239,5 +247,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
     pauseCampaign,
     resumeCampaign,
     editLead,
+    alertData,
+    setAlertData,
   };
 }
