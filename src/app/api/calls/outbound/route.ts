@@ -204,8 +204,8 @@ export async function PUT(req: NextRequest) {
     if (body.action === "fail" && body.phone) {
       const core = getCoreNumber(body.phone);
       if (core) {
-        // Find the most recent PENDING call for this phone
-        const callLog = await prisma.callLog.findFirst({
+        // Mark ALL PENDING calls for this phone as FAILED to prevent stuck states
+        const updated = await prisma.callLog.updateMany({
           where: {
             companyId: member.companyId,
             status: "PENDING",
@@ -213,16 +213,10 @@ export async function PUT(req: NextRequest) {
               phone: { contains: core }
             }
           },
-          orderBy: { startedAt: "desc" }
+          data: { status: "FAILED" }
         });
 
-        if (callLog) {
-          await prisma.callLog.update({
-            where: { id: callLog.id },
-            data: { status: "FAILED" }
-          });
-          return NextResponse.json({ success: true });
-        }
+        return NextResponse.json({ success: true, count: updated.count });
       }
     }
     
