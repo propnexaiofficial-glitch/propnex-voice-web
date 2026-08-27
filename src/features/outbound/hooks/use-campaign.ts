@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 
 import {
   MOCK_CSV_CONTACT_COUNT,
@@ -12,6 +12,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
   const [campaign, setCampaign] = useState<Campaign>(initialState);
   const [upload, setUpload] = useState<UploadCsvState | null>(null);
   const [alertData, setAlertData] = useState<{ title: string; description: string; isError?: boolean } | null>(null);
+  const ignorePollingUntil = useRef<number>(0);
 
   const handleUpload = useCallback((fileName: string, leads: any[] = [], selectedDid?: string, channels: number = 1) => {
     setUpload({ fileName, contactCount: leads.length || MOCK_CSV_CONTACT_COUNT, leads });
@@ -46,6 +47,10 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       successfulCalls: 0,
       failedCalls: 0,
     }));
+
+    // Ignore backend polling for 5 seconds to allow backend state to reset
+    // This prevents the frontend from fetching the "previous" campaign's stats and showing them instantly
+    ignorePollingUntil.current = Date.now() + 5000;
 
     try {
       const storedUserStr = localStorage.getItem("user");
@@ -109,6 +114,9 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         const companyId = user.companyId || null;
 
         if (!companyId) return;
+        
+        // Prevent polling if we just started a campaign
+        if (Date.now() < ignorePollingUntil.current) return;
 
         const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
         const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
@@ -133,9 +141,9 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
               return {
                 ...prev,
                 status: data.status || prev.status,
-                completedCalls: data.completedCalls !== undefined ? Math.max(data.completedCalls, prev.completedCalls) : prev.completedCalls,
-                successfulCalls: data.successfulCalls !== undefined ? Math.max(data.successfulCalls, prev.successfulCalls) : prev.successfulCalls,
-                failedCalls: data.failedCalls !== undefined ? Math.max(data.failedCalls, prev.failedCalls) : prev.failedCalls,
+                completedCalls: data.completedCalls !== undefined ? data.completedCalls : prev.completedCalls,
+                successfulCalls: data.successfulCalls !== undefined ? data.successfulCalls : prev.successfulCalls,
+                failedCalls: data.failedCalls !== undefined ? data.failedCalls : prev.failedCalls,
                 leads: data.leads || prev.leads,
                 totalContacts: data.totalContacts || prev.totalContacts,
               };
