@@ -77,73 +77,36 @@ export function OutboundPageContent() {
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleDid, setRescheduleDid] = useState("");
 
-  // Removed the useEffect that automatically opened the reschedule modal on load
+  // Remove the old failed calls if they were already scheduled and processed
+  const isCleared = typeof window !== "undefined" && localStorage.getItem(`reactivation_cleared_${outboundCampaign?.id}`);
+  const shouldShowReactivation = hasOutboundNumber && !isCleared;
+
+  useEffect(() => {
+    // Poll to check if a scheduled reactivation has passed its time
+    if (reactivationCampaign?.status === "scheduled" && reactivationCampaign?.scheduledAt) {
+      const interval = setInterval(() => {
+        if (Date.now() >= new Date(reactivationCampaign.scheduledAt).getTime()) {
+          // Time passed, calls are sent. Remove from reactivation area.
+          localStorage.removeItem('reactivation_state_admin');
+          localStorage.setItem(`reactivation_cleared_${outboundCampaign?.id}`, "true");
+          setReactivationCampaign(leadReactivationCampaign);
+        }
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [reactivationCampaign, outboundCampaign?.id]);
 
   const handleReschedule = async () => {
     try {
       setIsRescheduling(true);
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-      
       const failedLeads = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
+      
       const scheduledAt = new Date(`${rescheduleDate}T${rescheduleTime}`).toISOString();
-      const didNumber = rescheduleDid;
-
-      if (!didNumber) {
-        throw new Error("Please select an outbound number to use for reactivation.");
-      }
-
-      if (failedLeads.length === 0) {
-        throw new Error("No failed leads to reschedule.");
-      }
-
-      const res = await fetch("/api/calls/reschedule", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          campaignId: outboundCampaign.id || "manual",
-          leads: failedLeads,
-          scheduledAt,
-          didNumber
-        })
-      });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || "Failed to reschedule calls");
-      }
-      
-      setAlertData({
-        title: "Reactivation Scheduled ✓",
-        description: `Successfully scheduled ${failedLeads.length} failed call${failedLeads.length !== 1 ? "s" : ""} for ${new Date(scheduledAt).toLocaleString()}. They will be dialled automatically using ${didNumber}.`
-      });
-      const newState = {
-        ...leadReactivationCampaign,
-        status: "scheduled",
-        scheduledAt,
-        totalContacts: failedLeads.length,
-        leads: failedLeads.map((l: any) => ({ ...l, isFailed: false, called: false }))
-      };
-      setReactivationCampaign(newState);
-      localStorage.setItem('reactivation_state_admin', JSON.stringify(newState));
-      setRescheduleOpen(false);
-    } catch (e: any) {
-      setAlertData({ title: "Error", description: e.message, isError: true });
-    } finally {
-      setIsRescheduling(false);
-    }
-  };
-
-  const handleInstantSchedule = async () => {
-    try {
-      setIsRescheduling(true);
-      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-      const failedLeads = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
-      
-      const scheduledAt = new Date(Date.now() + 5000).toISOString();
-      const didNumber = outboundCampaign.selectedDid || user?.assignedNumbersDetailed?.[0]?.number;
+      const didNumber = rescheduleDid || user?.assignedNumbersDetailed?.[0]?.number;
       const channels = user?.assignedNumbersDetailed?.[0]?.channels ?? 1;
 
-      if (!didNumber) throw new Error("No outbound number assigned. Please contact your admin.");
+      if (!didNumber) throw new Error("Please select an outbound number to use for reactivation.");
       if (failedLeads.length === 0) throw new Error("No failed leads to reschedule.");
 
       const res = await fetch("/api/calls/reschedule", {
@@ -167,9 +130,13 @@ export function OutboundPageContent() {
         totalContacts: failedLeads.length,
         leads: failedLeads.map((l: any) => ({ ...l, isFailed: false, called: false }))
       };
+      setAlertData({
+        title: "Reactivation Scheduled ✓",
+        description: `Successfully scheduled ${failedLeads.length} failed call(s) for ${new Date(scheduledAt).toLocaleString()}.`
+      });
       setReactivationCampaign(newState);
       localStorage.setItem('reactivation_state_admin', JSON.stringify(newState));
-
+      setRescheduleOpen(false);
     } catch (e: any) {
       setAlertData({ title: "Error", description: e.message, isError: true });
     } finally {
@@ -212,13 +179,13 @@ export function OutboundPageContent() {
       </motion.div>
 
       <div className="space-y-4">
-        {hasOutboundNumber && (
+        {shouldShowReactivation && (
           <CampaignCard
             campaign={reactivationCampaign}
             progressPercent={0}
             onUploadClick={() => {}}
             onStart={() => {}}
-            onSchedule={handleInstantSchedule}
+            onSchedule={() => setRescheduleOpen(true)}
             onStop={() => {}}
             variant="reactivation"
             failedCallsCount={outboundCampaign.failedCalls}
