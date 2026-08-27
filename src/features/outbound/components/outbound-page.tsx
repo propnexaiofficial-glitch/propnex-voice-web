@@ -188,9 +188,9 @@ export function OutboundPageContent() {
             progressPercent={0}
             onUploadClick={() => {}}
             onStart={() => {}}
+            onPause={() => {}}
+            onResume={() => {}}
             onSchedule={() => setRescheduleOpen(true)}
-            onStop={() => {}}
-            variant="reactivation"
             failedCallsCount={outboundCampaign.failedCalls}
             hasOutboundNumber={hasOutboundNumber}
           />

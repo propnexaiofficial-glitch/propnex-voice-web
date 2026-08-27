@@ -312,11 +312,9 @@ export function CompanyCallsSection({
             onPause={() => {}}
             onResume={() => {}}
             onSchedule={() => setRescheduleOpen(true)}
-            onStop={() => {}}
             failedCallsCount={outboundCampaign.failedCalls}
             hasOutboundNumber={hasAssignedNumber}
             companyId={companyId}
-            variant="reactivation"
           />
         )}
           <CampaignCard
