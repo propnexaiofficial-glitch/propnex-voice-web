@@ -59,6 +59,11 @@ export function OutboundPageContent() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [selectedCall, setSelectedCall] = useState<CallRecord | null>(null);
 
+  const { user, isLoading } = useUserContext();
+  const hasOutboundNumber = isLoading ? true : (
+    user?.assignedNumbersDetailed && user.assignedNumbersDetailed.length > 0
+  );
+
   const [reactivationCampaign, setReactivationCampaign] = useState<any>(leadReactivationCampaign);
 
   useEffect(() => {
@@ -153,11 +158,6 @@ export function OutboundPageContent() {
     setSelectedCall(call);
     setTranscriptOpen(true);
   };
-
-  const { user, isLoading } = useUserContext();
-  const hasOutboundNumber = isLoading ? true : (
-    user?.assignedNumbersDetailed && user.assignedNumbersDetailed.length > 0
-  );
 
   return (
     <div className="space-y-6">

@@ -266,7 +266,7 @@ export function CampaignCard({
           {(campaign.status === "idle" || campaign.status === "completed") && (
             <p className="text-sm text-muted-foreground">
               {campaign.id === "camp-001"
-                ? (campaign.status === "scheduled" ? "" : "Failed calls will appear here for reactivation.")
+                ? "Failed calls will appear here for reactivation."
                 : !hasOutboundNumber 
                   ? "Please request an outbound number from the admin to launch campaigns." 
                   : "Upload a CSV contact list to prepare your next outbound campaign."}
