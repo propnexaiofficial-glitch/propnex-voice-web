@@ -69,6 +69,9 @@ export function OutboundPageContent() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      // FORCE CLEAR STUCK STATE FOR USER
+      localStorage.removeItem('reactivation_state_admin');
+      
       const saved = localStorage.getItem('reactivation_state_admin');
       if (saved) {
         try {
