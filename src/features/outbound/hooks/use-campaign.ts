@@ -153,6 +153,11 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
               const errText = await res.text();
               console.error(`Failed to push lead ${lead.phone} to Voicelink:`, errText);
               await markAsFailed(lead.phone, didNumber);
+              setCampaign((prev) => {
+                const updatedLeads = (prev.leads || []).map(l => l.phone === lead.phone ? { ...l, called: true, isFailed: true } : l);
+                return { ...prev, leads: updatedLeads, failedCalls: updatedLeads.filter(l => l.isFailed).length, completedCalls: prev.completedCalls + 1 };
+              });
+              completedCount++;
             } else {
               activeCalls.set(lead.phone, (activeCalls.get(lead.phone) || 0) + 1);
               activeCallCount++;
@@ -160,6 +165,11 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
           } catch (err: any) {
             console.error(`Failed to push lead ${lead.phone}:`, err.message);
             await markAsFailed(lead.phone, didNumber);
+            setCampaign((prev) => {
+              const updatedLeads = (prev.leads || []).map(l => l.phone === lead.phone ? { ...l, called: true, isFailed: true } : l);
+              return { ...prev, leads: updatedLeads, failedCalls: updatedLeads.filter(l => l.isFailed).length, completedCalls: prev.completedCalls + 1 };
+            });
+            completedCount++;
           }
         }
         
@@ -186,6 +196,10 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
                  
                  if (activeMatching.length < count) {
                    const finishedCount = count - activeMatching.length;
+                   
+                   const newlyFinished = matchingCalls.filter((c: any) => !["pending", "ringing", "answered"].includes(c.status));
+                   const newlyFailedCount = newlyFinished.filter((c: any) => ["failed", "missed", "busy", "no-answer"].includes(c.status)).length;
+                   
                    if (activeMatching.length === 0) {
                      activeCalls.delete(phone);
                    } else {
@@ -193,7 +207,27 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
                    }
                    activeCallCount -= finishedCount;
                    completedCount += finishedCount;
-                   setCampaign(prev => ({ ...prev, completedCalls: completedCount }));
+                   
+                   setCampaign(prev => {
+                     const updatedLeads = (prev.leads || []).map(l => {
+                       if (l.phone === phone) {
+                         const isFailed = newlyFailedCount > 0;
+                         return { ...l, called: true, isFailed };
+                       }
+                       return l;
+                     });
+                     
+                     const totalFailed = updatedLeads.filter(l => l.isFailed).length;
+                     const totalSuccessful = updatedLeads.filter(l => l.called && !l.isFailed).length;
+                     
+                     return { 
+                       ...prev, 
+                       completedCalls: completedCount,
+                       leads: updatedLeads,
+                       failedCalls: totalFailed,
+                       successfulCalls: totalSuccessful
+                     };
+                   });
                  }
                }
              }
@@ -207,7 +241,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       setCampaign((prev) => ({
         ...prev,
         status: "completed",
-        completedCalls: campaign.leads?.length || 0,
+        completedCalls: prev.leads?.length || 0,
       }));
       setAlertData({
         title: "Campaign Completed",
