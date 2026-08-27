@@ -112,7 +112,20 @@ export function CompanyCallsSection({
       
       const failedLeads = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
       const scheduledAt = new Date(`${rescheduleDate}T${rescheduleTime}`).toISOString();
-      const didNumber = outboundCampaign.selectedDid;
+
+      // Use campaign DID or fall back to first assigned number of sub-company
+      const storedUser = localStorage.getItem("user");
+      const parsedUser = storedUser ? JSON.parse(storedUser) : {};
+      const didNumber = outboundCampaign.selectedDid 
+        || parsedUser?.assignedNumbersDetailed?.[0]?.number;
+
+      if (!didNumber) {
+        throw new Error("No outbound number assigned. Please contact your admin.");
+      }
+
+      if (failedLeads.length === 0) {
+        throw new Error("No failed leads to reschedule.");
+      }
 
       const res = await fetch("/api/calls/reschedule", {
         method: "POST",
@@ -125,11 +138,14 @@ export function CompanyCallsSection({
         })
       });
 
-      if (!res.ok) throw new Error("Failed to reschedule calls");
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to reschedule calls");
+      }
       
       setAlertData({
-        title: "Reactivation Scheduled",
-        description: `Successfully scheduled ${failedLeads.length} failed calls for ${new Date(scheduledAt).toLocaleString()}`
+        title: "Reactivation Scheduled ✓",
+        description: `Successfully scheduled ${failedLeads.length} failed call${failedLeads.length !== 1 ? "s" : ""} for ${new Date(scheduledAt).toLocaleString()}. They will be dialled automatically using ${didNumber}.`
       });
       setRescheduleOpen(false);
     } catch (e: any) {
