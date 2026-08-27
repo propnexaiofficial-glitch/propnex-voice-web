@@ -106,7 +106,7 @@ function LeadRow({ lead, idx, onSave, onDelete }: { lead: any; idx: number; onSa
             <Pencil className="size-3" />
           </button>
           {onDelete && (
-            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }} className="text-muted-foreground hover:text-red-500">
+            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }} className="text-muted-foreground hover:text-red-500">
               <Trash2 className="size-3" />
             </button>
           )}
