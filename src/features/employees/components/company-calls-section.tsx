@@ -323,7 +323,13 @@ export function CompanyCallsSection({
             campaign={hasAssignedNumber ? outboundCampaign : { ...outboundCampaign, status: "idle", leads: [], failedCalls: 0, completedCalls: 0 }}
             progressPercent={hasAssignedNumber ? progressPercent : 0}
             onUploadClick={() => setUploadOpen(true)}
-            onStart={startCampaign}
+            onStart={() => {
+              if (typeof window !== "undefined") {
+                localStorage.removeItem(`reactivation_cleared_${companyId || 'default'}_${outboundCampaign?.id}`);
+                setIsCleared(false);
+              }
+              startCampaign();
+            }}
             onPause={pauseCampaign}
             onResume={resumeCampaign}
             onEditLead={editLead}

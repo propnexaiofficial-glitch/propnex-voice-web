@@ -287,7 +287,7 @@ export function CampaignCard({
 
         <div className="flex flex-col gap-2 items-end">
           <div className="flex flex-wrap gap-2 items-center">
-            {((campaign.status !== "idle" || (campaign.id === "camp-001" && failedCallsCount !== undefined && failedCallsCount > 0)) && campaign.leads && campaign.leads.length > 0) && (
+            {((campaign.status !== "idle" && campaign.status !== "completed" || (campaign.id === "camp-001" && failedCallsCount !== undefined && failedCallsCount > 0)) && campaign.leads && campaign.leads.length > 0) && (
               <Popover>
                 <PopoverTrigger asChild>
                   <div className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-muted/50 hover:bg-muted transition-colors">

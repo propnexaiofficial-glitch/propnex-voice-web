@@ -203,7 +203,13 @@ export function OutboundPageContent() {
           progressPercent={hasOutboundNumber ? progressPercent : 0}
           hasOutboundNumber={hasOutboundNumber}
           onUploadClick={() => setUploadOpen(true)}
-          onStart={startCampaign}
+          onStart={() => {
+            if (typeof window !== "undefined") {
+              localStorage.removeItem(`reactivation_cleared_${outboundCampaign?.id}`);
+              setIsCleared(false);
+            }
+            startCampaign();
+          }}
           onPause={pauseCampaign}
           onResume={resumeCampaign}
           onEditLead={editLead}
