@@ -55,6 +55,11 @@ function LeadRow({ lead, idx, onSave, onDelete }: { lead: any; idx: number; onSa
   const [name, setName] = useState(lead.name);
   const [phone, setPhone] = useState(lead.phone);
 
+  useEffect(() => {
+    setName(lead.name);
+    setPhone(lead.phone);
+  }, [lead.name, lead.phone]);
+
   const formatIndianNumber = (numStr: string): string => {
     let cleaned = numStr.toString().replace(/\D/g, "");
     if (cleaned.length === 10) return `+91${cleaned}`;
@@ -282,7 +287,7 @@ export function CampaignCard({
                   <div className="space-y-2">
                     {campaign.leads.map((lead: any, idx: number) => (
                       <LeadRow 
-                        key={idx} 
+                        key={`${lead.phone}-${idx}`} 
                         lead={lead} 
                         idx={idx} 
                         onSave={(newLead) => onEditLead?.(idx, newLead)} 
