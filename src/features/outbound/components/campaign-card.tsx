@@ -269,7 +269,9 @@ export function CampaignCard({
             <p className="text-sm text-muted-foreground">
               {isComingSoon
                 ? "Bulk campaign uploads and automated lead reactivation are on the way."
-                : "Upload a CSV contact list to prepare your outbound campaign."}
+                : !hasOutboundNumber 
+                  ? "Please request an outbound number from the admin to launch campaigns." 
+                  : "Upload a CSV contact list to prepare your outbound campaign."}
             </p>
           )}
         </div>

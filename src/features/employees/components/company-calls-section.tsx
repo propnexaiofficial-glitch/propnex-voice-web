@@ -69,8 +69,11 @@ export function CompanyCallsSection({
   const hasAssignedNumber = useMemo(() => {
     if (isContextLoading) return true;
     if (!company?.assignedNumbers) return false;
-    return company.assignedNumbers.length > 0;
-  }, [company, isContextLoading]);
+    if (direction === "outbound") {
+      return company.assignedNumbers.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH");
+    }
+    return company.assignedNumbers.some((n: any) => n.direction === "INBOUND" || n.direction === "BOTH");
+  }, [company, isContextLoading, direction]);
 
   const [reminding, setReminding] = useState(false);
   const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);
