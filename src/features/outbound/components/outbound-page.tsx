@@ -52,6 +52,7 @@ export function OutboundPageContent() {
     resumeCampaign,
     editLead,
     deleteLead,
+    clearCampaign,
     clearFailedCalls,
     alertData,
     setAlertData,

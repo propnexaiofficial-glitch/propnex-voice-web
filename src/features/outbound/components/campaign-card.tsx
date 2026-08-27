@@ -129,6 +129,7 @@ export function CampaignCard({
   onStart,
   onPause,
   onResume,
+  onClear,
   onEditLead,
   onDeleteLead,
   onSchedule,

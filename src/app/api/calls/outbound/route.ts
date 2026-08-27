@@ -194,7 +194,7 @@ export async function GET(req: NextRequest) {
         recordingUrl: call.recordingUrl || undefined,
         transcriptUrl: call.transcriptUrl || undefined,
         transcript: [],
-        liveStartedAt: (call.status === "RINGING" || call.status === "ANSWERED" || call.status === "IN-PROGRESS") ? call.startedAt.toISOString() : undefined,
+        liveStartedAt: (call.status === "RINGING" || call.status === "ANSWERED") ? call.startedAt.toISOString() : undefined,
       };
     });
 

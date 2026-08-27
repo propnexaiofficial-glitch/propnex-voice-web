@@ -1,4 +1,4 @@
-export type CallStatus = "completed" | "missed" | "failed" | "ringing" | "active" | "answered";
+export type CallStatus = "completed" | "missed" | "failed" | "ringing" | "active" | "answered" | "in-progress";
 
 export type CallDirection = "inbound" | "outbound";
 
