@@ -188,6 +188,14 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
     });
   }, []);
 
+  const clearFailedCalls = useCallback(() => {
+    setCampaign(prev => ({
+      ...prev,
+      failedCalls: 0,
+      leads: prev.leads?.filter(l => !l.isFailed) || []
+    }));
+  }, []);
+
   const progressPercent =
     campaign.totalContacts > 0
       ? Math.round((campaign.completedCalls / campaign.totalContacts) * 100)
@@ -203,6 +211,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
     resumeCampaign,
     editLead,
     deleteLead,
+    clearFailedCalls,
     alertData,
     setAlertData,
   };

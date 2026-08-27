@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { PhoneIncoming, PhoneOutgoing, Upload, AlertCircle, CheckCircle2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/common/empty-state";
@@ -86,6 +86,7 @@ export function CompanyCallsSection({
     resumeCampaign,
     editLead,
     deleteLead,
+    clearFailedCalls,
     alertData,
     setAlertData,
   } = useCampaign();
@@ -121,6 +122,7 @@ export function CompanyCallsSection({
           // Time passed, calls are sent. Remove from reactivation area.
           localStorage.removeItem(`reactivation_state_${companyId || 'default'}`);
           setReactivationCampaign(leadReactivationCampaign);
+          clearFailedCalls();
         }
       }, 5000);
       return () => clearInterval(interval);
@@ -301,20 +303,30 @@ export function CompanyCallsSection({
     <div className="space-y-5">
       {direction === "outbound" ? (
         <>
-        {shouldShowReactivation && (
-          <CampaignCard
-            campaign={{ ...(reactivationCampaign || leadReactivationCampaign), leads: (reactivationCampaign?.status || "idle") === "idle" ? outboundCampaign.leads?.filter((l: any) => l.isFailed) : reactivationCampaign?.leads }}
-            progressPercent={0}
-            onUploadClick={() => {}}
-            onStart={() => {}}
-            onPause={() => {}}
-            onResume={() => {}}
-            onSchedule={() => setRescheduleOpen(true)}
-            failedCallsCount={outboundCampaign.failedCalls}
-            hasOutboundNumber={hasAssignedNumber}
-            companyId={companyId}
-          />
-        )}
+        <AnimatePresence>
+          {shouldShowReactivation && (
+            <motion.div
+              initial={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, height: 'auto', scale: 1 }}
+              exit={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+              className="overflow-hidden"
+            >
+              <CampaignCard
+                campaign={{ ...(reactivationCampaign || leadReactivationCampaign), leads: (reactivationCampaign?.status || "idle") === "idle" ? outboundCampaign.leads?.filter((l: any) => l.isFailed) : reactivationCampaign?.leads }}
+                progressPercent={0}
+                onUploadClick={() => {}}
+                onStart={() => {}}
+                onPause={() => {}}
+                onResume={() => {}}
+                onSchedule={() => setRescheduleOpen(true)}
+                failedCallsCount={outboundCampaign.failedCalls}
+                hasOutboundNumber={hasAssignedNumber}
+                companyId={companyId}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
           <CampaignCard
             campaign={hasAssignedNumber ? outboundCampaign : { ...outboundCampaign, status: "idle", leads: [], failedCalls: 0, completedCalls: 0 }}
             progressPercent={hasAssignedNumber ? progressPercent : 0}

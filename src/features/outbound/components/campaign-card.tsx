@@ -298,16 +298,16 @@ export function CampaignCard({
                 </PopoverTrigger>
                 <PopoverContent className="w-[350px] max-h-96 overflow-y-auto p-4 space-y-4 z-50">
                   
-                  {(campaign.status === "ready" || campaign.status === "scheduled" || (campaign.id === "camp-001" && campaign.status === "idle")) && (
+                  {(campaign.status === "ready" || campaign.status === "scheduled") && (
                     <div className="space-y-2">
-                      <p className="font-semibold">{campaign.id === "camp-001" && campaign.status === "idle" ? "Failed (Pending Reactivation)" : "Pending"} ({(campaign.leads || []).length} Leads)</p>
+                      <p className="font-semibold">Pending ({(campaign.leads || []).length} Leads)</p>
                       {(campaign.leads || []).map((lead: any, idx: number) => (
                         <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={(newLead) => onEditLead?.(idx, newLead)} onDelete={campaign.status === "ready" ? () => onDeleteLead?.(idx) : undefined} />
                       ))}
                     </div>
                   )}
 
-                  {(campaign.status === "running" || campaign.status === "completed") && (
+                  {campaign.status === "running" && (
                     <div className="space-y-4">
                       {(campaign.leads || []).filter((l: any) => !l.called).length > 0 && (
                         <div className="space-y-2">
@@ -327,7 +327,7 @@ export function CampaignCard({
                         </div>
                       )}
 
-                      {campaign.id !== "camp-001" && campaign.status !== "completed" && (campaign.leads || []).filter((l: any) => l.called && l.isFailed).length > 0 && (
+                      {(campaign.leads || []).filter((l: any) => l.called && l.isFailed).length > 0 && (
                         <div className="space-y-2">
                           <p className="font-semibold text-rose-500">Failed ({(campaign.leads || []).filter((l: any) => l.called && l.isFailed).length})</p>
                           {(campaign.leads || []).filter((l: any) => l.called && l.isFailed).map((lead: any, idx: number) => (
