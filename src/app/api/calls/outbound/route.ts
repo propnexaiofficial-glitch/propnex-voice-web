@@ -131,7 +131,8 @@ export async function GET(req: NextRequest) {
         include: { 
           phoneNumber: true, 
           lead: true,
-          campaign: { include: { phoneNumbers: { take: 1 } } }
+          campaign: { include: { phoneNumbers: { take: 1 } } },
+          company: { include: { phoneNumbers: { where: { direction: { in: ["OUTBOUND", "BOTH"] } }, take: 1 } } }
         }
       })
     );
@@ -177,11 +178,14 @@ export async function GET(req: NextRequest) {
       // 4. Try campaign's linked phone number
       const campaignDid = (call as any).campaign?.phoneNumbers?.[0]?.number || "";
 
+      // 5. Try the company's default outbound phone number
+      const companyDid = (call as any).company?.phoneNumbers?.[0]?.number || "";
+
       return {
         id: call.id,
         callId: call.callLogId,
         customerNumber: call.lead?.phone || "",
-        assignedNumber: call.phoneNumber?.number || fallbackAssignedNumber || campaignDid || "",
+        assignedNumber: call.phoneNumber?.number || fallbackAssignedNumber || campaignDid || companyDid || "",
         callDateTime: call.startedAt.toISOString(),
         duration: minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`,
         durationSeconds: call.durationSeconds || 0,
