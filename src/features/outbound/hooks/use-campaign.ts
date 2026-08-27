@@ -112,7 +112,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
         const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
 
-        const res = await fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/status`, {
+        const query = companyId ? `?companyId=${companyId}` : '';
+        const res = await fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/status${query}`, {
           headers: { Authorization: `Bearer ${pnxToken}` }
         });
 

@@ -29,7 +29,7 @@ const statusConfig: Record<
   Campaign["status"],
   { label: string; variant: "default" | "secondary" | "success" | "warning" | "gold" }
 > = {
-  idle: { label: "No Campaign", variant: "secondary" },
+  idle: { label: "No Schedule", variant: "secondary" },
   ready: { label: "Ready to Start", variant: "gold" },
   running: { label: "Running", variant: "success" },
   paused: { label: "Paused", variant: "warning" },
@@ -244,7 +244,7 @@ export function CampaignCard({
             </div>
             <h3 className="text-lg font-semibold">{campaign.name}</h3>
             <Badge variant={status.variant}>
-              {campaign.id === "camp-001" && campaign.status === "idle" ? "No Schedule" : status.label}
+              {status.label}
             </Badge>
           </div>
 
