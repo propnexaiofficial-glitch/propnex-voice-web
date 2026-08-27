@@ -370,35 +370,47 @@ export function CampaignCard({
           )}
 
           {campaign.status === "running" && (
-            <Button variant="secondary" className="gap-2 relative overflow-hidden group min-w-40" onClick={onPause}>
-              <div className="absolute inset-0 bg-primary/10 w-full rounded-md z-0" />
-              <motion.div 
-                className="absolute inset-0 bg-primary/20 rounded-md z-0" 
-                style={{ width: `${progressPercent}%` }} 
-                layout 
-              />
-              <span className="relative z-10 flex items-center gap-2">
-                <Pause className="size-4 hidden group-hover:block" />
-                <span className="group-hover:hidden">Processing {campaign.completedCalls} / {campaign.totalContacts}</span>
-                <span className="hidden group-hover:block">Pause</span>
-              </span>
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onClear}>
+                <Trash2 className="size-4" />
+                Force Stop
+              </Button>
+              <Button variant="secondary" className="gap-2 relative overflow-hidden group min-w-40" onClick={onPause}>
+                <div className="absolute inset-0 bg-primary/10 w-full rounded-md z-0" />
+                <motion.div 
+                  className="absolute inset-0 bg-primary/20 rounded-md z-0" 
+                  style={{ width: `${progressPercent}%` }} 
+                  layout 
+                />
+                <span className="relative z-10 flex items-center gap-2">
+                  <Pause className="size-4 hidden group-hover:block" />
+                  <span className="group-hover:hidden">Processing {campaign.completedCalls} / {campaign.totalContacts}</span>
+                  <span className="hidden group-hover:block">Pause</span>
+                </span>
+              </Button>
+            </div>
           )}
 
           {campaign.status === "paused" && (
-            <Button className="gap-2 relative overflow-hidden group min-w-40" onClick={onResume}>
-              <div className="absolute inset-0 bg-primary/10 w-full rounded-md z-0" />
-              <motion.div 
-                className="absolute inset-0 bg-primary/20 rounded-md z-0" 
-                style={{ width: `${progressPercent}%` }} 
-                layout 
-              />
-              <span className="relative z-10 flex items-center gap-2">
-                <Play className="size-4 hidden group-hover:block" />
-                <span className="group-hover:hidden">Paused {campaign.completedCalls} / {campaign.totalContacts}</span>
-                <span className="hidden group-hover:block">Resume</span>
-              </span>
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onClear}>
+                <Trash2 className="size-4" />
+                Force Stop
+              </Button>
+              <Button className="gap-2 relative overflow-hidden group min-w-40" onClick={onResume}>
+                <div className="absolute inset-0 bg-primary/10 w-full rounded-md z-0" />
+                <motion.div 
+                  className="absolute inset-0 bg-primary/20 rounded-md z-0" 
+                  style={{ width: `${progressPercent}%` }} 
+                  layout 
+                />
+                <span className="relative z-10 flex items-center gap-2">
+                  <Play className="size-4 hidden group-hover:block" />
+                  <span className="group-hover:hidden">Paused {campaign.completedCalls} / {campaign.totalContacts}</span>
+                  <span className="hidden group-hover:block">Resume</span>
+                </span>
+              </Button>
+            </div>
           )}
 
           {campaign.id === "camp-001" && (

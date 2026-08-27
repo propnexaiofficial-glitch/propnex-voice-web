@@ -236,7 +236,29 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
     }
   }, []);
 
-  const clearCampaign = useCallback(() => {
+  const clearCampaign = useCallback(async () => {
+    try {
+      const storedUserStr = localStorage.getItem("user");
+      const user = storedUserStr ? JSON.parse(storedUserStr) : {};
+      const companyId = user.companyId || null;
+
+      if (companyId) {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
+        const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
+
+        await fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/clear`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${pnxToken}`
+          },
+          body: JSON.stringify({ companyId })
+        });
+      }
+    } catch (err) {
+      console.error("Failed to clear campaign state on backend", err);
+    }
+
     setCampaign(prev => ({
       ...prev,
       status: "idle",
