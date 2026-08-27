@@ -109,12 +109,9 @@ export function CompanyCallsSection({
     }
   }, [companyId]);
 
-  const [isCleared, setIsCleared] = useState(false);
-  useEffect(() => {
-    setIsCleared(!!(typeof window !== "undefined" && localStorage.getItem(`reactivation_cleared_${companyId || 'default'}_${outboundCampaign?.id}`)));
-  }, [companyId, outboundCampaign?.id, reactivationCampaign]);
-
-  const shouldShowReactivation = hasAssignedNumber && !isCleared;
+  const shouldShowReactivation = hasAssignedNumber && (
+    (outboundCampaign?.failedCalls || 0) > 0 || reactivationCampaign?.status === "scheduled"
+  );
 
   useEffect(() => {
     // Poll to check if a scheduled reactivation has passed its time
@@ -123,13 +120,12 @@ export function CompanyCallsSection({
         if (Date.now() >= new Date(reactivationCampaign.scheduledAt).getTime()) {
           // Time passed, calls are sent. Remove from reactivation area.
           localStorage.removeItem(`reactivation_state_${companyId || 'default'}`);
-          localStorage.setItem(`reactivation_cleared_${companyId || 'default'}_${outboundCampaign?.id}`, "true");
           setReactivationCampaign(leadReactivationCampaign);
         }
       }, 5000);
       return () => clearInterval(interval);
     }
-  }, [reactivationCampaign, companyId, outboundCampaign?.id]);
+  }, [reactivationCampaign, companyId]);
 
   // Removed the useEffect that automatically opened the reschedule modal on load
 
@@ -324,10 +320,6 @@ export function CompanyCallsSection({
             progressPercent={hasAssignedNumber ? progressPercent : 0}
             onUploadClick={() => setUploadOpen(true)}
             onStart={() => {
-              if (typeof window !== "undefined") {
-                localStorage.removeItem(`reactivation_cleared_${companyId || 'default'}_${outboundCampaign?.id}`);
-                setIsCleared(false);
-              }
               startCampaign();
             }}
             onPause={pauseCampaign}

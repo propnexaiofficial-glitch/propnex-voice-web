@@ -84,12 +84,9 @@ export function OutboundPageContent() {
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleDid, setRescheduleDid] = useState("");
 
-  const [isCleared, setIsCleared] = useState(false);
-  useEffect(() => {
-    setIsCleared(!!(typeof window !== "undefined" && localStorage.getItem(`reactivation_cleared_${outboundCampaign?.id}`)));
-  }, [outboundCampaign?.id, reactivationCampaign]);
-
-  const shouldShowReactivation = hasOutboundNumber && !isCleared;
+  const shouldShowReactivation = hasOutboundNumber && (
+    (outboundCampaign?.failedCalls || 0) > 0 || reactivationCampaign?.status === "scheduled"
+  );
 
   useEffect(() => {
     // Poll to check if a scheduled reactivation has passed its time
@@ -98,13 +95,12 @@ export function OutboundPageContent() {
         if (Date.now() >= new Date(reactivationCampaign.scheduledAt).getTime()) {
           // Time passed, calls are sent. Remove from reactivation area.
           localStorage.removeItem('reactivation_state_admin');
-          localStorage.setItem(`reactivation_cleared_${outboundCampaign?.id}`, "true");
           setReactivationCampaign(leadReactivationCampaign);
         }
       }, 5000);
       return () => clearInterval(interval);
     }
-  }, [reactivationCampaign, outboundCampaign?.id]);
+  }, [reactivationCampaign]);
 
   const handleReschedule = async () => {
     try {
@@ -204,10 +200,6 @@ export function OutboundPageContent() {
           hasOutboundNumber={hasOutboundNumber}
           onUploadClick={() => setUploadOpen(true)}
           onStart={() => {
-            if (typeof window !== "undefined") {
-              localStorage.removeItem(`reactivation_cleared_${outboundCampaign?.id}`);
-              setIsCleared(false);
-            }
             startCampaign();
           }}
           onPause={pauseCampaign}
