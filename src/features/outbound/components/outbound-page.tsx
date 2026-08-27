@@ -77,20 +77,7 @@ export function OutboundPageContent() {
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleDid, setRescheduleDid] = useState("");
 
-  useEffect(() => {
-    // If campaign just finished and has failed calls, trigger the Reactivation UI
-    if (outboundCampaign.status === "completed" && outboundCampaign.failedCalls > 0) {
-      // Pre-fill the DID from the campaign that just ran
-      if (outboundCampaign.selectedDid) {
-        setRescheduleDid(outboundCampaign.selectedDid);
-      }
-      // Small timeout for the animation to play before showing modal
-      const timer = setTimeout(() => {
-        setRescheduleOpen(true);
-      }, 1200);
-      return () => clearTimeout(timer);
-    }
-  }, [outboundCampaign.status, outboundCampaign.failedCalls]);
+  // Removed the useEffect that automatically opened the reschedule modal on load
 
   const handleReschedule = async () => {
     try {
@@ -225,20 +212,23 @@ export function OutboundPageContent() {
       </motion.div>
 
       <div className="space-y-4">
-        <CampaignCard
-          campaign={reactivationCampaign}
-          progressPercent={0}
-          onUploadClick={() => {}}
-          onStart={() => {}}
-          onSchedule={handleInstantSchedule}
-          onStop={() => {}}
-          variant="reactivation"
-          failedCallsCount={outboundCampaign.failedCalls}
-        />
+        {hasOutboundNumber && (
+          <CampaignCard
+            campaign={reactivationCampaign}
+            progressPercent={0}
+            onUploadClick={() => {}}
+            onStart={() => {}}
+            onSchedule={handleInstantSchedule}
+            onStop={() => {}}
+            variant="reactivation"
+            failedCallsCount={outboundCampaign.failedCalls}
+            hasOutboundNumber={hasOutboundNumber}
+          />
+        )}
 
         <CampaignCard
-          campaign={outboundCampaign}
-          progressPercent={progressPercent}
+          campaign={hasOutboundNumber ? outboundCampaign : { ...outboundCampaign, status: "idle", leads: [], failedCalls: 0, completedCalls: 0 }}
+          progressPercent={hasOutboundNumber ? progressPercent : 0}
           hasOutboundNumber={hasOutboundNumber}
           onUploadClick={() => setUploadOpen(true)}
           onStart={startCampaign}

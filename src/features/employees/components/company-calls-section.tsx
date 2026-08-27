@@ -107,19 +107,7 @@ export function CompanyCallsSection({
     return leadReactivationCampaign;
   });
 
-  useEffect(() => {
-    // If campaign just finished and has failed calls, trigger the Reactivation UI
-    if (outboundCampaign.status === "completed" && outboundCampaign.failedCalls > 0) {
-      // Pre-fill the DID from the campaign that just ran
-      if (outboundCampaign.selectedDid) {
-        setRescheduleDid(outboundCampaign.selectedDid);
-      }
-      const timer = setTimeout(() => {
-        setRescheduleOpen(true);
-      }, 1200);
-      return () => clearTimeout(timer);
-    }
-  }, [outboundCampaign.status, outboundCampaign.failedCalls]);
+  // Removed the useEffect that automatically opened the reschedule modal on load
 
   const handleReschedule = async () => {
     try {
@@ -338,6 +326,7 @@ export function CompanyCallsSection({
     <div className="space-y-5">
       {direction === "outbound" ? (
         <>
+        {hasAssignedNumber && (
           <CampaignCard
             campaign={reactivationCampaign}
             progressPercent={0}
@@ -350,10 +339,12 @@ export function CompanyCallsSection({
             failedCallsCount={outboundCampaign.failedCalls}
             hasOutboundNumber={hasAssignedNumber}
             companyId={companyId}
+            variant="reactivation"
           />
+        )}
           <CampaignCard
-            campaign={outboundCampaign}
-            progressPercent={progressPercent}
+            campaign={hasAssignedNumber ? outboundCampaign : { ...outboundCampaign, status: "idle", leads: [], failedCalls: 0, completedCalls: 0 }}
+            progressPercent={hasAssignedNumber ? progressPercent : 0}
             onUploadClick={() => setUploadOpen(true)}
             onStart={startCampaign}
             onPause={pauseCampaign}
