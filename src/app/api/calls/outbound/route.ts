@@ -128,7 +128,11 @@ export async function GET(req: NextRequest) {
         where: getWhereClause(cId),
         orderBy: { startedAt: "desc" },
         take: fetchLimit,
-        include: { phoneNumber: true, lead: true }
+        include: { 
+          phoneNumber: true, 
+          lead: true,
+          campaign: { include: { phoneNumbers: { take: 1 } } }
+        }
       })
     );
     
@@ -143,29 +147,41 @@ export async function GET(req: NextRequest) {
       const minutes = Math.floor((call.durationSeconds || 0) / 60);
       const seconds = (call.durationSeconds || 0) % 60;
       
-      // Aggressively extract assigned/DID number from providerWebhook JSON
+      // Aggressively extract assigned/DID number from all available JSON fields
       let fallbackAssignedNumber = "";
+      
+      // 1. Try providerWebhook
       if (call.providerWebhook && typeof call.providerWebhook === 'object') {
         const wh: any = call.providerWebhook;
         fallbackAssignedNumber = 
-          wh.agentNumber || 
-          wh.did_number || 
-          wh.didNumber || 
-          wh.assigned_number ||
-          wh.from_number ||
-          wh.message?.call?.agent?.number || 
-          wh.call?.agent?.number ||
-          wh.call?.did_number ||
-          wh.data?.did_number ||
-          wh.data?.agentNumber ||
-          "";
+          wh.agentNumber || wh.did_number || wh.didNumber || wh.assigned_number ||
+          wh.from_number || wh.message?.call?.agent?.number || wh.call?.agent?.number ||
+          wh.call?.did_number || wh.data?.did_number || wh.data?.agentNumber || "";
       }
+
+      // 2. Try providerRequest (sent payload usually has the DID)
+      if (!fallbackAssignedNumber && call.providerRequest && typeof call.providerRequest === 'object') {
+        const req: any = call.providerRequest;
+        fallbackAssignedNumber =
+          req.did_number || req.didNumber || req.agentNumber || req.from_number ||
+          req.agent?.number || req.call?.did_number || "";
+      }
+
+      // 3. Try providerResponse
+      if (!fallbackAssignedNumber && call.providerResponse && typeof call.providerResponse === 'object') {
+        const res: any = call.providerResponse;
+        fallbackAssignedNumber =
+          res.did_number || res.didNumber || res.agentNumber || res.from || "";
+      }
+
+      // 4. Try campaign's linked phone number
+      const campaignDid = (call as any).campaign?.phoneNumbers?.[0]?.number || "";
 
       return {
         id: call.id,
         callId: call.callLogId,
         customerNumber: call.lead?.phone || "",
-        assignedNumber: call.phoneNumber?.number || fallbackAssignedNumber || "",
+        assignedNumber: call.phoneNumber?.number || fallbackAssignedNumber || campaignDid || "",
         callDateTime: call.startedAt.toISOString(),
         duration: minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`,
         durationSeconds: call.durationSeconds || 0,
