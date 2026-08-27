@@ -266,7 +266,9 @@ export function CampaignCard({
           {(campaign.status === "idle" || campaign.status === "completed") && (
             <p className="text-sm text-muted-foreground">
               {campaign.id === "camp-001"
-                ? "Failed calls will appear here for reactivation."
+                ? (campaign.leads && campaign.leads.length > 0
+                    ? `Ready to reactivate ${campaign.leads.length} failed call(s).`
+                    : "Failed calls will appear here for reactivation.")
                 : !hasOutboundNumber 
                   ? "Please request an outbound number from the admin to launch campaigns." 
                   : "Upload a CSV contact list to prepare your next outbound campaign."}
@@ -287,7 +289,7 @@ export function CampaignCard({
 
         <div className="flex flex-col gap-2 items-end">
           <div className="flex flex-wrap gap-2 items-center">
-            {((campaign.status !== "idle" && campaign.status !== "completed" || (campaign.id === "camp-001" && failedCallsCount !== undefined && failedCallsCount > 0)) && campaign.leads && campaign.leads.length > 0) && (
+            {(campaign.id !== "camp-001" && campaign.status !== "idle" && campaign.status !== "completed" && campaign.leads && campaign.leads.length > 0) && (
               <Popover>
                 <PopoverTrigger asChild>
                   <div className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-muted/50 hover:bg-muted transition-colors">
