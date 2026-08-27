@@ -95,17 +95,18 @@ export function CompanyCallsSection({
   const [rescheduleTime, setRescheduleTime] = useState("");
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleDid, setRescheduleDid] = useState("");
-  const [reactivationCampaign, setReactivationCampaign] = useState<any>(() => {
+  const [reactivationCampaign, setReactivationCampaign] = useState<any>(leadReactivationCampaign);
+
+  useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem(`reactivation_state_${companyId || 'default'}`);
       if (saved) {
         try {
-          return JSON.parse(saved);
+          setReactivationCampaign(JSON.parse(saved));
         } catch (e) {}
       }
     }
-    return leadReactivationCampaign;
-  });
+  }, [companyId]);
 
   const [isCleared, setIsCleared] = useState(false);
   useEffect(() => {

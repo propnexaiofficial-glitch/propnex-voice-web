@@ -59,17 +59,18 @@ export function OutboundPageContent() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [selectedCall, setSelectedCall] = useState<CallRecord | null>(null);
 
-  const [reactivationCampaign, setReactivationCampaign] = useState<any>(() => {
+  const [reactivationCampaign, setReactivationCampaign] = useState<any>(leadReactivationCampaign);
+
+  useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem('reactivation_state_admin');
       if (saved) {
         try {
-          return JSON.parse(saved);
+          setReactivationCampaign(JSON.parse(saved));
         } catch (e) {}
       }
     }
-    return leadReactivationCampaign;
-  });
+  }, []);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [rescheduleDate, setRescheduleDate] = useState("");
