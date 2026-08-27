@@ -398,15 +398,17 @@ export function CampaignCard({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div>
-                    <Button 
-                      variant="outline" 
-                      className="gap-2 border-dashed" 
-                      onClick={onSchedule}
-                      disabled={failedCallsCount === 0}
-                    >
-                      <CalendarClock className="size-4" />
-                      Schedule Reactivation
-                    </Button>
+                    {campaign.id === "camp-001" && campaign.status !== "scheduled" && (
+                      <Button
+                        variant="outline"
+                        className="border-primary text-primary hover:bg-primary/10 gap-2 h-9 text-sm"
+                        onClick={onSchedule}
+                        disabled={failedCallsCount === 0}
+                      >
+                        <CalendarClock className="size-4" />
+                        Schedule Reactivation
+                      </Button>
+                    )}
                   </div>
                 </TooltipTrigger>
                 {failedCallsCount === 0 && (

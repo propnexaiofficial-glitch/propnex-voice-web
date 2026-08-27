@@ -132,10 +132,10 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
               
               return {
                 ...prev,
-                status: data.status,
-                completedCalls: data.completedCalls,
-                successfulCalls: data.successfulCalls,
-                failedCalls: data.failedCalls,
+                status: data.status || prev.status,
+                completedCalls: data.completedCalls !== undefined ? Math.max(data.completedCalls, prev.completedCalls) : prev.completedCalls,
+                successfulCalls: data.successfulCalls !== undefined ? Math.max(data.successfulCalls, prev.successfulCalls) : prev.successfulCalls,
+                failedCalls: data.failedCalls !== undefined ? Math.max(data.failedCalls, prev.failedCalls) : prev.failedCalls,
                 leads: data.leads || prev.leads,
                 totalContacts: data.totalContacts || prev.totalContacts,
               };
