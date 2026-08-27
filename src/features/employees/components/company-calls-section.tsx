@@ -302,7 +302,7 @@ export function CompanyCallsSection({
         <>
         {shouldShowReactivation && (
           <CampaignCard
-            campaign={reactivationCampaign}
+            campaign={{ ...reactivationCampaign, leads: reactivationCampaign.status === "idle" ? outboundCampaign.leads?.filter((l: any) => l.isFailed) : reactivationCampaign.leads }}
             progressPercent={0}
             onUploadClick={() => {}}
             onStart={() => {}}

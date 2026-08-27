@@ -263,13 +263,13 @@ export function CampaignCard({
             </p>
           )}
 
-          {campaign.status === "idle" && (
+          {(campaign.status === "idle" || campaign.status === "completed") && (
             <p className="text-sm text-muted-foreground">
               {campaign.id === "camp-001"
-                ? "Failed calls will appear here for reactivation."
+                ? (campaign.status === "scheduled" ? "" : "Failed calls will appear here for reactivation.")
                 : !hasOutboundNumber 
                   ? "Please request an outbound number from the admin to launch campaigns." 
-                  : "Upload a CSV contact list to prepare your outbound campaign."}
+                  : "Upload a CSV contact list to prepare your next outbound campaign."}
             </p>
           )}
 
@@ -287,7 +287,7 @@ export function CampaignCard({
 
         <div className="flex flex-col gap-2 items-end">
           <div className="flex flex-wrap gap-2 items-center">
-            {(campaign.status === "ready" || campaign.status === "running" || campaign.status === "completed" || campaign.status === "scheduled") && campaign.leads && campaign.leads.length > 0 && (
+            {((campaign.status !== "idle" || (campaign.id === "camp-001" && failedCallsCount !== undefined && failedCallsCount > 0)) && campaign.leads && campaign.leads.length > 0) && (
               <Popover>
                 <PopoverTrigger asChild>
                   <div className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-muted/50 hover:bg-muted transition-colors">
@@ -296,9 +296,9 @@ export function CampaignCard({
                 </PopoverTrigger>
                 <PopoverContent className="w-[350px] max-h-96 overflow-y-auto p-4 space-y-4 z-50">
                   
-                  {(campaign.status === "ready" || campaign.status === "scheduled") && (
+                  {(campaign.status === "ready" || campaign.status === "scheduled" || (campaign.id === "camp-001" && campaign.status === "idle")) && (
                     <div className="space-y-2">
-                      <p className="font-semibold">Pending ({(campaign.leads || []).length} Leads)</p>
+                      <p className="font-semibold">{campaign.id === "camp-001" && campaign.status === "idle" ? "Failed (Pending Reactivation)" : "Pending"} ({(campaign.leads || []).length} Leads)</p>
                       {(campaign.leads || []).map((lead: any, idx: number) => (
                         <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={(newLead) => onEditLead?.(idx, newLead)} onDelete={campaign.status === "ready" ? () => onDeleteLead?.(idx) : undefined} />
                       ))}
@@ -325,7 +325,7 @@ export function CampaignCard({
                         </div>
                       )}
 
-                      {(campaign.leads || []).filter((l: any) => l.called && l.isFailed).length > 0 && (
+                      {campaign.id !== "camp-001" && (campaign.leads || []).filter((l: any) => l.called && l.isFailed).length > 0 && (
                         <div className="space-y-2">
                           <p className="font-semibold text-rose-500">Failed ({(campaign.leads || []).filter((l: any) => l.called && l.isFailed).length})</p>
                           {(campaign.leads || []).filter((l: any) => l.called && l.isFailed).map((lead: any, idx: number) => (
