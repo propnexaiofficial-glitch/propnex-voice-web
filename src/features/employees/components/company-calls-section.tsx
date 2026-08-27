@@ -95,7 +95,17 @@ export function CompanyCallsSection({
   const [rescheduleTime, setRescheduleTime] = useState("");
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleDid, setRescheduleDid] = useState("");
-  const [reactivationCampaign, setReactivationCampaign] = useState<any>(leadReactivationCampaign);
+  const [reactivationCampaign, setReactivationCampaign] = useState<any>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(`reactivation_state_${companyId || 'default'}`);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {}
+      }
+    }
+    return leadReactivationCampaign;
+  });
 
   useEffect(() => {
     // If campaign just finished and has failed calls, trigger the Reactivation UI
@@ -154,14 +164,63 @@ export function CompanyCallsSection({
         title: "Reactivation Scheduled ✓",
         description: `Successfully scheduled ${failedLeads.length} failed call${failedLeads.length !== 1 ? "s" : ""} for ${new Date(scheduledAt).toLocaleString()}. They will be dialled automatically using ${didNumber}.`
       });
-      setReactivationCampaign({
+      const newState = {
         ...leadReactivationCampaign,
         status: "scheduled",
         scheduledAt,
         totalContacts: failedLeads.length,
         leads: failedLeads.map((l: any) => ({ ...l, isFailed: false, called: false }))
-      });
+      };
+      setReactivationCampaign(newState);
+      localStorage.setItem(`reactivation_state_${companyId || 'default'}`, JSON.stringify(newState));
+      
       setRescheduleOpen(false);
+    } catch (e: any) {
+      setAlertData({ title: "Error", description: e.message, isError: true });
+    } finally {
+      setIsRescheduling(false);
+    }
+  };
+
+  const handleInstantSchedule = async () => {
+    try {
+      setIsRescheduling(true);
+      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+      const failedLeads = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
+      
+      // Schedule immediately (5 seconds from now)
+      const scheduledAt = new Date(Date.now() + 5000).toISOString();
+      const didNumber = outboundCampaign.selectedDid || company?.assignedNumbers?.find((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH")?.number;
+      const didInfo = (company?.assignedNumbers as any[] || []).find((n: any) => n.number === didNumber);
+      const channels = didInfo?.channels ?? 1;
+
+      if (!didNumber) throw new Error("No outbound number assigned. Please contact your admin.");
+      if (failedLeads.length === 0) throw new Error("No failed leads to reschedule.");
+
+      const res = await fetch("/api/calls/reschedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          campaignId: outboundCampaign.id || "manual",
+          leads: failedLeads,
+          scheduledAt,
+          didNumber,
+          channels
+        })
+      });
+
+      if (!res.ok) throw new Error("Failed to reschedule calls");
+
+      const newState = {
+        ...leadReactivationCampaign,
+        status: "scheduled",
+        scheduledAt,
+        totalContacts: failedLeads.length,
+        leads: failedLeads.map((l: any) => ({ ...l, isFailed: false, called: false }))
+      };
+      setReactivationCampaign(newState);
+      localStorage.setItem(`reactivation_state_${companyId || 'default'}`, JSON.stringify(newState));
+
     } catch (e: any) {
       setAlertData({ title: "Error", description: e.message, isError: true });
     } finally {
@@ -286,7 +345,8 @@ export function CompanyCallsSection({
             onStart={() => {}}
             onPause={() => {}}
             onResume={() => {}}
-            onSchedule={() => setRescheduleOpen(true)}
+            onSchedule={handleInstantSchedule}
+            onStop={() => {}}
             failedCallsCount={outboundCampaign.failedCalls}
             hasOutboundNumber={hasAssignedNumber}
             companyId={companyId}
