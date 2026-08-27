@@ -351,7 +351,7 @@ export function CompanyCallsSection({
             <div className="space-y-2">
               <label className="text-sm font-medium">Failed Leads</label>
               <div className="max-h-40 overflow-y-auto rounded-md border border-border bg-muted/30 p-2 text-sm">
-                {outboundCampaign.leads?.filter((l: any) => l.isFailed).map((lead: any, i: number) => (
+                {(outboundCampaign.leads || []).filter((l: any) => l.isFailed).map((lead: any, i: number) => (
                   <div key={i} className="flex justify-between border-b border-border/50 py-1 last:border-0">
                     <span>{lead.name}</span>
                     <span className="font-mono text-muted-foreground">{lead.phone}</span>
