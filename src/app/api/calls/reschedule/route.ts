@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// IMPORTANT: Do NOT use NEXT_PUBLIC_API_URL here — in production it is set to
-// the relative path "/api" for client-side use, which breaks server-side fetch.
-// Always use an absolute URL for server-to-server requests.
-const BACKEND_API = "https://api.propnexai.com";
+// Use the same internal backend URL that next.config.ts uses for its fallback rewrite.
+// NEXT_PUBLIC_API_URL is a *relative* /api path for client-side use and cannot be used
+// in server-side fetch. The public hostname (api.propnexai.com) is unreachable from
+// Vercel's serverless environment. We proxy to the raw IP instead.
+const BACKEND_ORIGIN = process.env.BACKEND_ORIGIN || "http://200.234.34.240:3001";
 
 /**
  * POST /api/calls/reschedule
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Forward to the backend NestJS controller: POST /api/calls/reschedule
-    const backendUrl = `${BACKEND_API}/api/calls/reschedule`;
+    const backendUrl = `${BACKEND_ORIGIN}/api/calls/reschedule`;
 
     const backendRes = await fetch(backendUrl, {
       method: "POST",

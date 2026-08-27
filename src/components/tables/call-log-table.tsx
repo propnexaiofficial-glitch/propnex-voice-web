@@ -106,8 +106,8 @@ export function CallLogTable({
                   <td className="px-4 py-3 font-medium">
                     {call.customerNumber}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {call.assignedNumber}
+                  <td className="px-4 py-3 text-muted-foreground font-mono text-sm">
+                    {call.assignedNumber || <span className="opacity-40">—</span>}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
                     {formatCallDate(call.callDateTime)}

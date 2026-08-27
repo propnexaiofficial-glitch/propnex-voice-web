@@ -261,12 +261,21 @@ export function OutboundPageContent() {
           <DialogHeader>
             <DialogTitle>Reschedule Failed Calls</DialogTitle>
             <DialogDescription>
-              {outboundCampaign.failedCalls} calls failed during the campaign (via {outboundCampaign.selectedDid || "your assigned number"}). Select a date and time to automatically retry them using the Lead Reactivation queue.
+              {outboundCampaign.failedCalls} call{outboundCampaign.failedCalls !== 1 ? "s" : ""} failed during the campaign. Select a date and time to automatically retry them.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {/* DID Number used */}
+            {(outboundCampaign.selectedDid || user?.assignedNumbersDetailed?.[0]?.number) && (
+              <div className="flex items-center gap-2 rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm">
+                <span className="text-muted-foreground">Outbound number:</span>
+                <span className="font-mono font-semibold text-blue-400">
+                  {outboundCampaign.selectedDid || user?.assignedNumbersDetailed?.[0]?.number}
+                </span>
+              </div>
+            )}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Failed Leads</label>
+              <label className="text-sm font-medium">Failed Leads ({(outboundCampaign.leads || []).filter((l: any) => l.isFailed).length})</label>
               <div className="max-h-40 overflow-y-auto rounded-md border border-border bg-muted/30 p-2 text-sm">
                 {(outboundCampaign.leads || []).filter((l: any) => l.isFailed).map((lead: any, i: number) => (
                   <div key={i} className="flex justify-between border-b border-border/50 py-1 last:border-0">

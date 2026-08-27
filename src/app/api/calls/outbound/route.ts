@@ -143,10 +143,22 @@ export async function GET(req: NextRequest) {
       const minutes = Math.floor((call.durationSeconds || 0) / 60);
       const seconds = (call.durationSeconds || 0) % 60;
       
+      // Aggressively extract assigned/DID number from providerWebhook JSON
       let fallbackAssignedNumber = "";
       if (call.providerWebhook && typeof call.providerWebhook === 'object') {
-         const wh: any = call.providerWebhook;
-         fallbackAssignedNumber = wh.agentNumber || wh.did_number || wh.didNumber || wh.message?.call?.agent?.number || wh.call?.agent?.number || "";
+        const wh: any = call.providerWebhook;
+        fallbackAssignedNumber = 
+          wh.agentNumber || 
+          wh.did_number || 
+          wh.didNumber || 
+          wh.assigned_number ||
+          wh.from_number ||
+          wh.message?.call?.agent?.number || 
+          wh.call?.agent?.number ||
+          wh.call?.did_number ||
+          wh.data?.did_number ||
+          wh.data?.agentNumber ||
+          "";
       }
 
       return {
