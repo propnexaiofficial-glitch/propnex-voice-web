@@ -243,7 +243,9 @@ export function CampaignCard({
               <PhoneOutgoing className="size-5 text-foreground" />
             </div>
             <h3 className="text-lg font-semibold">{campaign.name}</h3>
-            <Badge variant={status.variant}>{status.label}</Badge>
+            <Badge variant={status.variant}>
+              {campaign.id === "camp-001" && campaign.status === "idle" ? "No Schedule" : status.label}
+            </Badge>
           </div>
 
           {campaign.uploadedFileName && (
