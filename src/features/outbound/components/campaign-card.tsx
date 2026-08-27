@@ -325,7 +325,7 @@ export function CampaignCard({
                         </div>
                       )}
 
-                      {campaign.id !== "camp-001" && (campaign.leads || []).filter((l: any) => l.called && l.isFailed).length > 0 && (
+                      {campaign.id !== "camp-001" && campaign.status !== "completed" && (campaign.leads || []).filter((l: any) => l.called && l.isFailed).length > 0 && (
                         <div className="space-y-2">
                           <p className="font-semibold text-rose-500">Failed ({(campaign.leads || []).filter((l: any) => l.called && l.isFailed).length})</p>
                           {(campaign.leads || []).filter((l: any) => l.called && l.isFailed).map((lead: any, idx: number) => (

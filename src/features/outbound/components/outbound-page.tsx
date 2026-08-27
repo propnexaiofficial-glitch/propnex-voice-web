@@ -61,7 +61,7 @@ export function OutboundPageContent() {
 
   const { user, isLoading } = useUserContext();
   const hasOutboundNumber = isLoading ? true : (
-    user?.assignedNumbersDetailed && user.assignedNumbersDetailed.length > 0
+    user?.role === "SYSTEM_ADMIN" || (user?.assignedNumbersDetailed && user.assignedNumbersDetailed.length > 0)
   );
 
   const [reactivationCampaign, setReactivationCampaign] = useState<any>(leadReactivationCampaign);
