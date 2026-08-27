@@ -77,8 +77,11 @@ export function OutboundPageContent() {
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleDid, setRescheduleDid] = useState("");
 
-  // Remove the old failed calls if they were already scheduled and processed
-  const isCleared = typeof window !== "undefined" && localStorage.getItem(`reactivation_cleared_${outboundCampaign?.id}`);
+  const [isCleared, setIsCleared] = useState(false);
+  useEffect(() => {
+    setIsCleared(!!(typeof window !== "undefined" && localStorage.getItem(`reactivation_cleared_${outboundCampaign?.id}`)));
+  }, [outboundCampaign?.id, reactivationCampaign]);
+
   const shouldShowReactivation = hasOutboundNumber && !isCleared;
 
   useEffect(() => {

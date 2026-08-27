@@ -107,8 +107,11 @@ export function CompanyCallsSection({
     return leadReactivationCampaign;
   });
 
-  // Remove the old failed calls if they were already scheduled and processed
-  const isCleared = typeof window !== "undefined" && localStorage.getItem(`reactivation_cleared_${companyId || 'default'}_${outboundCampaign?.id}`);
+  const [isCleared, setIsCleared] = useState(false);
+  useEffect(() => {
+    setIsCleared(!!(typeof window !== "undefined" && localStorage.getItem(`reactivation_cleared_${companyId || 'default'}_${outboundCampaign?.id}`)));
+  }, [companyId, outboundCampaign?.id, reactivationCampaign]);
+
   const shouldShowReactivation = hasAssignedNumber && !isCleared;
 
   useEffect(() => {
