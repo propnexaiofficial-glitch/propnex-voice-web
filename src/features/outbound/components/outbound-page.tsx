@@ -66,7 +66,8 @@ export function OutboundPageContent() {
       const saved = localStorage.getItem('reactivation_state_admin');
       if (saved) {
         try {
-          setReactivationCampaign(JSON.parse(saved));
+          const parsed = JSON.parse(saved);
+          if (parsed) setReactivationCampaign(parsed);
         } catch (e) {}
       }
     }
@@ -185,7 +186,7 @@ export function OutboundPageContent() {
       <div className="space-y-4">
         {shouldShowReactivation && (
           <CampaignCard
-            campaign={{ ...reactivationCampaign, leads: reactivationCampaign.status === "idle" ? outboundCampaign.leads?.filter((l: any) => l.isFailed) : reactivationCampaign.leads }}
+            campaign={{ ...(reactivationCampaign || leadReactivationCampaign), leads: (reactivationCampaign?.status || "idle") === "idle" ? outboundCampaign.leads?.filter((l: any) => l.isFailed) : reactivationCampaign?.leads }}
             progressPercent={0}
             onUploadClick={() => {}}
             onStart={() => {}}
