@@ -142,6 +142,11 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
                   description: `All ${data.leads?.length || 0} leads have been processed.`,
                 });
               }
+
+              // Ignore stale backend state from previous campaigns
+              if (data.campaignId && data.campaignId !== prev.id) {
+                return prev;
+              }
               
               return {
                 ...prev,
