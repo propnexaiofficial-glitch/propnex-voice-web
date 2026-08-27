@@ -7,6 +7,8 @@ export type DashboardStat = {
   change?: number;
   changeLabel?: string;
   isNewAccount?: boolean;
+  inboundCreditsUsed?: number;
+  outboundCreditsUsed?: number;
   icon: LucideIcon;
   accent: "purple" | "blue" | "green" | "gold";
 };

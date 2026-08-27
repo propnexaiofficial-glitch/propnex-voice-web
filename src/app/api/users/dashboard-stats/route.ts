@@ -67,7 +67,9 @@ export async function GET(req: NextRequest) {
       callStats,
       pastInboundCalls,
       pastOutboundCalls,
-      pastCallStats
+      pastCallStats,
+      inboundCreditStats,
+      outboundCreditStats
     ] = await Promise.all([
       prisma.callLog.count({
         where: { companyId: { in: companyIdsToQuery }, direction: "INBOUND", startedAt: { gte: startOfThisMonth } }
@@ -91,11 +93,21 @@ export async function GET(req: NextRequest) {
       prisma.callLog.aggregate({
         where: { companyId: { in: companyIdsToQuery }, startedAt: { gte: startOfLastMonth, lte: endOfLastMonth } },
         _sum: { creditsUsed: true }
+      }),
+      prisma.callLog.aggregate({
+        where: { companyId: { in: companyIdsToQuery }, direction: "INBOUND" },
+        _sum: { creditsUsed: true }
+      }),
+      prisma.callLog.aggregate({
+        where: { companyId: { in: companyIdsToQuery }, direction: "OUTBOUND" },
+        _sum: { creditsUsed: true }
       })
     ]);
 
     const creditsUsedByCalls = callStats._sum.creditsUsed || 0;
     const pastCreditsUsed = pastCallStats._sum.creditsUsed || 0;
+    const inboundCreditsUsed = inboundCreditStats._sum.creditsUsed || 0;
+    const outboundCreditsUsed = outboundCreditStats._sum.creditsUsed || 0;
 
     // Credits Used = Main account creditsUsed + ALL sub-company creditsUsed
     // e.g. Main: 1,086.25 + Sub: 113.75 = 1,200 ✓
@@ -124,6 +136,8 @@ export async function GET(req: NextRequest) {
       outboundCalls,
       activeAgents,
       creditsUsed,
+      inboundCreditsUsed,
+      outboundCreditsUsed,
       isNewAccount,
       inboundTrend:  isNewAccount ? 0 : calcTrend(inboundCalls,  pastInboundCalls),
       outboundTrend: isNewAccount ? 0 : calcTrend(outboundCalls, pastOutboundCalls),

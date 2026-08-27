@@ -1,10 +1,16 @@
 "use client";
 
-import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, PhoneIncoming, PhoneOutgoing } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { cn } from "@/lib/utils";
 import type { DashboardStat } from "@/features/home/types";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type StatCardProps = {
   stat: DashboardStat;
@@ -15,6 +21,7 @@ type StatCardProps = {
 export function StatCard({ stat, index = 0, className }: StatCardProps) {
   const isPositive = stat.change !== undefined && stat.change >= 0;
   const Icon = stat.icon;
+  const isCredits = stat.id === "credits-used";
 
   return (
     <motion.div
@@ -23,8 +30,44 @@ export function StatCard({ stat, index = 0, className }: StatCardProps) {
       transition={{ duration: 0.35, delay: index * 0.06 }}
       className={cn("glass-card rounded-lg p-5", className)}
     >
-      <div className="flex size-10 items-center justify-center rounded-lg bg-muted text-foreground">
-        <Icon className="size-5" />
+      <div className="flex items-center justify-between">
+        <div className="flex size-10 items-center justify-center rounded-lg bg-muted text-foreground">
+          <Icon className="size-5" />
+        </div>
+        
+        {isCredits && stat.inboundCreditsUsed !== undefined && stat.outboundCreditsUsed !== undefined && (
+          <TooltipProvider delayDuration={100}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-2 rounded-md bg-muted/50 px-2.5 py-1.5 cursor-help transition-colors hover:bg-muted">
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <PhoneIncoming className="size-3 text-purple-400" />
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <PhoneOutgoing className="size-3 text-blue-400" />
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="flex flex-col gap-1.5 bg-background border-border shadow-xl">
+                <p className="text-xs font-medium text-muted-foreground mb-1">Credit Usage Breakdown</p>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <PhoneIncoming className="size-3.5 text-purple-400" />
+                    <span className="text-sm">Inbound</span>
+                  </div>
+                  <span className="text-sm font-medium">{stat.inboundCreditsUsed.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <PhoneOutgoing className="size-3.5 text-blue-400" />
+                    <span className="text-sm">Outbound</span>
+                  </div>
+                  <span className="text-sm font-medium">{stat.outboundCreditsUsed.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 2 })}</span>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </div>
 
       <div className="mt-4 space-y-1">

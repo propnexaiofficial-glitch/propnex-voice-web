@@ -29,7 +29,9 @@ export function DashboardSummary({ className }: DashboardSummaryProps) {
           value: parsed[i]?.value !== undefined ? parsed[i].value : stat.value,
           change: parsed[i]?.change !== undefined ? parsed[i].change : stat.change,
           changeLabel: parsed[i]?.changeLabel !== undefined ? parsed[i].changeLabel : stat.changeLabel,
-          isNewAccount: parsed[i]?.isNewAccount !== undefined ? parsed[i].isNewAccount : stat.isNewAccount
+          isNewAccount: parsed[i]?.isNewAccount !== undefined ? parsed[i].isNewAccount : stat.isNewAccount,
+          inboundCreditsUsed: parsed[i]?.inboundCreditsUsed,
+          outboundCreditsUsed: parsed[i]?.outboundCreditsUsed
         })));
       }
     } catch(e) {}
@@ -53,7 +55,15 @@ export function DashboardSummary({ className }: DashboardSummaryProps) {
           updatedStats[0] = { ...updatedStats[0], value: data.inboundCalls !== undefined ? data.inboundCalls.toLocaleString() : "0", change: data.inboundTrend !== undefined ? data.inboundTrend : 100, changeLabel: "vs last month", isNewAccount: data.isNewAccount };
           updatedStats[1] = { ...updatedStats[1], value: data.outboundCalls !== undefined ? data.outboundCalls.toLocaleString() : "0", change: data.outboundTrend !== undefined ? data.outboundTrend : 0, changeLabel: "vs last month", isNewAccount: data.isNewAccount };
           updatedStats[2] = { ...updatedStats[2], value: data.activeAgents !== undefined ? data.activeAgents.toLocaleString() : "0", change: data.agentsTrend !== undefined ? data.agentsTrend : 0, changeLabel: "new this week", isNewAccount: data.isNewAccount };
-          updatedStats[3] = { ...updatedStats[3], value: data.creditsUsed !== undefined ? data.creditsUsed.toLocaleString() : "0", change: data.creditsTrend !== undefined ? data.creditsTrend : 0, changeLabel: "vs last month", isNewAccount: data.isNewAccount };
+          updatedStats[3] = { 
+            ...updatedStats[3], 
+            value: data.creditsUsed !== undefined ? data.creditsUsed.toLocaleString() : "0", 
+            change: data.creditsTrend !== undefined ? data.creditsTrend : 0, 
+            changeLabel: "vs last month", 
+            isNewAccount: data.isNewAccount,
+            inboundCreditsUsed: data.inboundCreditsUsed,
+            outboundCreditsUsed: data.outboundCreditsUsed
+          };
           
           setStats(updatedStats);
           try {
