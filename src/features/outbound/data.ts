@@ -163,7 +163,7 @@ export const leadReactivationCampaign: Campaign = {
   completedCalls: 0,
   successfulCalls: 0,
   failedCalls: 0,
-  comingSoon: true,
+  comingSoon: false,
 };
 
 export const outboundCampaignInitial: Campaign = {

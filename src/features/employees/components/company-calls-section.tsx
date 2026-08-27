@@ -15,6 +15,7 @@ import { useInboundCallsApi, INBOUND_API_PAGE_SIZE } from "@/features/inbound/ho
 import { UploadCsvModal } from "@/features/outbound/components/upload-csv-modal";
 import { CampaignCard } from "@/features/outbound/components/campaign-card";
 import { useCampaign } from "@/features/outbound/hooks/use-campaign";
+import { leadReactivationCampaign } from "@/features/outbound/data";
 import { TransferCreditsModal } from "@/features/employees/components/transfer-credits-modal";
 import {
   DEFAULT_CALL_FILTERS,
@@ -245,9 +246,18 @@ export function CompanyCallsSection({
   return (
     <div className="space-y-5">
       {direction === "outbound" ? (
-        <CampaignCard
-          campaign={outboundCampaign}
-          progressPercent={progressPercent}
+        <>
+          <CampaignCard
+            campaign={leadReactivationCampaign}
+            progressPercent={0}
+            onUploadClick={() => undefined}
+            onStart={() => undefined}
+            onPause={() => undefined}
+            onResume={() => undefined}
+          />
+          <CampaignCard
+            campaign={outboundCampaign}
+            progressPercent={progressPercent}
           onUploadClick={() => setUploadOpen(true)}
           onStart={startCampaign}
           onPause={pauseCampaign}
@@ -257,6 +267,7 @@ export function CompanyCallsSection({
           hasOutboundNumber={hasAssignedNumber}
           companyId={companyId}
         />
+        </>
       ) : (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
