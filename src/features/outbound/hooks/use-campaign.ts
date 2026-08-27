@@ -61,7 +61,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       // Ensure we have a DID number (it defaults to user's assigned numbers, but fallback to one if missing)
       const didNumber = campaign.selectedDid || (user.assignedNumbersDetailed && user.assignedNumbersDetailed[0]?.number) || "+917935215682";
 
-      const res = await fetch(`${apiBase}/api/campaign-execution/start`, {
+      const res = await fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/start`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -112,7 +112,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
         const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
 
-        const res = await fetch(`${apiBase}/api/campaign-execution/status`, {
+        const res = await fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/status`, {
           headers: { Authorization: `Bearer ${pnxToken}` }
         });
 
