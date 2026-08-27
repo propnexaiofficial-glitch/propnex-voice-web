@@ -63,10 +63,15 @@ export function OutboundPageContent() {
   const [rescheduleDate, setRescheduleDate] = useState("");
   const [rescheduleTime, setRescheduleTime] = useState("");
   const [isRescheduling, setIsRescheduling] = useState(false);
+  const [rescheduleDid, setRescheduleDid] = useState("");
 
   useEffect(() => {
     // If campaign just finished and has failed calls, trigger the Reactivation UI
     if (outboundCampaign.status === "completed" && outboundCampaign.failedCalls > 0) {
+      // Pre-fill the DID from the campaign that just ran
+      if (outboundCampaign.selectedDid) {
+        setRescheduleDid(outboundCampaign.selectedDid);
+      }
       // Small timeout for the animation to play before showing modal
       const timer = setTimeout(() => {
         setRescheduleOpen(true);
@@ -82,16 +87,10 @@ export function OutboundPageContent() {
       
       const failedLeads = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
       const scheduledAt = new Date(`${rescheduleDate}T${rescheduleTime}`).toISOString();
-
-      // Use the campaign's DID, or fall back to user's first assigned number
-      const storedUser = localStorage.getItem("user");
-      const parsedUser = storedUser ? JSON.parse(storedUser) : {};
-      const didNumber = outboundCampaign.selectedDid 
-        || parsedUser?.assignedNumbersDetailed?.[0]?.number 
-        || user?.assignedNumbersDetailed?.[0]?.number;
+      const didNumber = rescheduleDid;
 
       if (!didNumber) {
-        throw new Error("No outbound number assigned. Please contact your admin.");
+        throw new Error("Please select an outbound number to use for reactivation.");
       }
 
       if (failedLeads.length === 0) {
@@ -265,15 +264,24 @@ export function OutboundPageContent() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            {/* DID Number used */}
-            {(outboundCampaign.selectedDid || user?.assignedNumbersDetailed?.[0]?.number) && (
-              <div className="flex items-center gap-2 rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm">
-                <span className="text-muted-foreground">Outbound number:</span>
-                <span className="font-mono font-semibold text-blue-400">
-                  {outboundCampaign.selectedDid || user?.assignedNumbersDetailed?.[0]?.number}
-                </span>
-              </div>
-            )}
+            {/* DID Number selector */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Outbound Number (DID)</label>
+              <select
+                value={rescheduleDid}
+                onChange={(e) => setRescheduleDid(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono"
+              >
+                <option value="">— Select number —</option>
+                {(user?.assignedNumbersDetailed || [])
+                  .filter((n: any) => !n.direction || n.direction === "OUTBOUND" || n.direction === "BOTH")
+                  .map((n: any) => (
+                    <option key={n.id || n.number} value={n.number}>
+                      {n.number}
+                    </option>
+                  ))}
+              </select>
+            </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Failed Leads ({(outboundCampaign.leads || []).filter((l: any) => l.isFailed).length})</label>
               <div className="max-h-40 overflow-y-auto rounded-md border border-border bg-muted/30 p-2 text-sm">
@@ -309,7 +317,7 @@ export function OutboundPageContent() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRescheduleOpen(false)}>Cancel</Button>
-            <Button onClick={handleReschedule} disabled={isRescheduling || !rescheduleDate || !rescheduleTime}>
+            <Button onClick={handleReschedule} disabled={isRescheduling || !rescheduleDate || !rescheduleTime || !rescheduleDid}>
               {isRescheduling ? "Scheduling..." : "Schedule Reactivation"}
             </Button>
           </DialogFooter>
