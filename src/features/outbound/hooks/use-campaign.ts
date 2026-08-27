@@ -13,7 +13,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
   const [upload, setUpload] = useState<UploadCsvState | null>(null);
   const [alertData, setAlertData] = useState<{ title: string; description: string; isError?: boolean } | null>(null);
 
-  const handleUpload = useCallback((fileName: string, leads: any[] = []) => {
+  const handleUpload = useCallback((fileName: string, leads: any[] = [], selectedDid?: string) => {
     setUpload({ fileName, contactCount: leads.length || MOCK_CSV_CONTACT_COUNT, leads });
     setCampaign((prev) => ({
       ...prev,
@@ -23,7 +23,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       completedCalls: 0,
       successfulCalls: 0,
       failedCalls: 0,
-      leads: leads
+      leads: leads,
+      selectedDid: selectedDid
     }));
   }, []);
 
@@ -70,8 +71,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       }
 
       const responseData = await res.json();
-      const didNumber = responseData.didNumber;
-      const channels = responseData.channels || 2; // Default to 2 if not provided
+      const didNumber = campaign.selectedDid || responseData.didNumber;
+      const channels = responseData.channels || (didNumber?.includes("079") ? 4 : 2); // Default based on DID or 2
 
       if (!didNumber) {
         throw new Error("Failed to retrieve DID number from Vercel");

@@ -59,6 +59,55 @@ export function OutboundPageContent() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [selectedCall, setSelectedCall] = useState<CallRecord | null>(null);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState("");
+  const [rescheduleTime, setRescheduleTime] = useState("");
+  const [isRescheduling, setIsRescheduling] = useState(false);
+
+  useEffect(() => {
+    // If campaign just finished and has failed calls, trigger the Reactivation UI
+    if (outboundCampaign.status === "completed" && outboundCampaign.failedCalls > 0) {
+      // Small timeout for the animation to play before showing modal
+      const timer = setTimeout(() => {
+        setRescheduleOpen(true);
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [outboundCampaign.status, outboundCampaign.failedCalls]);
+
+  const handleReschedule = async () => {
+    try {
+      setIsRescheduling(true);
+      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+      
+      const failedLeads = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
+      const scheduledAt = new Date(`${rescheduleDate}T${rescheduleTime}`).toISOString();
+      const didNumber = outboundCampaign.selectedDid;
+
+      const res = await fetch("/api/calls/reschedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          campaignId: outboundCampaign.id || "manual",
+          leads: failedLeads,
+          scheduledAt,
+          didNumber
+        })
+      });
+
+      if (!res.ok) throw new Error("Failed to reschedule calls");
+      
+      setAlertData({
+        title: "Reactivation Scheduled",
+        description: `Successfully scheduled ${failedLeads.length} failed calls for ${new Date(scheduledAt).toLocaleString()}`
+      });
+      setRescheduleOpen(false);
+    } catch (e: any) {
+      setAlertData({ title: "Error", description: e.message, isError: true });
+    } finally {
+      setIsRescheduling(false);
+    }
+  };
 
   const handleViewTranscript = (call: CallRecord) => {
     setSelectedCall(call);
@@ -179,6 +228,7 @@ export function OutboundPageContent() {
         onUpload={handleUpload}
         title="Upload CSV — Outbound"
         description="Upload a contact list to launch a general outbound calling campaign. CSV should include a phone number column."
+        didNumbers={user?.assignedNumbersDetailed}
       />
 
       <TranscriptDrawer
@@ -187,6 +237,57 @@ export function OutboundPageContent() {
         onOpenChange={setTranscriptOpen}
       />
       
+      <Dialog open={rescheduleOpen} onOpenChange={setRescheduleOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reschedule Failed Calls</DialogTitle>
+            <DialogDescription>
+              {outboundCampaign.failedCalls} calls failed during the campaign. Select a date and time to automatically retry them using the Lead Reactivation queue.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Failed Leads</label>
+              <div className="max-h-40 overflow-y-auto rounded-md border border-border bg-muted/30 p-2 text-sm">
+                {outboundCampaign.leads?.filter((l: any) => l.isFailed).map((lead: any, i: number) => (
+                  <div key={i} className="flex justify-between border-b border-border/50 py-1 last:border-0">
+                    <span>{lead.name}</span>
+                    <span className="font-mono text-muted-foreground">{lead.phone}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Date</label>
+                <input 
+                  type="date" 
+                  value={rescheduleDate}
+                  onChange={(e) => setRescheduleDate(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" 
+                  min={new Date().toISOString().split("T")[0]}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Time</label>
+                <input 
+                  type="time" 
+                  value={rescheduleTime}
+                  onChange={(e) => setRescheduleTime(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" 
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRescheduleOpen(false)}>Cancel</Button>
+            <Button onClick={handleReschedule} disabled={isRescheduling || !rescheduleDate || !rescheduleTime}>
+              {isRescheduling ? "Scheduling..." : "Schedule Reactivation"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!alertData} onOpenChange={(open) => !open && setAlertData(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

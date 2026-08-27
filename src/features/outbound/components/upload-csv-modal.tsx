@@ -27,9 +27,10 @@ export type ExtractedLead = {
 type UploadCsvModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUpload: (fileName: string, leads: ExtractedLead[]) => void;
+  onUpload: (fileName: string, leads: ExtractedLead[], selectedDid?: string) => void;
   title?: string;
   description?: string;
+  didNumbers?: { id: string, number: string, direction?: string }[];
 };
 
 export function UploadCsvModal({
@@ -38,12 +39,23 @@ export function UploadCsvModal({
   onUpload,
   title = "Upload Contacts",
   description = "Upload a list of customer numbers (.csv or .xlsx) to start an outbound calling campaign. We will automatically extract names and format numbers to the Indian standard.",
+  didNumbers = [],
 }: UploadCsvModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [extractedLeads, setExtractedLeads] = useState<ExtractedLead[]>([]);
   const [error, setError] = useState<string | null>(null);
+  
+  const outboundNumbers = didNumbers.filter(n => n.direction === "OUTBOUND" || n.direction === "BOTH");
+  const [selectedDid, setSelectedDid] = useState<string>(outboundNumbers[0]?.number || "");
+
+  // Auto-select first DID if available
+  useEffect(() => {
+    if (!selectedDid && outboundNumbers.length > 0) {
+      setSelectedDid(outboundNumbers[0].number);
+    }
+  }, [outboundNumbers, selectedDid]);
 
   const formatIndianNumber = (numStr: string): string => {
     let cleaned = numStr.toString().replace(/\D/g, "");
@@ -140,7 +152,11 @@ export function UploadCsvModal({
 
   const handleConfirm = () => {
     if (!selectedFile || extractedLeads.length === 0) return;
-    onUpload(selectedFile.name, extractedLeads);
+    if (outboundNumbers.length > 0 && !selectedDid) {
+      setError("Please select an outbound number to use.");
+      return;
+    }
+    onUpload(selectedFile.name, extractedLeads, selectedDid);
     setSelectedFile(null);
     setExtractedLeads([]);
     setError(null);
@@ -163,6 +179,23 @@ export function UploadCsvModal({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
+
+        {outboundNumbers.length > 1 && (
+          <div className="space-y-2 mb-2">
+            <label className="text-sm font-medium">Select Outbound Number</label>
+            <select
+              value={selectedDid}
+              onChange={(e) => setSelectedDid(e.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {outboundNumbers.map((n) => (
+                <option key={n.id} value={n.number}>
+                  {n.number}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div
           role="button"

@@ -14,10 +14,13 @@ export type Campaign = {
   startedAt?: string;
   comingSoon?: boolean;
   leads?: any[];
+  selectedDid?: string;
 };
 
 export type UploadCsvState = {
   fileName: string;
   contactCount: number;
+  failedCalls?: number;
   leads?: any[];
+  selectedDid?: string;
 };

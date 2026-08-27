@@ -222,20 +222,9 @@ export function CampaignCard({
             </div>
 
             <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
-              Bulk campaign uploads and automated lead reactivation are on the way. You&apos;ll
-              be able to upload CSV contacts and launch AI outbound calls from here.
+              Failed outbound calls will be automatically moved here for you to reschedule and reactivate later.
             </p>
-
-            <div className="inline-flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-1.5 text-xs text-muted-foreground">
-              <Clock className="size-3.5" />
-              Expected in the next release
-            </div>
           </div>
-
-          <Button variant="outline" disabled className="shrink-0 gap-2 opacity-60">
-            <Upload className="size-4" />
-            Upload CSV
-          </Button>
         </div>
       </motion.div>
     );
@@ -278,26 +267,55 @@ export function CampaignCard({
 
         <div className="flex flex-col gap-2 items-end">
           <div className="flex flex-wrap gap-2 items-center">
-            {campaign.status === "ready" && campaign.leads && campaign.leads.length > 0 && (
+            {(campaign.status === "ready" || campaign.status === "running" || campaign.status === "completed") && campaign.leads && campaign.leads.length > 0 && (
               <Popover>
                 <PopoverTrigger asChild>
                   <div className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-muted/50 hover:bg-muted transition-colors">
                     <Info className="size-5 text-muted-foreground" />
                   </div>
                 </PopoverTrigger>
-                <PopoverContent className="w-[350px] max-h-80 overflow-y-auto p-4 space-y-2 z-50">
-                  <p className="font-semibold mb-2">Ready to Call ({campaign.leads.length} Leads)</p>
-                  <div className="space-y-2">
-                    {campaign.leads.map((lead: any, idx: number) => (
-                      <LeadRow 
-                        key={`${lead.phone}-${idx}`} 
-                        lead={lead} 
-                        idx={idx} 
-                        onSave={(newLead) => onEditLead?.(idx, newLead)} 
-                        onDelete={() => onDeleteLead?.(idx)}
-                      />
-                    ))}
-                  </div>
+                <PopoverContent className="w-[350px] max-h-96 overflow-y-auto p-4 space-y-4 z-50">
+                  
+                  {campaign.status === "ready" && (
+                    <div className="space-y-2">
+                      <p className="font-semibold">Ready to Call ({campaign.leads.length} Leads)</p>
+                      {campaign.leads.map((lead: any, idx: number) => (
+                        <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={(newLead) => onEditLead?.(idx, newLead)} onDelete={() => onDeleteLead?.(idx)} />
+                      ))}
+                    </div>
+                  )}
+
+                  {(campaign.status === "running" || campaign.status === "completed") && (
+                    <div className="space-y-4">
+                      {campaign.leads.filter((l: any) => !l.called).length > 0 && (
+                        <div className="space-y-2">
+                          <p className="font-semibold text-muted-foreground">Pending ({campaign.leads.filter((l: any) => !l.called).length})</p>
+                          {campaign.leads.filter((l: any) => !l.called).map((lead: any, idx: number) => (
+                            <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={() => {}} />
+                          ))}
+                        </div>
+                      )}
+                      
+                      {campaign.leads.filter((l: any) => l.called && !l.isFailed).length > 0 && (
+                        <div className="space-y-2">
+                          <p className="font-semibold text-emerald-500">Successful ({campaign.leads.filter((l: any) => l.called && !l.isFailed).length})</p>
+                          {campaign.leads.filter((l: any) => l.called && !l.isFailed).map((lead: any, idx: number) => (
+                            <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={() => {}} />
+                          ))}
+                        </div>
+                      )}
+
+                      {campaign.leads.filter((l: any) => l.called && l.isFailed).length > 0 && (
+                        <div className="space-y-2">
+                          <p className="font-semibold text-rose-500">Failed ({campaign.leads.filter((l: any) => l.called && l.isFailed).length})</p>
+                          {campaign.leads.filter((l: any) => l.called && l.isFailed).map((lead: any, idx: number) => (
+                            <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={() => {}} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                 </PopoverContent>
               </Popover>
             )}
@@ -322,16 +340,34 @@ export function CampaignCard({
           )}
 
           {campaign.status === "running" && (
-            <Button variant="secondary" className="gap-2" onClick={onPause}>
-              <Pause className="size-4" />
-              Pause
+            <Button variant="secondary" className="gap-2 relative overflow-hidden group min-w-40" onClick={onPause}>
+              <div className="absolute inset-0 bg-primary/10 w-full rounded-md z-0" />
+              <motion.div 
+                className="absolute inset-0 bg-primary/20 rounded-md z-0" 
+                style={{ width: `${progressPercent}%` }} 
+                layout 
+              />
+              <span className="relative z-10 flex items-center gap-2">
+                <Pause className="size-4 hidden group-hover:block" />
+                <span className="group-hover:hidden">Processing {campaign.completedCalls} / {campaign.totalContacts}</span>
+                <span className="hidden group-hover:block">Pause</span>
+              </span>
             </Button>
           )}
 
           {campaign.status === "paused" && (
-            <Button className="gap-2" onClick={onResume}>
-              <Play className="size-4" />
-              Resume
+            <Button className="gap-2 relative overflow-hidden group min-w-40" onClick={onResume}>
+              <div className="absolute inset-0 bg-primary/10 w-full rounded-md z-0" />
+              <motion.div 
+                className="absolute inset-0 bg-primary/20 rounded-md z-0" 
+                style={{ width: `${progressPercent}%` }} 
+                layout 
+              />
+              <span className="relative z-10 flex items-center gap-2">
+                <Play className="size-4 hidden group-hover:block" />
+                <span className="group-hover:hidden">Paused {campaign.completedCalls} / {campaign.totalContacts}</span>
+                <span className="hidden group-hover:block">Resume</span>
+              </span>
             </Button>
           )}
           </div>
@@ -343,59 +379,7 @@ export function CampaignCard({
         </div>
       </div>
 
-      {(campaign.status === "running" ||
-        campaign.status === "paused" ||
-        campaign.status === "ready") &&
-        campaign.totalContacts > 0 && (
-          <div className="mt-6 space-y-4 border-t border-border pt-6">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium">Campaign Progress</span>
-              <span className="font-semibold text-foreground">{progressPercent}%</span>
-            </div>
 
-            <div className="h-2 overflow-hidden rounded-full bg-white/10">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${progressPercent}%` }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-                className="h-full rounded-full bg-foreground"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="rounded-xl border border-border/60 bg-white/5 px-3 py-2.5">
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Users className="size-3.5" />
-                  Total
-                </div>
-                <p className="mt-1 text-lg font-semibold">
-                  {campaign.totalContacts}
-                </p>
-              </div>
-              <div className="rounded-xl border border-border/60 bg-white/5 px-3 py-2.5">
-                <p className="text-xs text-muted-foreground">Completed</p>
-                <p className="mt-1 text-lg font-semibold">
-                  {campaign.completedCalls}
-                </p>
-              </div>
-              <div className="rounded-xl border border-border/60 bg-white/5 px-3 py-2.5">
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <CheckCircle2 className="size-3.5 text-emerald-400" />
-                  Successful
-                </div>
-                <p className="mt-1 text-lg font-semibold text-emerald-400">
-                  {campaign.successfulCalls}
-                </p>
-              </div>
-              <div className="rounded-xl border border-border/60 bg-white/5 px-3 py-2.5">
-                <p className="text-xs text-muted-foreground">Failed</p>
-                <p className="mt-1 text-lg font-semibold text-rose-400">
-                  {campaign.failedCalls}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
     </motion.div>
   );
 }
