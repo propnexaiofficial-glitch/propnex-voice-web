@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 
 import {
   MOCK_CSV_CONTACT_COUNT,
@@ -55,13 +55,24 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         throw new Error("Company ID not found");
       }
 
-      const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
-      const res = await fetch(`${adminBase}/api/outbound/start-campaign`, {
+      const mainServerUrl = process.env.NEXT_PUBLIC_MAIN_SERVER_URL || "http://200.234.34.240:3001";
+      const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
+
+      // Ensure we have a DID number (it defaults to user's assigned numbers, but fallback to one if missing)
+      const didNumber = campaign.selectedDid || (user.assignedNumbersDetailed && user.assignedNumbersDetailed[0]?.number) || "+917935215682";
+
+      const res = await fetch(`${mainServerUrl}/api/campaign-execution/start`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${pnxToken}`
+        },
         body: JSON.stringify({
           companyId,
+          campaignId: campaign.id,
+          didNumber,
           leads: uniqueLeads,
+          channels: didNumber.includes("079") ? 4 : 2
         })
       });
 
@@ -70,184 +81,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         throw new Error(errorData.error || "Failed to start campaign");
       }
 
-      const responseData = await res.json();
-      const didNumber = campaign.selectedDid || responseData.didNumber;
-      const channels = responseData.channels || (didNumber?.includes("079") ? 4 : 2); // Default based on DID or 2
-
-      if (!didNumber) {
-        throw new Error("Failed to retrieve DID number from Vercel");
-      }
-
-      // Step 2: Authenticate directly with Voicelink from the browser (Option 1 Bypass)
-      const VOICELINK_API_URL = "https://app.voicelink.co.in/api";
-      const loginRes = await fetch(`${VOICELINK_API_URL}/v1/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: JSON.stringify({
-          username: "propnex",
-          password: "PropnexAi2025@#",
-        }),
-      });
-
-      if (!loginRes.ok) {
-        throw new Error("Failed to authenticate with Voicelink from frontend");
-      }
-
-      const loginData = await loginRes.json();
-      const token = loginData.data?.access_token || loginData.access_token;
-
-      if (!token) {
-        throw new Error("Invalid authentication response from Voicelink");
-      }
-
-      // Step 3: Loop through leads using concurrency and polling
-      let activeCalls = new Map<string, number>();
-      let activeCallCount = 0;
-      let completedCount = 0;
-      let currentIndex = 0;
-      const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
-
-      const markAsFailed = async (phone: string, assignedNumber: string) => {
-        try {
-          await fetch(`/api/calls/outbound`, {
-            method: "PUT",
-            headers: { 
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${pnxToken}`
-            },
-            body: JSON.stringify({ action: "fail", phone, assignedNumber })
-          });
-        } catch (e) {
-          console.error("Failed to mark call as failed in DB", e);
-        }
-      };
-
-      // We will loop until all leads are started AND activeCallCount is zero
-      while (currentIndex < uniqueLeads.length || activeCallCount > 0) {
-        
-        // Check if we can start more calls based on channel limits
-        while (activeCallCount < channels && currentIndex < uniqueLeads.length) {
-          const lead = uniqueLeads[currentIndex];
-          currentIndex++;
-          
-          try {
-            const res = await fetch(`${VOICELINK_API_URL}/v1/add_lead`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                did_number: didNumber,
-                customer_number: lead.phone.replace(/\D/g, "").slice(-10),
-                country_code: "91",
-                custom_parameters: JSON.stringify({ name: lead.name, companyId }),
-              }),
-            });
-            
-            if (!res.ok) {
-              const errText = await res.text();
-              console.error(`Failed to push lead ${lead.phone} to Voicelink:`, errText);
-              await markAsFailed(lead.phone, didNumber);
-              setCampaign((prev) => {
-                const updatedLeads = (prev.leads || []).map(l => l.phone === lead.phone ? { ...l, called: true, isFailed: true } : l);
-                return { ...prev, leads: updatedLeads, failedCalls: updatedLeads.filter(l => l.isFailed).length, completedCalls: prev.completedCalls + 1 };
-              });
-              completedCount++;
-            } else {
-              activeCalls.set(lead.phone, (activeCalls.get(lead.phone) || 0) + 1);
-              activeCallCount++;
-            }
-          } catch (err: any) {
-            console.error(`Failed to push lead ${lead.phone}:`, err.message);
-            await markAsFailed(lead.phone, didNumber);
-            setCampaign((prev) => {
-              const updatedLeads = (prev.leads || []).map(l => l.phone === lead.phone ? { ...l, called: true, isFailed: true } : l);
-              return { ...prev, leads: updatedLeads, failedCalls: updatedLeads.filter(l => l.isFailed).length, completedCalls: prev.completedCalls + 1 };
-            });
-            completedCount++;
-          }
-        }
-        
-        // Polling loop: Wait 3 seconds, then check status of active calls
-        if (activeCallCount > 0) {
-           await new Promise(resolve => setTimeout(resolve, 3000));
-           
-           try {
-             // Fetch latest outbound calls for this company
-             const pollRes = await fetch(`/api/calls/outbound?limit=50&companyId=${companyId}`, {
-               headers: { Authorization: `Bearer ${pnxToken}` }
-             });
-             
-             if (pollRes.ok) {
-               const pollData = await pollRes.json();
-               const dbCalls = pollData.data || [];
-               
-               // For each active call phone number, check how many are still pending/ringing in DB
-               for (const [phone, count] of Array.from(activeCalls.entries())) {
-                 const corePhone = phone.replace(/\D/g, "").slice(-10);
-                 const matchingCalls = dbCalls.filter((c: any) => c.customerNumber?.includes(corePhone));
-                 
-                 const activeMatching = matchingCalls.filter((c: any) => ["pending", "ringing", "answered"].includes(c.status));
-                 
-                 if (activeMatching.length < count) {
-                   const finishedCount = count - activeMatching.length;
-                   
-                   const newlyFinished = matchingCalls.filter((c: any) => !["pending", "ringing", "answered"].includes(c.status));
-                   const newlyFailedCount = newlyFinished.filter((c: any) => ["failed", "missed", "busy", "no-answer"].includes(c.status)).length;
-                   
-                   if (activeMatching.length === 0) {
-                     activeCalls.delete(phone);
-                   } else {
-                     activeCalls.set(phone, activeMatching.length);
-                   }
-                   activeCallCount -= finishedCount;
-                   completedCount += finishedCount;
-                   
-                   setCampaign(prev => {
-                     const updatedLeads = (prev.leads || []).map(l => {
-                       if (l.phone === phone) {
-                         const isFailed = newlyFailedCount > 0;
-                         return { ...l, called: true, isFailed };
-                       }
-                       return l;
-                     });
-                     
-                     const totalFailed = updatedLeads.filter(l => l.isFailed).length;
-                     const totalSuccessful = updatedLeads.filter(l => l.called && !l.isFailed).length;
-                     
-                     return { 
-                       ...prev, 
-                       completedCalls: completedCount,
-                       leads: updatedLeads,
-                       failedCalls: totalFailed,
-                       successfulCalls: totalSuccessful
-                     };
-                   });
-                 }
-               }
-             }
-           } catch (pollErr) {
-             console.error("Failed to poll call status", pollErr);
-           }
-        }
-      }
-
-      // Success
-      setCampaign((prev) => ({
-        ...prev,
-        status: "completed",
-        completedCalls: prev.leads?.length || 0,
-      }));
-      setAlertData({
-        title: "Campaign Completed",
-        description: `All ${campaign.leads?.length || 0} leads have been processed.`,
-      });
-      
+      // Campaign successfully queued. The useEffect will handle state updates.
     } catch (error: any) {
       console.error("Failed to start campaign:", error);
       // Revert status on failure
@@ -261,7 +95,62 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         isError: true,
       });
     }
-  }, [campaign.status, campaign.leads]);
+  }, [campaign.id, campaign.status, campaign.leads, campaign.selectedDid]);
+
+  // Polling useEffect to keep the UI in sync with backend Redis state
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    const pollCampaignStatus = async () => {
+      try {
+        const storedUserStr = localStorage.getItem("user");
+        const user = storedUserStr ? JSON.parse(storedUserStr) : {};
+        const companyId = user.companyId || null;
+
+        if (!companyId) return;
+
+        const mainServerUrl = process.env.NEXT_PUBLIC_MAIN_SERVER_URL || "http://200.234.34.240:3001";
+        const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
+
+        const res = await fetch(`${mainServerUrl}/api/campaign-execution/status`, {
+          headers: { Authorization: `Bearer ${pnxToken}` }
+        });
+
+        if (res.ok) {
+          const { data } = await res.json();
+          if (data) {
+            setCampaign(prev => {
+              // Only alert if we transition to completed newly
+              if (prev.status === "running" && data.status === "completed") {
+                setAlertData({
+                  title: "Campaign Completed",
+                  description: `All ${data.leads?.length || 0} leads have been processed.`,
+                });
+              }
+              
+              return {
+                ...prev,
+                status: data.status,
+                completedCalls: data.completedCalls,
+                successfulCalls: data.successfulCalls,
+                failedCalls: data.failedCalls,
+                leads: data.leads || prev.leads,
+                totalContacts: data.totalContacts || prev.totalContacts,
+              };
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to poll backend campaign status:", err);
+      }
+    };
+
+    // Poll every 3 seconds
+    interval = setInterval(pollCampaignStatus, 3000);
+    pollCampaignStatus(); // Initial check on mount!
+
+    return () => clearInterval(interval);
+  }, []);
 
   const pauseCampaign = useCallback(() => {
     setCampaign((prev) =>
