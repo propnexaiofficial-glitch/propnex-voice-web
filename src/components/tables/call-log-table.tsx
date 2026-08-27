@@ -94,7 +94,7 @@ export function CallLogTable({
           </thead>
           <tbody>
             {calls.map((call) => {
-              const isLive = call.status === "ringing" || call.status === "answered";
+              const isLive = call.status === "ringing" || call.status === "answered" || call.status === "in-progress";
               return (
                 <tr
                   key={call.id}

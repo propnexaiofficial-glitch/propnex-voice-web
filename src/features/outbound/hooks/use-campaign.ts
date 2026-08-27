@@ -166,8 +166,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       }
     };
 
-    // Poll every 3 seconds
-    interval = setInterval(pollCampaignStatus, 3000);
+    // Poll every 1 second for highly responsive live updates
+    interval = setInterval(pollCampaignStatus, 1000);
     pollCampaignStatus(); // Initial check on mount!
 
     return () => clearInterval(interval);
