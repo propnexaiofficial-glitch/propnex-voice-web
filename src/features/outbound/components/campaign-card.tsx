@@ -46,6 +46,7 @@ type CampaignCardProps = {
   onStart: () => void;
   onPause: () => void;
   onResume: () => void;
+  onClear?: () => void;
   onEditLead?: (index: number, newLead: any) => void;
   onDeleteLead?: (index: number) => void;
   onSchedule?: () => void;
@@ -355,10 +356,16 @@ export function CampaignCard({
             ) : null}
 
           {campaign.status === "ready" && (
-            <Button className="gap-2" onClick={onStart} disabled={campaign.leads?.some((l: any) => l.isInvalid)}>
-              <Play className="size-4" />
-              Start Campaign
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onClear}>
+                <Trash2 className="size-4" />
+                Clear File
+              </Button>
+              <Button className="gap-2" onClick={onStart} disabled={campaign.leads?.some((l: any) => l.isInvalid)}>
+                <Play className="size-4" />
+                Start Campaign
+              </Button>
+            </div>
           )}
 
           {campaign.status === "running" && (

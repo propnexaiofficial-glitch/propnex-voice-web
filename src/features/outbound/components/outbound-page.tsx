@@ -223,6 +223,7 @@ export function OutboundPageContent() {
           }}
           onPause={pauseCampaign}
           onResume={resumeCampaign}
+          onClear={clearCampaign}
           onEditLead={editLead}
           onDeleteLead={deleteLead}
         />

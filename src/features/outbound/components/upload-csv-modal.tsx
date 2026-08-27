@@ -174,14 +174,8 @@ export function UploadCsvModal({
       setError("Please select an outbound number to use.");
       return;
     }
-    // Silently discard invalid numbers — user has been informed via the notice
-    const validLeads = extractedLeads.filter(l => !l.isInvalid);
-    if (validLeads.length === 0) {
-      setError("No valid leads to upload.");
-      return;
-    }
-    // Pass channels derived from admin-assigned DID config (fallback: 1 = sequential)
-    onUpload(selectedFile.name, validLeads, selectedDid, derivedChannels);
+    // Pass all leads (including invalid ones) so user can edit them in the UI before starting
+    onUpload(selectedFile.name, extractedLeads, selectedDid, derivedChannels);
     setSelectedFile(null);
     setExtractedLeads([]);
     setError(null);
