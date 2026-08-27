@@ -139,6 +139,8 @@ export function CompanyCallsSection({
     }
   };
   const [isRequestLocked, setIsRequestLocked] = useState(false);
+  const [reminding, setReminding] = useState(false);
+  const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);
 
   useEffect(() => {
     const key = `last_${direction}_number_request_${companyId}`;
@@ -431,7 +433,7 @@ export function CompanyCallsSection({
           onUpload={handleUpload}
           title="Upload CSV — Sub-Company Outbound"
           description="Upload a contact list to launch a general outbound calling campaign for this sub-company. CSV should include a phone number column."
-          didNumbers={company?.assignedNumbers}
+          didNumbers={company?.assignedNumbers as any}
         />
       )}
 

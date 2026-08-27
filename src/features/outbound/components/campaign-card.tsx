@@ -256,8 +256,8 @@ export function CampaignCard({
 
           {campaign.status === "idle" && (
             <p className="text-sm text-muted-foreground">
-              {isComingSoon
-                ? "Bulk campaign uploads and automated lead reactivation are on the way."
+              {campaign.id === "camp-001"
+                ? "Failed calls will appear here for reactivation."
                 : !hasOutboundNumber 
                   ? "Please request an outbound number from the admin to launch campaigns." 
                   : "Upload a CSV contact list to prepare your outbound campaign."}
@@ -320,12 +320,12 @@ export function CampaignCard({
               </Popover>
             )}
 
-            {!hasOutboundNumber && !isComingSoon ? (
+            {!hasOutboundNumber && campaign.id !== "camp-001" ? (
               <Button onClick={handleRemindAdmin} disabled={reminding || isLocked} className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white">
                 <PhoneOutgoing className="size-4" />
                 {reminding ? "Sending..." : (isLocked ? "Request Sent" : "Request Outbound Number")}
               </Button>
-            ) : campaign.status === "idle" || campaign.status === "completed" ? (
+            ) : (campaign.status === "idle" || campaign.status === "completed") && campaign.id !== "camp-001" ? (
               <Button variant="outline" className="gap-2" onClick={onUploadClick}>
                 <Upload className="size-4" />
                 Upload CSV
