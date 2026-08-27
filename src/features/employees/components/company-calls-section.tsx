@@ -252,23 +252,27 @@ export function CompanyCallsSection({
           <CampaignCard
             campaign={leadReactivationCampaign}
             progressPercent={0}
-            onUploadClick={() => undefined}
-            onStart={() => undefined}
-            onPause={() => undefined}
-            onResume={() => undefined}
+            onUploadClick={() => {}}
+            onStart={() => {}}
+            onPause={() => {}}
+            onResume={() => {}}
+            onSchedule={() => setRescheduleOpen(true)}
+            failedCallsCount={outboundCampaign.failedCalls}
+            hasOutboundNumber={hasAssignedNumber}
+            companyId={companyId}
           />
           <CampaignCard
             campaign={outboundCampaign}
             progressPercent={progressPercent}
-          onUploadClick={() => setUploadOpen(true)}
-          onStart={startCampaign}
-          onPause={pauseCampaign}
-          onResume={resumeCampaign}
-          onEditLead={editLead}
-          onDeleteLead={deleteLead}
-          hasOutboundNumber={hasAssignedNumber}
-          companyId={companyId}
-        />
+            onUploadClick={() => setUploadOpen(true)}
+            onStart={startCampaign}
+            onPause={pauseCampaign}
+            onResume={resumeCampaign}
+            onEditLead={editLead}
+            onDeleteLead={deleteLead}
+            hasOutboundNumber={hasAssignedNumber}
+            companyId={companyId}
+          />
         </>
       ) : (
         <motion.div
@@ -357,7 +361,7 @@ export function CompanyCallsSection({
           <DialogHeader>
             <DialogTitle>Reschedule Failed Calls</DialogTitle>
             <DialogDescription>
-              {outboundCampaign.failedCalls} calls failed during the campaign. Select a date and time to automatically retry them using the Lead Reactivation queue.
+              {outboundCampaign.failedCalls} calls failed during the campaign (via {outboundCampaign.selectedDid || "your assigned number"}). Select a date and time to automatically retry them using the Lead Reactivation queue.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">

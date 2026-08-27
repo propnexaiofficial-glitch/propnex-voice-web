@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { FileSpreadsheet, Upload, AlertCircle } from "lucide-react";
+import { FileSpreadsheet, Upload, AlertCircle, Trash } from "lucide-react";
 import Papa from "papaparse";
 import * as xlsx from "xlsx";
 
@@ -27,7 +27,7 @@ export type ExtractedLead = {
 type UploadCsvModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUpload: (fileName: string, leads: ExtractedLead[], selectedDid?: string) => void;
+  onUpload: (fileName: string, leads: ExtractedLead[], selectedDid?: string, channels?: number) => void;
   title?: string;
   description?: string;
   didNumbers?: { id: string, number: string, direction?: string }[];
@@ -49,6 +49,7 @@ export function UploadCsvModal({
   
   const outboundNumbers = didNumbers.filter(n => n.direction === "OUTBOUND" || n.direction === "BOTH");
   const [selectedDid, setSelectedDid] = useState<string>(outboundNumbers[0]?.number || "");
+  const [channels, setChannels] = useState<number>(2);
 
   // Auto-select first DID if available
   useEffect(() => {
@@ -156,10 +157,16 @@ export function UploadCsvModal({
       setError("Please select an outbound number to use.");
       return;
     }
-    onUpload(selectedFile.name, extractedLeads, selectedDid);
+    const validLeads = extractedLeads.filter(l => !l.isInvalid);
+    if (validLeads.length === 0) {
+      setError("No valid leads to upload. Please fix or remove invalid numbers.");
+      return;
+    }
+    onUpload(selectedFile.name, validLeads, selectedDid, channels);
     setSelectedFile(null);
     setExtractedLeads([]);
     setError(null);
+    setChannels(2);
     onOpenChange(false);
   };
 
@@ -168,6 +175,7 @@ export function UploadCsvModal({
       setSelectedFile(null);
       setExtractedLeads([]);
       setError(null);
+      setChannels(2);
     }
     onOpenChange(nextOpen);
   };
@@ -180,22 +188,35 @@ export function UploadCsvModal({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
-        {outboundNumbers.length > 1 && (
-          <div className="space-y-2 mb-2">
-            <label className="text-sm font-medium">Select Outbound Number</label>
-            <select
-              value={selectedDid}
-              onChange={(e) => setSelectedDid(e.target.value)}
+        <div className="grid grid-cols-2 gap-4 mb-2">
+          {outboundNumbers.length > 1 && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Outbound Number</label>
+              <select
+                value={selectedDid}
+                onChange={(e) => setSelectedDid(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {outboundNumbers.map((n) => (
+                  <option key={n.id} value={n.number}>
+                    {n.number}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Concurrent Channels</label>
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={channels}
+              onChange={(e) => setChannels(parseInt(e.target.value) || 2)}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {outboundNumbers.map((n) => (
-                <option key={n.id} value={n.number}>
-                  {n.number}
-                </option>
-              ))}
-            </select>
+            />
           </div>
-        )}
+        </div>
 
         <div
           role="button"
@@ -238,19 +259,54 @@ export function UploadCsvModal({
         </div>
 
         {error && (
-          <div className={cn("mt-4 flex items-start gap-3 rounded-lg border p-4 text-sm", extractedLeads.length > 0 ? "border-border text-foreground" : "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive")}>
+          <div className={cn("mt-4 flex items-start gap-3 rounded-lg border p-4 text-sm", extractedLeads.filter(l => !l.isInvalid).length > 0 ? "border-border text-foreground" : "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive")}>
             <AlertCircle className="mt-0.5 h-4 w-4" />
             <div className="flex-1 leading-relaxed">{error}</div>
           </div>
         )}
 
-        {selectedFile && extractedLeads.length > 0 && (
+        {extractedLeads.some(l => l.isInvalid) && (
+          <div className="mt-4 border rounded-md p-4 space-y-3 bg-red-50/50 dark:bg-red-950/20">
+            <h4 className="text-sm font-semibold text-red-600 dark:text-red-400">Review Invalid Numbers</h4>
+            <div className="max-h-32 overflow-y-auto space-y-2 pr-2">
+              {extractedLeads.map((lead, idx) => lead.isInvalid ? (
+                <div key={idx} className="flex items-center gap-2">
+                  <input 
+                    className="flex h-9 w-full rounded-md border border-red-300 bg-white/50 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500"
+                    value={lead.phone}
+                    onChange={(e) => {
+                      const newPhone = e.target.value;
+                      const formatted = formatIndianNumber(newPhone);
+                      const newLeads = [...extractedLeads];
+                      if (formatted) {
+                        newLeads[idx] = { ...lead, phone: formatted, isInvalid: false };
+                      } else {
+                        newLeads[idx] = { ...lead, phone: newPhone, isInvalid: true };
+                      }
+                      setExtractedLeads(newLeads);
+                    }}
+                    placeholder="Enter valid 10-digit number"
+                  />
+                  <Button variant="ghost" size="icon" onClick={() => {
+                    const newLeads = [...extractedLeads];
+                    newLeads.splice(idx, 1);
+                    setExtractedLeads(newLeads);
+                  }}>
+                    <Trash className="size-4 text-red-500" />
+                  </Button>
+                </div>
+              ) : null)}
+            </div>
+          </div>
+        )}
+
+        {selectedFile && extractedLeads.filter(l => !l.isInvalid).length > 0 && (
           <div className="flex items-center gap-3 rounded-xl border border-border bg-white/5 px-4 py-3 mt-2">
             <FileSpreadsheet className="size-5 text-emerald-400" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{selectedFile.name}</p>
               <p className="text-xs text-muted-foreground">
-                Ready to dial {extractedLeads.length} leads
+                Ready to dial {extractedLeads.filter(l => !l.isInvalid).length} valid leads
               </p>
             </div>
           </div>

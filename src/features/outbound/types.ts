@@ -15,6 +15,7 @@ export type Campaign = {
   comingSoon?: boolean;
   leads?: any[];
   selectedDid?: string;
+  channels?: number;
 };
 
 export type UploadCsvState = {

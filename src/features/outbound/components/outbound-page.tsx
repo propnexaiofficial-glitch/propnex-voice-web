@@ -147,10 +147,12 @@ export function OutboundPageContent() {
         <CampaignCard
           campaign={leadReactivationCampaign}
           progressPercent={0}
-          onUploadClick={() => undefined}
-          onStart={() => undefined}
-          onPause={() => undefined}
-          onResume={() => undefined}
+          onUploadClick={() => {}}
+          onStart={() => {}}
+          onPause={() => {}}
+          onResume={() => {}}
+          onSchedule={() => setRescheduleOpen(true)}
+          failedCallsCount={outboundCampaign.failedCalls}
         />
 
         <CampaignCard
@@ -242,7 +244,7 @@ export function OutboundPageContent() {
           <DialogHeader>
             <DialogTitle>Reschedule Failed Calls</DialogTitle>
             <DialogDescription>
-              {outboundCampaign.failedCalls} calls failed during the campaign. Select a date and time to automatically retry them using the Lead Reactivation queue.
+              {outboundCampaign.failedCalls} calls failed during the campaign (via {outboundCampaign.selectedDid || "your assigned number"}). Select a date and time to automatically retry them using the Lead Reactivation queue.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">

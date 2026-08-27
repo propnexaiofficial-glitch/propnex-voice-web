@@ -13,7 +13,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
   const [upload, setUpload] = useState<UploadCsvState | null>(null);
   const [alertData, setAlertData] = useState<{ title: string; description: string; isError?: boolean } | null>(null);
 
-  const handleUpload = useCallback((fileName: string, leads: any[] = [], selectedDid?: string) => {
+  const handleUpload = useCallback((fileName: string, leads: any[] = [], selectedDid?: string, channels: number = 2) => {
     setUpload({ fileName, contactCount: leads.length || MOCK_CSV_CONTACT_COUNT, leads });
     setCampaign((prev) => ({
       ...prev,
@@ -24,7 +24,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       successfulCalls: 0,
       failedCalls: 0,
       leads: leads,
-      selectedDid: selectedDid
+      selectedDid: selectedDid,
+      channels: channels
     }));
   }, []);
 
@@ -72,7 +73,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
           campaignId: campaign.id,
           didNumber,
           leads: uniqueLeads,
-          channels: didNumber.includes("079") ? 4 : 2
+          channels: campaign.channels || 2
         })
       });
 

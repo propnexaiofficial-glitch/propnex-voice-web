@@ -14,6 +14,7 @@ import {
   Check,
   X,
   Trash2,
+  CalendarClock,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -21,6 +22,7 @@ import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import type { Campaign } from "@/features/outbound/types";
 import { cn } from "@/lib/utils";
@@ -45,6 +47,8 @@ type CampaignCardProps = {
   onResume: () => void;
   onEditLead?: (index: number, newLead: any) => void;
   onDeleteLead?: (index: number) => void;
+  onSchedule?: () => void;
+  failedCallsCount?: number;
   hasOutboundNumber?: boolean;
   className?: string;
   companyId?: string;
@@ -125,6 +129,8 @@ export function CampaignCard({
   onResume,
   onEditLead,
   onDeleteLead,
+  onSchedule,
+  failedCallsCount = 0,
   hasOutboundNumber = true,
   className,
   companyId,
@@ -371,6 +377,31 @@ export function CampaignCard({
                 <span className="hidden group-hover:block">Resume</span>
               </span>
             </Button>
+          )}
+
+          {campaign.id === "camp-001" && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <Button 
+                      variant="outline" 
+                      className="gap-2 border-dashed" 
+                      onClick={onSchedule}
+                      disabled={failedCallsCount === 0}
+                    >
+                      <CalendarClock className="size-4" />
+                      Schedule Reactivation
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                {failedCallsCount === 0 && (
+                  <TooltipContent>
+                    <p>Available when there are failed calls</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           )}
           </div>
           {remindMessage && (
