@@ -94,10 +94,15 @@ export function CompanyCallsSection({
   const [rescheduleDate, setRescheduleDate] = useState("");
   const [rescheduleTime, setRescheduleTime] = useState("");
   const [isRescheduling, setIsRescheduling] = useState(false);
+  const [rescheduleDid, setRescheduleDid] = useState("");
 
   useEffect(() => {
     // If campaign just finished and has failed calls, trigger the Reactivation UI
     if (outboundCampaign.status === "completed" && outboundCampaign.failedCalls > 0) {
+      // Pre-fill the DID from the campaign that just ran
+      if (outboundCampaign.selectedDid) {
+        setRescheduleDid(outboundCampaign.selectedDid);
+      }
       const timer = setTimeout(() => {
         setRescheduleOpen(true);
       }, 1200);
@@ -113,11 +118,11 @@ export function CompanyCallsSection({
       const failedLeads = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
       const scheduledAt = new Date(`${rescheduleDate}T${rescheduleTime}`).toISOString();
 
-      // Use campaign DID or fall back to first assigned number of sub-company
-      const storedUser = localStorage.getItem("user");
-      const parsedUser = storedUser ? JSON.parse(storedUser) : {};
-      const didNumber = outboundCampaign.selectedDid 
-        || parsedUser?.assignedNumbersDetailed?.[0]?.number;
+      const didNumber = rescheduleDid || outboundCampaign.selectedDid || company?.assignedNumbers?.find((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH")?.number;
+
+      // Derive channels from selected DID's config
+      const didInfo = (company?.assignedNumbers as any[] || []).find((n: any) => n.number === didNumber);
+      const channels = didInfo?.channels ?? 1;
 
       if (!didNumber) {
         throw new Error("No outbound number assigned. Please contact your admin.");
@@ -134,7 +139,8 @@ export function CompanyCallsSection({
           campaignId: outboundCampaign.id || "manual",
           leads: failedLeads,
           scheduledAt,
-          didNumber
+          didNumber,
+          channels
         })
       });
 
@@ -256,8 +262,8 @@ export function CompanyCallsSection({
     setTranscriptOpen(true);
   };
 
-  const handleUpload = (fileName: string, leads: any[] = []) => {
-    handleCampaignUpload(fileName, leads);
+  const handleUpload = (fileName: string, leads: any[] = [], selectedDid?: string, channels?: number) => {
+    handleCampaignUpload(fileName, leads, selectedDid, channels ?? 1);
     setUploadOpen(false);
   };
 
@@ -381,8 +387,24 @@ export function CompanyCallsSection({
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {/* DID selector for sub-company reschedule */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Failed Leads</label>
+              <label className="text-sm font-medium">Outbound Number (DID)</label>
+              <select
+                value={rescheduleDid}
+                onChange={(e) => setRescheduleDid(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono"
+              >
+                <option value="">— Select number —</option>
+                {(company?.assignedNumbers as any[] || []).filter((n: any) => !n.direction || n.direction === "OUTBOUND" || n.direction === "BOTH").map((n: any) => (
+                  <option key={n.id || n.number} value={n.number}>
+                    {n.number}{n.channels ? ` (Ch ${n.channels})` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Failed Leads ({(outboundCampaign.leads || []).filter((l: any) => l.isFailed).length})</label>
               <div className="max-h-40 overflow-y-auto rounded-md border border-border bg-muted/30 p-2 text-sm">
                 {(outboundCampaign.leads || []).filter((l: any) => l.isFailed).map((lead: any, i: number) => (
                   <div key={i} className="flex justify-between border-b border-border/50 py-1 last:border-0">
@@ -416,7 +438,7 @@ export function CompanyCallsSection({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRescheduleOpen(false)}>Cancel</Button>
-            <Button onClick={handleReschedule} disabled={isRescheduling || !rescheduleDate || !rescheduleTime}>
+            <Button onClick={handleReschedule} disabled={isRescheduling || !rescheduleDate || !rescheduleTime || !rescheduleDid}>
               {isRescheduling ? "Scheduling..." : "Schedule Reactivation"}
             </Button>
           </DialogFooter>
