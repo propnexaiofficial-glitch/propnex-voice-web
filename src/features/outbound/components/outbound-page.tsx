@@ -144,12 +144,7 @@ export function OutboundPageContent() {
       </motion.div>
 
       <div className="space-y-4">
-        <CampaignCard
-          onUploadClick={() => undefined}
-          onStart={() => undefined}
-          onPause={() => undefined}
-          onResume={() => undefined}
-        />
+
 
         <CampaignCard
           campaign={outboundCampaign}
