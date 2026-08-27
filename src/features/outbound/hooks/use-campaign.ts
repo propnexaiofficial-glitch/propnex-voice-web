@@ -13,6 +13,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
   const [upload, setUpload] = useState<UploadCsvState | null>(null);
   const [alertData, setAlertData] = useState<{ title: string; description: string; isError?: boolean } | null>(null);
   const ignorePollingUntil = useRef<number>(0);
+  const hasClearedFailedCalls = useRef<boolean>(false);
 
   const handleUpload = useCallback((fileName: string, leads: any[] = [], selectedDid?: string, channels: number = 1) => {
     setUpload({ fileName, contactCount: leads.length || MOCK_CSV_CONTACT_COUNT, leads });
@@ -47,6 +48,9 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       successfulCalls: 0,
       failedCalls: 0,
     }));
+
+    // Reset the clear flag so we can track new failed calls
+    hasClearedFailedCalls.current = false;
 
     // Ignore backend polling for 5 seconds to allow backend state to reset
     // This prevents the frontend from fetching the "previous" campaign's stats and showing them instantly
@@ -141,9 +145,10 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
               return {
                 ...prev,
                 status: data.status || prev.status,
-                completedCalls: data.completedCalls !== undefined ? data.completedCalls : prev.completedCalls,
-                successfulCalls: data.successfulCalls !== undefined ? data.successfulCalls : prev.successfulCalls,
-                failedCalls: data.failedCalls !== undefined ? data.failedCalls : prev.failedCalls,
+                completedCalls: data.completedCalls !== undefined ? Math.max(data.completedCalls, prev.completedCalls) : prev.completedCalls,
+                successfulCalls: data.successfulCalls !== undefined ? Math.max(data.successfulCalls, prev.successfulCalls) : prev.successfulCalls,
+                // If we explicitly cleared, force it to 0. Otherwise use Math.max to prevent backend load-balancer fluttering!
+                failedCalls: hasClearedFailedCalls.current ? 0 : (data.failedCalls !== undefined ? Math.max(data.failedCalls, prev.failedCalls) : prev.failedCalls),
                 leads: data.leads || prev.leads,
                 totalContacts: data.totalContacts || prev.totalContacts,
               };
@@ -197,6 +202,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
   }, []);
 
   const clearFailedCalls = useCallback(() => {
+    hasClearedFailedCalls.current = true;
     setCampaign(prev => ({
       ...prev,
       failedCalls: 0,
