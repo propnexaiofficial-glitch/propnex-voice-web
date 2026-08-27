@@ -131,13 +131,16 @@ export async function GET(req: NextRequest) {
       return Math.round(((current - past) / past) * 100);
     };
 
+    const finalOutboundCredits = outboundCreditsUsed;
+    const finalInboundCredits = Math.max(0, creditsUsed - finalOutboundCredits);
+
     return NextResponse.json({
       inboundCalls,
       outboundCalls,
       activeAgents,
       creditsUsed,
-      inboundCreditsUsed,
-      outboundCreditsUsed,
+      inboundCreditsUsed: finalInboundCredits,
+      outboundCreditsUsed: finalOutboundCredits,
       isNewAccount,
       inboundTrend:  isNewAccount ? 0 : calcTrend(inboundCalls,  pastInboundCalls),
       outboundTrend: isNewAccount ? 0 : calcTrend(outboundCalls, pastOutboundCalls),
