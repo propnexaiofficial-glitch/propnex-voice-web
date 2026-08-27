@@ -19,6 +19,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
     setUpload({ fileName, contactCount: leads.length || MOCK_CSV_CONTACT_COUNT, leads });
     setCampaign((prev) => ({
       ...prev,
+      id: `camp-${Date.now()}`, // Generate a unique ID so backend treats it as a fresh campaign!
       status: "ready",
       totalContacts: leads.length || MOCK_CSV_CONTACT_COUNT,
       uploadedFileName: fileName,
@@ -148,7 +149,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
                 completedCalls: data.completedCalls !== undefined ? Math.max(data.completedCalls, prev.completedCalls) : prev.completedCalls,
                 successfulCalls: data.successfulCalls !== undefined ? Math.max(data.successfulCalls, prev.successfulCalls) : prev.successfulCalls,
                 // If we explicitly cleared, force it to 0. Otherwise use Math.max to prevent backend load-balancer fluttering!
-                failedCalls: hasClearedFailedCalls.current ? 0 : (data.failedCalls !== undefined ? Math.max(data.failedCalls, prev.failedCalls) : prev.failedCalls),
+                failedCalls: (hasClearedFailedCalls.current || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('cleared_campaigns') || '[]').includes(prev.id))) ? 0 : (data.failedCalls !== undefined ? Math.max(data.failedCalls, prev.failedCalls) : prev.failedCalls),
                 leads: data.leads || prev.leads,
                 totalContacts: data.totalContacts || prev.totalContacts,
               };
@@ -203,11 +204,31 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
 
   const clearFailedCalls = useCallback(() => {
     hasClearedFailedCalls.current = true;
-    setCampaign(prev => ({
-      ...prev,
-      failedCalls: 0,
-      leads: prev.leads?.filter(l => !l.isFailed) || []
-    }));
+    
+    // Save to localStorage so it persists across page navigations/remounts
+    if (typeof window !== 'undefined') {
+      try {
+        const cleared = JSON.parse(localStorage.getItem('cleared_campaigns') || '[]');
+        setCampaign(prev => {
+          if (!cleared.includes(prev.id)) {
+            cleared.push(prev.id);
+            if (cleared.length > 50) cleared.shift(); // Keep only last 50 to prevent bloat
+            localStorage.setItem('cleared_campaigns', JSON.stringify(cleared));
+          }
+          return {
+            ...prev,
+            failedCalls: 0,
+            leads: prev.leads?.filter(l => !l.isFailed) || []
+          };
+        });
+      } catch (e) {}
+    } else {
+      setCampaign(prev => ({
+        ...prev,
+        failedCalls: 0,
+        leads: prev.leads?.filter(l => !l.isFailed) || []
+      }));
+    }
   }, []);
 
   const progressPercent =

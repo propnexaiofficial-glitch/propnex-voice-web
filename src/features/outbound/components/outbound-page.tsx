@@ -145,6 +145,10 @@ export function OutboundPageContent() {
       setReactivationCampaign(newState);
       localStorage.setItem('reactivation_state_admin', JSON.stringify(newState));
       setRescheduleOpen(false);
+      
+      // Clear inputs to prevent accidental past scheduling next time
+      setRescheduleDate("");
+      setRescheduleTime("");
     } catch (e: any) {
       setAlertData({ title: "Error", description: e.message, isError: true });
     } finally {
