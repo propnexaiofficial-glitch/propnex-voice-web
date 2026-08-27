@@ -19,7 +19,7 @@ type CallLogTableProps = {
 function formatCallDate(iso: string) {
   return new Intl.DateTimeFormat("en-SG", {
     dateStyle: "medium",
-    timeStyle: "short",
+    timeStyle: "short", hour12: false,
   }).format(new Date(iso));
 }
 

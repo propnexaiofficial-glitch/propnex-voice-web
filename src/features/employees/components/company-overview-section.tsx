@@ -84,7 +84,7 @@ export function CompanyOverviewSection({
   const inboundPreviews: CallPreview[] = inboundCallsRaw.slice(0, 5).map(c => ({
     id: c.id,
     customerNumber: c.customerNumber,
-    date: new Date(c.callDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    date: new Date(c.callDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
     duration: c.duration,
     status: c.status as any,
     direction: "inbound"
@@ -93,7 +93,7 @@ export function CompanyOverviewSection({
   const outboundPreviews: CallPreview[] = outboundCallsRaw.slice(0, 5).map(c => ({
     id: c.id,
     customerNumber: c.customerNumber,
-    date: new Date(c.callDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    date: new Date(c.callDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
     duration: c.duration,
     status: c.status as any,
     direction: "outbound"
