@@ -398,7 +398,7 @@ export function CampaignCard({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div>
-                    {campaign.id === "camp-001" && campaign.status !== "scheduled" && (
+                    {campaign.id === "camp-001" && (
                       <Button
                         variant="outline"
                         className="border-primary text-primary hover:bg-primary/10 gap-2 h-9 text-sm"
