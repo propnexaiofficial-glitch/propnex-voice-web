@@ -185,7 +185,7 @@ export async function GET(req: NextRequest) {
         id: call.id,
         callId: call.callLogId,
         customerNumber: call.lead?.phone || "",
-        assignedNumber: call.phoneNumber?.number || fallbackAssignedNumber || campaignDid || companyDid || "",
+        assignedNumber: call.phoneNumber?.number || fallbackAssignedNumber || campaignDid || companyDid || "+917969007102",
         callDateTime: call.startedAt.toISOString(),
         duration: minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`,
         durationSeconds: call.durationSeconds || 0,

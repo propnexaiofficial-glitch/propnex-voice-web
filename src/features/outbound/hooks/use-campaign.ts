@@ -60,7 +60,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
 
       // Ensure we have a DID number (it defaults to user's assigned numbers, but fallback to one if missing)
-      const didNumber = campaign.selectedDid || (user.assignedNumbersDetailed && user.assignedNumbersDetailed[0]?.number) || "+917935215682";
+      const didNumber = campaign.selectedDid || (user.assignedNumbersDetailed && user.assignedNumbersDetailed[0]?.number) || "+917969007102";
 
       const res = await fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/start`, {
         method: "POST",

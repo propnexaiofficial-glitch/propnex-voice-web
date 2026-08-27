@@ -58,6 +58,7 @@ export function OutboundPageContent() {
 
   const [uploadOpen, setUploadOpen] = useState(false);
   const [selectedCall, setSelectedCall] = useState<CallRecord | null>(null);
+  const [reactivationCampaign, setReactivationCampaign] = useState<any>(leadReactivationCampaign);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [rescheduleDate, setRescheduleDate] = useState("");
@@ -117,6 +118,13 @@ export function OutboundPageContent() {
         title: "Reactivation Scheduled ✓",
         description: `Successfully scheduled ${failedLeads.length} failed call${failedLeads.length !== 1 ? "s" : ""} for ${new Date(scheduledAt).toLocaleString()}. They will be dialled automatically using ${didNumber}.`
       });
+      setReactivationCampaign({
+        ...leadReactivationCampaign,
+        status: "scheduled",
+        scheduledAt,
+        totalContacts: failedLeads.length,
+        leads: failedLeads.map((l: any) => ({ ...l, isFailed: false, called: false }))
+      });
       setRescheduleOpen(false);
     } catch (e: any) {
       setAlertData({ title: "Error", description: e.message, isError: true });
@@ -161,7 +169,7 @@ export function OutboundPageContent() {
 
       <div className="space-y-4">
         <CampaignCard
-          campaign={leadReactivationCampaign}
+          campaign={reactivationCampaign}
           progressPercent={0}
           onUploadClick={() => {}}
           onStart={() => {}}

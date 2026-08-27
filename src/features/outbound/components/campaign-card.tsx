@@ -32,6 +32,7 @@ const statusConfig: Record<
   { label: string; variant: "default" | "secondary" | "success" | "warning" | "gold" }
 > = {
   idle: { label: "No Schedule", variant: "secondary" },
+  scheduled: { label: "Scheduled", variant: "gold" },
   ready: { label: "Ready to Start", variant: "gold" },
   running: { label: "Running", variant: "success" },
   paused: { label: "Paused", variant: "warning" },
@@ -271,11 +272,22 @@ export function CampaignCard({
                   : "Upload a CSV contact list to prepare your outbound campaign."}
             </p>
           )}
+
+          {campaign.status === "scheduled" && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <CalendarClock className="size-4" />
+              <span>
+                Scheduled for {campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleString() : "future"}
+                {" · "}
+                <span className="text-foreground">{campaign.totalContacts}</span> leads
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-2 items-end">
           <div className="flex flex-wrap gap-2 items-center">
-            {(campaign.status === "ready" || campaign.status === "running" || campaign.status === "completed") && campaign.leads && campaign.leads.length > 0 && (
+            {(campaign.status === "ready" || campaign.status === "running" || campaign.status === "completed" || campaign.status === "scheduled") && campaign.leads && campaign.leads.length > 0 && (
               <Popover>
                 <PopoverTrigger asChild>
                   <div className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-muted/50 hover:bg-muted transition-colors">
@@ -284,11 +296,11 @@ export function CampaignCard({
                 </PopoverTrigger>
                 <PopoverContent className="w-[350px] max-h-96 overflow-y-auto p-4 space-y-4 z-50">
                   
-                  {campaign.status === "ready" && (
+                  {(campaign.status === "ready" || campaign.status === "scheduled") && (
                     <div className="space-y-2">
-                      <p className="font-semibold">Ready to Call ({(campaign.leads || []).length} Leads)</p>
+                      <p className="font-semibold">Pending ({(campaign.leads || []).length} Leads)</p>
                       {(campaign.leads || []).map((lead: any, idx: number) => (
-                        <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={(newLead) => onEditLead?.(idx, newLead)} onDelete={() => onDeleteLead?.(idx)} />
+                        <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={(newLead) => onEditLead?.(idx, newLead)} onDelete={campaign.status === "ready" ? () => onDeleteLead?.(idx) : undefined} />
                       ))}
                     </div>
                   )}

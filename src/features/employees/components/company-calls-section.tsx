@@ -95,6 +95,7 @@ export function CompanyCallsSection({
   const [rescheduleTime, setRescheduleTime] = useState("");
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleDid, setRescheduleDid] = useState("");
+  const [reactivationCampaign, setReactivationCampaign] = useState<any>(leadReactivationCampaign);
 
   useEffect(() => {
     // If campaign just finished and has failed calls, trigger the Reactivation UI
@@ -152,6 +153,13 @@ export function CompanyCallsSection({
       setAlertData({
         title: "Reactivation Scheduled ✓",
         description: `Successfully scheduled ${failedLeads.length} failed call${failedLeads.length !== 1 ? "s" : ""} for ${new Date(scheduledAt).toLocaleString()}. They will be dialled automatically using ${didNumber}.`
+      });
+      setReactivationCampaign({
+        ...leadReactivationCampaign,
+        status: "scheduled",
+        scheduledAt,
+        totalContacts: failedLeads.length,
+        leads: failedLeads.map((l: any) => ({ ...l, isFailed: false, called: false }))
       });
       setRescheduleOpen(false);
     } catch (e: any) {
@@ -272,7 +280,7 @@ export function CompanyCallsSection({
       {direction === "outbound" ? (
         <>
           <CampaignCard
-            campaign={leadReactivationCampaign}
+            campaign={reactivationCampaign}
             progressPercent={0}
             onUploadClick={() => {}}
             onStart={() => {}}
