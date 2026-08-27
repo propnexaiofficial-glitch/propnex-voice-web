@@ -124,6 +124,7 @@ export function CampaignCard({
   onPause,
   onResume,
   onEditLead,
+  onDeleteLead,
   hasOutboundNumber = true,
   className,
   companyId,
