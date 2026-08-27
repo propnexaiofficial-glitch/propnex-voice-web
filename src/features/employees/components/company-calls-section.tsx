@@ -76,6 +76,19 @@ export function CompanyCallsSection({
     return company.assignedNumbers.some((n: any) => n.direction === "INBOUND" || n.direction === "BOTH");
   }, [company, isContextLoading, direction]);
 
+  const {
+    campaign: outboundCampaign,
+    progressPercent,
+    handleUpload: handleCampaignUpload,
+    startCampaign,
+    pauseCampaign,
+    resumeCampaign,
+    editLead,
+    deleteLead,
+    alertData,
+    setAlertData,
+  } = useCampaign();
+
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [rescheduleDate, setRescheduleDate] = useState("");
   const [rescheduleTime, setRescheduleTime] = useState("");
@@ -193,19 +206,6 @@ export function CompanyCallsSection({
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
-
-  const {
-    campaign: outboundCampaign,
-    progressPercent,
-    handleUpload: handleCampaignUpload,
-    startCampaign,
-    pauseCampaign,
-    resumeCampaign,
-    editLead,
-    deleteLead,
-    alertData,
-    setAlertData,
-  } = useCampaign();
 
   const {
     calls: paginatedCalls,
