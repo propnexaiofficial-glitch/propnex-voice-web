@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const BACKEND_API = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
+// IMPORTANT: Do NOT use NEXT_PUBLIC_API_URL here — in production it is set to
+// the relative path "/api" for client-side use, which breaks server-side fetch.
+// Always use an absolute URL for server-to-server requests.
+const BACKEND_API = "https://api.propnexai.com";
 
 /**
  * POST /api/calls/reschedule
