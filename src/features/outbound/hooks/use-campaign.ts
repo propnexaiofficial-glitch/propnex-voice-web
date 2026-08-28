@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState, useEffect, useRef } from "react";
+import { io, Socket } from "socket.io-client";
 
 import {
   MOCK_CSV_CONTACT_COUNT,
@@ -108,82 +109,101 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
     }
   }, [campaign.id, campaign.status, campaign.leads, campaign.selectedDid]);
 
-  // Polling useEffect to keep the UI in sync with backend Redis state
+  // WebSocket connection to keep UI in sync with backend Redis state instantly
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let socket: Socket;
+    let initialFetchDone = false;
 
-    const pollCampaignStatus = async () => {
+    const connectWebSocket = async () => {
       try {
         const storedUserStr = localStorage.getItem("user");
         const user = storedUserStr ? JSON.parse(storedUserStr) : {};
         const companyId = user.companyId || null;
 
         if (!companyId) return;
-        
-        // Prevent polling if we just started a campaign
-        if (Date.now() < ignorePollingUntil.current) return;
 
         const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
         const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
 
-        const query = companyId ? `?companyId=${companyId}` : '';
+        // First, fetch initial state via HTTP
+        const query = `?companyId=${companyId}`;
         const res = await fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/status${query}`, {
           headers: { Authorization: `Bearer ${pnxToken}` }
         });
 
         if (res.ok) {
           const { data } = await res.json();
-          if (data) {
-            setCampaign(prev => {
-              // Only alert if we transition to completed newly
-              if (prev.status === "running" && data.status === "completed") {
-                setAlertData({
-                  title: "Campaign Completed",
-                  description: `All ${data.leads?.length || 0} leads have been processed.`,
-                });
-              }
-
-              // Adopt backend state if we are currently idle and backend has an active or recent campaign
-              if (data.campaignId && data.campaignId !== prev.id) {
-                if (prev.status === "idle" && data.status !== "idle") {
-                  return {
-                    ...prev,
-                    id: data.campaignId,
-                    status: data.status,
-                    completedCalls: data.completedCalls || 0,
-                    successfulCalls: data.successfulCalls || 0,
-                    failedCalls: data.failedCalls || 0,
-                    leads: data.leads || [],
-                    totalContacts: data.totalContacts || 0,
-                  };
-                }
-                // Otherwise ignore stale backend state from previous campaigns
-                return prev;
-              }
-              
-              return {
-                ...prev,
-                status: data.status || prev.status,
-                completedCalls: data.completedCalls !== undefined ? Math.max(data.completedCalls, prev.completedCalls) : prev.completedCalls,
-                successfulCalls: data.successfulCalls !== undefined ? Math.max(data.successfulCalls, prev.successfulCalls) : prev.successfulCalls,
-                // If we explicitly cleared, force it to 0. Otherwise use Math.max to prevent backend load-balancer fluttering!
-                failedCalls: (hasClearedFailedCalls.current || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('cleared_campaigns') || '[]').includes(prev.id))) ? 0 : (data.failedCalls !== undefined ? Math.max(data.failedCalls, prev.failedCalls) : prev.failedCalls),
-                leads: data.leads || prev.leads,
-                totalContacts: data.totalContacts || prev.totalContacts,
-              };
-            });
-          }
+          handleStateUpdate(data);
         }
+        
+        initialFetchDone = true;
+
+        // Then connect via WebSocket
+        socket = io(apiBase, {
+          query: { companyId },
+          transports: ['websocket', 'polling'],
+          withCredentials: true,
+        });
+
+        socket.on('campaign-updated', (data) => {
+          // Prevent overriding just-started local campaigns
+          if (Date.now() < ignorePollingUntil.current) return;
+          handleStateUpdate(data);
+        });
       } catch (err) {
-        console.error("Failed to poll backend campaign status:", err);
+        console.error("Failed to connect to backend campaign socket:", err);
       }
     };
 
-    // Poll every 4 seconds to balance live updates with Redis/Backend usage quotas
-    interval = setInterval(pollCampaignStatus, 4000);
-    pollCampaignStatus(); // Initial check on mount!
+    const handleStateUpdate = (data: any) => {
+      if (!data) return;
+      setCampaign(prev => {
+        // Only alert if we transition to completed newly
+        if (prev.status === "running" && data.status === "completed") {
+          setAlertData({
+            title: "Campaign Completed",
+            description: `All ${data.leads?.length || 0} leads have been processed.`,
+          });
+        }
 
-    return () => clearInterval(interval);
+        // Adopt backend state if we are currently idle and backend has an active or recent campaign
+        if (data.campaignId && data.campaignId !== prev.id) {
+          if (prev.status === "idle" && data.status !== "idle") {
+            return {
+              ...prev,
+              id: data.campaignId,
+              status: data.status,
+              completedCalls: data.completedCalls || 0,
+              successfulCalls: data.successfulCalls || 0,
+              failedCalls: data.failedCalls || 0,
+              leads: data.leads || [],
+              totalContacts: data.totalContacts || 0,
+            };
+          }
+          // Otherwise ignore stale backend state from previous campaigns
+          return prev;
+        }
+        
+        return {
+          ...prev,
+          status: data.status || prev.status,
+          completedCalls: data.completedCalls !== undefined ? Math.max(data.completedCalls, prev.completedCalls) : prev.completedCalls,
+          successfulCalls: data.successfulCalls !== undefined ? Math.max(data.successfulCalls, prev.successfulCalls) : prev.successfulCalls,
+          // If we explicitly cleared, force it to 0. Otherwise use Math.max to prevent backend load-balancer fluttering!
+          failedCalls: (hasClearedFailedCalls.current || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('cleared_campaigns') || '[]').includes(prev.id))) ? 0 : (data.failedCalls !== undefined ? Math.max(data.failedCalls, prev.failedCalls) : prev.failedCalls),
+          leads: data.leads || prev.leads,
+          totalContacts: data.totalContacts || prev.totalContacts,
+        };
+      });
+    };
+
+    connectWebSocket();
+
+    return () => {
+      if (socket) {
+        socket.disconnect();
+      }
+    };
   }, []);
 
   const pauseCampaign = useCallback(() => {

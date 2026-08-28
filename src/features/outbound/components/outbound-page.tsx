@@ -98,7 +98,7 @@ export function OutboundPageContent() {
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleDid, setRescheduleDid] = useState("");
 
-  const shouldShowIdleReactivation = hasOutboundNumber;
+  const shouldShowIdleReactivation = true;
 
   useEffect(() => {
     const interval = setInterval(() => {
