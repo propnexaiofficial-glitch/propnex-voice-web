@@ -141,6 +141,7 @@ export function CampaignCard({
 }: CampaignCardProps) {
   const status = statusConfig[campaign.status];
   const isComingSoon = campaign.comingSoon === true;
+  const processedCount = (campaign.leads || []).filter((l: any) => l.called).length;
 
   const [reminding, setReminding] = useState(false);
   const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);
@@ -437,7 +438,7 @@ export function CampaignCard({
                 />
                 <span className="relative z-10 flex items-center gap-2">
                   <Play className="size-4 hidden group-hover:block" />
-                  <span className="group-hover:hidden">Paused {campaign.completedCalls} / {campaign.totalContacts}</span>
+                  <span className="group-hover:hidden">Paused {processedCount} / {campaign.totalContacts}</span>
                   <span className="hidden group-hover:block">Resume</span>
                 </span>
               </Button>
