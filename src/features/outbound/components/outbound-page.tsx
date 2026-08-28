@@ -66,19 +66,26 @@ export function OutboundPageContent() {
     user?.role === "SYSTEM_ADMIN" || (user?.assignedNumbersDetailed && user.assignedNumbersDetailed.length > 0)
   );
 
-  const [reactivationCampaign, setReactivationCampaign] = useState<any>(leadReactivationCampaign);
+  const [reactivationCampaigns, setReactivationCampaigns] = useState<any[]>([]);
+  const [editCampaignId, setEditCampaignId] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       // FORCE CLEAR STUCK STATE FOR USER
-      localStorage.removeItem('reactivation_state_admin');
-      
-      const saved = localStorage.getItem('reactivation_state_admin');
+      const saved = localStorage.getItem('reactivation_state_admin_v2');
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (parsed) setReactivationCampaign(parsed);
+          if (Array.isArray(parsed)) setReactivationCampaigns(parsed);
         } catch (e) {}
+      } else {
+        const oldSaved = localStorage.getItem('reactivation_state_admin');
+        if (oldSaved) {
+          try {
+            const parsed = JSON.parse(oldSaved);
+            if (parsed) setReactivationCampaigns([parsed]);
+          } catch (e) {}
+        }
       }
     }
   }, []);
@@ -89,43 +96,60 @@ export function OutboundPageContent() {
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleDid, setRescheduleDid] = useState("");
 
-  const shouldShowReactivation = hasOutboundNumber && !outboundCampaign?.isReactivation && (
-    (outboundCampaign?.failedCalls || 0) > 0 || reactivationCampaign?.status === "scheduled"
+  const shouldShowIdleReactivation = hasOutboundNumber && !outboundCampaign?.isReactivation && (
+    (outboundCampaign?.failedCalls || 0) > 0
   );
 
   useEffect(() => {
-    // Poll to check if a scheduled reactivation has passed its time
-    if (reactivationCampaign?.status === "scheduled" && reactivationCampaign?.scheduledAt) {
-      const interval = setInterval(() => {
-        if (Date.now() >= new Date(reactivationCampaign.scheduledAt).getTime()) {
-          // Time passed, transition to running and show animation
-          clearInterval(interval);
-          setReactivationCampaign(prev => ({ ...prev, status: "running" }));
-          
-          import("react-hot-toast").then(mod => {
-            mod.toast.success("Lead Reactivation is now active! 🚀", { duration: 4000 });
-          });
-          
-          // Wait for the running animation to play, then complete
-          setTimeout(() => {
-            import("react-hot-toast").then(mod => {
-              mod.toast.success("Lead Reactivation history work completed ✅", { duration: 5000 });
-            });
-            localStorage.removeItem('reactivation_state_admin');
-            setReactivationCampaign(leadReactivationCampaign);
-            clearFailedCalls();
-          }, 4000);
+    const interval = setInterval(() => {
+      setReactivationCampaigns(prev => {
+        let hasChanges = false;
+        const now = Date.now();
+        const next = prev.map(camp => {
+          if (camp.status === "scheduled" && camp.scheduledAt && now >= new Date(camp.scheduledAt).getTime()) {
+            hasChanges = true;
+            
+            setTimeout(() => {
+              import("react-hot-toast").then(mod => {
+                mod.toast.success(`Lead Reactivation is now active! 🚀`, { duration: 4000 });
+              });
+              
+              setTimeout(() => {
+                import("react-hot-toast").then(mod => {
+                  mod.toast.success(`Lead Reactivation history work completed ✅`, { duration: 5000 });
+                });
+                
+                setReactivationCampaigns(current => {
+                   const updated = current.filter(c => c.id !== camp.id);
+                   localStorage.setItem('reactivation_state_admin_v2', JSON.stringify(updated));
+                   return updated;
+                });
+              }, 4000);
+            }, 0);
+            
+            return { ...camp, status: "running" };
+          }
+          return camp;
+        });
+        
+        if (hasChanges) {
+           localStorage.setItem('reactivation_state_admin_v2', JSON.stringify(next));
+           return next;
         }
-      }, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [reactivationCampaign]);
+        return prev;
+      });
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleReschedule = async () => {
     try {
       setIsRescheduling(true);
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-      const failedLeads = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
+      const editingCamp = editCampaignId ? reactivationCampaigns.find(c => c.id === editCampaignId) : null;
+      const failedLeads = editingCamp 
+        ? editingCamp.leads 
+        : (outboundCampaign.leads?.filter((l: any) => l.isFailed) || []);
       
       const scheduledAt = new Date(`${rescheduleDate}T${rescheduleTime}`).toISOString();
       const didNumber = rescheduleDid || user?.assignedNumbersDetailed?.[0]?.number;
@@ -150,6 +174,7 @@ export function OutboundPageContent() {
 
       const newState = {
         ...leadReactivationCampaign,
+        id: editCampaignId || `react-${Date.now()}`,
         status: "scheduled",
         scheduledAt,
         totalContacts: failedLeads.length,
@@ -159,9 +184,24 @@ export function OutboundPageContent() {
         title: "Reactivation Scheduled ✓",
         description: `Successfully scheduled ${failedLeads.length} failed call(s) for ${new Date(scheduledAt).toLocaleString()}.`
       });
-      setReactivationCampaign(newState);
-      localStorage.setItem('reactivation_state_admin', JSON.stringify(newState));
+      
+      setReactivationCampaigns(prev => {
+         let next;
+         if (editCampaignId) {
+            next = prev.map(c => c.id === editCampaignId ? { ...c, scheduledAt, leads: newState.leads, totalContacts: newState.totalContacts } : c);
+         } else {
+            next = [...prev, newState];
+         }
+         localStorage.setItem('reactivation_state_admin_v2', JSON.stringify(next));
+         return next;
+      });
+      
       setRescheduleOpen(false);
+      
+      if (!editCampaignId) {
+        clearFailedCalls();
+      }
+      setEditCampaignId(null);
       
       // Clear inputs to prevent accidental past scheduling next time
       setRescheduleDate("");
@@ -204,7 +244,38 @@ export function OutboundPageContent() {
 
       <div className="space-y-4">
         <AnimatePresence>
-          {shouldShowReactivation && (
+          {reactivationCampaigns.map(camp => (
+            <motion.div
+              key={camp.id}
+              initial={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, height: 'auto', scale: 1 }}
+              exit={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+              className="overflow-hidden"
+            >
+              <CampaignCard
+                campaign={camp}
+                progressPercent={0}
+                onUploadClick={() => {}}
+                onStart={() => {}}
+                onPause={() => {}}
+                onResume={() => {}}
+                onSchedule={() => {
+                  setEditCampaignId(camp.id);
+                  if (camp.scheduledAt) {
+                    const d = new Date(camp.scheduledAt);
+                    setRescheduleDate(d.toISOString().split("T")[0]);
+                    setRescheduleTime(d.toTimeString().split(" ")[0].slice(0, 5));
+                  }
+                  setRescheduleOpen(true);
+                }}
+                failedCallsCount={0}
+                hasOutboundNumber={hasOutboundNumber}
+              />
+            </motion.div>
+          ))}
+          
+          {shouldShowIdleReactivation && (
             <motion.div
               initial={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, height: 'auto', scale: 1 }}
@@ -213,13 +284,18 @@ export function OutboundPageContent() {
               className="overflow-hidden"
             >
               <CampaignCard
-                campaign={{ ...(reactivationCampaign || leadReactivationCampaign), leads: (reactivationCampaign?.status || "idle") === "idle" ? outboundCampaign.leads?.filter((l: any) => l.isFailed) : reactivationCampaign?.leads }}
+                campaign={{ ...leadReactivationCampaign, leads: outboundCampaign.leads?.filter((l: any) => l.isFailed) }}
                 progressPercent={0}
                 onUploadClick={() => {}}
                 onStart={() => {}}
                 onPause={() => {}}
                 onResume={() => {}}
-                onSchedule={() => setRescheduleOpen(true)}
+                onSchedule={() => {
+                  setEditCampaignId(null);
+                  setRescheduleDate("");
+                  setRescheduleTime("");
+                  setRescheduleOpen(true);
+                }}
                 failedCallsCount={outboundCampaign.failedCalls}
                 hasOutboundNumber={hasOutboundNumber}
               />
@@ -319,7 +395,9 @@ export function OutboundPageContent() {
           <DialogHeader>
             <DialogTitle>Reschedule Failed Calls</DialogTitle>
             <DialogDescription>
-              {outboundCampaign.failedCalls} call{outboundCampaign.failedCalls !== 1 ? "s" : ""} failed during the campaign. Select a date and time to automatically retry them.
+              {editCampaignId 
+                ? "Update the date and time for this scheduled Reactivation Campaign." 
+                : `${outboundCampaign.failedCalls} call${outboundCampaign.failedCalls !== 1 ? "s" : ""} failed during the campaign. Select a date and time to automatically retry them.`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -342,9 +420,9 @@ export function OutboundPageContent() {
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Failed Leads ({(outboundCampaign.leads || []).filter((l: any) => l.isFailed).length})</label>
+              <label className="text-sm font-medium">Failed Leads ({(editCampaignId ? reactivationCampaigns.find(c => c.id === editCampaignId)?.leads || [] : outboundCampaign.leads?.filter((l: any) => l.isFailed) || []).length})</label>
               <div className="max-h-40 overflow-y-auto rounded-md border border-border bg-muted/30 p-2 text-sm">
-                {(outboundCampaign.leads || []).filter((l: any) => l.isFailed).map((lead: any, i: number) => (
+                {(editCampaignId ? reactivationCampaigns.find(c => c.id === editCampaignId)?.leads || [] : outboundCampaign.leads?.filter((l: any) => l.isFailed) || []).map((lead: any, i: number) => (
                   <div key={i} className="flex justify-between border-b border-border/50 py-1 last:border-0">
                     <span>{lead.name}</span>
                     <span className="font-mono text-muted-foreground">{lead.phone}</span>
