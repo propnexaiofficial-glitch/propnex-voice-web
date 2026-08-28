@@ -178,6 +178,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
               failedCalls: data.failedCalls || 0,
               leads: data.leads || [],
               totalContacts: data.totalContacts || 0,
+              isReactivation: !!data.isReactivation,
             };
           }
           // Otherwise ignore stale backend state from previous campaigns
@@ -193,6 +194,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
           failedCalls: (hasClearedFailedCalls.current || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('cleared_campaigns') || '[]').includes(prev.id))) ? 0 : (data.failedCalls !== undefined ? Math.max(data.failedCalls, prev.failedCalls) : prev.failedCalls),
           leads: data.leads || prev.leads,
           totalContacts: data.totalContacts || prev.totalContacts,
+          isReactivation: data.isReactivation !== undefined ? !!data.isReactivation : prev.isReactivation,
         };
       });
     };

@@ -174,26 +174,100 @@ export function OutboundPageContent() {
       </motion.div>
 
       <div className="space-y-4">
-        <CampaignCard
-          campaign={hasOutboundNumber ? outboundCampaign : { ...outboundCampaign, status: "idle", leads: [], failedCalls: 0, completedCalls: 0 }}
-          progressPercent={hasOutboundNumber ? progressPercent : 0}
-          hasOutboundNumber={hasOutboundNumber}
-          onUploadClick={() => setUploadOpen(true)}
-          onStart={() => {
-            startCampaign();
-          }}
-          onPause={pauseCampaign}
-          onResume={resumeCampaign}
-          onClear={clearCampaign}
-          onEditLead={editLead}
-          onDeleteLead={deleteLead}
-          onSchedule={() => {
-            setRescheduleDate("");
-            setRescheduleTime("");
-            setRescheduleOpen(true);
-          }}
-          failedCallsCount={outboundCampaign.failedCalls}
-        />
+        {outboundCampaign.isReactivation ? (
+          <>
+            <CampaignCard
+              campaign={{ ...outboundCampaign, id: "main-completed", name: "Outbound", status: "completed", leads: [], failedCalls: 0, completedCalls: 0, totalContacts: 0 }}
+              progressPercent={100}
+              hasOutboundNumber={hasOutboundNumber}
+              onUploadClick={() => setUploadOpen(true)}
+              onStart={() => {}}
+              onPause={() => {}}
+              onResume={() => {}}
+              onClear={clearCampaign}
+              onEditLead={() => {}}
+              onDeleteLead={() => {}}
+              onSchedule={() => {}}
+              failedCallsCount={0}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, height: 'auto', scale: 1 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            >
+              <CampaignCard
+                campaign={{ ...outboundCampaign, name: "Lead Reactivation" }}
+                progressPercent={hasOutboundNumber ? progressPercent : 0}
+                hasOutboundNumber={hasOutboundNumber}
+                onUploadClick={() => {}}
+                onStart={startCampaign}
+                onPause={pauseCampaign}
+                onResume={resumeCampaign}
+                onClear={clearCampaign}
+                onEditLead={editLead}
+                onDeleteLead={deleteLead}
+                onSchedule={() => {
+                  setRescheduleDate("");
+                  setRescheduleTime("");
+                  setRescheduleOpen(true);
+                }}
+                failedCallsCount={outboundCampaign.failedCalls}
+              />
+            </motion.div>
+          </>
+        ) : (
+          <>
+            <CampaignCard
+              campaign={hasOutboundNumber ? outboundCampaign : { ...outboundCampaign, status: "idle", leads: [], failedCalls: 0, completedCalls: 0 }}
+              progressPercent={hasOutboundNumber ? progressPercent : 0}
+              hasOutboundNumber={hasOutboundNumber}
+              onUploadClick={() => setUploadOpen(true)}
+              onStart={startCampaign}
+              onPause={pauseCampaign}
+              onResume={resumeCampaign}
+              onClear={clearCampaign}
+              onEditLead={editLead}
+              onDeleteLead={deleteLead}
+              onSchedule={() => {
+                setRescheduleDate("");
+                setRescheduleTime("");
+                setRescheduleOpen(true);
+              }}
+              failedCallsCount={outboundCampaign.failedCalls}
+            />
+            
+            <AnimatePresence>
+              {outboundCampaign.status === "completed" && outboundCampaign.failedCalls > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, height: 'auto', scale: 1 }}
+                  exit={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                  className="overflow-hidden"
+                >
+                  <CampaignCard
+                    campaign={{ ...leadReactivationCampaign, leads: outboundCampaign.leads?.filter((l: any) => l.isFailed) }}
+                    progressPercent={0}
+                    hasOutboundNumber={hasOutboundNumber}
+                    onUploadClick={() => {}}
+                    onStart={() => {}}
+                    onPause={() => {}}
+                    onResume={() => {}}
+                    onClear={() => {}}
+                    onEditLead={() => {}}
+                    onDeleteLead={() => {}}
+                    onSchedule={() => {
+                      setRescheduleDate("");
+                      setRescheduleTime("");
+                      setRescheduleOpen(true);
+                    }}
+                    failedCallsCount={outboundCampaign.failedCalls}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
+        )}
       </div>
 
       <CallLogFiltersBar
