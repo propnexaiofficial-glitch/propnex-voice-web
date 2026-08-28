@@ -302,7 +302,7 @@ export function CampaignCard({
 
         <div className="flex flex-col gap-2 items-end">
           <div className="flex flex-wrap gap-2 items-center">
-            {(campaign.status !== "idle" && campaign.status !== "completed" && campaign.leads && campaign.leads.length > 0) && (
+            {(campaign.status !== "idle" && campaign.leads && campaign.leads.length > 0) && (
               <Popover>
                 <PopoverTrigger asChild>
                   <div className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-muted/50 hover:bg-muted transition-colors">
@@ -320,7 +320,7 @@ export function CampaignCard({
                     </div>
                   )}
 
-                  {campaign.status === "running" && (
+                  {(campaign.status === "running" || campaign.status === "completed") && (
                     <div className="space-y-4">
                       {(campaign.leads || []).filter((l: any) => !l.called).length > 0 && (
                         <div className="space-y-2">

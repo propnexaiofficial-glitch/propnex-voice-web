@@ -145,7 +145,7 @@ export function CompanyCallsSection({
               });
                 
               setReactivationCampaigns(current => {
-                 const updated = current.filter(c => c.id !== camp.id);
+                 const updated = current.map(c => c.id === camp.id ? { ...c, status: "completed" as any } : c);
                  localStorage.setItem(`reactivation_state_${companyId || 'default'}_v2`, JSON.stringify(updated));
                  return updated;
               });
