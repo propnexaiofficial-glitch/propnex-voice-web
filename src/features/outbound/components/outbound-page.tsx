@@ -218,7 +218,7 @@ export function OutboundPageContent() {
               />
             </motion.div>
             <CampaignCard
-              campaign={{ ...outboundCampaign, id: "main-completed", name: "Outbound", status: "completed", leads: [], failedCalls: 0, completedCalls: 0, totalContacts: 0 }}
+              campaign={{ ...outboundCampaign, id: "main-completed", name: "Outbound", status: "completed", leads: [], failedCalls: 0, completedCalls: 0, totalContacts: 0, isReactivation: false }}
               progressPercent={100}
               hasOutboundNumber={hasOutboundNumber}
               onUploadClick={() => setUploadOpen(true)}
