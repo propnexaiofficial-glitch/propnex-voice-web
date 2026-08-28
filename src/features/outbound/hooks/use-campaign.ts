@@ -147,8 +147,6 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         });
 
         socket.on('campaign-updated', (data) => {
-          // Prevent overriding just-started local campaigns
-          if (Date.now() < ignorePollingUntil.current) return;
           handleStateUpdate(data);
         });
       } catch (err) {

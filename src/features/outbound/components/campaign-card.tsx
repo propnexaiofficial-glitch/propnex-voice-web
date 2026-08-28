@@ -415,7 +415,7 @@ export function CampaignCard({
                 />
                 <span className="relative z-10 flex items-center gap-2">
                   <Pause className="size-4 hidden group-hover:block" />
-                  <span className="group-hover:hidden">Processing {campaign.completedCalls} / {campaign.totalContacts}</span>
+                  <span className="group-hover:hidden">Processing {processedCount} / {campaign.totalContacts}</span>
                   <span className="hidden group-hover:block">Pause</span>
                 </span>
               </Button>

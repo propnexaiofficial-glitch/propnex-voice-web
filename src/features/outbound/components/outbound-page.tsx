@@ -253,36 +253,33 @@ export function OutboundPageContent() {
               failedCallsCount={outboundCampaign.failedCalls}
             />
             
-            <AnimatePresence>
-              {outboundCampaign.status === "completed" && outboundCampaign.failedCalls > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, height: 'auto', scale: 1 }}
-                  exit={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                  className="overflow-hidden"
-                >
-                  <CampaignCard
-                    campaign={{ ...leadReactivationCampaign, leads: outboundCampaign.leads?.filter((l: any) => l.isFailed) }}
-                    progressPercent={0}
-                    hasOutboundNumber={hasOutboundNumber}
-                    onUploadClick={() => {}}
-                    onStart={() => {}}
-                    onPause={() => {}}
-                    onResume={() => {}}
-                    onClear={() => {}}
-                    onEditLead={() => {}}
-                    onDeleteLead={() => {}}
-                    onSchedule={() => {
-                      setRescheduleDate("");
-                      setRescheduleTime("");
-                      setRescheduleOpen(true);
-                    }}
-                    failedCallsCount={outboundCampaign.failedCalls}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            
+            <motion.div
+              initial={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, height: 'auto', scale: 1 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+              className="overflow-hidden"
+            >
+              <CampaignCard
+                campaign={{ ...leadReactivationCampaign, leads: outboundCampaign.leads?.filter((l: any) => l.isFailed) }}
+                progressPercent={0}
+                hasOutboundNumber={hasOutboundNumber}
+                onUploadClick={() => {}}
+                onStart={() => {}}
+                onPause={() => {}}
+                onResume={() => {}}
+                onClear={() => {}}
+                onEditLead={() => {}}
+                onDeleteLead={() => {}}
+                onSchedule={() => {
+                  if (!outboundCampaign.leads?.filter((l: any) => l.isFailed).length) return;
+                  setRescheduleDate("");
+                  setRescheduleTime("");
+                  setRescheduleOpen(true);
+                }}
+                failedCallsCount={outboundCampaign.failedCalls}
+              />
+            </motion.div>
           </>
         )}
       </div>
