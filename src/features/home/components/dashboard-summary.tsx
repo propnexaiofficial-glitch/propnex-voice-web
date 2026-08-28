@@ -78,7 +78,7 @@ export function DashboardSummary({ className }: DashboardSummaryProps) {
     };
 
     fetchStats();
-    const interval = setInterval(fetchStats, 10000); // refresh every 10s
+    const interval = setInterval(fetchStats, 30000); // refresh every 30s
     return () => clearInterval(interval);
   }, []);
 

@@ -179,8 +179,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       }
     };
 
-    // Poll every 1 second for highly responsive live updates
-    interval = setInterval(pollCampaignStatus, 1000);
+    // Poll every 4 seconds to balance live updates with Redis/Backend usage quotas
+    interval = setInterval(pollCampaignStatus, 4000);
     pollCampaignStatus(); // Initial check on mount!
 
     return () => clearInterval(interval);

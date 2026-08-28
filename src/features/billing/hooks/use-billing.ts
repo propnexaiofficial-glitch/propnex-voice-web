@@ -57,7 +57,7 @@ export function useBilling() {
 
   useEffect(() => {
     fetchCreditsAndHistory();
-    const interval = setInterval(fetchCreditsAndHistory, 2000);
+    const interval = setInterval(fetchCreditsAndHistory, 30000); // 30 seconds
     return () => clearInterval(interval);
   }, [fetchCreditsAndHistory]);
 

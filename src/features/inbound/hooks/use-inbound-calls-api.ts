@@ -172,7 +172,7 @@ export function useInboundCallsApi(
 
     const intervalId = setInterval(() => {
       void load(true);
-    }, 5000);
+    }, 15000); // 15 seconds
 
     return () => {
       isCancelled = true;

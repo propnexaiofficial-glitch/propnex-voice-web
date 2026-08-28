@@ -74,7 +74,7 @@ export function EmployeesProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const intervalId = setInterval(() => {
       fetchCompanies(true);
-    }, 2000);
+    }, 15000); // 15 seconds
 
     return () => {
       clearInterval(intervalId);

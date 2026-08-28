@@ -77,7 +77,7 @@ export function RecentActivity({ className }: RecentActivityProps) {
     fetchActivity();
     
     // Poll every 10 seconds for real-time updates
-    const interval = setInterval(fetchActivity, 10000);
+    const interval = setInterval(fetchActivity, 30000);
     return () => clearInterval(interval);
   }, []);
 

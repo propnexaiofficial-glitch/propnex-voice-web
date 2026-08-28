@@ -92,7 +92,7 @@ export function useOutboundCalls() {
     // Poll every 1s for highly responsive live updates
     const id = setInterval(() => {
       fetchCalls(true);
-    }, 1000);
+    }, 5000);
     
     return () => clearInterval(id);
   }, [fetchCalls]);

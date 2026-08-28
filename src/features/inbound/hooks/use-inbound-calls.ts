@@ -73,7 +73,7 @@ export function useInboundCalls() {
     // Poll every 5s for live updates without triggering the skeleton loader
     const id = setInterval(() => {
       fetchCalls(true);
-    }, 5000);
+    }, 15000); // 15 seconds
     
     return () => clearInterval(id);
   }, [fetchCalls]);

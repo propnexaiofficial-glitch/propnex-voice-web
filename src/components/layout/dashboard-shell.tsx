@@ -320,7 +320,7 @@ function DashboardShellInner({
     fetchUser();
     
     // Poll every 5 seconds for real-time credit & call updates
-    const interval = setInterval(fetchUser, 5000);
+    const interval = setInterval(fetchUser, 30000);
 
     // Refresh immediately when user switches back to the tab
     const handleFocus = () => fetchUser();
