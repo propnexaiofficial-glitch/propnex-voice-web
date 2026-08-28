@@ -89,7 +89,7 @@ export function OutboundPageContent() {
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleDid, setRescheduleDid] = useState("");
 
-  const shouldShowReactivation = hasOutboundNumber && (
+  const shouldShowReactivation = hasOutboundNumber && !outboundCampaign?.isReactivation && (
     (outboundCampaign?.failedCalls || 0) > 0 || reactivationCampaign?.status === "scheduled"
   );
 
