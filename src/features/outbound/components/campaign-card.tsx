@@ -256,6 +256,76 @@ export function CampaignCard({
             <Badge variant={status.variant}>
               {status.label}
             </Badge>
+            
+            {(campaign.status !== "idle" && campaign.status !== "completed" && campaign.leads && campaign.leads.length > 0) && (
+              <div className="flex items-center gap-2 ml-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <div className="flex size-7 cursor-pointer items-center justify-center rounded-full bg-muted/50 hover:bg-muted transition-colors" title="View/Edit Leads">
+                      <Info className="size-4 text-muted-foreground" />
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[350px] max-h-96 overflow-y-auto p-4 space-y-4 z-50">
+                    
+                    {(campaign.status === "ready" || campaign.status === "scheduled") && (
+                      <div className="space-y-2">
+                        <p className="font-semibold">Pending ({(campaign.leads || []).length} Leads)</p>
+                        {(campaign.leads || [])
+                          .map((l: any, i: number) => ({ ...l, originalIdx: i }))
+                          .sort((a: any, b: any) => {
+                            const aValid = isValidPhoneNumber(a.phone);
+                            const bValid = isValidPhoneNumber(b.phone);
+                            if (!aValid && bValid) return -1;
+                            if (aValid && !bValid) return 1;
+                            return 0;
+                          })
+                          .map((lead: any) => (
+                            <LeadRow key={`${lead.phone}-${lead.originalIdx}`} lead={lead} idx={lead.originalIdx} onSave={(newLead) => onEditLead?.(lead.originalIdx, newLead)} onDelete={campaign.status === "ready" ? () => onDeleteLead?.(lead.originalIdx) : undefined} campaignStatus={campaign.status} />
+                        ))}
+                      </div>
+                    )}
+
+                    {campaign.status === "running" && (
+                      <div className="space-y-4">
+                        {(campaign.leads || []).filter((l: any) => !l.called).length > 0 && (
+                          <div className="space-y-2">
+                            <p className="font-semibold text-muted-foreground">Pending ({(campaign.leads || []).filter((l: any) => !l.called).length})</p>
+                            {(campaign.leads || []).filter((l: any) => !l.called).map((lead: any, idx: number) => (
+                              <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={() => {}} campaignStatus={campaign.status} />
+                            ))}
+                          </div>
+                        )}
+                        
+                        {(campaign.leads || []).filter((l: any) => l.called && !l.isFailed).length > 0 && (
+                          <div className="space-y-2">
+                            <p className="font-semibold text-emerald-500">Successful ({(campaign.leads || []).filter((l: any) => l.called && !l.isFailed).length})</p>
+                            {(campaign.leads || []).filter((l: any) => l.called && !l.isFailed).map((lead: any, idx: number) => (
+                              <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={() => {}} campaignStatus={campaign.status} />
+                            ))}
+                          </div>
+                        )}
+
+                        {(campaign.leads || []).filter((l: any) => l.called && l.isFailed).length > 0 && (
+                          <div className="space-y-2">
+                            <p className="font-semibold text-rose-500">Failed ({(campaign.leads || []).filter((l: any) => l.called && l.isFailed).length})</p>
+                            {(campaign.leads || []).filter((l: any) => l.called && l.isFailed).map((lead: any, idx: number) => (
+                              <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={() => {}} campaignStatus={campaign.status} />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                  </PopoverContent>
+                </Popover>
+                
+                {campaign.status === "ready" && (campaign.leads || []).some((l: any) => !isValidPhoneNumber(l.phone)) && (
+                  <span className="text-xs font-medium text-red-500 bg-red-500/10 px-2 py-1 rounded-md flex items-center animate-in fade-in zoom-in-95 duration-200">
+                    &larr; Please correct invalid numbers before starting
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {campaign.uploadedFileName && (
@@ -303,68 +373,6 @@ export function CampaignCard({
 
         <div className="flex flex-col gap-2 items-end">
           <div className="flex flex-wrap gap-2 items-center">
-            {(campaign.status !== "idle" && campaign.status !== "completed" && campaign.leads && campaign.leads.length > 0) && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <div className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-muted/50 hover:bg-muted transition-colors">
-                    <Info className="size-5 text-muted-foreground" />
-                  </div>
-                </PopoverTrigger>
-                <PopoverContent className="w-[350px] max-h-96 overflow-y-auto p-4 space-y-4 z-50">
-                  
-                  {(campaign.status === "ready" || campaign.status === "scheduled") && (
-                    <div className="space-y-2">
-                      <p className="font-semibold">Pending ({(campaign.leads || []).length} Leads)</p>
-                      {(campaign.leads || [])
-                        .map((l: any, i: number) => ({ ...l, originalIdx: i }))
-                        .sort((a: any, b: any) => {
-                          const aValid = isValidPhoneNumber(a.phone);
-                          const bValid = isValidPhoneNumber(b.phone);
-                          if (!aValid && bValid) return -1;
-                          if (aValid && !bValid) return 1;
-                          return 0;
-                        })
-                        .map((lead: any) => (
-                          <LeadRow key={`${lead.phone}-${lead.originalIdx}`} lead={lead} idx={lead.originalIdx} onSave={(newLead) => onEditLead?.(lead.originalIdx, newLead)} onDelete={campaign.status === "ready" ? () => onDeleteLead?.(lead.originalIdx) : undefined} campaignStatus={campaign.status} />
-                      ))}
-                    </div>
-                  )}
-
-                  {campaign.status === "running" && (
-                    <div className="space-y-4">
-                      {(campaign.leads || []).filter((l: any) => !l.called).length > 0 && (
-                        <div className="space-y-2">
-                          <p className="font-semibold text-muted-foreground">Pending ({(campaign.leads || []).filter((l: any) => !l.called).length})</p>
-                          {(campaign.leads || []).filter((l: any) => !l.called).map((lead: any, idx: number) => (
-                            <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={() => {}} campaignStatus={campaign.status} />
-                          ))}
-                        </div>
-                      )}
-                      
-                      {(campaign.leads || []).filter((l: any) => l.called && !l.isFailed).length > 0 && (
-                        <div className="space-y-2">
-                          <p className="font-semibold text-emerald-500">Successful ({(campaign.leads || []).filter((l: any) => l.called && !l.isFailed).length})</p>
-                          {(campaign.leads || []).filter((l: any) => l.called && !l.isFailed).map((lead: any, idx: number) => (
-                            <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={() => {}} campaignStatus={campaign.status} />
-                          ))}
-                        </div>
-                      )}
-
-                      {(campaign.leads || []).filter((l: any) => l.called && l.isFailed).length > 0 && (
-                        <div className="space-y-2">
-                          <p className="font-semibold text-rose-500">Failed ({(campaign.leads || []).filter((l: any) => l.called && l.isFailed).length})</p>
-                          {(campaign.leads || []).filter((l: any) => l.called && l.isFailed).map((lead: any, idx: number) => (
-                            <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={() => {}} campaignStatus={campaign.status} />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                </PopoverContent>
-              </Popover>
-            )}
-
             {!hasOutboundNumber && campaign.id !== "camp-001" && !campaign.isReactivation && campaign.name !== "Lead Reactivation" ? (
               <Button onClick={handleRemindAdmin} disabled={reminding || isLocked} className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white">
                 <PhoneOutgoing className="size-4" />
@@ -379,11 +387,6 @@ export function CampaignCard({
 
           {campaign.status === "ready" && (
             <div className="flex flex-col gap-2 items-end">
-              {(campaign.leads || []).some((l: any) => !isValidPhoneNumber(l.phone)) && (
-                <p className="text-xs text-red-500 font-medium">
-                  ⚠️ You must edit or remove invalid numbers (in the info button) before starting.
-                </p>
-              )}
               <div className="flex gap-2">
                 <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onClear}>
                   <Trash2 className="size-4" />

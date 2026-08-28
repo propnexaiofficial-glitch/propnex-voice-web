@@ -29,7 +29,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       failedCalls: 0,
       leads: leads,
       selectedDid: selectedDid,
-      channels: channels
+      channels: channels,
+      isReactivation: false // Ensure new uploads are treated as normal outbound campaigns
     }));
   }, []);
 
