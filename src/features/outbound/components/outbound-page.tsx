@@ -27,6 +27,7 @@ import { useCampaign } from "@/features/outbound/hooks/use-campaign";
 import { useOutboundCalls } from "@/features/outbound/hooks/use-outbound-calls";
 import type { CallRecord } from "@/types/call";
 import { useUserContext } from "@/features/auth/context/user-context";
+import { CompletionAnimation } from "@/components/ui/completion-animation";
 
 export function OutboundPageContent() {
   const {
@@ -68,6 +69,7 @@ export function OutboundPageContent() {
 
   const [reactivationCampaigns, setReactivationCampaigns] = useState<any[]>([]);
   const [editCampaignId, setEditCampaignId] = useState<string | null>(null);
+  const [animationState, setAnimationState] = useState<{title: string, subtitle?: string} | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -109,23 +111,23 @@ export function OutboundPageContent() {
           if (camp.status === "scheduled" && camp.scheduledAt && now >= new Date(camp.scheduledAt).getTime()) {
             hasChanges = true;
             
+            setAnimationState({
+              title: "Reactivation Started!",
+              subtitle: `Reactivation campaign "${camp.name || 'Lead Reactivation'}" is now running.`
+            });
+            
             setTimeout(() => {
-              import("react-hot-toast").then(mod => {
-                mod.toast.success(`Lead Reactivation is now active! 🚀`, { duration: 4000 });
+              setAnimationState({
+                title: "Reactivation Completed ✅",
+                subtitle: `All leads in "${camp.name || 'Lead Reactivation'}" have been processed.`
               });
-              
-              setTimeout(() => {
-                import("react-hot-toast").then(mod => {
-                  mod.toast.success(`Lead Reactivation history work completed ✅`, { duration: 5000 });
-                });
                 
-                setReactivationCampaigns(current => {
-                   const updated = current.filter(c => c.id !== camp.id);
-                   localStorage.setItem('reactivation_state_admin_v2', JSON.stringify(updated));
-                   return updated;
-                });
-              }, 4000);
-            }, 0);
+              setReactivationCampaigns(current => {
+                 const updated = current.filter(c => c.id !== camp.id);
+                 localStorage.setItem('reactivation_state_admin_v2', JSON.stringify(updated));
+                 return updated;
+              });
+            }, 4000);
             
             return { ...camp, status: "running" };
           }
@@ -141,6 +143,20 @@ export function OutboundPageContent() {
     }, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // Intercept alertData to show animation instead if it matches success criteria
+  useEffect(() => {
+    if (alertData && !alertData.isError) {
+      if (alertData.title === "Campaign Completed" || alertData.title.includes("Scheduled ✓") || alertData.title.includes("Reactivation Scheduled")) {
+        setAnimationState({
+          title: alertData.title.replace(" ✓", ""),
+          subtitle: alertData.description
+        });
+        // Clear the alertData so the small dialog doesn't show for these
+        setAlertData(null);
+      }
+    }
+  }, [alertData, setAlertData]);
 
   const handleReschedule = async () => {
     try {
@@ -220,6 +236,14 @@ export function OutboundPageContent() {
 
   return (
     <div className="space-y-6">
+      {animationState && (
+        <CompletionAnimation 
+          title={animationState.title} 
+          subtitle={animationState.subtitle} 
+          onComplete={() => setAnimationState(null)} 
+        />
+      )}
+      
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
