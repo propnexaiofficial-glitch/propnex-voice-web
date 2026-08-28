@@ -121,9 +121,7 @@ export function CompanyCallsSection({
     }
   }, [companyId]);
 
-  const shouldShowIdleReactivation = hasAssignedNumber && (
-    (outboundCampaign?.failedCalls || 0) > 0
-  );
+  const shouldShowIdleReactivation = hasAssignedNumber;
 
   useEffect(() => {
     const interval = setInterval(() => {
