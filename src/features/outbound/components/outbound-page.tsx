@@ -98,10 +98,23 @@ export function OutboundPageContent() {
     if (reactivationCampaign?.status === "scheduled" && reactivationCampaign?.scheduledAt) {
       const interval = setInterval(() => {
         if (Date.now() >= new Date(reactivationCampaign.scheduledAt).getTime()) {
-          // Time passed, calls are sent. Remove from reactivation area.
-          localStorage.removeItem('reactivation_state_admin');
-          setReactivationCampaign(leadReactivationCampaign);
-          clearFailedCalls();
+          // Time passed, transition to running and show animation
+          clearInterval(interval);
+          setReactivationCampaign(prev => ({ ...prev, status: "running" }));
+          
+          import("react-hot-toast").then(mod => {
+            mod.toast.success("Lead Reactivation is now active! 🚀", { duration: 4000 });
+          });
+          
+          // Wait for the running animation to play, then complete
+          setTimeout(() => {
+            import("react-hot-toast").then(mod => {
+              mod.toast.success("Lead Reactivation history work completed ✅", { duration: 5000 });
+            });
+            localStorage.removeItem('reactivation_state_admin');
+            setReactivationCampaign(leadReactivationCampaign);
+            clearFailedCalls();
+          }, 4000);
         }
       }, 5000);
       return () => clearInterval(interval);

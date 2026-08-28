@@ -285,13 +285,24 @@ export function CampaignCard({
                 {" · "}
                 <span className="text-foreground">{campaign.totalContacts}</span> leads
               </span>
+              {campaign.status === "scheduled" && onSchedule && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="size-6 ml-2 hover:bg-muted" 
+                  onClick={onSchedule}
+                  title="Edit Schedule"
+                >
+                  <Pencil className="size-3 text-muted-foreground" />
+                </Button>
+              )}
             </div>
           )}
         </div>
 
         <div className="flex flex-col gap-2 items-end">
           <div className="flex flex-wrap gap-2 items-center">
-            {(campaign.id !== "camp-001" && campaign.status !== "idle" && campaign.status !== "completed" && campaign.leads && campaign.leads.length > 0) && (
+            {(campaign.status !== "idle" && campaign.status !== "completed" && campaign.leads && campaign.leads.length > 0) && (
               <Popover>
                 <PopoverTrigger asChild>
                   <div className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-muted/50 hover:bg-muted transition-colors">
