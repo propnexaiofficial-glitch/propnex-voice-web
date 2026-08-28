@@ -82,7 +82,19 @@ export function OutboundPageContent() {
   useEffect(() => {
     const saved = localStorage.getItem("pnx_persistent_failed_leads");
     if (saved) {
-      try { setPersistentFailedLeads(JSON.parse(saved)); } catch (e) {}
+      try {
+        const parsed = JSON.parse(saved);
+        // Deduplicate on load in case stale data has duplicates
+        const seen = new Set<string>();
+        const deduped = parsed.filter((lead: any) => {
+          const key = (lead.phone || "").replace(/\D/g, "").slice(-10);
+          if (!key || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        localStorage.setItem("pnx_persistent_failed_leads", JSON.stringify(deduped));
+        setPersistentFailedLeads(deduped);
+      } catch (e) {}
     }
   }, []);
 
@@ -95,11 +107,20 @@ export function OutboundPageContent() {
         if (newlyFailed.length > 0) {
           setPersistentFailedLeads(prev => {
             const combined = [...prev, ...newlyFailed];
-            localStorage.setItem("pnx_persistent_failed_leads", JSON.stringify(combined));
-            return combined;
+            // Deduplicate by last-10-digit normalized phone so repeated test runs never duplicate entries
+            const seen = new Set<string>();
+            const deduped = combined.filter((lead: any) => {
+              const key = (lead.phone || "").replace(/\D/g, "").slice(-10);
+              if (!key || seen.has(key)) return false;
+              seen.add(key);
+              return true;
+            });
+            localStorage.setItem("pnx_persistent_failed_leads", JSON.stringify(deduped));
+            return deduped;
           });
         }
         clearCampaign(); // Resets outbound back to 0
+
       } else {
         // Reactivation campaign finished: clear out the state and the persistent list
         setPersistentFailedLeads([]);
