@@ -17,6 +17,7 @@ export type Campaign = {
   leads?: any[];
   selectedDid?: string;
   channels?: number;
+  isReactivation?: boolean;
 };
 
 export type UploadCsvState = {

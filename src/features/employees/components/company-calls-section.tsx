@@ -22,6 +22,7 @@ import {
   type CallLogFilters,
   type CallRecord,
 } from "@/types/call";
+import { CompletionAnimation } from "@/components/ui/completion-animation";
 
 type CompanyCallsSectionProps = {
   companyId: string;
