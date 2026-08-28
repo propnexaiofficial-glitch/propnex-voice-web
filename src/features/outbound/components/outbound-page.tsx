@@ -269,6 +269,32 @@ export function OutboundPageContent() {
                   }
                   setRescheduleOpen(true);
                 }}
+                onEditLead={(idx, newLead) => {
+                  setReactivationCampaigns(prev => {
+                    const next = prev.map(c => 
+                      c.id === camp.id 
+                        ? { ...c, leads: c.leads.map((l: any, i: number) => i === idx ? newLead : l) } 
+                        : c
+                    );
+                    localStorage.setItem('reactivation_state_admin_v2', JSON.stringify(next));
+                    return next;
+                  });
+                }}
+                onDeleteLead={(idx) => {
+                  setReactivationCampaigns(prev => {
+                    const next = prev.map(c => 
+                      c.id === camp.id 
+                        ? { 
+                            ...c, 
+                            leads: c.leads.filter((_: any, i: number) => i !== idx),
+                            totalContacts: Math.max(0, c.totalContacts - 1)
+                          } 
+                        : c
+                    );
+                    localStorage.setItem('reactivation_state_admin_v2', JSON.stringify(next));
+                    return next;
+                  });
+                }}
                 failedCallsCount={0}
                 hasOutboundNumber={hasOutboundNumber}
               />
