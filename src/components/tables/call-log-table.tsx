@@ -113,7 +113,9 @@ export function CallLogTable({
                     {formatCallDate(call.callDateTime)}
                   </td>
                   <td className="px-4 py-3 tabular-nums">
-                    {isLive && call.liveStartedAt ? (
+                    {call.status === "ringing" ? (
+                      "0s"
+                    ) : isLive && call.liveStartedAt ? (
                       <LiveDuration startedAt={call.liveStartedAt} />
                     ) : (
                       call.duration
