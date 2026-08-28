@@ -74,8 +74,25 @@ export function OutboundPageContent() {
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [rescheduleDate, setRescheduleDate] = useState("");
   const [rescheduleTime, setRescheduleTime] = useState("");
+  const [dateError, setDateError] = useState("");
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleDid, setRescheduleDid] = useState("");
+
+  useEffect(() => {
+    if (!rescheduleDate || !rescheduleTime) {
+      setDateError("");
+      return;
+    }
+    
+    const selectedDate = new Date(`${rescheduleDate}T${rescheduleTime}`);
+    const now = new Date();
+    
+    if (selectedDate <= now) {
+      setDateError("Date and time must be in the future.");
+    } else {
+      setDateError("");
+    }
+  }, [rescheduleDate, rescheduleTime]);
 
   // Intercept alertData to show animation instead if it matches success criteria
   useEffect(() => {
@@ -386,7 +403,7 @@ export function OutboundPageContent() {
                   type="date" 
                   value={rescheduleDate}
                   onChange={(e) => setRescheduleDate(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" 
+                  className={`flex h-10 w-full rounded-md border ${dateError ? 'border-red-500 bg-red-500/10 text-red-600' : 'border-input bg-background'} px-3 py-2 text-sm`} 
                   min={new Date().toISOString().split("T")[0]}
                 />
               </div>
@@ -396,14 +413,19 @@ export function OutboundPageContent() {
                   type="time" 
                   value={rescheduleTime}
                   onChange={(e) => setRescheduleTime(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" 
+                  className={`flex h-10 w-full rounded-md border ${dateError ? 'border-red-500 bg-red-500/10 text-red-600' : 'border-input bg-background'} px-3 py-2 text-sm`} 
                 />
               </div>
             </div>
+            {dateError && (
+              <p className="text-xs font-medium text-red-500 animate-in fade-in slide-in-from-top-1">
+                {dateError}
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRescheduleOpen(false)}>Cancel</Button>
-            <Button onClick={handleReschedule} disabled={isRescheduling || !rescheduleDate || !rescheduleTime || !rescheduleDid}>
+            <Button onClick={handleReschedule} disabled={isRescheduling || !rescheduleDate || !rescheduleTime || !rescheduleDid || !!dateError}>
               {isRescheduling ? "Scheduling..." : "Schedule Reactivation"}
             </Button>
           </DialogFooter>
