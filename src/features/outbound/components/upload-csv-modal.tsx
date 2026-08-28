@@ -224,7 +224,7 @@ export function UploadCsvModal({
                 >
                   {outboundNumbers.map((n) => (
                     <option key={n.id} value={n.number}>
-                      {n.number}
+                      {n.number} ({n.channels ?? 1} ch)
                     </option>
                   ))}
                 </select>
