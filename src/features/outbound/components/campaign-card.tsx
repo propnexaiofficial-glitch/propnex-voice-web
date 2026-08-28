@@ -330,7 +330,7 @@ export function CampaignCard({
                     </div>
                   )}
 
-                  {(campaign.status === "running" || campaign.status === "completed") && (
+                  {campaign.status === "running" && (
                     <div className="space-y-4">
                       {(campaign.leads || []).filter((l: any) => !l.called).length > 0 && (
                         <div className="space-y-2">
