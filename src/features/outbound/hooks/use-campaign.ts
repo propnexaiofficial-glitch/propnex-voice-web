@@ -143,8 +143,21 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
                 });
               }
 
-              // Ignore stale backend state from previous campaigns
+              // Adopt backend state if we are currently idle and backend has an active or recent campaign
               if (data.campaignId && data.campaignId !== prev.id) {
+                if (prev.status === "idle" && data.status !== "idle") {
+                  return {
+                    ...prev,
+                    id: data.campaignId,
+                    status: data.status,
+                    completedCalls: data.completedCalls || 0,
+                    successfulCalls: data.successfulCalls || 0,
+                    failedCalls: data.failedCalls || 0,
+                    leads: data.leads || [],
+                    totalContacts: data.totalContacts || 0,
+                  };
+                }
+                // Otherwise ignore stale backend state from previous campaigns
                 return prev;
               }
               
