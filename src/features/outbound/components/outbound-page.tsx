@@ -77,6 +77,37 @@ export function OutboundPageContent() {
   const [dateError, setDateError] = useState("");
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleDid, setRescheduleDid] = useState("");
+  const [persistentFailedLeads, setPersistentFailedLeads] = useState<any[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("pnx_persistent_failed_leads");
+    if (saved) {
+      try { setPersistentFailedLeads(JSON.parse(saved)); } catch (e) {}
+    }
+  }, []);
+
+  const handleAnimationComplete = () => {
+    setAnimationState(null);
+    if (outboundCampaign.status === "completed") {
+      if (!outboundCampaign.isReactivation) {
+        // Standard outbound finished: move failed calls to persistent Reactivation pool and reset
+        const newlyFailed = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
+        if (newlyFailed.length > 0) {
+          setPersistentFailedLeads(prev => {
+            const combined = [...prev, ...newlyFailed];
+            localStorage.setItem("pnx_persistent_failed_leads", JSON.stringify(combined));
+            return combined;
+          });
+        }
+        clearCampaign(); // Resets outbound back to 0
+      } else {
+        // Reactivation campaign finished: clear out the state and the persistent list
+        setPersistentFailedLeads([]);
+        localStorage.removeItem("pnx_persistent_failed_leads");
+        clearCampaign();
+      }
+    }
+  };
 
   useEffect(() => {
     if (!rescheduleDate || !rescheduleTime) {
@@ -112,7 +143,7 @@ export function OutboundPageContent() {
     try {
       setIsRescheduling(true);
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-      const failedLeads = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
+      const failedLeads = persistentFailedLeads;
       
       const scheduledAt = new Date(`${rescheduleDate}T${rescheduleTime}`).toISOString();
       const didNumber = rescheduleDid || user?.assignedNumbersDetailed?.[0]?.number;
@@ -142,6 +173,8 @@ export function OutboundPageContent() {
       
       setRescheduleOpen(false);
       clearFailedCalls();
+      setPersistentFailedLeads([]); // clear it out since it is now scheduled
+      localStorage.removeItem("pnx_persistent_failed_leads");
       
       // Clear inputs to prevent accidental past scheduling next time
       setRescheduleDate("");
@@ -164,7 +197,7 @@ export function OutboundPageContent() {
         <CompletionAnimation 
           title={animationState.title} 
           subtitle={animationState.subtitle} 
-          onComplete={() => setAnimationState(null)} 
+          onComplete={handleAnimationComplete} 
         />
       )}
       
@@ -261,23 +294,26 @@ export function OutboundPageContent() {
               className="overflow-hidden"
             >
               <CampaignCard
-                campaign={{ ...leadReactivationCampaign, leads: outboundCampaign.leads?.filter((l: any) => l.isFailed) }}
+                campaign={{ ...leadReactivationCampaign, leads: persistentFailedLeads, failedCalls: persistentFailedLeads.length }}
                 progressPercent={0}
                 hasOutboundNumber={hasOutboundNumber}
                 onUploadClick={() => {}}
                 onStart={() => {}}
                 onPause={() => {}}
                 onResume={() => {}}
-                onClear={() => {}}
+                onClear={() => {
+                   setPersistentFailedLeads([]);
+                   localStorage.removeItem("pnx_persistent_failed_leads");
+                }}
                 onEditLead={() => {}}
                 onDeleteLead={() => {}}
                 onSchedule={() => {
-                  if (!outboundCampaign.leads?.filter((l: any) => l.isFailed).length) return;
+                  if (persistentFailedLeads.length === 0) return;
                   setRescheduleDate("");
                   setRescheduleTime("");
                   setRescheduleOpen(true);
                 }}
-                failedCallsCount={outboundCampaign.failedCalls}
+                failedCallsCount={persistentFailedLeads.length}
               />
             </motion.div>
           </>
@@ -383,9 +419,9 @@ export function OutboundPageContent() {
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Failed Leads ({(outboundCampaign.leads?.filter((l: any) => l.isFailed) || []).length})</label>
+              <label className="text-sm font-medium">Failed Leads ({persistentFailedLeads.length})</label>
               <div className="max-h-40 overflow-y-auto rounded-md border border-border bg-muted/30 p-2 text-sm">
-                {(outboundCampaign.leads?.filter((l: any) => l.isFailed) || []).map((lead: any, i: number) => (
+                {persistentFailedLeads.map((lead: any, i: number) => (
                   <div key={i} className="flex justify-between border-b border-border/50 py-1 last:border-0">
                     <span>{lead.name}</span>
                     <span className="font-mono text-muted-foreground">{lead.phone}</span>
