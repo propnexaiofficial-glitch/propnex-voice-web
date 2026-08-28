@@ -269,8 +269,8 @@ export function CampaignCard({
           {(campaign.status === "idle" || campaign.status === "completed") && (
             <p className="text-sm text-muted-foreground">
               {(campaign.id === "camp-001" || campaign.isReactivation || campaign.name === "Lead Reactivation")
-                ? (campaign.leads && campaign.leads.length > 0
-                    ? `Ready to reactivate ${campaign.leads.length} failed call(s).`
+                ? (failedCallsCount > 0
+                    ? `Ready to reactivate ${failedCallsCount} failed call(s).`
                     : "Failed calls will appear here for reactivation.")
                 : !hasOutboundNumber 
                   ? "Please request an outbound number from the admin to launch campaigns." 
