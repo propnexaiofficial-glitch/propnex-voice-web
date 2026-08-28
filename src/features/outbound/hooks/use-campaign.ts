@@ -210,6 +210,66 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
     };
   }, []);
 
+  // Fallback HTTP polling in case WebSocket events are missed (e.g. dropped connection)
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (campaign.status === "running") {
+      interval = setInterval(async () => {
+        if (Date.now() < ignorePollingUntil.current) return;
+        
+        try {
+          const storedUserStr = localStorage.getItem("user");
+          const user = storedUserStr ? JSON.parse(storedUserStr) : {};
+          const companyId = user.companyId || null;
+          if (!companyId) return;
+
+          const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
+          const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
+          
+          const res = await fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/status?companyId=${companyId}`, {
+            headers: { Authorization: `Bearer ${pnxToken}` }
+          });
+
+          if (res.ok) {
+            const { data } = await res.json();
+            if (data) {
+              setCampaign(prev => {
+                // Only process if the campaign ID matches (we don't want to adopt stale states here)
+                if (data.campaignId && data.campaignId !== prev.id) return prev;
+                
+                // Alert logic
+                if (prev.status === "running" && data.status === "completed") {
+                  setAlertData({
+                    title: "Campaign Completed",
+                    description: `All ${data.leads?.length || 0} leads have been processed.`,
+                  });
+                }
+                
+                return {
+                  ...prev,
+                  status: data.status || prev.status,
+                  completedCalls: data.completedCalls !== undefined ? Math.max(data.completedCalls, prev.completedCalls) : prev.completedCalls,
+                  successfulCalls: data.successfulCalls !== undefined ? Math.max(data.successfulCalls, prev.successfulCalls) : prev.successfulCalls,
+                  failedCalls: (hasClearedFailedCalls.current || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('cleared_campaigns') || '[]').includes(prev.id))) ? 0 : (data.failedCalls !== undefined ? Math.max(data.failedCalls, prev.failedCalls) : prev.failedCalls),
+                  leads: data.leads || prev.leads,
+                  totalContacts: data.totalContacts || prev.totalContacts,
+                  isReactivation: data.isReactivation !== undefined ? !!data.isReactivation : prev.isReactivation,
+                };
+              });
+            }
+          }
+        } catch (e) {
+          console.error("Fallback polling failed", e);
+        }
+      }, 5000);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [campaign.status]);
+
   const pauseCampaign = useCallback(() => {
     setCampaign((prev) =>
       prev.status === "running" ? { ...prev, status: "paused" } : prev
