@@ -2,7 +2,9 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Sparkles } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import Confetti from 'react-confetti';
+import { useWindowSize } from 'react-use';
 
 interface CompletionAnimationProps {
   title: string;
@@ -17,16 +19,37 @@ export function CompletionAnimation({
   onComplete,
   durationMs = 4000,
 }: CompletionAnimationProps) {
+  const { width, height } = useWindowSize();
+  const [showConfetti, setShowConfetti] = useState(true);
+
   useEffect(() => {
+    const confettiTimer = setTimeout(() => {
+      setShowConfetti(false);
+    }, durationMs - 1000);
+
     const timer = setTimeout(() => {
       onComplete();
     }, durationMs);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(confettiTimer);
+    };
   }, [onComplete, durationMs]);
 
   return (
     <AnimatePresence>
+      {showConfetti && (
+        <div className="fixed inset-0 z-[110] pointer-events-none">
+          <Confetti 
+            width={width} 
+            height={height} 
+            recycle={false} 
+            numberOfPieces={400}
+            gravity={0.15}
+          />
+        </div>
+      )}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
