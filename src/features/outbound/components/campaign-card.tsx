@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
+import { isValidPhoneNumber } from "react-phone-number-input";
 import type { Campaign } from "@/features/outbound/types";
 import { cn } from "@/lib/utils";
 
@@ -56,7 +57,7 @@ type CampaignCardProps = {
   companyId?: string;
 };
 
-function LeadRow({ lead, idx, onSave, onDelete }: { lead: any; idx: number; onSave: (newLead: any) => void; onDelete?: () => void }) {
+function LeadRow({ lead, idx, onSave, onDelete, campaignStatus }: { lead: any; idx: number; onSave: (newLead: any) => void; onDelete?: () => void, campaignStatus?: string }) {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(lead.name);
   const [phone, setPhone] = useState(lead.phone);
@@ -101,12 +102,12 @@ function LeadRow({ lead, idx, onSave, onDelete }: { lead: any; idx: number; onSa
   }
 
   return (
-    <div className="flex justify-between items-center text-xs border-b border-border pb-1 hover:bg-muted/30 p-1 -mx-1 px-1 rounded transition-colors group">
+    <div className={cn("flex justify-between items-center text-xs border-b border-border pb-1 hover:bg-muted/30 p-1 -mx-1 px-1 rounded transition-colors group", !isValidPhoneNumber(lead.phone) && campaignStatus === "ready" && "bg-red-500/10 border-red-500/20")}>
       <div className="flex items-center gap-2 overflow-hidden">
-        <span className={cn("truncate max-w-[120px]", lead.called && "line-through text-muted-foreground", lead.isInvalid && "text-red-400 line-through")}>{lead.name}</span>
+        <span className={cn("truncate max-w-[120px]", lead.called && "line-through text-muted-foreground", !isValidPhoneNumber(lead.phone) && campaignStatus === "ready" && "text-red-400 font-medium")}>{lead.name}</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className={cn("font-mono", lead.called && "line-through text-muted-foreground", lead.isInvalid && "text-red-400 line-through")}>{lead.phone}</span>
+        <span className={cn("font-mono", lead.called && "line-through text-muted-foreground", !isValidPhoneNumber(lead.phone) && campaignStatus === "ready" && "text-red-400 font-medium")}>{lead.phone}</span>
         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
           <button onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-foreground">
             <Pencil className="size-3" />
@@ -314,8 +315,17 @@ export function CampaignCard({
                   {(campaign.status === "ready" || campaign.status === "scheduled") && (
                     <div className="space-y-2">
                       <p className="font-semibold">Pending ({(campaign.leads || []).length} Leads)</p>
-                      {(campaign.leads || []).map((lead: any, idx: number) => (
-                        <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={(newLead) => onEditLead?.(idx, newLead)} onDelete={campaign.status === "ready" ? () => onDeleteLead?.(idx) : undefined} />
+                      {(campaign.leads || [])
+                        .map((l: any, i: number) => ({ ...l, originalIdx: i }))
+                        .sort((a: any, b: any) => {
+                          const aValid = isValidPhoneNumber(a.phone);
+                          const bValid = isValidPhoneNumber(b.phone);
+                          if (!aValid && bValid) return -1;
+                          if (aValid && !bValid) return 1;
+                          return 0;
+                        })
+                        .map((lead: any) => (
+                          <LeadRow key={`${lead.phone}-${lead.originalIdx}`} lead={lead} idx={lead.originalIdx} onSave={(newLead) => onEditLead?.(lead.originalIdx, newLead)} onDelete={campaign.status === "ready" ? () => onDeleteLead?.(lead.originalIdx) : undefined} campaignStatus={campaign.status} />
                       ))}
                     </div>
                   )}
@@ -326,7 +336,7 @@ export function CampaignCard({
                         <div className="space-y-2">
                           <p className="font-semibold text-muted-foreground">Pending ({(campaign.leads || []).filter((l: any) => !l.called).length})</p>
                           {(campaign.leads || []).filter((l: any) => !l.called).map((lead: any, idx: number) => (
-                            <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={() => {}} />
+                            <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={() => {}} campaignStatus={campaign.status} />
                           ))}
                         </div>
                       )}
@@ -335,7 +345,7 @@ export function CampaignCard({
                         <div className="space-y-2">
                           <p className="font-semibold text-emerald-500">Successful ({(campaign.leads || []).filter((l: any) => l.called && !l.isFailed).length})</p>
                           {(campaign.leads || []).filter((l: any) => l.called && !l.isFailed).map((lead: any, idx: number) => (
-                            <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={() => {}} />
+                            <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={() => {}} campaignStatus={campaign.status} />
                           ))}
                         </div>
                       )}
@@ -344,7 +354,7 @@ export function CampaignCard({
                         <div className="space-y-2">
                           <p className="font-semibold text-rose-500">Failed ({(campaign.leads || []).filter((l: any) => l.called && l.isFailed).length})</p>
                           {(campaign.leads || []).filter((l: any) => l.called && l.isFailed).map((lead: any, idx: number) => (
-                            <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={() => {}} />
+                            <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={() => {}} campaignStatus={campaign.status} />
                           ))}
                         </div>
                       )}
@@ -368,15 +378,22 @@ export function CampaignCard({
             ) : null}
 
           {campaign.status === "ready" && (
-            <div className="flex gap-2">
-              <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onClear}>
-                <Trash2 className="size-4" />
-                Clear File
-              </Button>
-              <Button className="gap-2" onClick={onStart} disabled={campaign.leads?.some((l: any) => l.isInvalid)}>
-                <Play className="size-4" />
-                Start Campaign
-              </Button>
+            <div className="flex flex-col gap-2 items-end">
+              {(campaign.leads || []).some((l: any) => !isValidPhoneNumber(l.phone)) && (
+                <p className="text-xs text-red-500 font-medium">
+                  ⚠️ You must edit or remove invalid numbers (in the info button) before starting.
+                </p>
+              )}
+              <div className="flex gap-2">
+                <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onClear}>
+                  <Trash2 className="size-4" />
+                  Clear File
+                </Button>
+                <Button className="gap-2" onClick={onStart} disabled={(campaign.leads || []).some((l: any) => !isValidPhoneNumber(l.phone))}>
+                  <Play className="size-4" />
+                  Start Campaign
+                </Button>
+              </div>
             </div>
           )}
 
