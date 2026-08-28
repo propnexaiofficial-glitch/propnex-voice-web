@@ -268,7 +268,7 @@ export function CampaignCard({
 
           {(campaign.status === "idle" || campaign.status === "completed") && (
             <p className="text-sm text-muted-foreground">
-              {campaign.id === "camp-001"
+              {(campaign.id === "camp-001" || campaign.isReactivation || campaign.name === "Lead Reactivation")
                 ? (campaign.leads && campaign.leads.length > 0
                     ? `Ready to reactivate ${campaign.leads.length} failed call(s).`
                     : "Failed calls will appear here for reactivation.")
@@ -365,12 +365,12 @@ export function CampaignCard({
               </Popover>
             )}
 
-            {!hasOutboundNumber && campaign.id !== "camp-001" ? (
+            {!hasOutboundNumber && campaign.id !== "camp-001" && !campaign.isReactivation && campaign.name !== "Lead Reactivation" ? (
               <Button onClick={handleRemindAdmin} disabled={reminding || isLocked} className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white">
                 <PhoneOutgoing className="size-4" />
                 {reminding ? "Sending..." : (isLocked ? "Request Sent" : "Request Outbound Number")}
               </Button>
-            ) : (campaign.status === "idle" || campaign.status === "completed") && campaign.id !== "camp-001" ? (
+            ) : (campaign.status === "idle" || campaign.status === "completed") && campaign.id !== "camp-001" && !campaign.isReactivation && campaign.name !== "Lead Reactivation" ? (
               <Button variant="outline" className="gap-2" onClick={onUploadClick}>
                 <Upload className="size-4" />
                 Upload CSV
@@ -441,22 +441,20 @@ export function CampaignCard({
             </div>
           )}
 
-          {campaign.id === "camp-001" && (
+          {(campaign.id === "camp-001" || campaign.isReactivation || campaign.name === "Lead Reactivation") && (campaign.status === "idle" || campaign.status === "completed") && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div>
-                    {campaign.id === "camp-001" && (
-                      <Button
-                        variant="outline"
-                        className="border-primary text-primary hover:bg-primary/10 gap-2 h-9 text-sm"
-                        onClick={onSchedule}
-                        disabled={failedCallsCount === 0}
-                      >
-                        <CalendarClock className="size-4" />
-                        Schedule Reactivation
-                      </Button>
-                    )}
+                    <Button
+                      variant="outline"
+                      className="border-primary text-primary hover:bg-primary/10 gap-2 h-9 text-sm"
+                      onClick={onSchedule}
+                      disabled={failedCallsCount === 0}
+                    >
+                      <CalendarClock className="size-4" />
+                      Schedule Reactivation
+                    </Button>
                   </div>
                 </TooltipTrigger>
                 {failedCallsCount === 0 && (

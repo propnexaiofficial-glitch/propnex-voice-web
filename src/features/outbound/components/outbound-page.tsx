@@ -176,20 +176,6 @@ export function OutboundPageContent() {
       <div className="space-y-4">
         {outboundCampaign.isReactivation ? (
           <>
-            <CampaignCard
-              campaign={{ ...outboundCampaign, id: "main-completed", name: "Outbound", status: "completed", leads: [], failedCalls: 0, completedCalls: 0, totalContacts: 0 }}
-              progressPercent={100}
-              hasOutboundNumber={hasOutboundNumber}
-              onUploadClick={() => setUploadOpen(true)}
-              onStart={() => {}}
-              onPause={() => {}}
-              onResume={() => {}}
-              onClear={clearCampaign}
-              onEditLead={() => {}}
-              onDeleteLead={() => {}}
-              onSchedule={() => {}}
-              failedCallsCount={0}
-            />
             <motion.div
               initial={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, height: 'auto', scale: 1 }}
@@ -214,6 +200,20 @@ export function OutboundPageContent() {
                 failedCallsCount={outboundCampaign.failedCalls}
               />
             </motion.div>
+            <CampaignCard
+              campaign={{ ...outboundCampaign, id: "main-completed", name: "Outbound", status: "completed", leads: [], failedCalls: 0, completedCalls: 0, totalContacts: 0 }}
+              progressPercent={100}
+              hasOutboundNumber={hasOutboundNumber}
+              onUploadClick={() => setUploadOpen(true)}
+              onStart={() => {}}
+              onPause={() => {}}
+              onResume={() => {}}
+              onClear={clearCampaign}
+              onEditLead={() => {}}
+              onDeleteLead={() => {}}
+              onSchedule={() => {}}
+              failedCallsCount={0}
+            />
           </>
         ) : (
           <>
