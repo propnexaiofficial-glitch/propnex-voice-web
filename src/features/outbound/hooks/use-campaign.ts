@@ -39,7 +39,10 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
     
     // Deduplicate leads to match backend constraints and prevent double-calling
     const uniqueLeads = Array.from(
-      new Map(campaign.leads.map(lead => [lead.phone, lead])).values()
+      new Map(campaign.leads.map(lead => {
+        const corePhone = lead.phone.replace(/\D/g, "").slice(-10);
+        return [corePhone, lead];
+      })).values()
     );
     
     setCampaign((prev) => ({
