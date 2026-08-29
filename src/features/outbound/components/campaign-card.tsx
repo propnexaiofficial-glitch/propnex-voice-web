@@ -271,7 +271,7 @@ export function CampaignCard({
               {status.label}
             </Badge>
             
-            {(campaign.status !== "idle" && campaign.status !== "completed" && campaign.leads && campaign.leads.length > 0) && (
+            {(campaign.status !== "idle" && campaign.status !== "completed" && campaign.leads && campaign.leads.length > 0 && !campaign.isReactivation && campaign.name !== "Lead Reactivation") && (
               <div className="flex items-center gap-2 ml-2">
                 <Popover>
                   <PopoverTrigger asChild>
