@@ -33,7 +33,7 @@ const statusConfig: Record<
   Campaign["status"],
   { label: string; variant: "default" | "secondary" | "success" | "warning" | "gold" }
 > = {
-  idle: { label: "No Schedule", variant: "secondary" },
+  idle: { label: "No Campaign", variant: "secondary" },
   scheduled: { label: "Scheduled", variant: "gold" },
   ready: { label: "Ready to Start", variant: "gold" },
   running: { label: "Running", variant: "success" },
@@ -160,6 +160,16 @@ export function CampaignCard({
   const failedLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => l.called && l.isFailed);
   const invalidLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => !isValidPhoneNumber(l.phone));
 
+  const displaySchedule = scheduleHistory || (campaign.status === "scheduled" ? {
+    scheduledAt: campaign.scheduledAt || "",
+    did: "",
+    leadsCount: campaign.leads?.length || campaign.totalContacts || 0,
+    csvName: campaign.uploadedFileName || (campaign.isReactivation ? "Lead Reactivation" : "Outbound Campaign"),
+    leads: campaign.leads || []
+  } : null);
+
+  const isPendingSchedule = displaySchedule ? (!displaySchedule.scheduledAt || new Date(displaySchedule.scheduledAt).getTime() > Date.now()) : false;
+
   useEffect(() => {
     const key = companyId ? `last_outbound_number_request_${companyId}` : "last_outbound_number_request";
     
@@ -267,8 +277,8 @@ export function CampaignCard({
               <PhoneOutgoing className="size-5 text-foreground" />
             </div>
             <h3 className="text-lg font-semibold">{campaign.name}</h3>
-            <Badge variant={status.variant}>
-              {status.label}
+            <Badge variant={isPendingSchedule ? "gold" : status.variant}>
+              {isPendingSchedule ? "1 Scheduled" : status.label}
             </Badge>
             
             {(campaign.status !== "idle" && campaign.status !== "completed" && campaign.leads && campaign.leads.length > 0 && !campaign.isReactivation && campaign.name !== "Lead Reactivation") && (
@@ -390,17 +400,9 @@ export function CampaignCard({
 
           {/* Schedule badge — unified for local history and backend scheduled state */}
           {(() => {
-            const displaySchedule = scheduleHistory || (campaign.status === "scheduled" ? {
-              scheduledAt: campaign.scheduledAt || "",
-              did: "",
-              leadsCount: campaign.leads?.length || campaign.totalContacts || 0,
-              csvName: campaign.uploadedFileName || (campaign.isReactivation ? "Lead Reactivation" : "Outbound Campaign"),
-              leads: campaign.leads || []
-            } : null);
-
             if (!displaySchedule) return null;
 
-            const isPending = !displaySchedule.scheduledAt || new Date(displaySchedule.scheduledAt).getTime() > Date.now();
+            const isPending = isPendingSchedule;
 
             return (
               <motion.div
