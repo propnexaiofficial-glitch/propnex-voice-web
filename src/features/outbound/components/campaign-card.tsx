@@ -388,123 +388,113 @@ export function CampaignCard({
             </p>
           )}
 
-          {/* Schedule history badge — shows when a reactivation has been scheduled */}
-          {(campaign.id === "camp-001" || campaign.isReactivation || campaign.name === "Lead Reactivation") && scheduleHistory && (
-            <motion.div
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col gap-2 mt-2"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-muted/50 border border-border rounded-lg px-3 py-2 text-xs w-full max-w-lg">
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
-                    <CalendarClock className="size-4 text-primary" />
-                    <span className="font-medium">
-                      {new Date(scheduleHistory.scheduledAt).getTime() > Date.now() ? (
-                        <span className="text-amber-500">Pending</span>
-                      ) : (
-                        <span className="text-emerald-500">Completed</span>
-                      )}
-                    </span>
-                    <span className="text-muted-foreground">•</span>
-                    <span className="text-muted-foreground">
-                      {scheduleHistory.csvName ? `File: ${scheduleHistory.csvName}` : "Lead Reactivation"}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground pl-6">
-                    <span>
-                      Scheduled for: {new Date(scheduleHistory.scheduledAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-                    </span>
-                    <span className="hidden sm:inline">•</span>
-                    
-                    {/* Failed calls with Info Popover */}
-                    <div className="flex items-center gap-1">
-                      <span>{scheduleHistory.leadsCount || (scheduleHistory.leads?.length || 0)} Failed Calls</span>
-                      {scheduleHistory.leads && scheduleHistory.leads.length > 0 && (
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <div className="flex size-5 cursor-pointer items-center justify-center rounded-full bg-muted hover:bg-muted-foreground/20 transition-colors" title="View Failed Leads">
-                              <Info className="size-3 text-foreground" />
-                            </div>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-[300px] max-h-64 overflow-y-auto p-3 space-y-2 z-50">
-                            <p className="font-semibold text-sm">Failed Leads</p>
-                            <div className="space-y-1">
-                              {scheduleHistory.leads.map((lead: any, idx: number) => (
-                                <div key={idx} className="flex justify-between items-center text-xs border-b border-border pb-1 hover:bg-muted/30 p-1 -mx-1 px-1 rounded">
-                                  <span className="truncate max-w-[120px]">{lead.name}</span>
-                                  <span className="font-mono">{lead.phone}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                      )}
+          {/* Schedule badge — unified for local history and backend scheduled state */}
+          {(() => {
+            const displaySchedule = scheduleHistory || (campaign.status === "scheduled" && campaign.scheduledAt ? {
+              scheduledAt: campaign.scheduledAt,
+              did: "",
+              leadsCount: campaign.leads?.length || campaign.totalContacts || 0,
+              csvName: campaign.uploadedFileName || (campaign.isReactivation ? "Lead Reactivation" : "Outbound Campaign"),
+              leads: campaign.leads || []
+            } : null);
+
+            if (!displaySchedule) return null;
+
+            return (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col gap-2 mt-2"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-muted/50 border border-border rounded-lg px-3 py-2 text-xs w-full max-w-lg">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <CalendarClock className="size-4 text-primary" />
+                      <span className="font-medium">
+                        {new Date(displaySchedule.scheduledAt).getTime() > Date.now() ? (
+                          <span className="text-amber-500">Pending</span>
+                        ) : (
+                          <span className="text-emerald-500">Completed</span>
+                        )}
+                      </span>
+                      <span className="text-muted-foreground">•</span>
+                      <span className="text-muted-foreground">
+                        {displaySchedule.csvName ? `File: ${displaySchedule.csvName}` : "Campaign Schedule"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground pl-6">
+                      <span>
+                        Scheduled for: {new Date(displaySchedule.scheduledAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                      <span className="hidden sm:inline">•</span>
+                      
+                      {/* Failed calls with Info Popover */}
+                      <div className="flex items-center gap-1">
+                        <span>{displaySchedule.leadsCount || (displaySchedule.leads?.length || 0)} Leads</span>
+                        {displaySchedule.leads && displaySchedule.leads.length > 0 && (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <div className="flex size-5 cursor-pointer items-center justify-center rounded-full bg-muted hover:bg-muted-foreground/20 transition-colors" title="View Leads">
+                                <Info className="size-3 text-foreground" />
+                              </div>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[300px] max-h-64 overflow-y-auto p-3 space-y-2 z-50">
+                              <p className="font-semibold text-sm">Leads</p>
+                              <div className="space-y-1">
+                                {displaySchedule.leads.map((lead: any, idx: number) => (
+                                  <div key={idx} className="flex justify-between items-center text-xs border-b border-border pb-1 hover:bg-muted/30 p-1 -mx-1 px-1 rounded">
+                                    <span className="truncate max-w-[120px]">{lead.name}</span>
+                                    <span className="font-mono">{lead.phone}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        )}
+                      </div>
                     </div>
                   </div>
+                  
+                  <div className="flex items-center gap-1 self-end sm:self-auto">
+                    {(onEditSchedule || onSchedule) && new Date(displaySchedule.scheduledAt).getTime() > Date.now() && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-7 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
+                              onClick={onEditSchedule || onSchedule}
+                            >
+                              <Pencil className="size-3.5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent><p>Edit schedule time</p></TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                    {onDeleteSchedule && new Date(displaySchedule.scheduledAt).getTime() <= Date.now() && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-7 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500"
+                              onClick={onDeleteSchedule}
+                            >
+                              <Trash2 className="size-3.5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent><p>Delete history</p></TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
                 </div>
-                
-                <div className="flex items-center gap-1 self-end sm:self-auto">
-                  {onEditSchedule && new Date(scheduleHistory.scheduledAt).getTime() > Date.now() && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-7 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
-                            onClick={onEditSchedule}
-                          >
-                            <Pencil className="size-3.5" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent><p>Edit schedule time</p></TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                  {onDeleteSchedule && new Date(scheduleHistory.scheduledAt).getTime() <= Date.now() && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-7 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500"
-                            onClick={onDeleteSchedule}
-                          >
-                            <Trash2 className="size-3.5" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent><p>Delete history</p></TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {campaign.status === "scheduled" && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <CalendarClock className="size-4" />
-              <span>
-                Scheduled for {campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleString() : "future"}
-                {" · "}
-                <span className="text-foreground">{campaign.totalContacts}</span> leads
-              </span>
-              {campaign.status === "scheduled" && onSchedule && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="size-6 ml-2 hover:bg-muted" 
-                  onClick={onSchedule}
-                  title="Edit Schedule"
-                >
-                  <Pencil className="size-3 text-muted-foreground" />
-                </Button>
-              )}
-            </div>
-          )}
+              </motion.div>
+            );
+          })()}
         </div>
 
         <div className="flex flex-col gap-2 items-end">
