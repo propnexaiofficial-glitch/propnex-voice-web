@@ -9,7 +9,7 @@ import {
 } from "@/features/outbound/data";
 import type { Campaign, UploadCsvState } from "@/features/outbound/types";
 
-export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
+export function useCampaign(initialState: Campaign = outboundCampaignInitial, overrideCompanyId?: string) {
   const [campaign, setCampaign] = useState<Campaign>(initialState);
   const [upload, setUpload] = useState<UploadCsvState | null>(null);
   const [alertData, setAlertData] = useState<{ title: string; description: string; isError?: boolean } | null>(null);
@@ -66,7 +66,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
     try {
       const storedUserStr = localStorage.getItem("user");
       const user = storedUserStr ? JSON.parse(storedUserStr) : {};
-      const companyId = user.companyId || null;
+      const companyId = overrideCompanyId || user.companyId || null;
 
       if (!companyId) {
         throw new Error("Company ID not found");
@@ -124,7 +124,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       try {
         const storedUserStr = localStorage.getItem("user");
         const user = storedUserStr ? JSON.parse(storedUserStr) : {};
-        const companyId = user.companyId || null;
+        const companyId = overrideCompanyId || user.companyId || null;
 
         if (!companyId) {
           setIsInitializing(false);
@@ -235,7 +235,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         try {
           const storedUserStr = localStorage.getItem("user");
           const user = storedUserStr ? JSON.parse(storedUserStr) : {};
-          const companyId = user.companyId || null;
+          const companyId = overrideCompanyId || user.companyId || null;
           if (!companyId) return;
 
           const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
@@ -354,7 +354,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
     try {
       const storedUserStr = localStorage.getItem("user");
       const user = storedUserStr ? JSON.parse(storedUserStr) : {};
-      const companyId = user.companyId || null;
+      const companyId = overrideCompanyId || user.companyId || null;
 
       if (companyId) {
         const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
@@ -391,7 +391,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
     try {
       const storedUserStr = localStorage.getItem("user");
       const user = storedUserStr ? JSON.parse(storedUserStr) : {};
-      const companyId = user.companyId || null;
+      const companyId = overrideCompanyId || user.companyId || null;
 
       if (companyId) {
         const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";

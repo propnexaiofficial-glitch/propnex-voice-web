@@ -29,6 +29,9 @@ export function CompletionAnimation({
   onCompleteRef.current = onComplete;
 
   useEffect(() => {
+    // Reset confetti if type changes
+    setShowConfetti(type === "campaign");
+    
     const confettiTimer = type === "campaign"
       ? setTimeout(() => setShowConfetti(false), duration - 2000)
       : undefined;
@@ -63,7 +66,7 @@ export function CompletionAnimation({
     <AnimatePresence>
       {visible && (
         <>
-          {showConfetti && type === "campaign" && (
+          {showConfetti && (
              <div className="fixed inset-0 z-[120] pointer-events-none">
                <Confetti
                  width={width}
@@ -88,10 +91,12 @@ export function CompletionAnimation({
             <div className={`absolute inset-0 bg-gradient-to-r ${glowColorClass} opacity-10 pointer-events-none`} />
             
             <div className="relative flex items-center p-4 sm:p-5 gap-4">
-               {isCampaign ? (
-                 <CheckCircle2 className="size-8 shrink-0 animate-pulse drop-shadow-md" />
+               {isForceStopped ? (
+                 <X className="size-8 shrink-0 animate-pulse drop-shadow-md text-destructive" />
+               ) : isCampaign ? (
+                 <CheckCircle2 className="size-8 shrink-0 animate-pulse drop-shadow-md text-primary" />
                ) : (
-                 <CalendarClock className="size-8 shrink-0 animate-pulse drop-shadow-md" />
+                 <CalendarClock className="size-8 shrink-0 animate-pulse drop-shadow-md text-primary" />
                )}
                
                {/* Marquee scrolling container */}

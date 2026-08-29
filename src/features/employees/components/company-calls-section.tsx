@@ -87,10 +87,12 @@ export function CompanyCallsSection({
     resumeCampaign,
     editLead,
     deleteLead,
+    clearCampaign,
+    forceStopCampaign,
     clearFailedCalls,
     alertData,
     setAlertData,
-  } = useCampaign();
+  } = useCampaign(undefined, companyId);
 
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [rescheduleDate, setRescheduleDate] = useState("");
@@ -99,7 +101,9 @@ export function CompanyCallsSection({
   const [rescheduleDid, setRescheduleDid] = useState("");
   const [reactivationCampaigns, setReactivationCampaigns] = useState<any[]>([]);
   const [editCampaignId, setEditCampaignId] = useState<string | null>(null);
-  const [animationState, setAnimationState] = useState<{title: string, subtitle?: string} | null>(null);
+  const [animationState, setAnimationState] = useState<{title: string, subtitle?: string, type?: "campaign" | "schedule" | "force_stopped"} | null>(null);
+  const [persistentFailedLeads, setPersistentFailedLeads] = useState<any[]>([]);
+  const [dateError, setDateError] = useState("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -118,10 +122,26 @@ export function CompanyCallsSection({
           } catch (e) {}
         }
       }
+
+      const savedFailed = localStorage.getItem(`pnx_persistent_failed_leads_${companyId || 'default'}`);
+      if (savedFailed) {
+        try {
+          const parsed = JSON.parse(savedFailed);
+          const seen = new Set<string>();
+          const deduped = parsed.filter((lead: any) => {
+            const key = (lead.phone || "").replace(/\D/g, "").slice(-10);
+            if (!key || seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+          localStorage.setItem(`pnx_persistent_failed_leads_${companyId || 'default'}`, JSON.stringify(deduped));
+          setPersistentFailedLeads(deduped);
+        } catch (e) {}
+      }
     }
   }, [companyId]);
 
-  const shouldShowIdleReactivation = hasAssignedNumber;
+  const shouldShowIdleReactivation = hasAssignedNumber && persistentFailedLeads.length > 0;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -170,16 +190,43 @@ export function CompanyCallsSection({
   // Intercept alertData to show animation instead if it matches success criteria
   useEffect(() => {
     if (alertData && !alertData.isError) {
-      if (alertData.title === "Campaign Completed" || alertData.title.includes("Scheduled ✓") || alertData.title.includes("Reactivation Scheduled")) {
+      if (alertData.title === "Campaign Completed" || alertData.title === "Campaign Force Stopped" || alertData.title.includes("Scheduled ✓") || alertData.title.includes("Reactivation Scheduled")) {
         setAnimationState({
           title: alertData.title.replace(" ✓", ""),
-          subtitle: alertData.description
+          subtitle: alertData.description,
+          type: alertData.title === "Campaign Force Stopped" ? "force_stopped" : (alertData.title.includes("Scheduled") ? "schedule" : "campaign")
         });
         // Clear the alertData so the small dialog doesn't show for these
         setAlertData(null);
+        
+        // Clear campaign state IMMEDIATELY so the card resets to "No Campaign" right away
+        if (!outboundCampaign.isReactivation && alertData.title === "Campaign Completed") {
+          const newlyFailed = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
+          if (newlyFailed.length > 0) {
+            setPersistentFailedLeads(prev => {
+              const combined = [...prev, ...newlyFailed];
+              const seen = new Set<string>();
+              const deduped = combined.filter((lead: any) => {
+                const key = (lead.phone || "").replace(/\D/g, "").slice(-10);
+                if (!key || seen.has(key)) return false;
+                seen.add(key);
+                return true;
+              });
+              localStorage.setItem(`pnx_persistent_failed_leads_${companyId || 'default'}`, JSON.stringify(deduped));
+              return deduped;
+            });
+          }
+        } else if (outboundCampaign.isReactivation && alertData.title === "Campaign Completed") {
+          setPersistentFailedLeads([]);
+          localStorage.removeItem(`pnx_persistent_failed_leads_${companyId || 'default'}`);
+        }
+        
+        if (alertData.title === "Campaign Completed" || alertData.title === "Campaign Force Stopped") {
+          clearCampaign();
+        }
       }
     }
-  }, [alertData, setAlertData]);
+  }, [alertData, setAlertData, clearCampaign]);
 
   const handleReschedule = async () => {
     try {
@@ -189,7 +236,7 @@ export function CompanyCallsSection({
       const editingCamp = editCampaignId ? reactivationCampaigns.find(c => c.id === editCampaignId) : null;
       const failedLeads = editingCamp 
         ? editingCamp.leads 
-        : (outboundCampaign.leads?.filter((l: any) => l.isFailed) || []);
+        : persistentFailedLeads;
       const scheduledAt = new Date(`${rescheduleDate}T${rescheduleTime}`).toISOString();
       const didNumber = rescheduleDid || outboundCampaign.selectedDid || company?.assignedNumbers?.find((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH")?.number;
 
@@ -245,6 +292,11 @@ export function CompanyCallsSection({
          localStorage.setItem(`reactivation_state_${companyId || 'default'}_v2`, JSON.stringify(next));
          return next;
       });
+
+      if (!editCampaignId) {
+        setPersistentFailedLeads([]);
+        localStorage.removeItem(`pnx_persistent_failed_leads_${companyId || 'default'}`);
+      }
       
       setRescheduleOpen(false);
       
@@ -375,6 +427,7 @@ export function CompanyCallsSection({
         <CompletionAnimation 
           title={animationState.title} 
           subtitle={animationState.subtitle} 
+          type={animationState.type ?? "campaign"}
           onComplete={() => setAnimationState(null)} 
         />
       )}
@@ -448,19 +501,32 @@ export function CompanyCallsSection({
               className="overflow-hidden"
             >
               <CampaignCard
-                campaign={{ ...leadReactivationCampaign, leads: outboundCampaign.leads?.filter((l: any) => l.isFailed) }}
+                campaign={{ 
+                  ...leadReactivationCampaign, 
+                  leads: persistentFailedLeads,
+                  failedCalls: persistentFailedLeads.length
+                }}
                 progressPercent={0}
                 onUploadClick={() => {}}
                 onStart={() => {}}
                 onPause={() => {}}
                 onResume={() => {}}
+                onClear={() => {
+                  setPersistentFailedLeads([]);
+                  localStorage.removeItem(`pnx_persistent_failed_leads_${companyId || 'default'}`);
+                }}
+                onEditLead={() => {}}
+                onDeleteLead={() => {}}
                 onSchedule={() => {
+                  if (persistentFailedLeads.length === 0) return;
                   setEditCampaignId(null);
                   setRescheduleDate("");
                   setRescheduleTime("");
                   setRescheduleOpen(true);
                 }}
-                failedCallsCount={outboundCampaign.failedCalls}
+                failedCallsCount={persistentFailedLeads.length}
+                disableSchedule={persistentFailedLeads.length === 0}
+                scheduleDisabledReason="No unscheduled failed calls available."
                 hasOutboundNumber={hasAssignedNumber}
                 companyId={companyId}
               />
@@ -476,6 +542,8 @@ export function CompanyCallsSection({
             }}
             onPause={pauseCampaign}
             onResume={resumeCampaign}
+            onClear={clearCampaign}
+            onForceStop={forceStopCampaign}
             onEditLead={editLead}
             onDeleteLead={deleteLead}
             hasOutboundNumber={hasAssignedNumber}

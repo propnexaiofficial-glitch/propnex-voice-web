@@ -70,7 +70,7 @@ export function OutboundPageContent() {
   );
 
   const [editCampaignId, setEditCampaignId] = useState<string | null>(null);
-  const [animationState, setAnimationState] = useState<{title: string, subtitle?: string, type?: "campaign" | "schedule"} | null>(null);
+  const [animationState, setAnimationState] = useState<{title: string, subtitle?: string, type?: "campaign" | "schedule" | "force_stopped"} | null>(null);
   const [scheduleHistoryList, setScheduleHistoryList] = useState<any[]>([]);
 
   const [transcriptOpen, setTranscriptOpen] = useState(false);
@@ -171,7 +171,7 @@ export function OutboundPageContent() {
         setAnimationState({
           title: alertData.title,
           subtitle: alertData.description,
-          type: "campaign",
+          type: alertData.title === "Campaign Force Stopped" ? "force_stopped" : "campaign",
         });
         setAlertData(null);
 
