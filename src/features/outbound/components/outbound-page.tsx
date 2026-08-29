@@ -248,10 +248,11 @@ export function OutboundPageContent() {
     }
   };
 
-  const handleEditSchedule = () => {
+  const handleEditSchedule = (idx: number) => {
     // Pre-fill form with existing schedule if available
-    if (scheduleHistory?.scheduledAt) {
-      const d = new Date(scheduleHistory.scheduledAt);
+    const targetSchedule = scheduleHistoryList[idx];
+    if (targetSchedule?.scheduledAt) {
+      const d = new Date(targetSchedule.scheduledAt);
       const yyyy = d.getFullYear();
       const mm = String(d.getMonth() + 1).padStart(2, "0");
       const dd = String(d.getDate()).padStart(2, "0");
@@ -259,7 +260,10 @@ export function OutboundPageContent() {
       const mi = String(d.getMinutes()).padStart(2, "0");
       setRescheduleDate(`${yyyy}-${mm}-${dd}`);
       setRescheduleTime(`${hh}:${mi}`);
-      if (scheduleHistory.did) setRescheduleDid(scheduleHistory.did);
+      if (targetSchedule.did) setRescheduleDid(targetSchedule.did);
+      
+      // Remove it from the list so they can reschedule it fresh
+      handleDeleteSchedule(idx);
     } else {
       setRescheduleDate("");
       setRescheduleTime("");
@@ -267,9 +271,14 @@ export function OutboundPageContent() {
     setRescheduleOpen(true);
   };
 
-  const handleDeleteSchedule = () => {
-    setScheduleHistory(null);
-    localStorage.removeItem("pnx_reactivation_schedule");
+  const handleDeleteSchedule = (idx: number) => {
+    const updated = scheduleHistoryList.filter((_, i) => i !== idx);
+    setScheduleHistoryList(updated);
+    if (updated.length > 0) {
+      localStorage.setItem("pnx_reactivation_schedules", JSON.stringify(updated));
+    } else {
+      localStorage.removeItem("pnx_reactivation_schedules");
+    }
   };
 
   const handleViewTranscript = (call: CallRecord) => {
@@ -392,6 +401,8 @@ export function OutboundPageContent() {
                         setRescheduleTime("");
                         setRescheduleOpen(true);
                       }}
+                      onEditSchedule={scheduleHistoryList.length > 0 ? handleEditSchedule : undefined}
+                      onDeleteSchedule={scheduleHistoryList.length > 0 ? handleDeleteSchedule : undefined}
                       displaySchedules={scheduleHistoryList}
                       failedCallsCount={persistentFailedLeads.length || (scheduleHistoryList[0]?.leadsCount || 0)}
                     />

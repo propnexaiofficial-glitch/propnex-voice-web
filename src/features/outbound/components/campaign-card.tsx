@@ -140,7 +140,7 @@ export function CampaignCard({
   onSchedule,
   onEditSchedule,
   onDeleteSchedule,
-  scheduleHistory,
+  displaySchedules,
   failedCallsCount = 0,
   hasOutboundNumber = true,
   className,
@@ -168,7 +168,7 @@ export function CampaignCard({
     leads: campaign.leads || []
   } : null);
 
-  const pendingSchedules = (displaySchedules || []).filter(s => new Date(s.scheduledAt).getTime() > Date.now());
+  const pendingSchedules = (displaySchedules || []).filter((s: any) => new Date(s.scheduledAt).getTime() > Date.now());
   const isPendingSchedule = pendingSchedules.length > 0;
 
   useEffect(() => {
@@ -413,7 +413,7 @@ export function CampaignCard({
                 animate={{ opacity: 1, y: 0 }}
                 className="flex flex-col gap-2 mt-2"
               >
-                {displaySchedules.map((schedule, idx) => {
+                {displaySchedules.map((schedule: any, idx: number) => {
                   const isPending = new Date(schedule.scheduledAt).getTime() > Date.now();
                   
                   return (
