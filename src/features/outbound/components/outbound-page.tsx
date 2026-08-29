@@ -70,7 +70,7 @@ export function OutboundPageContent() {
 
   const [editCampaignId, setEditCampaignId] = useState<string | null>(null);
   const [animationState, setAnimationState] = useState<{title: string, subtitle?: string, type?: "campaign" | "schedule"} | null>(null);
-  const [scheduleHistory, setScheduleHistory] = useState<{ scheduledAt: string; did: string } | null>(null);
+  const [scheduleHistory, setScheduleHistory] = useState<{ scheduledAt: string; did: string; createdAt?: number; leadsCount?: number; csvName?: string; leads?: any[] } | null>(null);
 
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
@@ -381,7 +381,7 @@ export function OutboundPageContent() {
                   failedCallsCount={outboundCampaign.failedCalls}
                 />
                 
-                {persistentFailedLeads.length > 0 && (
+                {(persistentFailedLeads.length > 0 || scheduleHistory) && (
                   <motion.div
                     initial={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, height: 'auto', scale: 1 }}
@@ -389,7 +389,7 @@ export function OutboundPageContent() {
                     className="overflow-hidden"
                   >
                     <CampaignCard
-                      campaign={{ ...leadReactivationCampaign, leads: persistentFailedLeads, failedCalls: persistentFailedLeads.length }}
+                      campaign={{ ...leadReactivationCampaign, leads: persistentFailedLeads.length > 0 ? persistentFailedLeads : (scheduleHistory?.leads || []), failedCalls: persistentFailedLeads.length || (scheduleHistory?.leadsCount || 0) }}
                       progressPercent={0}
                       hasOutboundNumber={hasOutboundNumber}
                       onUploadClick={() => {}}
