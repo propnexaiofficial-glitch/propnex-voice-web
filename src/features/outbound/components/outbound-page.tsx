@@ -167,7 +167,7 @@ export function OutboundPageContent() {
   // Intercept alertData to show animation instead if it matches success criteria
   useEffect(() => {
     if (alertData && !alertData.isError) {
-      if (alertData.title === "Campaign Completed") {
+      if (alertData.title === "Campaign Completed" || alertData.title === "Campaign Force Stopped") {
         setAnimationState({
           title: alertData.title,
           subtitle: alertData.description,
@@ -176,7 +176,7 @@ export function OutboundPageContent() {
         setAlertData(null);
 
         // Clear campaign state IMMEDIATELY so the card resets to "No Campaign" right away
-        if (!outboundCampaign.isReactivation) {
+        if (!outboundCampaign.isReactivation && alertData.title === "Campaign Completed") {
           const newlyFailed = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
           if (newlyFailed.length > 0) {
             setPersistentFailedLeads(prev => {
@@ -192,7 +192,7 @@ export function OutboundPageContent() {
               return deduped;
             });
           }
-        } else {
+        } else if (outboundCampaign.isReactivation && alertData.title === "Campaign Completed") {
           setPersistentFailedLeads([]);
           localStorage.removeItem("pnx_persistent_failed_leads");
           // NOTE: We only remove the schedule history for the one that just completed!

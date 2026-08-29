@@ -408,6 +408,11 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         // Let the websocket handle the actual state update to force_stopped
         // But we can eagerly update it locally too
         setCampaign(prev => ({ ...prev, status: "force_stopped" }));
+        setAlertData({
+          title: "Campaign Force Stopped",
+          description: "The campaign was halted and cleared.",
+          isError: false,
+        });
       }
     } catch (err) {
       console.error("Failed to force stop campaign on backend", err);
