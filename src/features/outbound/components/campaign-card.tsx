@@ -52,8 +52,8 @@ type CampaignCardProps = {
   onEditLead?: (index: number, newLead: any) => void;
   onDeleteLead?: (index: number) => void;
   onSchedule?: () => void;
-  onEditSchedule?: () => void;
-  onDeleteSchedule?: () => void;
+  onEditSchedule?: (idx: number) => void;
+  onDeleteSchedule?: (idx: number) => void;
   displaySchedules?: any[];
   failedCallsCount?: number;
   hasOutboundNumber?: boolean;
@@ -160,13 +160,7 @@ export function CampaignCard({
   const failedLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => l.called && l.isFailed);
   const invalidLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => !isValidPhoneNumber(l.phone));
 
-  const displaySchedule = scheduleHistory || (campaign.status === "scheduled" ? {
-    scheduledAt: campaign.scheduledAt || "",
-    did: "",
-    leadsCount: campaign.leads?.length || campaign.totalContacts || 0,
-    csvName: campaign.uploadedFileName || (campaign.isReactivation ? "Lead Reactivation" : "Outbound Campaign"),
-    leads: campaign.leads || []
-  } : null);
+
 
   const pendingSchedules = (displaySchedules || []).filter((s: any) => new Date(s.scheduledAt).getTime() > Date.now());
   const isPendingSchedule = pendingSchedules.length > 0;
@@ -481,7 +475,10 @@ export function CampaignCard({
                                   variant="ghost"
                                   size="icon"
                                   className="size-7 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
-                                  onClick={onEditSchedule || onSchedule}
+                                  onClick={() => {
+                                    if (onEditSchedule) onEditSchedule(idx);
+                                    else if (onSchedule) onSchedule();
+                                  }}
                                 >
                                   <Pencil className="size-3.5" />
                                 </Button>
@@ -498,7 +495,7 @@ export function CampaignCard({
                                   variant="ghost"
                                   size="icon"
                                   className="size-7 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500"
-                                  onClick={onDeleteSchedule}
+                                  onClick={() => onDeleteSchedule(idx)}
                                 >
                                   <Trash2 className="size-3.5" />
                                 </Button>
