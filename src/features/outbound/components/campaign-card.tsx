@@ -277,8 +277,12 @@ export function CampaignCard({
               <PhoneOutgoing className="size-5 text-foreground" />
             </div>
             <h3 className="text-lg font-semibold">{campaign.name}</h3>
-            <Badge variant={isPendingSchedule ? "gold" : status.variant}>
-              {isPendingSchedule ? "1 Scheduled" : status.label}
+            <Badge variant="secondary">
+              {isPendingSchedule && campaign.status === "idle" 
+                ? "1 Scheduled" 
+                : campaign.status !== "idle" && (displaySchedule?.csvName || campaign.uploadedFileName)
+                  ? `${status.label} • ${displaySchedule?.csvName || campaign.uploadedFileName}`
+                  : status.label}
             </Badge>
             
             {(campaign.status !== "idle" && campaign.status !== "completed" && campaign.leads && campaign.leads.length > 0 && !campaign.isReactivation && campaign.name !== "Lead Reactivation") && (
@@ -415,7 +419,13 @@ export function CampaignCard({
                     <div className="flex items-center gap-2">
                       <CalendarClock className="size-4 text-primary" />
                       <span className="font-medium">
-                        {isPending ? (
+                        {campaign.status === "running" ? (
+                          <span className="text-emerald-500">Running</span>
+                        ) : campaign.status === "paused" ? (
+                          <span className="text-amber-500">Paused</span>
+                        ) : campaign.status === "completed" ? (
+                          <span className="text-emerald-500">Completed</span>
+                        ) : isPending ? (
                           <span className="text-amber-500">Pending</span>
                         ) : (
                           <span className="text-emerald-500">Completed</span>
