@@ -102,7 +102,14 @@ export function OutboundPageContent() {
   }, []);
 
   useEffect(() => {
-    const savedSchedule = localStorage.getItem("pnx_reactivation_schedules");
+    let savedSchedule = localStorage.getItem("pnx_reactivation_schedules");
+    let isLegacy = false;
+    
+    if (!savedSchedule) {
+      savedSchedule = localStorage.getItem("pnx_reactivation_schedule");
+      if (savedSchedule) isLegacy = true;
+    }
+
     if (savedSchedule) {
       try {
         const parsed = JSON.parse(savedSchedule);
@@ -113,6 +120,10 @@ export function OutboundPageContent() {
           setScheduleHistoryList(valid);
         } else if (parsed.scheduledAt) {
           setScheduleHistoryList([parsed]);
+          if (isLegacy) {
+            localStorage.setItem("pnx_reactivation_schedules", JSON.stringify([parsed]));
+            localStorage.removeItem("pnx_reactivation_schedule");
+          }
         }
       } catch (e) {}
     }
@@ -350,18 +361,21 @@ export function OutboundPageContent() {
                       setRescheduleTime("");
                       setRescheduleOpen(true);
                     }}
+                    onEditSchedule={scheduleHistoryList.length > 0 ? handleEditSchedule : undefined}
+                    onDeleteSchedule={scheduleHistoryList.length > 0 ? handleDeleteSchedule : undefined}
+                    displaySchedules={scheduleHistoryList}
                     failedCallsCount={outboundCampaign.failedCalls}
                   />
                 </motion.div>
                 <CampaignCard
-                  campaign={{ ...outboundCampaign, id: "main-completed", name: "Outbound", status: "completed", leads: [], failedCalls: 0, completedCalls: 0, totalContacts: 0, isReactivation: false }}
-                  progressPercent={100}
+                  campaign={{ id: "main-idle", name: "Outbound", status: "idle", leads: [], failedCalls: 0, completedCalls: 0, successfulCalls: 0, totalContacts: 0, isReactivation: false }}
+                  progressPercent={0}
                   hasOutboundNumber={hasOutboundNumber}
                   onUploadClick={() => setUploadOpen(true)}
                   onStart={() => {}}
                   onPause={() => {}}
                   onResume={() => {}}
-                  onClear={clearCampaign}
+                  onClear={() => {}}
                   onEditLead={() => {}}
                   onDeleteLead={() => {}}
                   onSchedule={() => {}}
