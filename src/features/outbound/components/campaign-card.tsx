@@ -51,6 +51,8 @@ type CampaignCardProps = {
   onEditLead?: (index: number, newLead: any) => void;
   onDeleteLead?: (index: number) => void;
   onSchedule?: () => void;
+  onEditSchedule?: () => void;
+  scheduleHistory?: { scheduledAt: string; did: string } | null;
   failedCallsCount?: number;
   hasOutboundNumber?: boolean;
   className?: string;
@@ -134,6 +136,8 @@ export function CampaignCard({
   onEditLead,
   onDeleteLead,
   onSchedule,
+  onEditSchedule,
+  scheduleHistory,
   failedCallsCount = 0,
   hasOutboundNumber = true,
   className,
@@ -347,6 +351,42 @@ export function CampaignCard({
                   ? "Please request an outbound number from the admin to launch campaigns." 
                   : "Upload a CSV contact list to prepare your next outbound campaign."}
             </p>
+          )}
+
+          {/* Schedule history badge — shows when a reactivation has been scheduled */}
+          {(campaign.id === "camp-001" || campaign.isReactivation || campaign.name === "Lead Reactivation") && scheduleHistory && (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-2 mt-1"
+            >
+              <div className="flex items-center gap-2 bg-teal-500/10 border border-teal-500/25 text-teal-400 rounded-lg px-3 py-1.5 text-xs font-medium">
+                <CalendarClock className="size-3.5 shrink-0" />
+                <span>
+                  Scheduled: {new Date(scheduleHistory.scheduledAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                  {" at "}
+                  {new Date(scheduleHistory.scheduledAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+                  {scheduleHistory.did && <span className="ml-1 opacity-70">· {scheduleHistory.did}</span>}
+                </span>
+              </div>
+              {onEditSchedule && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-7 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
+                        onClick={onEditSchedule}
+                      >
+                        <Pencil className="size-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent><p>Edit schedule time</p></TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </motion.div>
           )}
 
           {campaign.status === "scheduled" && (

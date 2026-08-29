@@ -68,7 +68,8 @@ export function OutboundPageContent() {
   );
 
   const [editCampaignId, setEditCampaignId] = useState<string | null>(null);
-  const [animationState, setAnimationState] = useState<{title: string, subtitle?: string} | null>(null);
+  const [animationState, setAnimationState] = useState<{title: string, subtitle?: string, type?: "campaign" | "schedule"} | null>(null);
+  const [scheduleHistory, setScheduleHistory] = useState<{ scheduledAt: string; did: string } | null>(null);
 
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
@@ -95,6 +96,11 @@ export function OutboundPageContent() {
         localStorage.setItem("pnx_persistent_failed_leads", JSON.stringify(deduped));
         setPersistentFailedLeads(deduped);
       } catch (e) {}
+    }
+    // Load schedule history
+    const savedSchedule = localStorage.getItem("pnx_reactivation_schedule");
+    if (savedSchedule) {
+      try { setScheduleHistory(JSON.parse(savedSchedule)); } catch (e) {}
     }
   }, []);
 
@@ -149,12 +155,19 @@ export function OutboundPageContent() {
   // Intercept alertData to show animation instead if it matches success criteria
   useEffect(() => {
     if (alertData && !alertData.isError) {
-      if (alertData.title === "Campaign Completed" || alertData.title.includes("Scheduled ✓") || alertData.title.includes("Reactivation Scheduled")) {
+      if (alertData.title === "Campaign Completed") {
+        setAnimationState({
+          title: alertData.title,
+          subtitle: alertData.description,
+          type: "campaign",
+        });
+        setAlertData(null);
+      } else if (alertData.title.includes("Scheduled") || alertData.title.includes("Reactivation Scheduled")) {
         setAnimationState({
           title: alertData.title.replace(" ✓", ""),
-          subtitle: alertData.description
+          subtitle: alertData.description,
+          type: "schedule",
         });
-        // Clear the alertData so the small dialog doesn't show for these
         setAlertData(null);
       }
     }
@@ -187,6 +200,11 @@ export function OutboundPageContent() {
 
       if (!res.ok) throw new Error("Failed to reschedule calls");
 
+      // Save schedule history to localStorage so it persists across refreshes
+      const historyEntry = { scheduledAt, did: didNumber };
+      localStorage.setItem("pnx_reactivation_schedule", JSON.stringify(historyEntry));
+      setScheduleHistory(historyEntry);
+
       setAlertData({
         title: "Reactivation Scheduled",
         description: `Successfully scheduled ${failedLeads.length} failed call(s) for ${new Date(scheduledAt).toLocaleString()}.`
@@ -207,6 +225,25 @@ export function OutboundPageContent() {
     }
   };
 
+  const handleEditSchedule = () => {
+    // Pre-fill form with existing schedule if available
+    if (scheduleHistory?.scheduledAt) {
+      const d = new Date(scheduleHistory.scheduledAt);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mi = String(d.getMinutes()).padStart(2, "0");
+      setRescheduleDate(`${yyyy}-${mm}-${dd}`);
+      setRescheduleTime(`${hh}:${mi}`);
+      if (scheduleHistory.did) setRescheduleDid(scheduleHistory.did);
+    } else {
+      setRescheduleDate("");
+      setRescheduleTime("");
+    }
+    setRescheduleOpen(true);
+  };
+
   const handleViewTranscript = (call: CallRecord) => {
     setSelectedCall(call);
     setTranscriptOpen(true);
@@ -218,6 +255,7 @@ export function OutboundPageContent() {
         <CompletionAnimation 
           title={animationState.title} 
           subtitle={animationState.subtitle} 
+          type={animationState.type ?? "campaign"}
           onComplete={handleAnimationComplete} 
         />
       )}
@@ -334,6 +372,8 @@ export function OutboundPageContent() {
                   setRescheduleTime("");
                   setRescheduleOpen(true);
                 }}
+                onEditSchedule={scheduleHistory ? handleEditSchedule : undefined}
+                scheduleHistory={scheduleHistory}
                 failedCallsCount={persistentFailedLeads.length}
               />
             </motion.div>
