@@ -69,8 +69,17 @@ export function UploadCsvModal({
   const selectedDidInfo = outboundNumbers.find(n => n.number === selectedDid);
   const derivedChannels = selectedDidInfo?.channels ?? 1;
 
-  const formatIndianNumber = (numStr: string): string => {
-    let cleaned = numStr.toString().replace(/\D/g, "");
+  const formatPhoneNumber = (numStr: string): string => {
+    const raw = numStr.toString().trim();
+    const noSpaces = raw.replace(/\s+/g, "");
+    // If it's already an international format, ensure it's digits only after +
+    if (noSpaces.startsWith("+")) {
+      const digits = noSpaces.substring(1).replace(/\D/g, "");
+      if (digits.length >= 10 && digits.length <= 15) return `+${digits}`;
+    }
+    
+    // Fallback to Indian logic
+    let cleaned = raw.replace(/\D/g, "");
     if (cleaned.length === 10) return `+91${cleaned}`;
     if (cleaned.length === 11 && cleaned.startsWith("0")) return `+91${cleaned.substring(1)}`;
     if (cleaned.length === 12 && cleaned.startsWith("91")) return `+${cleaned}`;
@@ -100,7 +109,7 @@ export function UploadCsvModal({
       const nameVal = nameKey ? row[nameKey] : "Unknown";
       
       if (phoneVal) {
-        const formatted = formatIndianNumber(phoneVal.toString());
+        const formatted = formatPhoneNumber(phoneVal.toString());
         if (formatted) {
           leads.push({ name: nameVal ? nameVal.toString().trim() : "Unknown", phone: formatted });
         } else {

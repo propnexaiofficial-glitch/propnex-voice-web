@@ -174,8 +174,11 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
           });
         }
 
+        // Require campaignId to adopt any backend state
+        if (!data.campaignId) return prev;
+
         // Adopt backend state if we are currently idle and backend has an active or recent campaign
-        if (data.campaignId && data.campaignId !== prev.id) {
+        if (data.campaignId !== prev.id) {
           if (prev.status === "idle" && data.status !== "idle") {
             return {
               ...prev,
@@ -241,8 +244,9 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
             const { data } = await res.json();
             if (data) {
               setCampaign(prev => {
+                if (!data.campaignId) return prev;
                 // Only process if the campaign ID matches (we don't want to adopt stale states here)
-                if (data.campaignId && data.campaignId !== prev.id) return prev;
+                if (data.campaignId !== prev.id) return prev;
                 
                 // Alert logic
                 if (prev.status === "running" && data.status === "completed") {

@@ -15,6 +15,7 @@ import {
   X,
   Trash2,
   CalendarClock,
+  AlertCircle,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -150,6 +151,12 @@ export function CampaignCard({
   const [reminding, setReminding] = useState(false);
   const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);
   const [isLocked, setIsLocked] = useState(false);
+  const [activeTab, setActiveTab] = useState<"pending" | "successful" | "failed">("pending");
+
+  const pendingLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => !l.called);
+  const successLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => l.called && !l.isFailed);
+  const failedLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => l.called && l.isFailed);
+  const invalidLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => !isValidPhoneNumber(l.phone));
 
   useEffect(() => {
     const key = companyId ? `last_outbound_number_request_${companyId}` : "last_outbound_number_request";
@@ -292,32 +299,44 @@ export function CampaignCard({
 
                     {campaign.status === "running" && (
                       <div className="space-y-4">
-                        {(campaign.leads || []).filter((l: any) => !l.called).length > 0 && (
-                          <div className="space-y-2">
-                            <p className="font-semibold text-muted-foreground">Pending ({(campaign.leads || []).filter((l: any) => !l.called).length})</p>
-                            {(campaign.leads || []).filter((l: any) => !l.called).map((lead: any, idx: number) => (
-                              <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={() => {}} campaignStatus={campaign.status} />
-                            ))}
-                          </div>
-                        )}
+                        <div className="flex items-center gap-1 border-b border-border pb-2">
+                          <button onClick={() => setActiveTab("pending")} className={cn("px-3 py-1 text-xs font-medium rounded-full transition-colors", activeTab === "pending" ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/50")}>
+                            Pending ({pendingLeads.length})
+                          </button>
+                          <button onClick={() => setActiveTab("successful")} className={cn("px-3 py-1 text-xs font-medium rounded-full transition-colors", activeTab === "successful" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground hover:bg-muted/50")}>
+                            Success ({successLeads.length})
+                          </button>
+                          <button onClick={() => setActiveTab("failed")} className={cn("px-3 py-1 text-xs font-medium rounded-full transition-colors", activeTab === "failed" ? "bg-rose-500/20 text-rose-600" : "text-muted-foreground hover:bg-muted/50")}>
+                            Failed ({failedLeads.length})
+                          </button>
+                        </div>
                         
-                        {(campaign.leads || []).filter((l: any) => l.called && !l.isFailed).length > 0 && (
+                        {activeTab === "pending" && pendingLeads.length > 0 && (
                           <div className="space-y-2">
-                            <p className="font-semibold text-emerald-500">Successful ({(campaign.leads || []).filter((l: any) => l.called && !l.isFailed).length})</p>
-                            {(campaign.leads || []).filter((l: any) => l.called && !l.isFailed).map((lead: any, idx: number) => (
-                              <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={() => {}} campaignStatus={campaign.status} />
+                            {pendingLeads.map((lead: any) => (
+                              <LeadRow key={`${lead.phone}-${lead.originalIdx}`} lead={lead} idx={lead.originalIdx} onSave={() => {}} campaignStatus={campaign.status} />
                             ))}
                           </div>
                         )}
+                        {activeTab === "pending" && pendingLeads.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No pending leads</p>}
 
-                        {(campaign.leads || []).filter((l: any) => l.called && l.isFailed).length > 0 && (
+                        {activeTab === "successful" && successLeads.length > 0 && (
                           <div className="space-y-2">
-                            <p className="font-semibold text-rose-500">Failed ({(campaign.leads || []).filter((l: any) => l.called && l.isFailed).length})</p>
-                            {(campaign.leads || []).filter((l: any) => l.called && l.isFailed).map((lead: any, idx: number) => (
-                              <LeadRow key={`${lead.phone}-${idx}`} lead={lead} idx={idx} onSave={() => {}} campaignStatus={campaign.status} />
+                            {successLeads.map((lead: any) => (
+                              <LeadRow key={`${lead.phone}-${lead.originalIdx}`} lead={lead} idx={lead.originalIdx} onSave={() => {}} campaignStatus={campaign.status} />
                             ))}
                           </div>
                         )}
+                        {activeTab === "successful" && successLeads.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No successful calls yet</p>}
+
+                        {activeTab === "failed" && failedLeads.length > 0 && (
+                          <div className="space-y-2">
+                            {failedLeads.map((lead: any) => (
+                              <LeadRow key={`${lead.phone}-${lead.originalIdx}`} lead={lead} idx={lead.originalIdx} onSave={() => {}} campaignStatus={campaign.status} />
+                            ))}
+                          </div>
+                        )}
+                        {activeTab === "failed" && failedLeads.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No failed calls yet</p>}
                       </div>
                     )}
 
@@ -341,6 +360,20 @@ export function CampaignCard({
             </p>
           )}
 
+          {campaign.status === "ready" && invalidLeads.length > 0 && (
+            <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg max-h-40 overflow-y-auto">
+              <p className="text-sm font-semibold text-red-500 mb-2 flex items-center gap-2">
+                <AlertCircle className="size-4" />
+                Found {invalidLeads.length} invalid number(s). Please correct them before starting:
+              </p>
+              <div className="space-y-1">
+                {invalidLeads.map((lead: any) => (
+                  <LeadRow key={`invalid-${lead.originalIdx}`} lead={lead} idx={lead.originalIdx} onSave={(newLead) => onEditLead?.(lead.originalIdx, newLead)} onDelete={() => onDeleteLead?.(lead.originalIdx)} campaignStatus={campaign.status} />
+                ))}
+              </div>
+            </div>
+          )}
+
           {(campaign.status === "idle" || campaign.status === "completed") && (
             <p className="text-sm text-muted-foreground">
               {(campaign.id === "camp-001" || campaign.isReactivation || campaign.name === "Lead Reactivation")
@@ -358,16 +391,39 @@ export function CampaignCard({
             <motion.div
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 mt-1"
+              className="flex items-center gap-2 mt-2"
             >
-              <div className="flex items-center gap-2 bg-teal-500/10 border border-teal-500/25 text-teal-400 rounded-lg px-3 py-1.5 text-xs font-medium">
-                <CalendarClock className="size-3.5 shrink-0" />
-                <span>
-                  Scheduled: {new Date(scheduleHistory.scheduledAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
-                  {" at "}
-                  {new Date(scheduleHistory.scheduledAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
-                  {scheduleHistory.did && <span className="ml-1 opacity-70">· {scheduleHistory.did}</span>}
-                </span>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 bg-muted/50 border border-border rounded-lg px-3 py-2 text-xs w-full max-w-lg">
+                <div className="flex items-center gap-2">
+                  <CalendarClock className="size-4 text-primary" />
+                  <span className="font-medium">
+                    {new Date(scheduleHistory.scheduledAt).getTime() > Date.now() ? (
+                      <span className="text-amber-500">Pending</span>
+                    ) : (
+                      <span className="text-emerald-500">Completed</span>
+                    )}
+                  </span>
+                </div>
+                <div className="hidden sm:block text-muted-foreground">•</div>
+                <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 text-muted-foreground">
+                  <span>
+                    For: {new Date(scheduleHistory.scheduledAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })} at {new Date(scheduleHistory.scheduledAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                  {/* @ts-ignore */}
+                  {scheduleHistory.leadsCount > 0 && (
+                    <>
+                      <span className="hidden sm:inline">•</span>
+                      {/* @ts-ignore */}
+                      <span>{scheduleHistory.leadsCount} Leads</span>
+                    </>
+                  )}
+                  {scheduleHistory.did && (
+                    <>
+                      <span className="hidden sm:inline">•</span>
+                      <span className="font-mono">{scheduleHistory.did}</span>
+                    </>
+                  )}
+                </div>
               </div>
               {onEditSchedule && (
                 <TooltipProvider>

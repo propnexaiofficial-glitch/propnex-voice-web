@@ -101,7 +101,15 @@ export function OutboundPageContent() {
     // Load schedule history
     const savedSchedule = localStorage.getItem("pnx_reactivation_schedule");
     if (savedSchedule) {
-      try { setScheduleHistory(JSON.parse(savedSchedule)); } catch (e) {}
+      try { 
+        const parsed = JSON.parse(savedSchedule); 
+        // Keep for 6 hours (6 * 60 * 60 * 1000 ms)
+        if (parsed.createdAt && Date.now() - parsed.createdAt > 6 * 60 * 60 * 1000) {
+          localStorage.removeItem("pnx_reactivation_schedule");
+        } else {
+          setScheduleHistory(parsed); 
+        }
+      } catch (e) {}
     }
   }, []);
 
@@ -207,7 +215,13 @@ export function OutboundPageContent() {
       if (!res.ok) throw new Error("Failed to reschedule calls");
 
       // Save schedule history to localStorage so it persists across refreshes
-      const historyEntry = { scheduledAt, did: didNumber };
+      const historyEntry = { 
+        scheduledAt, 
+        did: didNumber,
+        createdAt: Date.now(),
+        leadsCount: failedLeads.length,
+        csvName: outboundCampaign.uploadedFileName || "Lead Reactivation"
+      };
       localStorage.setItem("pnx_reactivation_schedule", JSON.stringify(historyEntry));
       setScheduleHistory(historyEntry);
 
