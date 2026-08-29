@@ -436,7 +436,7 @@ export function CampaignCard({
                           </span>
                           <span className="text-muted-foreground">•</span>
                           <span className="text-muted-foreground">
-                            {new Date(schedule.scheduledAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                            {new Date(schedule.scheduledAt).toLocaleString(undefined, { weekday: "long", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                           </span>
                         </div>
                         <div className="text-muted-foreground flex items-center">

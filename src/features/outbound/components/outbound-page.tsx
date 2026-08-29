@@ -579,7 +579,14 @@ export function OutboundPageContent() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Date</label>
+                <label className="text-sm font-medium">
+                  Date
+                  {rescheduleDate && (
+                    <span className="text-muted-foreground font-normal ml-1">
+                      ({new Date(rescheduleDate + "T12:00:00").toLocaleDateString(undefined, { weekday: "long" })})
+                    </span>
+                  )}
+                </label>
                 <input 
                   type="date" 
                   value={rescheduleDate}
