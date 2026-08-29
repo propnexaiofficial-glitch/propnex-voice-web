@@ -49,8 +49,8 @@ export function CompletionAnimation({
   }, [duration, type]);
 
   const isCampaign = type === "campaign";
-  const glowColorClass = isCampaign ? "from-violet-500 to-indigo-500" : "from-teal-400 to-blue-500";
-  const bgClass = isCampaign ? "bg-violet-500/10 border-violet-500/20 text-violet-600 dark:text-violet-400" : "bg-teal-500/10 border-teal-500/20 text-teal-600 dark:text-teal-400";
+  const glowColorClass = "from-primary/50 to-primary/80";
+  const bgClass = "bg-primary/10 border-primary/20 text-foreground";
 
   return (
     <AnimatePresence>
