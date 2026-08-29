@@ -390,8 +390,8 @@ export function CampaignCard({
 
           {/* Schedule badge — unified for local history and backend scheduled state */}
           {(() => {
-            const displaySchedule = scheduleHistory || (campaign.status === "scheduled" && campaign.scheduledAt ? {
-              scheduledAt: campaign.scheduledAt,
+            const displaySchedule = scheduleHistory || (campaign.status === "scheduled" ? {
+              scheduledAt: campaign.scheduledAt || "",
               did: "",
               leadsCount: campaign.leads?.length || campaign.totalContacts || 0,
               csvName: campaign.uploadedFileName || (campaign.isReactivation ? "Lead Reactivation" : "Outbound Campaign"),
@@ -399,6 +399,8 @@ export function CampaignCard({
             } : null);
 
             if (!displaySchedule) return null;
+
+            const isPending = !displaySchedule.scheduledAt || new Date(displaySchedule.scheduledAt).getTime() > Date.now();
 
             return (
               <motion.div
@@ -411,7 +413,7 @@ export function CampaignCard({
                     <div className="flex items-center gap-2">
                       <CalendarClock className="size-4 text-primary" />
                       <span className="font-medium">
-                        {new Date(displaySchedule.scheduledAt).getTime() > Date.now() ? (
+                        {isPending ? (
                           <span className="text-amber-500">Pending</span>
                         ) : (
                           <span className="text-emerald-500">Completed</span>
@@ -424,7 +426,7 @@ export function CampaignCard({
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground pl-6">
                       <span>
-                        Scheduled for: {new Date(displaySchedule.scheduledAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        Scheduled for: {displaySchedule.scheduledAt ? new Date(displaySchedule.scheduledAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "Future"}
                       </span>
                       <span className="hidden sm:inline">•</span>
                       
@@ -456,7 +458,7 @@ export function CampaignCard({
                   </div>
                   
                   <div className="flex items-center gap-1 self-end sm:self-auto">
-                    {(onEditSchedule || onSchedule) && new Date(displaySchedule.scheduledAt).getTime() > Date.now() && (
+                    {(onEditSchedule || onSchedule) && isPending && (
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -473,7 +475,7 @@ export function CampaignCard({
                         </Tooltip>
                       </TooltipProvider>
                     )}
-                    {onDeleteSchedule && new Date(displaySchedule.scheduledAt).getTime() <= Date.now() && (
+                    {onDeleteSchedule && !isPending && (
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
