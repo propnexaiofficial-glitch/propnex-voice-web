@@ -103,8 +103,8 @@ export function OutboundPageContent() {
     if (savedSchedule) {
       try { 
         const parsed = JSON.parse(savedSchedule); 
-        // Keep for 6 hours (6 * 60 * 60 * 1000 ms)
-        if (parsed.createdAt && Date.now() - parsed.createdAt > 6 * 60 * 60 * 1000) {
+        // Keep for 12 hours (12 * 60 * 60 * 1000 ms)
+        if (parsed.createdAt && Date.now() - parsed.createdAt > 12 * 60 * 60 * 1000) {
           localStorage.removeItem("pnx_reactivation_schedule");
         } else {
           setScheduleHistory(parsed); 
@@ -220,7 +220,8 @@ export function OutboundPageContent() {
         did: didNumber,
         createdAt: Date.now(),
         leadsCount: failedLeads.length,
-        csvName: outboundCampaign.uploadedFileName || "Lead Reactivation"
+        csvName: outboundCampaign.uploadedFileName || "Lead Reactivation",
+        leads: failedLeads
       };
       localStorage.setItem("pnx_reactivation_schedule", JSON.stringify(historyEntry));
       setScheduleHistory(historyEntry);
@@ -262,6 +263,11 @@ export function OutboundPageContent() {
       setRescheduleTime("");
     }
     setRescheduleOpen(true);
+  };
+
+  const handleDeleteSchedule = () => {
+    setScheduleHistory(null);
+    localStorage.removeItem("pnx_reactivation_schedule");
   };
 
   const handleViewTranscript = (call: CallRecord) => {
@@ -402,6 +408,7 @@ export function OutboundPageContent() {
                         setRescheduleOpen(true);
                       }}
                       onEditSchedule={scheduleHistory ? handleEditSchedule : undefined}
+                      onDeleteSchedule={scheduleHistory ? handleDeleteSchedule : undefined}
                       scheduleHistory={scheduleHistory}
                       failedCallsCount={persistentFailedLeads.length}
                     />

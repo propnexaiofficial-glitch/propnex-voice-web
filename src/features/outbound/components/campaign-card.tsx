@@ -53,7 +53,8 @@ type CampaignCardProps = {
   onDeleteLead?: (index: number) => void;
   onSchedule?: () => void;
   onEditSchedule?: () => void;
-  scheduleHistory?: { scheduledAt: string; did: string } | null;
+  onDeleteSchedule?: () => void;
+  scheduleHistory?: { scheduledAt: string; did: string; leadsCount?: number; csvName?: string; leads?: any[] } | null;
   failedCallsCount?: number;
   hasOutboundNumber?: boolean;
   className?: string;
@@ -138,6 +139,7 @@ export function CampaignCard({
   onDeleteLead,
   onSchedule,
   onEditSchedule,
+  onDeleteSchedule,
   scheduleHistory,
   failedCallsCount = 0,
   hasOutboundNumber = true,
@@ -391,57 +393,94 @@ export function CampaignCard({
             <motion.div
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 mt-2"
+              className="flex flex-col gap-2 mt-2"
             >
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 bg-muted/50 border border-border rounded-lg px-3 py-2 text-xs w-full max-w-lg">
-                <div className="flex items-center gap-2">
-                  <CalendarClock className="size-4 text-primary" />
-                  <span className="font-medium">
-                    {new Date(scheduleHistory.scheduledAt).getTime() > Date.now() ? (
-                      <span className="text-amber-500">Pending</span>
-                    ) : (
-                      <span className="text-emerald-500">Completed</span>
-                    )}
-                  </span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-muted/50 border border-border rounded-lg px-3 py-2 text-xs w-full max-w-lg">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <CalendarClock className="size-4 text-primary" />
+                    <span className="font-medium">
+                      {new Date(scheduleHistory.scheduledAt).getTime() > Date.now() ? (
+                        <span className="text-amber-500">Pending</span>
+                      ) : (
+                        <span className="text-emerald-500">Completed</span>
+                      )}
+                    </span>
+                    <span className="text-muted-foreground">•</span>
+                    <span className="text-muted-foreground">
+                      {scheduleHistory.csvName ? `File: ${scheduleHistory.csvName}` : "Lead Reactivation"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground pl-6">
+                    <span>
+                      Scheduled for: {new Date(scheduleHistory.scheduledAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                    <span className="hidden sm:inline">•</span>
+                    
+                    {/* Failed calls with Info Popover */}
+                    <div className="flex items-center gap-1">
+                      <span>{scheduleHistory.leadsCount || (scheduleHistory.leads?.length || 0)} Failed Calls</span>
+                      {scheduleHistory.leads && scheduleHistory.leads.length > 0 && (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <div className="flex size-5 cursor-pointer items-center justify-center rounded-full bg-muted hover:bg-muted-foreground/20 transition-colors" title="View Failed Leads">
+                              <Info className="size-3 text-foreground" />
+                            </div>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[300px] max-h-64 overflow-y-auto p-3 space-y-2 z-50">
+                            <p className="font-semibold text-sm">Failed Leads</p>
+                            <div className="space-y-1">
+                              {scheduleHistory.leads.map((lead: any, idx: number) => (
+                                <div key={idx} className="flex justify-between items-center text-xs border-b border-border pb-1 hover:bg-muted/30 p-1 -mx-1 px-1 rounded">
+                                  <span className="truncate max-w-[120px]">{lead.name}</span>
+                                  <span className="font-mono">{lead.phone}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className="hidden sm:block text-muted-foreground">•</div>
-                <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 text-muted-foreground">
-                  <span>
-                    For: {new Date(scheduleHistory.scheduledAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })} at {new Date(scheduleHistory.scheduledAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
-                  </span>
-                  {/* @ts-ignore */}
-                  {scheduleHistory.leadsCount > 0 && (
-                    <>
-                      <span className="hidden sm:inline">•</span>
-                      {/* @ts-ignore */}
-                      <span>{scheduleHistory.leadsCount} Leads</span>
-                    </>
+                
+                <div className="flex items-center gap-1 self-end sm:self-auto">
+                  {onEditSchedule && new Date(scheduleHistory.scheduledAt).getTime() > Date.now() && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-7 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
+                            onClick={onEditSchedule}
+                          >
+                            <Pencil className="size-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent><p>Edit schedule time</p></TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
-                  {scheduleHistory.did && (
-                    <>
-                      <span className="hidden sm:inline">•</span>
-                      <span className="font-mono">{scheduleHistory.did}</span>
-                    </>
+                  {onDeleteSchedule && new Date(scheduleHistory.scheduledAt).getTime() <= Date.now() && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-7 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500"
+                            onClick={onDeleteSchedule}
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent><p>Delete history</p></TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                 </div>
               </div>
-              {onEditSchedule && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-7 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
-                        onClick={onEditSchedule}
-                      >
-                        <Pencil className="size-3.5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent><p>Edit schedule time</p></TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
             </motion.div>
           )}
 
