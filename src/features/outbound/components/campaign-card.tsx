@@ -60,6 +60,8 @@ type CampaignCardProps = {
   onDeleteSchedule?: (idx: number) => void;
   displaySchedules?: any[];
   failedCallsCount?: number;
+  disableSchedule?: boolean;
+  scheduleDisabledReason?: string;
   hasOutboundNumber?: boolean;
   className?: string;
   companyId?: string;
@@ -147,6 +149,8 @@ export function CampaignCard({
   onDeleteSchedule,
   displaySchedules,
   failedCallsCount = 0,
+  disableSchedule,
+  scheduleDisabledReason,
   hasOutboundNumber = true,
   className,
   companyId,
@@ -621,16 +625,16 @@ export function CampaignCard({
                       variant="outline"
                       className="border-primary text-primary hover:bg-primary/10 gap-2 h-9 text-sm"
                       onClick={onSchedule}
-                      disabled={failedCallsCount === 0}
+                      disabled={disableSchedule || failedCallsCount === 0}
                     >
                       <CalendarClock className="size-4" />
                       Schedule Reactivation
                     </Button>
                   </div>
                 </TooltipTrigger>
-                {failedCallsCount === 0 && (
+                {(disableSchedule || failedCallsCount === 0) && (
                   <TooltipContent>
-                    <p>Available when there are failed calls</p>
+                    <p>{scheduleDisabledReason || "Available when there are failed calls"}</p>
                   </TooltipContent>
                 )}
               </Tooltip>

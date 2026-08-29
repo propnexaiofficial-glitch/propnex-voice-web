@@ -433,6 +433,8 @@ export function OutboundPageContent() {
                       onDeleteSchedule={scheduleHistoryList.length > 0 ? handleDeleteSchedule : undefined}
                       displaySchedules={scheduleHistoryList}
                       failedCallsCount={persistentFailedLeads.length || (scheduleHistoryList[0]?.leadsCount || 0)}
+                      disableSchedule={persistentFailedLeads.length === 0}
+                      scheduleDisabledReason="No unscheduled failed calls available."
                     />
                   </motion.div>
                 )}
