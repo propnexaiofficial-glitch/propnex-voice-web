@@ -180,7 +180,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
 
         // Adopt backend state if we are currently idle and backend has an active or recent campaign
         if (data.campaignId !== prev.id) {
-          if (prev.status === "idle" && data.status !== "idle") {
+          if (prev.status === "idle" && data.status !== "idle" && data.status !== "force_stopped") {
             return {
               ...prev,
               id: data.campaignId,
@@ -375,6 +375,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
 
     setCampaign(prev => ({
       ...prev,
+      id: "main-idle",
       status: "idle",
       leads: [],
       fileName: undefined,
