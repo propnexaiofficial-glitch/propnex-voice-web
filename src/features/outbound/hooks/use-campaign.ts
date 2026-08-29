@@ -89,7 +89,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
           campaignId: campaign.id,
           didNumber,
           leads: uniqueLeads,
-          channels: campaign.channels ?? 1
+          channels: campaign.channels ?? 1,
+          uploadedFileName: campaign.uploadedFileName,
         })
       });
 
@@ -190,6 +191,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
               leads: data.leads || [],
               totalContacts: data.totalContacts || 0,
               isReactivation: !!data.isReactivation,
+              scheduledAt: data.scheduledAt || prev.scheduledAt,
+              uploadedFileName: data.uploadedFileName || prev.uploadedFileName,
             };
           }
           // Otherwise ignore stale backend state from previous campaigns
@@ -206,6 +209,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
           leads: data.leads || prev.leads,
           totalContacts: data.totalContacts || prev.totalContacts,
           isReactivation: data.isReactivation !== undefined ? !!data.isReactivation : prev.isReactivation,
+          scheduledAt: data.scheduledAt || prev.scheduledAt,
+          uploadedFileName: data.uploadedFileName || prev.uploadedFileName,
         };
       });
     };
@@ -265,6 +270,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
                   leads: data.leads || prev.leads,
                   totalContacts: data.totalContacts || prev.totalContacts,
                   isReactivation: data.isReactivation !== undefined ? !!data.isReactivation : prev.isReactivation,
+                  scheduledAt: data.scheduledAt || prev.scheduledAt,
+                  uploadedFileName: data.uploadedFileName || prev.uploadedFileName,
                 };
               });
             }

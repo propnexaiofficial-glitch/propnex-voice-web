@@ -208,7 +208,8 @@ export function OutboundPageContent() {
           leads: failedLeads,
           scheduledAt,
           didNumber,
-          channels
+          channels,
+          uploadedFileName: outboundCampaign.uploadedFileName || "Lead Reactivation",
         })
       });
 

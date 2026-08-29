@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { campaignId, leads, scheduledAt, didNumber } = body;
+    const { campaignId, leads, scheduledAt, didNumber, uploadedFileName } = body;
 
     if (!campaignId || !leads || !Array.isArray(leads) || !scheduledAt || !didNumber) {
       return NextResponse.json(
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
         "Content-Type": "application/json",
         Authorization: authHeader,
       },
-      body: JSON.stringify({ campaignId, leads, scheduledAt, didNumber }),
+      body: JSON.stringify({ campaignId, leads, scheduledAt, didNumber, uploadedFileName }),
     });
 
     if (!backendRes.ok) {
