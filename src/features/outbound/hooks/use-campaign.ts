@@ -397,7 +397,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
         const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
 
-        await fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/force-stop`, {
+        const response = await fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/force-stop`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -406,13 +406,16 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
           body: JSON.stringify({ companyId })
         });
         
+        const data = await response.json();
+        
         // Let the websocket handle the actual state update to force_stopped
         // But we can eagerly update it locally too
         setCampaign(prev => ({ ...prev, status: "force_stopped" }));
         
-        const processed = campaign.completedCalls || 0;
-        const successful = campaign.successfulCalls || 0;
-        const failed = campaign.failedCalls || 0;
+        const latestState = data.state || campaign;
+        const processed = latestState.completedCalls || 0;
+        const successful = latestState.successfulCalls || 0;
+        const failed = latestState.failedCalls || 0;
         
         setAlertData({
           title: "Campaign Force Stopped",
