@@ -363,7 +363,7 @@ export function CampaignCard({
             )}
           </div>
 
-          {campaign.uploadedFileName && (
+          {campaign.uploadedFileName && !campaign.isReactivation && campaign.id !== "camp-001" && !campaign.name?.includes("Lead Reactivation") && (
             <p className="text-sm text-muted-foreground">
               File: <span className="text-foreground">{campaign.uploadedFileName}</span>
               {" · "}
