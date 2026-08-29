@@ -11,7 +11,7 @@ interface CompletionAnimationProps {
   subtitle?: string;
   onComplete: () => void;
   durationMs?: number;
-  type?: "campaign" | "schedule";
+  type?: "campaign" | "schedule" | "force_stopped";
 }
 
 export function CompletionAnimation({
@@ -49,8 +49,15 @@ export function CompletionAnimation({
   }, [duration, type]);
 
   const isCampaign = type === "campaign";
-  const glowColorClass = "from-primary/50 to-primary/80";
-  const bgClass = "bg-primary/10 border-primary/20 text-foreground";
+  const isForceStopped = type === "force_stopped";
+  
+  const glowColorClass = isForceStopped 
+    ? "from-destructive/50 to-destructive/80" 
+    : "from-primary/50 to-primary/80";
+    
+  const bgClass = isForceStopped
+    ? "bg-destructive/10 border-destructive/20 text-foreground"
+    : "bg-primary/10 border-primary/20 text-foreground";
 
   return (
     <AnimatePresence>

@@ -409,9 +409,14 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         // Let the websocket handle the actual state update to force_stopped
         // But we can eagerly update it locally too
         setCampaign(prev => ({ ...prev, status: "force_stopped" }));
+        
+        const processed = campaign.completedCalls || 0;
+        const successful = campaign.successfulCalls || 0;
+        const failed = campaign.failedCalls || 0;
+        
         setAlertData({
           title: "Campaign Force Stopped",
-          description: "The campaign was halted and cleared.",
+          description: `Processed: ${processed} • Successful: ${successful} • Failed: ${failed}`,
           isError: false,
         });
       }
