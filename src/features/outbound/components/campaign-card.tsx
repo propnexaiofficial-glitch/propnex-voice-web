@@ -54,7 +54,7 @@ type CampaignCardProps = {
   onSchedule?: () => void;
   onEditSchedule?: () => void;
   onDeleteSchedule?: () => void;
-  scheduleHistory?: { scheduledAt: string; did: string; leadsCount?: number; csvName?: string; leads?: any[] } | null;
+  displaySchedules?: any[];
   failedCallsCount?: number;
   hasOutboundNumber?: boolean;
   className?: string;
@@ -168,7 +168,8 @@ export function CampaignCard({
     leads: campaign.leads || []
   } : null);
 
-  const isPendingSchedule = displaySchedule ? (!displaySchedule.scheduledAt || new Date(displaySchedule.scheduledAt).getTime() > Date.now()) : false;
+  const pendingSchedules = (displaySchedules || []).filter(s => new Date(s.scheduledAt).getTime() > Date.now());
+  const isPendingSchedule = pendingSchedules.length > 0;
 
   useEffect(() => {
     const key = companyId ? `last_outbound_number_request_${companyId}` : "last_outbound_number_request";
@@ -279,9 +280,9 @@ export function CampaignCard({
             <h3 className="text-lg font-semibold">{campaign.name}</h3>
             <Badge variant="secondary">
               {isPendingSchedule && campaign.status === "idle" 
-                ? "1 Scheduled" 
-                : campaign.status !== "idle" && (displaySchedule?.csvName || campaign.uploadedFileName)
-                  ? `${status.label} • ${displaySchedule?.csvName || campaign.uploadedFileName}`
+                ? `${pendingSchedules.length} Scheduled` 
+                : campaign.status !== "idle" && (pendingSchedules[0]?.csvName || campaign.uploadedFileName)
+                  ? `${status.label} • ${campaign.uploadedFileName || pendingSchedules[0]?.csvName}`
                   : status.label}
             </Badge>
             
@@ -402,11 +403,9 @@ export function CampaignCard({
             </p>
           )}
 
-          {/* Schedule badge — unified for local history and backend scheduled state */}
+          {/* Schedule badges — unified for local history and backend scheduled state */}
           {(() => {
-            if (!displaySchedule) return null;
-
-            const isPending = isPendingSchedule;
+            if (!displaySchedules || displaySchedules.length === 0) return null;
 
             return (
               <motion.div
@@ -414,98 +413,104 @@ export function CampaignCard({
                 animate={{ opacity: 1, y: 0 }}
                 className="flex flex-col gap-2 mt-2"
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-muted/50 border border-border rounded-lg px-3 py-2 text-xs w-full max-w-lg">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                      <CalendarClock className="size-4 text-primary" />
-                      <span className="font-medium">
-                        {campaign.status === "running" ? (
-                          <span className="text-emerald-500">Running</span>
-                        ) : campaign.status === "paused" ? (
-                          <span className="text-amber-500">Paused</span>
-                        ) : campaign.status === "completed" ? (
-                          <span className="text-emerald-500">Completed</span>
-                        ) : isPending ? (
-                          <span className="text-amber-500">Pending</span>
-                        ) : (
-                          <span className="text-emerald-500">Completed</span>
-                        )}
-                      </span>
-                      <span className="text-muted-foreground">•</span>
-                      <span className="text-muted-foreground">
-                        {displaySchedule.csvName ? `File: ${displaySchedule.csvName}` : "Campaign Schedule"}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground pl-6">
-                      <span>
-                        Scheduled for: {displaySchedule.scheduledAt ? new Date(displaySchedule.scheduledAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "Future"}
-                      </span>
-                      <span className="hidden sm:inline">•</span>
-                      
-                      {/* Failed calls with Info Popover */}
-                      <div className="flex items-center gap-1">
-                        <span>{displaySchedule.leadsCount || (displaySchedule.leads?.length || 0)} Leads</span>
-                        {displaySchedule.leads && displaySchedule.leads.length > 0 && (
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <div className="flex size-5 cursor-pointer items-center justify-center rounded-full bg-muted hover:bg-muted-foreground/20 transition-colors" title="View Leads">
-                                <Info className="size-3 text-foreground" />
-                              </div>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-[300px] max-h-64 overflow-y-auto p-3 space-y-2 z-50">
-                              <p className="font-semibold text-sm">Leads</p>
-                              <div className="space-y-1">
-                                {displaySchedule.leads.map((lead: any, idx: number) => (
-                                  <div key={idx} className="flex justify-between items-center text-xs border-b border-border pb-1 hover:bg-muted/30 p-1 -mx-1 px-1 rounded">
-                                    <span className="truncate max-w-[120px]">{lead.name}</span>
-                                    <span className="font-mono">{lead.phone}</span>
+                {displaySchedules.map((schedule, idx) => {
+                  const isPending = new Date(schedule.scheduledAt).getTime() > Date.now();
+                  
+                  return (
+                    <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-muted/50 border border-border rounded-lg px-3 py-2 text-xs w-full max-w-lg">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <CalendarClock className="size-4 text-primary" />
+                          <span className="font-medium">
+                            {campaign.status === "running" ? (
+                              <span className="text-emerald-500">Running</span>
+                            ) : campaign.status === "paused" ? (
+                              <span className="text-amber-500">Paused</span>
+                            ) : campaign.status === "completed" ? (
+                              <span className="text-emerald-500">Completed</span>
+                            ) : isPending ? (
+                              <span className="text-amber-500">Pending</span>
+                            ) : (
+                              <span className="text-emerald-500">Completed</span>
+                            )}
+                          </span>
+                          <span className="text-muted-foreground">•</span>
+                          <span className="text-muted-foreground">
+                            {schedule.csvName ? `File: ${schedule.csvName}` : "Campaign Schedule"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground pl-6">
+                          <span>
+                            Scheduled for: {new Date(schedule.scheduledAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                          <span className="hidden sm:inline">•</span>
+                          
+                          {/* Failed calls with Info Popover */}
+                          <div className="flex items-center gap-1">
+                            <span>{schedule.leadsCount || (schedule.leads?.length || 0)} Leads</span>
+                            {schedule.leads && schedule.leads.length > 0 && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <div className="flex size-5 cursor-pointer items-center justify-center rounded-full bg-muted hover:bg-muted-foreground/20 transition-colors" title="View Leads">
+                                    <Info className="size-3 text-foreground" />
                                   </div>
-                                ))}
-                              </div>
-                            </PopoverContent>
-                          </Popover>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[300px] max-h-64 overflow-y-auto p-3 space-y-2 z-50">
+                                  <p className="font-semibold text-sm">Leads</p>
+                                  <div className="space-y-1">
+                                    {schedule.leads.map((lead: any, iIdx: number) => (
+                                      <div key={iIdx} className="flex justify-between items-center text-xs border-b border-border pb-1 hover:bg-muted/30 p-1 -mx-1 px-1 rounded">
+                                        <span className="truncate max-w-[120px]">{lead.name}</span>
+                                        <span className="font-mono">{lead.phone}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-1 self-end sm:self-auto">
+                        {(onEditSchedule || onSchedule) && isPending && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="size-7 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
+                                  onClick={onEditSchedule || onSchedule}
+                                >
+                                  <Pencil className="size-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>Edit schedule time</p></TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                        {onDeleteSchedule && !isPending && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="size-7 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500"
+                                  onClick={onDeleteSchedule}
+                                >
+                                  <Trash2 className="size-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>Delete history</p></TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-1 self-end sm:self-auto">
-                    {(onEditSchedule || onSchedule) && isPending && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-7 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
-                              onClick={onEditSchedule || onSchedule}
-                            >
-                              <Pencil className="size-3.5" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent><p>Edit schedule time</p></TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
-                    {onDeleteSchedule && !isPending && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-7 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500"
-                              onClick={onDeleteSchedule}
-                            >
-                              <Trash2 className="size-3.5" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent><p>Delete history</p></TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
-                  </div>
-                </div>
+                  );
+                })}
               </motion.div>
             );
           })()}

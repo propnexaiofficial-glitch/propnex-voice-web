@@ -378,6 +378,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
       status: "idle",
       leads: [],
       fileName: undefined,
+      uploadedFileName: undefined,
       totalContacts: 0,
       completedCalls: 0,
       failedCalls: 0,

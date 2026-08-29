@@ -70,7 +70,7 @@ export function OutboundPageContent() {
 
   const [editCampaignId, setEditCampaignId] = useState<string | null>(null);
   const [animationState, setAnimationState] = useState<{title: string, subtitle?: string, type?: "campaign" | "schedule"} | null>(null);
-  const [scheduleHistory, setScheduleHistory] = useState<{ scheduledAt: string; did: string; createdAt?: number; leadsCount?: number; csvName?: string; leads?: any[] } | null>(null);
+  const [scheduleHistoryList, setScheduleHistoryList] = useState<any[]>([]);
 
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
@@ -99,15 +99,20 @@ export function OutboundPageContent() {
       } catch (e) {}
     }
     // Load schedule history
-    const savedSchedule = localStorage.getItem("pnx_reactivation_schedule");
+  }, []);
+
+  useEffect(() => {
+    const savedSchedule = localStorage.getItem("pnx_reactivation_schedules");
     if (savedSchedule) {
-      try { 
-        const parsed = JSON.parse(savedSchedule); 
-        // Keep for 12 hours (12 * 60 * 60 * 1000 ms)
-        if (parsed.createdAt && Date.now() - parsed.createdAt > 12 * 60 * 60 * 1000) {
-          localStorage.removeItem("pnx_reactivation_schedule");
-        } else {
-          setScheduleHistory(parsed); 
+      try {
+        const parsed = JSON.parse(savedSchedule);
+        if (Array.isArray(parsed)) {
+          // Filter out past schedules that should have already run (older than 24 hours just in case)
+          const now = Date.now();
+          const valid = parsed.filter((s: any) => new Date(s.scheduledAt).getTime() > now - 86400000);
+          setScheduleHistoryList(valid);
+        } else if (parsed.scheduledAt) {
+          setScheduleHistoryList([parsed]);
         }
       } catch (e) {}
     }
@@ -115,38 +120,7 @@ export function OutboundPageContent() {
 
   const handleAnimationComplete = () => {
     setAnimationState(null);
-    if (outboundCampaign.status === "completed") {
-      if (!outboundCampaign.isReactivation) {
-        // Standard outbound finished: move failed calls to persistent Reactivation pool and reset
-        const newlyFailed = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
-        if (newlyFailed.length > 0) {
-          setPersistentFailedLeads(prev => {
-            const combined = [...prev, ...newlyFailed];
-            // Deduplicate by last-10-digit normalized phone so repeated test runs never duplicate entries
-            const seen = new Set<string>();
-            const deduped = combined.filter((lead: any) => {
-              const key = (lead.phone || "").replace(/\D/g, "").slice(-10);
-              if (!key || seen.has(key)) return false;
-              seen.add(key);
-              return true;
-            });
-            localStorage.setItem("pnx_persistent_failed_leads", JSON.stringify(deduped));
-            return deduped;
-          });
-        }
-        clearCampaign(); // Resets outbound back to 0
-
-      } else {
-        // Reactivation campaign finished (with or without failures): clear everything.
-        // We do NOT re-queue failed reactivation leads — if they failed again, we stop here.
-        setPersistentFailedLeads([]);
-        localStorage.removeItem("pnx_persistent_failed_leads");
-        // Also clear schedule history so the badge + reschedule dialog don't resurface
-        setScheduleHistory(null);
-        localStorage.removeItem("pnx_reactivation_schedule");
-        clearCampaign();
-      }
-    }
+    // Clearing logic is now handled instantly when alertData triggers the animation
   };
 
   useEffect(() => {
@@ -175,6 +149,32 @@ export function OutboundPageContent() {
           type: "campaign",
         });
         setAlertData(null);
+
+        // Clear campaign state IMMEDIATELY so the card resets to "No Campaign" right away
+        if (!outboundCampaign.isReactivation) {
+          const newlyFailed = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
+          if (newlyFailed.length > 0) {
+            setPersistentFailedLeads(prev => {
+              const combined = [...prev, ...newlyFailed];
+              const seen = new Set<string>();
+              const deduped = combined.filter((lead: any) => {
+                const key = (lead.phone || "").replace(/\D/g, "").slice(-10);
+                if (!key || seen.has(key)) return false;
+                seen.add(key);
+                return true;
+              });
+              localStorage.setItem("pnx_persistent_failed_leads", JSON.stringify(deduped));
+              return deduped;
+            });
+          }
+        } else {
+          setPersistentFailedLeads([]);
+          localStorage.removeItem("pnx_persistent_failed_leads");
+          // NOTE: We only remove the schedule history for the one that just completed!
+          // But actually, we don't clear the entire array anymore, we'll handle that differently.
+        }
+        clearCampaign(); 
+        
       } else if (alertData.title.includes("Scheduled") || alertData.title.includes("Reactivation Scheduled")) {
         setAnimationState({
           title: alertData.title.replace(" ✓", ""),
@@ -184,7 +184,7 @@ export function OutboundPageContent() {
         setAlertData(null);
       }
     }
-  }, [alertData, setAlertData]);
+  }, [alertData, setAlertData, clearCampaign, outboundCampaign.isReactivation, outboundCampaign.leads]);
 
   const handleReschedule = async () => {
     try {
@@ -224,8 +224,9 @@ export function OutboundPageContent() {
         csvName: outboundCampaign.uploadedFileName || "Lead Reactivation",
         leads: failedLeads
       };
-      localStorage.setItem("pnx_reactivation_schedule", JSON.stringify(historyEntry));
-      setScheduleHistory(historyEntry);
+      const updatedList = [...scheduleHistoryList, historyEntry];
+      localStorage.setItem("pnx_reactivation_schedules", JSON.stringify(updatedList));
+      setScheduleHistoryList(updatedList);
 
       setAlertData({
         title: "Reactivation Scheduled",
@@ -360,7 +361,7 @@ export function OutboundPageContent() {
               </>
             ) : (
               <>
-                {(persistentFailedLeads.length > 0 || scheduleHistory) && (
+                {(persistentFailedLeads.length > 0 || scheduleHistoryList.length > 0) && (
                   <motion.div
                     initial={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, height: 'auto', scale: 1 }}
@@ -368,7 +369,11 @@ export function OutboundPageContent() {
                     className="overflow-hidden mb-4"
                   >
                     <CampaignCard
-                      campaign={{ ...leadReactivationCampaign, leads: persistentFailedLeads.length > 0 ? persistentFailedLeads : (scheduleHistory?.leads || []), failedCalls: persistentFailedLeads.length || (scheduleHistory?.leadsCount || 0) }}
+                      campaign={{ 
+                        ...leadReactivationCampaign, 
+                        leads: persistentFailedLeads.length > 0 ? persistentFailedLeads : (scheduleHistoryList[0]?.leads || []), 
+                        failedCalls: persistentFailedLeads.length || (scheduleHistoryList[0]?.leadsCount || 0) 
+                      }}
                       progressPercent={0}
                       hasOutboundNumber={hasOutboundNumber}
                       onUploadClick={() => {}}
@@ -387,10 +392,8 @@ export function OutboundPageContent() {
                         setRescheduleTime("");
                         setRescheduleOpen(true);
                       }}
-                      onEditSchedule={scheduleHistory ? handleEditSchedule : undefined}
-                      onDeleteSchedule={scheduleHistory ? handleDeleteSchedule : undefined}
-                      scheduleHistory={scheduleHistory}
-                      failedCallsCount={persistentFailedLeads.length}
+                      displaySchedules={scheduleHistoryList}
+                      failedCallsCount={persistentFailedLeads.length || (scheduleHistoryList[0]?.leadsCount || 0)}
                     />
                   </motion.div>
                 )}
