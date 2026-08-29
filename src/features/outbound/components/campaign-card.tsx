@@ -385,12 +385,10 @@ export function CampaignCard({
             </div>
           )}
 
-          {(campaign.status === "idle" || campaign.status === "completed") && (
+          {(campaign.status === "idle" || campaign.status === "completed" || campaign.id === "camp-001" || campaign.isReactivation || campaign.name?.includes("Lead Reactivation")) && (
             <p className="text-sm text-muted-foreground">
-              {(campaign.id === "camp-001" || campaign.isReactivation || campaign.name === "Lead Reactivation")
-                ? (failedCallsCount > 0
-                    ? `Ready to reactivate ${failedCallsCount} failed call(s).`
-                    : "Failed calls will appear here for reactivation.")
+              {(campaign.id === "camp-001" || campaign.isReactivation || campaign.name?.includes("Lead Reactivation"))
+                ? "Failed calls from past campaigns can be scheduled for reactivation here."
                 : !hasOutboundNumber 
                   ? "Please request an outbound number from the admin to launch campaigns." 
                   : "Upload a CSV contact list to prepare your next outbound campaign."}

@@ -102,30 +102,43 @@ export function OutboundPageContent() {
   }, []);
 
   useEffect(() => {
-    let savedSchedule = localStorage.getItem("pnx_reactivation_schedules");
-    let isLegacy = false;
-    
-    if (!savedSchedule) {
-      savedSchedule = localStorage.getItem("pnx_reactivation_schedule");
-      if (savedSchedule) isLegacy = true;
+    const schedulesJSON = localStorage.getItem("pnx_reactivation_schedules");
+    const legacyJSON = localStorage.getItem("pnx_reactivation_schedule");
+    let allSchedules: any[] = [];
+    let needsSave = false;
+
+    if (schedulesJSON) {
+      try {
+        const parsed = JSON.parse(schedulesJSON);
+        if (Array.isArray(parsed)) allSchedules = [...parsed];
+      } catch (e) {}
     }
 
-    if (savedSchedule) {
+    if (legacyJSON) {
       try {
-        const parsed = JSON.parse(savedSchedule);
-        if (Array.isArray(parsed)) {
-          // Filter out past schedules that should have already run (older than 24 hours just in case)
-          const now = Date.now();
-          const valid = parsed.filter((s: any) => new Date(s.scheduledAt).getTime() > now - 86400000);
-          setScheduleHistoryList(valid);
-        } else if (parsed.scheduledAt) {
-          setScheduleHistoryList([parsed]);
-          if (isLegacy) {
-            localStorage.setItem("pnx_reactivation_schedules", JSON.stringify([parsed]));
-            localStorage.removeItem("pnx_reactivation_schedule");
+        const parsedLegacy = JSON.parse(legacyJSON);
+        if (parsedLegacy && parsedLegacy.scheduledAt) {
+          // Check if this legacy schedule is already in allSchedules
+          const exists = allSchedules.some(s => s.scheduledAt === parsedLegacy.scheduledAt && s.csvName === parsedLegacy.csvName);
+          if (!exists) {
+            allSchedules.push(parsedLegacy);
+            needsSave = true;
           }
         }
       } catch (e) {}
+    }
+
+    if (allSchedules.length > 0) {
+      const now = Date.now();
+      const valid = allSchedules.filter((s: any) => new Date(s.scheduledAt).getTime() > now - 86400000);
+      setScheduleHistoryList(valid);
+      
+      if (needsSave || legacyJSON) {
+        localStorage.setItem("pnx_reactivation_schedules", JSON.stringify(valid));
+        localStorage.removeItem("pnx_reactivation_schedule"); // Clear legacy
+      }
+    } else {
+      localStorage.removeItem("pnx_reactivation_schedule"); // Clear legacy if invalid/empty
     }
   }, []);
 
