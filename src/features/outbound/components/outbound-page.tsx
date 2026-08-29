@@ -360,33 +360,12 @@ export function OutboundPageContent() {
               </>
             ) : (
               <>
-                <CampaignCard
-                  campaign={hasOutboundNumber ? outboundCampaign : { ...outboundCampaign, status: "idle", leads: [], failedCalls: 0, completedCalls: 0 }}
-                  progressPercent={hasOutboundNumber ? progressPercent : 0}
-                  hasOutboundNumber={hasOutboundNumber}
-                  onUploadClick={() => setUploadOpen(true)}
-                  onStart={startCampaign}
-                  onPause={pauseCampaign}
-                  onResume={resumeCampaign}
-                  onClear={clearCampaign}
-                  onEditLead={editLead}
-                  onDeleteLead={deleteLead}
-                  onSchedule={() => {
-                    const fallbackLeads = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
-                    if (persistentFailedLeads.length === 0 && fallbackLeads.length === 0) return;
-                    setRescheduleDate("");
-                    setRescheduleTime("");
-                    setRescheduleOpen(true);
-                  }}
-                  failedCallsCount={outboundCampaign.failedCalls}
-                />
-                
                 {(persistentFailedLeads.length > 0 || scheduleHistory) && (
                   <motion.div
                     initial={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, height: 'auto', scale: 1 }}
                     transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                    className="overflow-hidden"
+                    className="overflow-hidden mb-4"
                   >
                     <CampaignCard
                       campaign={{ ...leadReactivationCampaign, leads: persistentFailedLeads.length > 0 ? persistentFailedLeads : (scheduleHistory?.leads || []), failedCalls: persistentFailedLeads.length || (scheduleHistory?.leadsCount || 0) }}
@@ -415,6 +394,27 @@ export function OutboundPageContent() {
                     />
                   </motion.div>
                 )}
+
+                <CampaignCard
+                  campaign={hasOutboundNumber ? outboundCampaign : { ...outboundCampaign, status: "idle", leads: [], failedCalls: 0, completedCalls: 0 }}
+                  progressPercent={hasOutboundNumber ? progressPercent : 0}
+                  hasOutboundNumber={hasOutboundNumber}
+                  onUploadClick={() => setUploadOpen(true)}
+                  onStart={startCampaign}
+                  onPause={pauseCampaign}
+                  onResume={resumeCampaign}
+                  onClear={clearCampaign}
+                  onEditLead={editLead}
+                  onDeleteLead={deleteLead}
+                  onSchedule={() => {
+                    const fallbackLeads = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
+                    if (persistentFailedLeads.length === 0 && fallbackLeads.length === 0) return;
+                    setRescheduleDate("");
+                    setRescheduleTime("");
+                    setRescheduleOpen(true);
+                  }}
+                  failedCallsCount={outboundCampaign.failedCalls}
+                />
               </>
             )}
           </>
