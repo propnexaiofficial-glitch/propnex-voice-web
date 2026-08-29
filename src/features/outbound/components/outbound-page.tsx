@@ -57,6 +57,7 @@ export function OutboundPageContent() {
     clearFailedCalls,
     alertData,
     setAlertData,
+    isInitializing,
   } = useCampaign();
 
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -128,9 +129,13 @@ export function OutboundPageContent() {
         clearCampaign(); // Resets outbound back to 0
 
       } else {
-        // Reactivation campaign finished: clear out the state and the persistent list
+        // Reactivation campaign finished (with or without failures): clear everything.
+        // We do NOT re-queue failed reactivation leads — if they failed again, we stop here.
         setPersistentFailedLeads([]);
         localStorage.removeItem("pnx_persistent_failed_leads");
+        // Also clear schedule history so the badge + reschedule dialog don't resurface
+        setScheduleHistory(null);
+        localStorage.removeItem("pnx_reactivation_schedule");
         clearCampaign();
       }
     }
@@ -283,100 +288,110 @@ export function OutboundPageContent() {
       </motion.div>
 
       <div className="space-y-4">
-        {outboundCampaign.isReactivation ? (
-          <>
-            <motion.div
-              initial={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, height: 'auto', scale: 1 }}
-              transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            >
-              <CampaignCard
-                campaign={{ ...outboundCampaign, name: "Lead Reactivation" }}
-                progressPercent={hasOutboundNumber ? progressPercent : 0}
-                hasOutboundNumber={hasOutboundNumber}
-                onUploadClick={() => {}}
-                onStart={startCampaign}
-                onPause={pauseCampaign}
-                onResume={resumeCampaign}
-                onClear={clearCampaign}
-                onEditLead={editLead}
-                onDeleteLead={deleteLead}
-                onSchedule={() => {
-                  setRescheduleDate("");
-                  setRescheduleTime("");
-                  setRescheduleOpen(true);
-                }}
-                failedCallsCount={outboundCampaign.failedCalls}
-              />
-            </motion.div>
-            <CampaignCard
-              campaign={{ ...outboundCampaign, id: "main-completed", name: "Outbound", status: "completed", leads: [], failedCalls: 0, completedCalls: 0, totalContacts: 0, isReactivation: false }}
-              progressPercent={100}
-              hasOutboundNumber={hasOutboundNumber}
-              onUploadClick={() => setUploadOpen(true)}
-              onStart={() => {}}
-              onPause={() => {}}
-              onResume={() => {}}
-              onClear={clearCampaign}
-              onEditLead={() => {}}
-              onDeleteLead={() => {}}
-              onSchedule={() => {}}
-              failedCallsCount={0}
-            />
-          </>
+        {isInitializing ? (
+          <div className="space-y-4">
+            <div className="h-32 w-full animate-pulse rounded-xl bg-muted" />
+            <div className="h-32 w-full animate-pulse rounded-xl bg-muted" />
+          </div>
         ) : (
           <>
-            <CampaignCard
-              campaign={hasOutboundNumber ? outboundCampaign : { ...outboundCampaign, status: "idle", leads: [], failedCalls: 0, completedCalls: 0 }}
-              progressPercent={hasOutboundNumber ? progressPercent : 0}
-              hasOutboundNumber={hasOutboundNumber}
-              onUploadClick={() => setUploadOpen(true)}
-              onStart={startCampaign}
-              onPause={pauseCampaign}
-              onResume={resumeCampaign}
-              onClear={clearCampaign}
-              onEditLead={editLead}
-              onDeleteLead={deleteLead}
-              onSchedule={() => {
-                setRescheduleDate("");
-                setRescheduleTime("");
-                setRescheduleOpen(true);
-              }}
-              failedCallsCount={outboundCampaign.failedCalls}
-            />
-            
-            
-            <motion.div
-              initial={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, height: 'auto', scale: 1 }}
-              transition={{ type: "spring", stiffness: 200, damping: 20 }}
-              className="overflow-hidden"
-            >
-              <CampaignCard
-                campaign={{ ...leadReactivationCampaign, leads: persistentFailedLeads, failedCalls: persistentFailedLeads.length }}
-                progressPercent={0}
-                hasOutboundNumber={hasOutboundNumber}
-                onUploadClick={() => {}}
-                onStart={() => {}}
-                onPause={() => {}}
-                onResume={() => {}}
-                onClear={() => {
-                   setPersistentFailedLeads([]);
-                   localStorage.removeItem("pnx_persistent_failed_leads");
-                }}
-                onEditLead={() => {}}
-                onDeleteLead={() => {}}
-                onSchedule={() => {
-                  if (persistentFailedLeads.length === 0) return;
-                  setRescheduleDate("");
-                  setRescheduleTime("");
-                  setRescheduleOpen(true);
-                }}
-                onEditSchedule={scheduleHistory ? handleEditSchedule : undefined}
-                scheduleHistory={scheduleHistory}
-                failedCallsCount={persistentFailedLeads.length}
-              />
-            </motion.div>
+            {outboundCampaign.isReactivation ? (
+              <>
+                <motion.div
+                  initial={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, height: 'auto', scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                >
+                  <CampaignCard
+                    campaign={{ ...outboundCampaign, name: "Lead Reactivation" }}
+                    progressPercent={hasOutboundNumber ? progressPercent : 0}
+                    hasOutboundNumber={hasOutboundNumber}
+                    onUploadClick={() => {}}
+                    onStart={startCampaign}
+                    onPause={pauseCampaign}
+                    onResume={resumeCampaign}
+                    onClear={clearCampaign}
+                    onEditLead={editLead}
+                    onDeleteLead={deleteLead}
+                    onSchedule={() => {
+                      setRescheduleDate("");
+                      setRescheduleTime("");
+                      setRescheduleOpen(true);
+                    }}
+                    failedCallsCount={outboundCampaign.failedCalls}
+                  />
+                </motion.div>
+                <CampaignCard
+                  campaign={{ ...outboundCampaign, id: "main-completed", name: "Outbound", status: "completed", leads: [], failedCalls: 0, completedCalls: 0, totalContacts: 0, isReactivation: false }}
+                  progressPercent={100}
+                  hasOutboundNumber={hasOutboundNumber}
+                  onUploadClick={() => setUploadOpen(true)}
+                  onStart={() => {}}
+                  onPause={() => {}}
+                  onResume={() => {}}
+                  onClear={clearCampaign}
+                  onEditLead={() => {}}
+                  onDeleteLead={() => {}}
+                  onSchedule={() => {}}
+                  failedCallsCount={0}
+                />
+              </>
+            ) : (
+              <>
+                <CampaignCard
+                  campaign={hasOutboundNumber ? outboundCampaign : { ...outboundCampaign, status: "idle", leads: [], failedCalls: 0, completedCalls: 0 }}
+                  progressPercent={hasOutboundNumber ? progressPercent : 0}
+                  hasOutboundNumber={hasOutboundNumber}
+                  onUploadClick={() => setUploadOpen(true)}
+                  onStart={startCampaign}
+                  onPause={pauseCampaign}
+                  onResume={resumeCampaign}
+                  onClear={clearCampaign}
+                  onEditLead={editLead}
+                  onDeleteLead={deleteLead}
+                  onSchedule={() => {
+                    setRescheduleDate("");
+                    setRescheduleTime("");
+                    setRescheduleOpen(true);
+                  }}
+                  failedCallsCount={outboundCampaign.failedCalls}
+                />
+                
+                {persistentFailedLeads.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, height: 'auto', scale: 1 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                    className="overflow-hidden"
+                  >
+                    <CampaignCard
+                      campaign={{ ...leadReactivationCampaign, leads: persistentFailedLeads, failedCalls: persistentFailedLeads.length }}
+                      progressPercent={0}
+                      hasOutboundNumber={hasOutboundNumber}
+                      onUploadClick={() => {}}
+                      onStart={() => {}}
+                      onPause={() => {}}
+                      onResume={() => {}}
+                      onClear={() => {
+                         setPersistentFailedLeads([]);
+                         localStorage.removeItem("pnx_persistent_failed_leads");
+                      }}
+                      onEditLead={() => {}}
+                      onDeleteLead={() => {}}
+                      onSchedule={() => {
+                        if (persistentFailedLeads.length === 0) return;
+                        setRescheduleDate("");
+                        setRescheduleTime("");
+                        setRescheduleOpen(true);
+                      }}
+                      onEditSchedule={scheduleHistory ? handleEditSchedule : undefined}
+                      scheduleHistory={scheduleHistory}
+                      failedCallsCount={persistentFailedLeads.length}
+                    />
+                  </motion.div>
+                )}
+              </>
+            )}
           </>
         )}
       </div>

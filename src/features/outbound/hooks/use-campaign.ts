@@ -13,6 +13,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
   const [campaign, setCampaign] = useState<Campaign>(initialState);
   const [upload, setUpload] = useState<UploadCsvState | null>(null);
   const [alertData, setAlertData] = useState<{ title: string; description: string; isError?: boolean } | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
   const ignorePollingUntil = useRef<number>(0);
   const hasClearedFailedCalls = useRef<boolean>(false);
 
@@ -124,7 +125,10 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         const user = storedUserStr ? JSON.parse(storedUserStr) : {};
         const companyId = user.companyId || null;
 
-        if (!companyId) return;
+        if (!companyId) {
+          setIsInitializing(false);
+          return;
+        }
 
         const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
         const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
@@ -154,6 +158,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
         });
       } catch (err) {
         console.error("Failed to connect to backend campaign socket:", err);
+      } finally {
+        setIsInitializing(false);
       }
     };
 
@@ -387,5 +393,6 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial) {
     clearCampaign,
     alertData,
     setAlertData,
+    isInitializing,
   };
 }
