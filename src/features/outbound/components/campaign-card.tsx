@@ -572,7 +572,7 @@ export function CampaignCard({
             </div>
           )}
 
-          {(campaign.id === "camp-001" || campaign.isReactivation || campaign.name === "Lead Reactivation") && (campaign.status === "idle" || campaign.status === "completed") && (
+          {(campaign.id === "camp-001" || campaign.isReactivation || campaign.name === "Lead Reactivation") && (campaign.status === "idle" || campaign.status === "completed" || campaign.status === "scheduled") && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
