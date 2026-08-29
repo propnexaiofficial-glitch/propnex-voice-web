@@ -182,7 +182,8 @@ export function OutboundPageContent() {
     try {
       setIsRescheduling(true);
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-      const failedLeads = persistentFailedLeads;
+      const fallbackLeads = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
+      const failedLeads = persistentFailedLeads.length > 0 ? persistentFailedLeads : fallbackLeads;
       
       const scheduledAt = new Date(`${rescheduleDate}T${rescheduleTime}`).toISOString();
       const didNumber = rescheduleDid || user?.assignedNumbersDetailed?.[0]?.number;
@@ -350,6 +351,8 @@ export function OutboundPageContent() {
                   onEditLead={editLead}
                   onDeleteLead={deleteLead}
                   onSchedule={() => {
+                    const fallbackLeads = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
+                    if (persistentFailedLeads.length === 0 && fallbackLeads.length === 0) return;
                     setRescheduleDate("");
                     setRescheduleTime("");
                     setRescheduleOpen(true);
@@ -472,7 +475,11 @@ export function OutboundPageContent() {
           <DialogHeader>
             <DialogTitle>Reschedule Failed Calls</DialogTitle>
             <DialogDescription>
-              {outboundCampaign.failedCalls} call{outboundCampaign.failedCalls !== 1 ? "s" : ""} failed during the campaign. Select a date and time to automatically retry them.
+              {(() => {
+                const fallbackLeads = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
+                const leadsToUse = persistentFailedLeads.length > 0 ? persistentFailedLeads : fallbackLeads;
+                return `${leadsToUse.length} call${leadsToUse.length !== 1 ? "s" : ""} failed during the campaign. Select a date and time to automatically retry them.`;
+              })()}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -495,9 +502,11 @@ export function OutboundPageContent() {
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Failed Leads ({persistentFailedLeads.length})</label>
+              <label className="text-sm font-medium">
+                Failed Leads ({persistentFailedLeads.length > 0 ? persistentFailedLeads.length : (outboundCampaign.leads?.filter((l: any) => l.isFailed) || []).length})
+              </label>
               <div className="max-h-40 overflow-y-auto rounded-md border border-border bg-muted/30 p-2 text-sm">
-                {persistentFailedLeads.map((lead: any, i: number) => (
+                {(persistentFailedLeads.length > 0 ? persistentFailedLeads : (outboundCampaign.leads?.filter((l: any) => l.isFailed) || [])).map((lead: any, i: number) => (
                   <div key={i} className="flex justify-between border-b border-border/50 py-1 last:border-0">
                     <span>{lead.name}</span>
                     <span className="font-mono text-muted-foreground">{lead.phone}</span>
