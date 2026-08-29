@@ -54,6 +54,7 @@ export function OutboundPageContent() {
     editLead,
     deleteLead,
     clearCampaign,
+    forceStopCampaign,
     clearFailedCalls,
     alertData,
     setAlertData,
@@ -445,6 +446,7 @@ export function OutboundPageContent() {
                   onPause={pauseCampaign}
                   onResume={resumeCampaign}
                   onClear={clearCampaign}
+                  onForceStop={forceStopCampaign}
                   onEditLead={editLead}
                   onDeleteLead={deleteLead}
                   onSchedule={() => {

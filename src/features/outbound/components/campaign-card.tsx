@@ -33,14 +33,15 @@ import { cn } from "@/lib/utils";
 
 const statusConfig: Record<
   Campaign["status"],
-  { label: string; variant: "default" | "secondary" | "success" | "warning" | "gold" }
+  { label: string; color: string; bgColor: string }
 > = {
-  idle: { label: "No Campaign", variant: "secondary" },
-  scheduled: { label: "Scheduled", variant: "gold" },
-  ready: { label: "Ready to Start", variant: "gold" },
-  running: { label: "Running", variant: "success" },
-  paused: { label: "Paused", variant: "warning" },
-  completed: { label: "Completed", variant: "default" },
+  idle: { label: "No Campaign", color: "text-muted-foreground", bgColor: "bg-muted" },
+  scheduled: { label: "Scheduled", color: "text-amber-500", bgColor: "bg-amber-500/10" },
+  ready: { label: "Ready to Start", color: "text-amber-500", bgColor: "bg-amber-500/10" },
+  running: { label: "Running", color: "text-primary", bgColor: "bg-primary/10" },
+  paused: { label: "Paused", color: "text-amber-500", bgColor: "bg-amber-500/10" },
+  completed: { label: "Completed", color: "text-emerald-500", bgColor: "bg-emerald-500/10" },
+  force_stopped: { label: "Force Stopped", color: "text-destructive", bgColor: "bg-destructive/10" },
 };
 
 type CampaignCardProps = {
@@ -51,6 +52,7 @@ type CampaignCardProps = {
   onPause: () => void;
   onResume: () => void;
   onClear?: () => void;
+  onForceStop?: () => void;
   onEditLead?: (index: number, newLead: any) => void;
   onDeleteLead?: (index: number) => void;
   onSchedule?: () => void;
@@ -137,6 +139,7 @@ export function CampaignCard({
   onPause,
   onResume,
   onClear,
+  onForceStop,
   onEditLead,
   onDeleteLead,
   onSchedule,
@@ -283,7 +286,7 @@ export function CampaignCard({
                   : status.label}
             </Badge>
             
-            {(campaign.status !== "idle" && campaign.status !== "completed" && campaign.leads && campaign.leads.length > 0 && !campaign.isReactivation && campaign.name !== "Lead Reactivation") && (
+            {(campaign.status !== "idle" && campaign.leads && campaign.leads.length > 0 && !campaign.isReactivation && campaign.name !== "Lead Reactivation") && (
               <div className="flex items-center gap-2 ml-2">
                 <Popover>
                   <PopoverTrigger asChild>
@@ -567,7 +570,7 @@ export function CampaignCard({
 
           {campaign.status === "running" && (
             <div className="flex gap-2">
-              <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onClear}>
+              <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onForceStop}>
                 <Trash2 className="size-4" />
                 Force Stop
               </Button>
@@ -589,7 +592,7 @@ export function CampaignCard({
 
           {campaign.status === "paused" && (
             <div className="flex gap-2">
-              <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onClear}>
+              <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onForceStop}>
                 <Trash2 className="size-4" />
                 Force Stop
               </Button>
