@@ -461,6 +461,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
           body: JSON.stringify({ companyId })
         });
         
+        if (!response.ok) throw new Error("Backend failed to stop");
+        
         const data = await response.json();
         
         // Let the websocket handle the actual state update to force_stopped
@@ -480,6 +482,13 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
       }
     } catch (err) {
       console.error("Failed to force stop campaign on backend", err);
+      // Force clear locally to unblock the UI
+      setCampaign(prev => ({ ...prev, status: "force_stopped" }));
+      setAlertData({
+        title: "Campaign Force Stopped",
+        description: "Forced stopped locally.",
+        isError: false,
+      });
     }
   }, []);
 

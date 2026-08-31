@@ -192,7 +192,7 @@ export function OutboundPageContent() {
               return deduped;
             });
           }
-        } else if (outboundCampaign.isReactivation && alertData.title === "Campaign Completed") {
+        } else if (outboundCampaign.isReactivation && (alertData.title === "Campaign Completed" || alertData.title === "Campaign Force Stopped")) {
           setPersistentFailedLeads([]);
           localStorage.removeItem("pnx_persistent_failed_leads");
           // NOTE: We only remove the schedule history for the one that just completed!
