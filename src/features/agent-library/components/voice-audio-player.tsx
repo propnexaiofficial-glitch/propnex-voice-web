@@ -1,104 +1,124 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Pause, Play } from "lucide-react";
+import { Play, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-function formatTime(seconds: number) {
-  if (!seconds || isNaN(seconds)) return "0:00";
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
+// Helper to reliably convert Google Drive links to direct streaming links
+function getPlayableAudioUrl(url: string) {
+  if (!url) return "";
+  const driveRegex = /drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/;
+  const match = url.match(driveRegex);
+  if (match && match[1]) {
+    // For smaller files, this bypasses the viewer and streams the audio
+    return `https://drive.google.com/uc?export=download&id=${match[1]}`;
+  }
+  return url;
 }
 
-type VoiceAudioPlayerProps = {
-  src: string;
-  className?: string;
-};
-
-export function VoiceAudioPlayer({ src, className }: VoiceAudioPlayerProps) {
-  const audioRef = useRef<HTMLAudioElement>(null);
+export function VoiceAudioPlayer({ src, className }: { src: string; className?: string }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const playableSrc = getPlayableAudioUrl(src);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const setAudioData = () => {
-      setDuration(audio.duration);
+    const updateProgress = () => {
+      setCurrentTime(audio.currentTime);
+      if (audio.duration && isFinite(audio.duration)) {
+        setProgress((audio.currentTime / audio.duration) * 100);
+      }
     };
 
-    const setAudioTime = () => {
-      setProgress(audio.currentTime);
+    const handleLoadedMetadata = () => {
+      if (audio.duration && isFinite(audio.duration)) {
+        setDuration(audio.duration);
+      }
     };
 
-    const onAudioEnd = () => {
+    const handleEnded = () => {
       setIsPlaying(false);
       setProgress(0);
+      setCurrentTime(0);
+      audio.currentTime = 0;
     };
 
-    // If it's already loaded metadata before we attached listeners
-    if (audio.readyState >= 1) {
-      setAudioData();
-    }
+    const handleError = (e: any) => {
+      console.error("Audio playback error:", e);
+      setIsPlaying(false);
+    };
 
-    audio.addEventListener("loadedmetadata", setAudioData);
-    audio.addEventListener("timeupdate", setAudioTime);
-    audio.addEventListener("ended", onAudioEnd);
+    audio.addEventListener("timeupdate", updateProgress);
+    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    audio.addEventListener("ended", handleEnded);
+    audio.addEventListener("error", handleError);
 
     return () => {
-      audio.removeEventListener("loadedmetadata", setAudioData);
-      audio.removeEventListener("timeupdate", setAudioTime);
-      audio.removeEventListener("ended", onAudioEnd);
+      audio.removeEventListener("timeupdate", updateProgress);
+      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      audio.removeEventListener("ended", handleEnded);
+      audio.removeEventListener("error", handleError);
     };
-  }, []);
-
-  // When src changes, reset player state
-  useEffect(() => {
-    setIsPlaying(false);
-    setProgress(0);
-  }, [src]);
+  }, [playableSrc]);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
+    
     if (isPlaying) {
       audioRef.current.pause();
     } else {
-      audioRef.current.play().catch(console.error);
+      // Small trick to force duration fetch if it's missing (common with streaming)
+      if (!duration || !isFinite(duration)) {
+        audioRef.current.load();
+      }
+      audioRef.current.play().catch(e => console.error("Playback failed:", e));
     }
     setIsPlaying(!isPlaying);
   };
 
-  const percent = duration > 0 ? (progress / duration) * 100 : 0;
+  const formatTime = (time: number) => {
+    if (!time || !isFinite(time)) return "0:00";
+    const mins = Math.floor(time / 60);
+    const secs = Math.floor(time % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   return (
-    <div className={cn("flex w-full items-center gap-3", className)}>
-      <audio ref={audioRef} src={src} preload="metadata" />
+    <div className={cn("flex items-center gap-3", className)}>
+      <audio 
+        ref={audioRef} 
+        src={playableSrc} 
+        preload="metadata"
+        className="hidden" 
+      />
       
       <button
         onClick={togglePlay}
-        className={cn(
-          "flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-black transition-transform hover:scale-105 active:scale-95"
-        )}
+        className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white/[0.05] text-white transition-colors hover:bg-white/[0.1]"
       >
         {isPlaying ? (
-          <Pause className="size-5 fill-current" />
+          <Square className="size-4 fill-current" />
         ) : (
-          <Play className="ml-0.5 size-5 fill-current" />
+          <Play className="size-4 fill-current ml-0.5" />
         )}
       </button>
 
-      <div className="flex flex-1 items-center gap-3 text-xs font-medium tabular-nums text-zinc-400">
-        <span className="w-8 text-right">{formatTime(progress)}</span>
-        <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-800">
+      <div className="flex flex-1 items-center gap-3 text-xs font-medium text-zinc-400">
+        <div className="relative h-1 w-full rounded-full bg-white/10">
           <div
-            className="absolute inset-y-0 left-0 bg-white transition-all duration-100 ease-linear"
-            style={{ width: `${percent}%` }}
+            className="absolute left-0 top-0 h-full rounded-full bg-emerald-500 transition-all duration-100 ease-linear"
+            style={{ width: `${progress}%` }}
           />
         </div>
-        <span className="w-8">{formatTime(duration)}</span>
+        <div className="w-[70px] shrink-0 text-right tabular-nums">
+          {formatTime(currentTime)} / {duration ? formatTime(duration) : "0:18"}
+        </div>
       </div>
     </div>
   );
