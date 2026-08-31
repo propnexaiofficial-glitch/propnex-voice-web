@@ -1,16 +1,20 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Play, Square, ExternalLink } from "lucide-react";
+import { Play, Pause } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * Extract Google Drive file ID from any Drive share URL.
+ * Build the src URL for the <audio> element.
+ * - For Google Drive URLs  → route through /api/audio-proxy (server-side, no CORS)
+ * - For everything else    → use as-is
  */
-function getDriveFileId(url: string): string | null {
-  if (!url || !url.includes("drive.google.com")) return null;
-  const match = url.match(/(?:\/d\/|id=|\/file\/d\/)([a-zA-Z0-9_-]{10,})/);
-  return match ? match[1] : null;
+function buildAudioSrc(url: string): string {
+  if (!url) return "";
+  if (url.includes("drive.google.com")) {
+    return `/api/audio-proxy?url=${encodeURIComponent(url)}`;
+  }
+  return url;
 }
 
 export function VoiceAudioPlayer({
@@ -21,230 +25,163 @@ export function VoiceAudioPlayer({
   className?: string;
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState<number | null>(null);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [hasError, setHasError] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const progressRef = useRef<HTMLDivElement>(null);
+  const [progress, setProgress]   = useState(0);
+  const [duration, setDuration]   = useState<number | null>(null);
+  const [current, setCurrent]     = useState(0);
+  const [error, setError]         = useState(false);
+  const audioRef   = useRef<HTMLAudioElement | null>(null);
+  const barRef     = useRef<HTMLDivElement>(null);
 
-  const driveFileId = getDriveFileId(src);
-  // For Google Drive: use the streaming export URL with no-cors bypass trick
-  const playableSrc = driveFileId
-    ? `https://drive.google.com/uc?export=download&id=${driveFileId}&confirm=t`
-    : src;
-  const driveEmbedUrl = driveFileId
-    ? `https://drive.google.com/file/d/${driveFileId}/preview`
-    : null;
+  const audioSrc = buildAudioSrc(src);
 
+  // ── Event listeners ──────────────────────────────────────────────────────
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    const el = audioRef.current;
+    if (!el) return;
 
+    // Reset when src changes
     setIsPlaying(false);
     setProgress(0);
-    setCurrentTime(0);
+    setCurrent(0);
     setDuration(null);
-    setHasError(false);
+    setError(false);
 
-    const onTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
-      if (audio.duration && isFinite(audio.duration) && audio.duration > 0) {
-        setProgress((audio.currentTime / audio.duration) * 100);
+    const onTime = () => {
+      setCurrent(el.currentTime);
+      if (el.duration && isFinite(el.duration)) {
+        setProgress((el.currentTime / el.duration) * 100);
       }
     };
 
-    const onDuration = () => {
-      if (audio.duration && isFinite(audio.duration) && audio.duration > 0) {
-        setDuration(audio.duration);
+    const onMeta = () => {
+      if (el.duration && isFinite(el.duration) && el.duration > 0) {
+        setDuration(el.duration);
       }
     };
 
     const onEnded = () => {
       setIsPlaying(false);
       setProgress(0);
-      setCurrentTime(0);
-      if (audio) audio.currentTime = 0;
+      setCurrent(0);
+      el.currentTime = 0;
     };
 
     const onError = () => {
-      setHasError(true);
+      setError(true);
       setIsPlaying(false);
     };
 
-    const onCanPlay = () => setHasError(false);
-
-    audio.addEventListener("timeupdate", onTimeUpdate);
-    audio.addEventListener("loadedmetadata", onDuration);
-    audio.addEventListener("durationchange", onDuration);
-    audio.addEventListener("ended", onEnded);
-    audio.addEventListener("error", onError);
-    audio.addEventListener("canplay", onCanPlay);
+    el.addEventListener("timeupdate",    onTime);
+    el.addEventListener("loadedmetadata",onMeta);
+    el.addEventListener("durationchange",onMeta);
+    el.addEventListener("ended",         onEnded);
+    el.addEventListener("error",         onError);
 
     return () => {
-      audio.removeEventListener("timeupdate", onTimeUpdate);
-      audio.removeEventListener("loadedmetadata", onDuration);
-      audio.removeEventListener("durationchange", onDuration);
-      audio.removeEventListener("ended", onEnded);
-      audio.removeEventListener("error", onError);
-      audio.removeEventListener("canplay", onCanPlay);
+      el.removeEventListener("timeupdate",    onTime);
+      el.removeEventListener("loadedmetadata",onMeta);
+      el.removeEventListener("durationchange",onMeta);
+      el.removeEventListener("ended",         onEnded);
+      el.removeEventListener("error",         onError);
     };
-  }, [playableSrc]);
+  }, [audioSrc]);
 
-  const togglePlay = async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
+  // ── Controls ─────────────────────────────────────────────────────────────
+  const toggle = async () => {
+    const el = audioRef.current;
+    if (!el) return;
     if (isPlaying) {
-      audio.pause();
+      el.pause();
       setIsPlaying(false);
     } else {
       try {
-        setHasError(false);
-        await audio.play();
+        setError(false);
+        await el.play();
         setIsPlaying(true);
       } catch (e) {
         console.error("Playback failed:", e);
-        setHasError(true);
+        setError(true);
         setIsPlaying(false);
       }
     }
   };
 
-  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const audio = audioRef.current;
-    if (!audio || !progressRef.current) return;
-    const rect = progressRef.current.getBoundingClientRect();
-    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    if (audio.duration && isFinite(audio.duration)) {
-      audio.currentTime = ratio * audio.duration;
+  const seek = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = audioRef.current;
+    if (!el || !barRef.current) return;
+    const { left, width } = barRef.current.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - left) / width));
+    if (el.duration && isFinite(el.duration)) {
+      el.currentTime = ratio * el.duration;
     }
   };
 
-  const formatTime = (time: number): string => {
-    if (!isFinite(time) || time < 0) return "0:00";
-    const mins = Math.floor(time / 60);
-    const secs = Math.floor(time % 60);
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  const fmt = (t: number): string => {
+    if (!isFinite(t) || t < 0) return "0:00";
+    return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
   };
 
+  // ── Empty state ───────────────────────────────────────────────────────────
   if (!src) {
     return (
-      <div className={cn("flex items-center gap-3 text-xs text-zinc-600 italic", className)}>
+      <div className={cn("text-xs italic text-zinc-600", className)}>
         No recording uploaded
       </div>
     );
   }
 
-  // --- Google Drive file: show custom player + embed fallback on error ---
-  if (driveFileId) {
-    return (
-      <div className={cn("flex flex-col gap-3", className)}>
-        {/* Hidden audio fallback attempt */}
-        <audio ref={audioRef} src={playableSrc} preload="none" className="hidden" />
-        
-        {/* Custom player row */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={togglePlay}
-            className={cn(
-              "flex size-10 shrink-0 items-center justify-center rounded-full transition-colors",
-              hasError
-                ? "bg-red-500/10 text-red-400"
-                : "bg-white/[0.05] text-white hover:bg-white/[0.1]"
-            )}
-          >
-            {isPlaying ? (
-              <Square className="size-4 fill-current" />
-            ) : (
-              <Play className="size-4 fill-current ml-0.5" />
-            )}
-          </button>
-          <div className="flex flex-1 flex-col gap-1.5">
-            <div
-              ref={progressRef}
-              onClick={handleProgressClick}
-              className="relative h-1.5 w-full cursor-pointer rounded-full bg-white/10"
-            >
-              <div
-                className="absolute left-0 top-0 h-full rounded-full bg-white/60 transition-all duration-100"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <div className="flex items-center justify-between text-[11px] tabular-nums text-zinc-500">
-              <span>{formatTime(currentTime)}</span>
-              <span>{duration !== null ? formatTime(duration) : hasError ? "—" : "Loading..."}</span>
-            </div>
-          </div>
-          {/* Open in Drive link */}
-          <a
-            href={src}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Open in Google Drive"
-            className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.04] text-zinc-500 transition-colors hover:bg-white/[0.08] hover:text-white"
-          >
-            <ExternalLink className="size-3.5" />
-          </a>
-        </div>
-
-        {/* Show Google Drive embedded player if direct audio fails */}
-        {hasError && driveEmbedUrl && (
-          <div className="overflow-hidden rounded-xl border border-white/5">
-            <iframe
-              src={driveEmbedUrl}
-              allow="autoplay"
-              className="h-[50px] w-full border-0"
-              title="Voice preview"
-            />
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // --- Direct file (mp3, mp4, wav, etc.) ---
+  // ── Player ────────────────────────────────────────────────────────────────
   return (
     <div className={cn("flex items-center gap-3", className)}>
+      {/* Hidden audio element */}
       <audio
         ref={audioRef}
-        src={playableSrc}
+        src={audioSrc}
         preload="metadata"
         className="hidden"
       />
+
+      {/* Play / Pause button */}
       <button
-        onClick={togglePlay}
+        onClick={toggle}
+        aria-label={isPlaying ? "Pause" : "Play"}
         className={cn(
-          "flex size-10 shrink-0 items-center justify-center rounded-full transition-colors",
-          hasError
+          "flex size-9 shrink-0 items-center justify-center rounded-full transition-colors",
+          error
             ? "bg-red-500/10 text-red-400 cursor-not-allowed"
-            : "bg-white/[0.05] text-white hover:bg-white/[0.1]"
+            : "bg-white/[0.06] text-white hover:bg-white/[0.12]"
         )}
       >
         {isPlaying ? (
-          <Square className="size-4 fill-current" />
+          <Pause className="size-4 fill-current" />
         ) : (
           <Play className="size-4 fill-current ml-0.5" />
         )}
       </button>
+
+      {/* Progress + time */}
       <div className="flex flex-1 flex-col gap-1.5">
+        {/* Clickable seek bar */}
         <div
-          ref={progressRef}
-          onClick={handleProgressClick}
-          className="relative h-1.5 w-full cursor-pointer rounded-full bg-white/10"
+          ref={barRef}
+          onClick={seek}
+          className="relative h-1 w-full cursor-pointer rounded-full bg-white/[0.08]"
         >
           <div
-            className="absolute left-0 top-0 h-full rounded-full bg-white/60 transition-all duration-100 ease-linear"
+            className="absolute left-0 top-0 h-full rounded-full bg-white/50 transition-[width] duration-100 ease-linear"
             style={{ width: `${progress}%` }}
           />
         </div>
-        <div className="flex items-center justify-between text-[11px] font-medium tabular-nums text-zinc-500">
-          <span>{formatTime(currentTime)}</span>
+
+        {/* Time */}
+        <div className="flex justify-between text-[11px] tabular-nums text-zinc-500">
+          <span>{fmt(current)}</span>
           <span>
-            {hasError
-              ? "Error loading audio"
+            {error
+              ? "Cannot load"
               : duration !== null
-              ? formatTime(duration)
-              : "Loading..."}
+              ? fmt(duration)
+              : "0:00"}
           </span>
         </div>
       </div>
