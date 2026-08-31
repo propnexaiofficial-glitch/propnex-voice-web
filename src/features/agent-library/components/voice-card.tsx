@@ -32,8 +32,7 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.04 }}
       className={cn(
-        "group flex flex-col overflow-hidden rounded-[20px] bg-[#161719] ring-1 ring-white/5 text-white transition-all duration-200",
-        agent.assigned && "ring-emerald-500/50"
+        "group flex flex-col overflow-hidden rounded-[20px] bg-[#161719] ring-1 ring-white/5 text-white transition-all duration-200"
       )}
     >
       <div className="flex flex-1 flex-col p-5">
@@ -98,12 +97,7 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
         />
 
         <Button
-          className={cn(
-            "w-full h-12 rounded-xl text-sm font-semibold transition-all",
-            agent.assigned 
-              ? "bg-transparent border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300"
-              : "bg-white text-black hover:bg-zinc-200"
-          )}
+          className="w-full h-12 rounded-xl text-sm font-semibold transition-all bg-white text-black hover:bg-zinc-200"
           onClick={() => onAssign(agent.id)}
         >
           {agent.assigned ? (

@@ -39,32 +39,7 @@ export function useAgentLibrary() {
       });
       if (!res.ok) throw new Error("Failed to fetch agents");
       const data = await res.json();
-      
-      // Inject "Sarah" dummy agent at the beginning so they see it
-      const sarahAgent: AgentEntry = {
-        id: "dummy-sarah",
-        slug: "sarah",
-        name: "Sarah",
-        category: "Real Estate",
-        profile: "A highly professional and empathetic voice perfectly suited for property inquiries and lead qualification.",
-        tone: "Professional",
-        language: "English (US)",
-        voice: "Female",
-        bestFor: "Inbound calls",
-        useCases: [],
-        defaultType: "Inbound",
-        estimatedSetupMinutes: 5,
-        samplePrompt: "",
-        defaultFirstMessage: "",
-        demoAudioUrl: "",
-        isPublished: true,
-        sortOrder: 0,
-        totalVoices: 1,
-        assigned: false,
-        _count: { deployedAgents: 0 }
-      };
-
-      setAgents([sarahAgent, ...data]);
+      setAgents(data);
     } catch (err) {
       console.error(err);
       toast.error("Failed to load agent library");
@@ -98,11 +73,6 @@ export function useAgentLibrary() {
         a.id === id ? { ...a, assigned: isAssigning } : a
       )
     );
-
-    if (id === "dummy-sarah") {
-      toast.success(isAssigning ? "Agent assigned successfully!" : "Agent revoked successfully!");
-      return;
-    }
 
     try {
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
