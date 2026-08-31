@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { Play, Pause } from "lucide-react";
@@ -96,6 +96,9 @@ export function VoiceAudioPlayer({
     } else {
       try {
         setError(false);
+        document.querySelectorAll("audio").forEach((a) => {
+          if (a !== el) a.pause();
+        });
         await el.play();
         setIsPlaying(true);
       } catch (e) {
