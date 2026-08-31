@@ -109,7 +109,7 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
           {agent.assigned ? (
             <span className="flex items-center gap-2">
               <Check className="size-4" />
-              Assigned to campaign
+              Already in use
             </span>
           ) : (
             <span className="flex items-center gap-2">
