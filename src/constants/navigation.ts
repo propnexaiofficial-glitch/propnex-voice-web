@@ -47,12 +47,12 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     icon: CreditCard,
     description: "Credits & telephony",
   },
-  {
-    title: "Agent Tools",
-    href: "/dashboard/agent-tools",
-    icon: Wrench,
-    description: "Specialized sub-agents",
-  },
+  // {
+  //   title: "Agent Tools",
+  //   href: "/dashboard/agent-tools",
+  //   icon: Wrench,
+  //   description: "Specialized sub-agents",
+  // },
 ];
 
 export const APP_NAME = "PropNex AI";
