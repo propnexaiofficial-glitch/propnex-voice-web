@@ -19,14 +19,6 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
-function getAgentMeta(agent: AgentEntry) {
-  return {
-    useCases: agent.useCases.slice(0, 2).join(", "),
-    category: agent.category,
-    defaultType: agent.defaultType,
-  };
-}
-
 type VoiceCardProps = {
   agent: AgentEntry;
   index?: number;
@@ -34,91 +26,98 @@ type VoiceCardProps = {
 };
 
 export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
-  const meta = getAgentMeta(agent);
-
   return (
     <motion.article
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.04 }}
       className={cn(
-        "glass-card group flex flex-col overflow-hidden rounded-lg transition-all duration-200 hover:border-border",
-        agent.assigned && "ring-1 ring-border"
+        "glass-card group flex flex-col overflow-hidden rounded-xl bg-[#131417] text-white transition-all duration-200 hover:border-border",
+        agent.assigned && "ring-1 ring-emerald-500/50"
       )}
     >
-      <div className="flex flex-1 flex-col p-5">
-        <div className="flex items-start gap-4">
-          <Avatar className="size-14 rounded-xl border-border">
-            <AvatarFallback className="rounded-xl bg-muted text-sm font-semibold text-foreground">
-              {getInitials(agent.name)}
-            </AvatarFallback>
-          </Avatar>
-
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <h3 className="truncate font-semibold tracking-tight">{agent.name}</h3>
-                {meta.useCases && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">{meta.useCases}</p>
-                )}
-              </div>
-              {agent.assigned && (
-                <Badge variant="success" className="shrink-0 text-[10px]">
-                  Assigned
-                </Badge>
-              )}
+      <div className="flex flex-1 flex-col p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Avatar className="size-16 rounded-2xl border-none bg-[#24252A]">
+              <AvatarFallback className="rounded-2xl bg-[#24252A] text-lg font-bold text-white">
+                {getInitials(agent.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h3 className="text-xl font-bold tracking-tight text-white">{agent.name}</h3>
+              <p className="mt-1 text-sm text-zinc-400">{agent.category}</p>
             </div>
           </div>
+          <Badge className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-none px-3 py-1 font-medium">
+            Active
+          </Badge>
         </div>
 
-        <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+        <p className="mt-6 text-base leading-relaxed text-zinc-300">
           {agent.profile}
         </p>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          {meta.category && (
-            <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                Category
-              </p>
-              <p className="mt-0.5 text-xs font-medium">{meta.category}</p>
-            </div>
-          )}
-          {meta.defaultType && (
-            <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                Default Type
-              </p>
-              <p className="mt-0.5 text-xs font-medium">{meta.defaultType}</p>
-            </div>
-          )}
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 transition-colors hover:bg-white/[0.04]">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+              TONE
+            </p>
+            <p className="mt-1.5 text-sm font-semibold text-zinc-100">{agent.tone || "Professional"}</p>
+          </div>
+          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 transition-colors hover:bg-white/[0.04]">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+              LANGUAGE
+            </p>
+            <p className="mt-1.5 text-sm font-semibold text-zinc-100">{agent.language || "English"}</p>
+          </div>
+          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 transition-colors hover:bg-white/[0.04]">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+              VOICE
+            </p>
+            <p className="mt-1.5 text-sm font-semibold text-zinc-100">{agent.voice || "Female"}</p>
+          </div>
+          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 transition-colors hover:bg-white/[0.04]">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+              BEST FOR
+            </p>
+            <p className="mt-1.5 truncate text-sm font-semibold text-zinc-100">{agent.bestFor || "Inbound calls"}</p>
+          </div>
         </div>
       </div>
-      <div className="border-t border-border/60 bg-muted/20 p-4">
-        <div className="flex flex-col gap-3">
-          <VoiceAudioPlayer 
-            src={agent.demoAudioUrl || "https://example.com/placeholder.mp3"} 
-          />
-          <Button
-            variant={agent.assigned ? "secondary" : "default"}
-            className="w-full justify-between"
-            onClick={() => onAssign(agent.id)}
-          >
-            <span className="flex items-center gap-2">
-              {agent.assigned ? (
-                <>
-                  <Check className="size-4" />
-                  Revoke Assignment
-                </>
-              ) : (
-                <>
-                  <UserPlus className="size-4" />
-                  Assign to Campaign
-                </>
-              )}
-            </span>
-          </Button>
+
+      <div className="px-6 pb-6 pt-2">
+        <div className="mb-4 flex items-center gap-2 text-sm font-medium text-zinc-400">
+          <Volume2 className="size-4" />
+          <span>Voice preview</span>
         </div>
+        
+        <VoiceAudioPlayer 
+          src={agent.demoAudioUrl || "https://example.com/placeholder.mp3"} 
+          className="mb-6"
+        />
+
+        <Button
+          className={cn(
+            "w-full rounded-xl py-6 text-sm font-semibold transition-all",
+            agent.assigned 
+              ? "bg-transparent border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300"
+              : "bg-white text-black hover:bg-zinc-200"
+          )}
+          onClick={() => onAssign(agent.id)}
+        >
+          {agent.assigned ? (
+            <span className="flex items-center gap-2">
+              <Check className="size-4" />
+              Assigned to campaign
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              <UserPlus className="size-4" />
+              Assign to campaign
+            </span>
+          )}
+        </Button>
       </div>
     </motion.article>
   );

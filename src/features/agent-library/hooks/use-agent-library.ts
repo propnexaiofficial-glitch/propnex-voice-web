@@ -9,6 +9,10 @@ export type AgentEntry = {
   name: string;
   profile: string;
   category: string;
+  tone: string;
+  language: string;
+  voice: string;
+  bestFor: string;
   useCases: string[];
   defaultType: string;
   estimatedSetupMinutes: number;
@@ -54,7 +58,7 @@ export function useAgentLibrary() {
   );
 
   const totalCount = useMemo(
-    () => agents.reduce((acc, a) => acc + (a.totalVoices || 0), 0),
+    () => agents.length,
     [agents]
   );
 
