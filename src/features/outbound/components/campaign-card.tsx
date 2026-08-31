@@ -18,6 +18,7 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
+  StopCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -157,7 +158,9 @@ export function CampaignCard({
 }: CampaignCardProps) {
   const status = statusConfig[campaign.status];
   const isComingSoon = campaign.comingSoon === true;
-  const processedCount = (campaign.leads || []).filter((l: any) => l.called).length;
+  const processedCount = campaign.completedCalls !== undefined 
+    ? campaign.completedCalls 
+    : (campaign.leads || []).filter((l: any) => l.called).length;
 
   const [reminding, setReminding] = useState(false);
   const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);
@@ -429,14 +432,12 @@ export function CampaignCard({
                         <div className="flex items-center gap-2">
                           <CalendarClock className="size-4 text-primary" />
                           <span className="font-medium">
-                            {campaign.status === "running" ? (
-                              <span className="text-emerald-500">Running</span>
-                            ) : campaign.status === "paused" ? (
-                              <span className="text-amber-500">Paused</span>
-                            ) : campaign.status === "completed" ? (
-                              <span className="text-emerald-500">Completed</span>
-                            ) : isPending ? (
+                            {isPending ? (
                               <span className="text-amber-500">Pending</span>
+                            ) : (campaign.status === "running" && idx === 0) ? (
+                              <span className="text-emerald-500">Running</span>
+                            ) : (campaign.status === "paused" && idx === 0) ? (
+                              <span className="text-amber-500">Paused</span>
                             ) : (
                               <span className="text-emerald-500">Completed</span>
                             )}
@@ -575,7 +576,7 @@ export function CampaignCard({
           {campaign.status === "running" && (
             <div className="flex gap-2">
               <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onForceStop}>
-                <Trash2 className="size-4" />
+                <StopCircle className="size-4" />
                 Force Stop
               </Button>
               <Button variant="secondary" className="gap-2 relative overflow-hidden group min-w-40" onClick={onPause}>
@@ -597,7 +598,7 @@ export function CampaignCard({
           {campaign.status === "paused" && (
             <div className="flex gap-2">
               <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onForceStop}>
-                <Trash2 className="size-4" />
+                <StopCircle className="size-4" />
                 Force Stop
               </Button>
               <Button className="gap-2 relative overflow-hidden group min-w-40" onClick={onResume}>

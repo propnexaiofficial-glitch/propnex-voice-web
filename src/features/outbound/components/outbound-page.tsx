@@ -176,7 +176,7 @@ export function OutboundPageContent() {
         setAlertData(null);
 
         // Clear campaign state IMMEDIATELY so the card resets to "No Campaign" right away
-        if (!outboundCampaign.isReactivation && alertData.title === "Campaign Completed") {
+        if (!outboundCampaign.isReactivation && (alertData.title === "Campaign Completed" || alertData.title === "Campaign Force Stopped")) {
           const newlyFailed = outboundCampaign.leads?.filter((l: any) => l.isFailed) || [];
           if (newlyFailed.length > 0) {
             setPersistentFailedLeads(prev => {

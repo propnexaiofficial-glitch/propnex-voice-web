@@ -177,6 +177,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
 
         // Require campaignId to adopt any backend state
         if (!data.campaignId) return prev;
+        
+        if (prev.status === "force_stopped") return prev;
 
         // Adopt backend state if we are currently idle and backend has an active or recent campaign
         if (data.campaignId !== prev.id) {
@@ -252,6 +254,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
                 if (!data.campaignId) return prev;
                 // Only process if the campaign ID matches (we don't want to adopt stale states here)
                 if (data.campaignId !== prev.id) return prev;
+                
+                if (prev.status === "force_stopped") return prev;
                 
                 // Alert logic
                 if (prev.status === "running" && data.status === "completed") {
