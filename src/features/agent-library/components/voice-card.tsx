@@ -97,14 +97,21 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
         />
 
         <Button
-          className="w-full h-12 rounded-xl text-sm font-semibold transition-all bg-white text-black hover:bg-zinc-200"
-          onClick={() => onAssign(agent.id)}
+          className={cn(
+            "w-full h-12 rounded-xl text-sm font-semibold transition-all",
+            agent.assigned 
+              ? "bg-[#00d084] text-black cursor-not-allowed hover:bg-[#00d084]"
+              : "bg-white text-black hover:bg-zinc-200"
+          )}
+          onClick={() => {
+            if (!agent.assigned) {
+              onAssign(agent.id);
+            }
+          }}
+          disabled={agent.assigned}
         >
           {agent.assigned ? (
-            <span className="flex items-center gap-2">
-              <Check className="size-4" />
-              Already in use
-            </span>
+            "Assigned Campaign"
           ) : (
             <span className="flex items-center gap-2">
               <UserPlus className="size-4" />

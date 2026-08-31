@@ -41,7 +41,12 @@ export async function POST(req: NextRequest) {
     // Update AgentLibraryEntry isPublished directly to sync with Admin panel Active status
     await prisma.agentLibraryEntry.update({
       where: { id: agentId },
-      data: { isPublished: assign },
+      data: { 
+        isPublished: assign,
+        assignedByName: assign ? `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || null : null,
+        assignedByEmail: assign ? user?.email : null,
+        assignedByPhone: assign ? user?.phone : null,
+      },
     });
 
     // Trigger webhook for email notifications
