@@ -1,10 +1,9 @@
-import { ComingSoon } from "@/components/ui/coming-soon";
+import { AgentLibraryPageContent } from "@/features/agent-library/components/agent-library-page";
 
 export default function AgentLibraryPage() {
   return (
-    <ComingSoon 
-      title="Agent Library" 
-      description="We're building a massive collection of AI voice agents tailored for every real estate use case. Stay tuned!" 
-    />
+    <div className="mx-auto max-w-7xl">
+      <AgentLibraryPageContent />
+    </div>
   );
 }
