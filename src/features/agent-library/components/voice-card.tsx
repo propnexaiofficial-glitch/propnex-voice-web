@@ -54,7 +54,7 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
           </Badge>
         </div>
 
-        <p className="mt-4 text-[15px] leading-relaxed text-zinc-300 line-clamp-2">
+        <p className="mt-4 text-[15px] leading-relaxed text-zinc-300">
           {agent.profile}
         </p>
 

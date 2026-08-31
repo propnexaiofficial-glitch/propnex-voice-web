@@ -136,7 +136,6 @@ export function VoiceAudioPlayer({
   // ── Player ────────────────────────────────────────────────────────────────
   return (
     <div className={cn("flex items-center gap-3", className)}>
-      {/* Hidden audio element */}
       <audio
         ref={audioRef}
         src={audioSrc}
@@ -144,49 +143,38 @@ export function VoiceAudioPlayer({
         className="hidden"
       />
 
-      {/* Play / Pause button */}
       <button
         onClick={toggle}
         aria-label={isPlaying ? "Pause" : "Play"}
         className={cn(
-          "flex size-9 shrink-0 items-center justify-center rounded-full transition-colors",
-          error
-            ? "bg-red-500/10 text-red-400 cursor-not-allowed"
-            : "bg-white/[0.06] text-white hover:bg-white/[0.12]"
+          "flex size-6 shrink-0 items-center justify-center bg-transparent text-zinc-300 hover:text-white transition-colors",
+          error && "text-red-400 cursor-not-allowed"
         )}
       >
         {isPlaying ? (
-          <Pause className="size-4 fill-current" />
+          <Pause className="size-3.5 fill-current" />
         ) : (
-          <Play className="size-4 fill-current ml-0.5" />
+          <Play className="size-3.5 fill-current" />
         )}
       </button>
 
-      {/* Progress + time */}
-      <div className="flex flex-1 flex-col gap-1.5">
-        {/* Clickable seek bar */}
-        <div
-          ref={barRef}
-          onClick={seek}
-          className="relative h-1 w-full cursor-pointer rounded-full bg-white/[0.08]"
-        >
-          <div
-            className="absolute left-0 top-0 h-full rounded-full bg-white/50 transition-[width] duration-100 ease-linear"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+      <div className="text-xs tabular-nums text-zinc-400 font-medium">
+        {error ? "Error" : fmt(current)}
+      </div>
 
-        {/* Time */}
-        <div className="flex justify-between text-[11px] tabular-nums text-zinc-500">
-          <span>{fmt(current)}</span>
-          <span>
-            {error
-              ? "Cannot load"
-              : duration !== null
-              ? fmt(duration)
-              : "0:00"}
-          </span>
-        </div>
+      <div
+        ref={barRef}
+        onClick={seek}
+        className="relative flex-1 h-1 cursor-pointer rounded-full bg-white/10"
+      >
+        <div
+          className="absolute left-0 top-0 h-full rounded-full bg-white/50 transition-[width] duration-100 ease-linear"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      <div className="text-xs tabular-nums text-zinc-400 font-medium">
+        {duration ? fmt(duration) : "0:00"}
       </div>
     </div>
   );
