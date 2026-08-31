@@ -34,7 +34,6 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     href: "/dashboard/agent-library",
     icon: Mic2,
     description: "Voice agent samples",
-    comingSoon: true,
   },
   {
     title: "Sub-Companies",
@@ -53,7 +52,6 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     href: "/dashboard/agent-tools",
     icon: Wrench,
     description: "Specialized sub-agents",
-    comingSoon: true,
   },
 ];
 
