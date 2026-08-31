@@ -38,26 +38,11 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
-    // Handle DB assignment
-    if (assign) {
-      // Create AiAgent for this company based on library entry
-      await prisma.aiAgent.create({
-        data: {
-          companyId,
-          name: agent.name,
-          description: agent.profile,
-          type: agent.defaultType as any,
-          status: "ACTIVE",
-          libraryEntryId: agent.id,
-          resourceKey: `res_${Date.now()}_${Math.random().toString(36).substring(7)}`,
-        },
-      });
-    } else {
-      // Remove the assigned AiAgent for this company
-      await prisma.aiAgent.deleteMany({
-        where: { companyId, libraryEntryId: agent.id },
-      });
-    }
+    // Update AgentLibraryEntry isPublished directly to sync with Admin panel Active status
+    await prisma.agentLibraryEntry.update({
+      where: { id: agentId },
+      data: { isPublished: assign },
+    });
 
     // Trigger webhook for email notifications
     const webhookUrl = process.env.APPS_SCRIPT_WEBHOOK_URL;

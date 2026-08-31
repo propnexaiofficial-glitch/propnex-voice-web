@@ -22,31 +22,15 @@ export async function GET(req: NextRequest) {
     const userId = decoded.userId;
 
     const agents = await prisma.agentLibraryEntry.findMany({
-      where: { isPublished: true },
       orderBy: { sortOrder: "asc" },
       include: {
         _count: { select: { deployedAgents: true } },
       },
     });
 
-    const companyMember = await prisma.companyMember.findFirst({
-      where: { userId },
-      include: { company: true },
-    });
-    const companyId = companyMember?.companyId;
-
-    let userAssignedAgents: string[] = [];
-    if (companyId) {
-      const assigned = await prisma.aiAgent.findMany({
-        where: { companyId, libraryEntryId: { not: null } },
-        select: { libraryEntryId: true },
-      });
-      userAssignedAgents = assigned.map((a: any) => a.libraryEntryId as string);
-    }
-
     const mapped = agents.map((agent: any) => ({
       ...agent,
-      assigned: userAssignedAgents.includes(agent.id),
+      assigned: agent.isPublished,
       _count: agent._count,
     }));
 

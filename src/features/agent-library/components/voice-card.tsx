@@ -58,7 +58,7 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
           {agent.profile}
         </p>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-4 grid grid-cols-4 gap-2">
           <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 transition-colors hover:bg-white/[0.04]">
             <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
               TONE

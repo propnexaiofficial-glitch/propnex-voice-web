@@ -11,7 +11,8 @@ function getPlayableAudioUrl(url: string) {
   const match = url.match(driveRegex);
   if (match && match[1]) {
     // For smaller files, this bypasses the viewer and streams the audio
-    return `https://drive.google.com/uc?export=download&id=${match[1]}`;
+    // Add &confirm=t to bypass virus scan warnings for slightly larger files
+    return `https://drive.google.com/uc?export=download&id=${match[1]}&confirm=t`;
   }
   return url;
 }
