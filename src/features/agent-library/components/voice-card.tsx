@@ -108,7 +108,6 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
               onAssign(agent.id);
             }
           }}
-          disabled={agent.assigned}
         >
           {agent.assigned ? (
             <span className="flex items-center gap-2">

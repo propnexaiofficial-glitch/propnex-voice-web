@@ -26,19 +26,22 @@ export type AgentEntry = {
   _count: { deployedAgents: number };
 };
 
+let globalAgentsCache: AgentEntry[] | null = null;
+
 export function useAgentLibrary() {
-  const [agents, setAgents] = useState<AgentEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [agents, setAgents] = useState<AgentEntry[]>(globalAgentsCache || []);
+  const [loading, setLoading] = useState(!globalAgentsCache);
 
   const fetchAgents = useCallback(async () => {
     try {
-      setLoading(true);
+      if (!globalAgentsCache) setLoading(true);
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
       const res = await fetch("/api/agent-library", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (!res.ok) throw new Error("Failed to fetch agents");
       const data = await res.json();
+      globalAgentsCache = data;
       setAgents(data);
     } catch (err) {
       console.error(err);
