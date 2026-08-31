@@ -63,6 +63,14 @@ export const quickActions: QuickAction[] = [
     accent: "blue",
   },
   {
+    id: "agent-library",
+    title: "Agent Library",
+    description: "Browse and assign AI agents to your campaigns",
+    href: "/dashboard/agent-library",
+    icon: Mic2,
+    accent: "green",
+  },
+  {
     id: "manage-team",
     title: "Manage Sub-Companies",
     description: "Onboard clients and track their usage",
