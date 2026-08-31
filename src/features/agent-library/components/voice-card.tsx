@@ -32,8 +32,8 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.04 }}
       className={cn(
-        "glass-card group flex flex-col overflow-hidden rounded-[20px] bg-[#161719] text-white transition-all duration-200 hover:border-border",
-        agent.assigned && "ring-1 ring-emerald-500/50"
+        "group flex flex-col overflow-hidden rounded-[20px] bg-[#161719] ring-1 ring-white/5 text-white transition-all duration-200",
+        agent.assigned && "ring-emerald-500/50"
       )}
     >
       <div className="flex flex-1 flex-col p-5">
