@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 
 function formatTime(seconds: number) {
@@ -12,140 +11,81 @@ function formatTime(seconds: number) {
 }
 
 type VoiceAudioPlayerProps = {
-  durationSeconds: number;
-  accent?: "purple" | "blue" | "green" | "gold" | "pink";
-  variant?: "default" | "compact" | "card";
+  src: string;
   className?: string;
 };
 
-const progressColors = {
-  purple: "bg-foreground",
-  blue: "bg-blue-500",
-  green: "bg-emerald-500",
-  gold: "bg-zinc-400",
-  pink: "bg-zinc-400",
-};
-
-export function VoiceAudioPlayer({
-  durationSeconds,
-  accent = "purple",
-  variant = "default",
-  className,
-}: VoiceAudioPlayerProps) {
+export function VoiceAudioPlayer({ src, className }: VoiceAudioPlayerProps) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   useEffect(() => {
-    if (!isPlaying) return;
+    audioRef.current = new Audio(src);
+    const audio = audioRef.current;
 
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= durationSeconds) {
-          setIsPlaying(false);
-          return durationSeconds;
-        }
-        return prev + 1;
-      });
-    }, 1000);
+    const setAudioData = () => {
+      setDuration(audio.duration);
+    };
 
-    return () => clearInterval(interval);
-  }, [isPlaying, durationSeconds]);
+    const setAudioTime = () => {
+      setProgress(audio.currentTime);
+    };
 
-  const toggle = () => {
-    if (progress >= durationSeconds) setProgress(0);
-    setIsPlaying((prev) => !prev);
+    const onAudioEnd = () => {
+      setIsPlaying(false);
+      setProgress(0);
+    };
+
+    audio.addEventListener("loadedmetadata", setAudioData);
+    audio.addEventListener("timeupdate", setAudioTime);
+    audio.addEventListener("ended", onAudioEnd);
+
+    return () => {
+      audio.removeEventListener("loadedmetadata", setAudioData);
+      audio.removeEventListener("timeupdate", setAudioTime);
+      audio.removeEventListener("ended", onAudioEnd);
+      audio.pause();
+    };
+  }, [src]);
+
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play().catch(console.error);
+    }
+    setIsPlaying(!isPlaying);
   };
 
-  const progressPercent =
-    durationSeconds > 0 ? (progress / durationSeconds) * 100 : 0;
-
-  if (variant === "compact") {
-    return (
-      <div className={cn("flex items-center gap-2", className)}>
-        <button
-          type="button"
-          onClick={toggle}
-          className="flex size-7 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/40 backdrop-blur-sm transition-all hover:border-white/40 hover:bg-black/50"
-          aria-label={isPlaying ? "Pause sample" : "Play sample"}
-        >
-          {isPlaying ? (
-            <Pause className="size-3 text-white" />
-          ) : (
-            <Play className="size-3 text-white" />
-          )}
-        </button>
-        <div className="min-w-0 flex-1 space-y-1">
-          <div className="h-1 overflow-hidden rounded-full bg-white/15">
-            <div
-              className={cn("h-full rounded-full transition-all duration-300", progressColors[accent])}
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-          <p className="text-[10px] tabular-nums text-white/50">
-            {formatTime(progress)} / {formatTime(durationSeconds)}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (variant === "card") {
-    return (
-      <div className={cn("flex items-center gap-3", className)}>
-        <button
-          type="button"
-          onClick={toggle}
-          className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-muted/30 transition-colors hover:border-border hover:bg-accent"
-          aria-label={isPlaying ? "Pause sample" : "Play sample"}
-        >
-          {isPlaying ? (
-            <Pause className="size-4 text-foreground" />
-          ) : (
-            <Play className="size-4 text-foreground" />
-          )}
-        </button>
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <div className="h-1 overflow-hidden rounded-full bg-muted">
-            <div
-              className={cn(
-                "h-full rounded-full transition-all duration-300",
-                progressColors[accent]
-              )}
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-          <p className="text-[11px] tabular-nums text-muted-foreground">
-            {formatTime(progress)} / {formatTime(durationSeconds)}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const percent = duration > 0 ? (progress / duration) * 100 : 0;
 
   return (
-    <div className={cn("space-y-2", className)}>
-      <div className="flex items-center justify-center gap-3">
-        <button
-          type="button"
-          onClick={toggle}
-          className="flex size-9 items-center justify-center rounded-full border border-border bg-muted transition-all hover:bg-accent"
-          aria-label={isPlaying ? "Pause sample" : "Play sample"}
-        >
-          {isPlaying ? (
-            <Pause className="size-4 text-foreground" />
-          ) : (
-            <Play className="size-4 text-foreground" />
-          )}
-        </button>
-        <span className="text-xs tabular-nums text-muted-foreground">
-          {formatTime(progress)} / {formatTime(durationSeconds)}
-        </span>
-      </div>
-      <div className="h-1 overflow-hidden rounded-full bg-white/10">
-        <div
-          className={cn("h-full rounded-full transition-all duration-300", progressColors[accent])}
-          style={{ width: `${progressPercent}%` }}
-        />
+    <div className={cn("flex w-full items-center gap-3", className)}>
+      <button
+        onClick={togglePlay}
+        className={cn(
+          "flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-transform hover:scale-105 active:scale-95"
+        )}
+      >
+        {isPlaying ? (
+          <Pause className="size-4 fill-current" />
+        ) : (
+          <Play className="ml-0.5 size-4 fill-current" />
+        )}
+      </button>
+
+      <div className="flex flex-1 items-center gap-2 text-xs font-medium tabular-nums text-muted-foreground">
+        <span className="w-8 text-right">{formatTime(progress)}</span>
+        <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-border/50">
+          <div
+            className="absolute inset-y-0 left-0 bg-foreground transition-all duration-100 ease-linear"
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+        <span className="w-8">{formatTime(duration)}</span>
       </div>
     </div>
   );
