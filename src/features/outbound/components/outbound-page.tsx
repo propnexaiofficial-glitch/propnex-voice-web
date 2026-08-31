@@ -398,7 +398,6 @@ export function OutboundPageContent() {
               </>
             ) : (
               <>
-                {(persistentFailedLeads.length > 0 || scheduleHistoryList.length > 0) && (
                   <motion.div
                     initial={{ opacity: 0, y: -20, height: 0, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, height: 'auto', scale: 1 }}
@@ -437,7 +436,6 @@ export function OutboundPageContent() {
                       scheduleDisabledReason="No unscheduled failed calls available."
                     />
                   </motion.div>
-                )}
 
                 <CampaignCard
                   campaign={hasOutboundNumber ? outboundCampaign : { ...outboundCampaign, status: "idle", leads: [], failedCalls: 0, completedCalls: 0 }}

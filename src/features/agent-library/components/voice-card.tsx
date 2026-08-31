@@ -100,7 +100,7 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
           className={cn(
             "w-full h-12 rounded-xl text-sm font-semibold transition-all",
             agent.assigned 
-              ? "bg-[#00d084] text-black cursor-not-allowed hover:bg-[#00d084]"
+              ? "bg-transparent border border-[#00d084] text-[#00d084] cursor-default hover:bg-[#00d084]/10 hover:shadow-[0_0_15px_rgba(0,208,132,0.3)] duration-300"
               : "bg-white text-black hover:bg-zinc-200"
           )}
           onClick={() => {
@@ -111,7 +111,10 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
           disabled={agent.assigned}
         >
           {agent.assigned ? (
-            "Assigned Campaign"
+            <span className="flex items-center gap-2">
+              <Check className="size-4" />
+              Assigned Campaign
+            </span>
           ) : (
             <span className="flex items-center gap-2">
               <UserPlus className="size-4" />
