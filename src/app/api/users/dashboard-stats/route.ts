@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
     const [
       inboundCalls,
       outboundCalls,
-      activeAgents,
+      totalAgents,
       callStats,
       pastInboundCalls,
       pastOutboundCalls,
@@ -77,9 +77,7 @@ export async function GET(req: NextRequest) {
       prisma.callLog.count({
         where: { companyId: { in: companyIdsToQuery }, direction: "OUTBOUND", startedAt: { gte: startOfThisMonth } }
       }),
-      (prisma as any).aiAgent.count({
-        where: { companyId: { in: companyIdsToQuery }, status: "ACTIVE" }
-      }),
+      prisma.agentLibraryEntry.count(),
       prisma.callLog.aggregate({
         where: { companyId: { in: companyIdsToQuery }, startedAt: { gte: startOfThisMonth } },
         _sum: { creditsUsed: true }
@@ -137,7 +135,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       inboundCalls,
       outboundCalls,
-      activeAgents,
+      totalAgents,
       creditsUsed,
       inboundCreditsUsed: finalInboundCredits,
       outboundCreditsUsed: finalOutboundCredits,

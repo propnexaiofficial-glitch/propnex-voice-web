@@ -30,8 +30,8 @@ export const dashboardStats: DashboardStat[] = [
     accent: "blue",
   },
   {
-    id: "active-agents",
-    title: "Active Agents",
+    id: "total-agents",
+    title: "Total Agents",
     value: 6,
     icon: Mic2,
     accent: "green",
