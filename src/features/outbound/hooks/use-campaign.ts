@@ -182,7 +182,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
 
         // Adopt backend state if we are currently idle and backend has an active or recent campaign
         if (data.campaignId !== prev.id) {
-          if (prev.status === "idle" && data.status !== "idle" && data.status !== "force_stopped") {
+          const cleared = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('cleared_campaigns') || '[]') : [];
+          if (prev.status === "idle" && data.status !== "idle" && data.status !== "force_stopped" && !cleared.includes(data.campaignId)) {
             return {
               ...prev,
               id: data.campaignId,
@@ -415,18 +416,30 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
       console.error("Failed to clear campaign state on backend", err);
     }
 
-    setCampaign(prev => ({
-      ...prev,
-      id: "main-idle",
-      status: "idle",
-      leads: [],
-      fileName: undefined,
-      uploadedFileName: undefined,
-      totalContacts: 0,
-      completedCalls: 0,
-      failedCalls: 0,
-      successfulCalls: 0,
-    }));
+    setCampaign(prev => {
+      if (prev.id && prev.id !== "main-idle" && typeof window !== "undefined") {
+        try {
+          const cleared = JSON.parse(localStorage.getItem('cleared_campaigns') || '[]');
+          if (!cleared.includes(prev.id)) {
+            cleared.push(prev.id);
+            if (cleared.length > 50) cleared.shift();
+            localStorage.setItem('cleared_campaigns', JSON.stringify(cleared));
+          }
+        } catch (e) {}
+      }
+      return {
+        ...prev,
+        id: "main-idle",
+        status: "idle",
+        leads: [],
+        fileName: undefined,
+        uploadedFileName: undefined,
+        totalContacts: 0,
+        completedCalls: 0,
+        failedCalls: 0,
+        successfulCalls: 0,
+      };
+    });
   }, []);
 
   const forceStopCampaign = useCallback(async () => {
