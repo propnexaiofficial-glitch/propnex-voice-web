@@ -291,17 +291,55 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
     };
   }, [campaign.status]);
 
-  const pauseCampaign = useCallback(() => {
+  const pauseCampaign = useCallback(async () => {
+    try {
+      const storedUserStr = localStorage.getItem("user");
+      const user = storedUserStr ? JSON.parse(storedUserStr) : {};
+      const companyId = overrideCompanyId || user.companyId || null;
+
+      if (companyId) {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
+        const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
+
+        await fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/pause`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${pnxToken}` },
+          body: JSON.stringify({ companyId })
+        });
+      }
+    } catch (e) {
+      console.error("Failed to pause campaign on backend", e);
+    }
+
     setCampaign((prev) =>
       prev.status === "running" ? { ...prev, status: "paused" } : prev
     );
-  }, []);
+  }, [overrideCompanyId]);
 
-  const resumeCampaign = useCallback(() => {
+  const resumeCampaign = useCallback(async () => {
+    try {
+      const storedUserStr = localStorage.getItem("user");
+      const user = storedUserStr ? JSON.parse(storedUserStr) : {};
+      const companyId = overrideCompanyId || user.companyId || null;
+
+      if (companyId) {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
+        const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
+
+        await fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/resume`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${pnxToken}` },
+          body: JSON.stringify({ companyId })
+        });
+      }
+    } catch (e) {
+      console.error("Failed to resume campaign on backend", e);
+    }
+
     setCampaign((prev) =>
       prev.status === "paused" ? { ...prev, status: "running" } : prev
     );
-  }, []);
+  }, [overrideCompanyId]);
 
   const editLead = useCallback((index: number, updatedLead: any) => {
     setCampaign((prev) => {
