@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
@@ -25,36 +25,54 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const rangeHeader = req.headers.get("range");
-    const headers: HeadersInit = {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
-      Accept: "audio/*,video/*,*/*",
-    };
-    if (rangeHeader) headers["Range"] = rangeHeader;
+    const upstream = await fetch(fetchUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
+        Accept: "audio/*,video/*,*/*",
+      },
+      redirect: "follow",
+    });
 
-    const upstream = await fetch(fetchUrl, { headers, redirect: "follow" });
-
-    if (!upstream.ok && upstream.status !== 206) {
+    if (!upstream.ok) {
       return new NextResponse(`Upstream error: ${upstream.status}`, { status: 502 });
     }
 
+    const arrayBuffer = await upstream.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const totalLength = buffer.length;
     const contentType = upstream.headers.get("content-type") ?? "audio/mpeg";
-    const contentLength = upstream.headers.get("content-length");
-    const contentRange = upstream.headers.get("content-range");
-    const acceptRanges = upstream.headers.get("accept-ranges") ?? "bytes";
 
-    const responseHeaders: Record<string, string> = {
-      "Content-Type": contentType,
-      "Accept-Ranges": acceptRanges,
-      "Cache-Control": "public, max-age=3600",
-      "Access-Control-Allow-Origin": "*",
-    };
-    if (contentLength) responseHeaders["Content-Length"] = contentLength;
-    if (contentRange) responseHeaders["Content-Range"] = contentRange;
+    const rangeHeader = req.headers.get("range");
 
-    return new NextResponse(upstream.body, {
-      status: upstream.status,
-      headers: responseHeaders,
+    if (rangeHeader) {
+      const parts = rangeHeader.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : totalLength - 1;
+      const chunksize = end - start + 1;
+      const chunk = buffer.subarray(start, end + 1);
+
+      return new NextResponse(chunk, {
+        status: 206,
+        headers: {
+          "Content-Range": `bytes ${start}-${end}/${totalLength}`,
+          "Accept-Ranges": "bytes",
+          "Content-Length": chunksize.toString(),
+          "Content-Type": contentType,
+          "Cache-Control": "public, max-age=3600",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
+    return new NextResponse(buffer, {
+      status: 200,
+      headers: {
+        "Accept-Ranges": "bytes",
+        "Content-Length": totalLength.toString(),
+        "Content-Type": contentType,
+        "Cache-Control": "public, max-age=3600",
+        "Access-Control-Allow-Origin": "*",
+      },
     });
   } catch (err) {
     console.error("Audio proxy error:", err);
