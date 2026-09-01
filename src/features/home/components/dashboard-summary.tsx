@@ -31,7 +31,10 @@ export function DashboardSummary({ className }: DashboardSummaryProps) {
           changeLabel: parsed[i]?.changeLabel !== undefined ? parsed[i].changeLabel : stat.changeLabel,
           isNewAccount: parsed[i]?.isNewAccount !== undefined ? parsed[i].isNewAccount : stat.isNewAccount,
           inboundCreditsUsed: parsed[i]?.inboundCreditsUsed,
-          outboundCreditsUsed: parsed[i]?.outboundCreditsUsed
+          outboundCreditsUsed: parsed[i]?.outboundCreditsUsed,
+          assignedAgents: parsed[i]?.assignedAgents !== undefined ? parsed[i].assignedAgents : (stat as any).assignedAgents,
+          availableAgents: parsed[i]?.availableAgents !== undefined ? parsed[i].availableAgents : (stat as any).availableAgents,
+          creditsPercentage: parsed[i]?.creditsPercentage !== undefined ? parsed[i].creditsPercentage : (stat as any).creditsPercentage
         })));
       }
     } catch(e) {}
