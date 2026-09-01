@@ -49,35 +49,36 @@ export function DashboardSummary({ className }: DashboardSummaryProps) {
         
         if (response.ok) {
           const data = await response.json();
-          // Update the structure with real values
-          const updatedStats = [...stats];
-          
-          updatedStats[0] = { ...updatedStats[0], value: data.inboundCalls !== undefined ? data.inboundCalls.toLocaleString() : "0", change: data.inboundTrend !== undefined ? data.inboundTrend : 100, changeLabel: "vs last month", isNewAccount: data.isNewAccount };
-          updatedStats[1] = { ...updatedStats[1], value: data.outboundCalls !== undefined ? data.outboundCalls.toLocaleString() : "0", change: data.outboundTrend !== undefined ? data.outboundTrend : 0, changeLabel: "vs last month", isNewAccount: data.isNewAccount };
-          updatedStats[2] = { 
-            ...updatedStats[2], 
-            value: data.totalAgents !== undefined ? data.totalAgents.toLocaleString() : "0", 
-            change: data.agentsTrend !== undefined ? data.agentsTrend : 0, 
-            changeLabel: "new this week", 
-            isNewAccount: data.isNewAccount,
-            assignedAgents: data.assignedAgents,
-            availableAgents: data.availableAgents 
-          };
-          updatedStats[3] = { 
-            ...updatedStats[3], 
-            value: data.creditsUsed !== undefined ? data.creditsUsed.toLocaleString() : "0", 
-            change: data.creditsTrend !== undefined ? data.creditsTrend : 0, 
-            changeLabel: "vs last month", 
-            isNewAccount: data.isNewAccount,
-            inboundCreditsUsed: data.inboundCreditsUsed,
-            outboundCreditsUsed: data.outboundCreditsUsed,
-            creditsPercentage: data.creditsPercentage
-          };
-          
-          setStats(updatedStats);
-          try {
-            localStorage.setItem("dashboardStats", JSON.stringify(updatedStats));
-          } catch(e) {}
+          setStats(prev => {
+            const updatedStats = [...prev];
+            
+            updatedStats[0] = { ...updatedStats[0], value: data.inboundCalls !== undefined ? data.inboundCalls.toLocaleString() : "0", change: data.inboundTrend !== undefined ? data.inboundTrend : 100, changeLabel: "vs last month", isNewAccount: data.isNewAccount };
+            updatedStats[1] = { ...updatedStats[1], value: data.outboundCalls !== undefined ? data.outboundCalls.toLocaleString() : "0", change: data.outboundTrend !== undefined ? data.outboundTrend : 0, changeLabel: "vs last month", isNewAccount: data.isNewAccount };
+            updatedStats[2] = { 
+              ...updatedStats[2], 
+              value: data.totalAgents !== undefined ? data.totalAgents.toLocaleString() : "0", 
+              change: data.agentsTrend !== undefined ? data.agentsTrend : 0, 
+              changeLabel: "new this week", 
+              isNewAccount: data.isNewAccount,
+              assignedAgents: data.assignedAgents,
+              availableAgents: data.availableAgents 
+            };
+            updatedStats[3] = { 
+              ...updatedStats[3], 
+              value: data.creditsUsed !== undefined ? data.creditsUsed.toLocaleString() : "0", 
+              change: data.creditsTrend !== undefined ? data.creditsTrend : 0, 
+              changeLabel: "vs last month", 
+              isNewAccount: data.isNewAccount,
+              inboundCreditsUsed: data.inboundCreditsUsed,
+              outboundCreditsUsed: data.outboundCreditsUsed,
+              creditsPercentage: data.creditsPercentage
+            };
+            
+            try {
+              localStorage.setItem("dashboardStats", JSON.stringify(updatedStats));
+            } catch(e) {}
+            return updatedStats;
+          });
         }
       } catch (err) {
         console.error("Failed to fetch dashboard stats", err);

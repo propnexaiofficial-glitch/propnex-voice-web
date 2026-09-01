@@ -40,8 +40,8 @@ export function useOutboundCalls() {
         setTotalPages(outboundCache[cacheKey].pages);
         setLoading(false); // don't show skeleton if we have cache
       } else {
-        setCalls([]); // Clear old calls so skeleton loader shows
-        setLoading(true);
+        // Keep previous calls while fetching to prevent UI flashing
+        if (calls.length === 0) setLoading(true);
       }
     }
     

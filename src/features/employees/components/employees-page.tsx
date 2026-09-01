@@ -42,7 +42,7 @@ export function EmployeesPageContent() {
         </div>
       </motion.div>
 
-      {loading ? (
+      {loading && companies.length === 0 ? (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

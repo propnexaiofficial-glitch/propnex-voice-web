@@ -121,7 +121,7 @@ export function useInboundCallsApi(
     const load = async (isPolling = false) => {
       if (!isPolling) {
         if (!inboundCache[cacheKey]) {
-          setState((prev) => ({ ...prev, rawItems: [], loading: true, error: null }));
+          setState((prev) => ({ ...prev, loading: prev.rawItems.length === 0, error: null }));
         }
       }
 
