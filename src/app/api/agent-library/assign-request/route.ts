@@ -39,14 +39,17 @@ export async function POST(req: NextRequest) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
     // Check if an unread notification already exists for this agent assignment request
-    const existingNotifications = await prisma.notification.findMany({
-      where: {
-        companyId,
+    const existingNotificationsResult = await prisma.$runCommandRaw({
+      find: "Notification",
+      filter: {
+        companyId: { $oid: companyId },
         type: "SYSTEM",
         title: "Agent Assignment Request",
         readAt: null,
-      },
+      }
     });
+
+    const existingNotifications = (existingNotificationsResult as any)?.cursor?.firstBatch || [];
 
     const alreadyRequested = existingNotifications.some((n: any) => n.data && typeof n.data === 'object' && n.data.agentId === agentId);
     
@@ -56,10 +59,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Create a new Notification for the Admin Panel
-    await prisma.notification.create({
-      data: {
-        userId,
-        companyId,
+    await prisma.$runCommandRaw({
+      insert: "Notification",
+      documents: [{
+        userId: { $oid: userId },
+        companyId: { $oid: companyId },
         type: "SYSTEM",
         title: "Agent Assignment Request",
         body: `User ${user?.firstName} ${user?.lastName} requested assignment for ${agent.name}`,
@@ -68,8 +72,11 @@ export async function POST(req: NextRequest) {
           agentName: agent.name,
           userName: `${user?.firstName} ${user?.lastName}`.trim(),
           userEmail: user?.email,
-        }
-      }
+        },
+        readAt: null,
+        createdAt: { $date: new Date().toISOString() },
+        updatedAt: { $date: new Date().toISOString() }
+      }]
     });
 
     // Trigger webhook for email notifications
