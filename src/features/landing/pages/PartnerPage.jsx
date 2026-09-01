@@ -2,6 +2,8 @@ import { useRef, useState } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input'
+import 'react-phone-number-input/style.css'
 import PageShell from '../components/PageShell'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -304,8 +306,10 @@ export default function PartnerPage() {
   )
 
   const validateField = (name, value) => {
-    if (!value.trim()) {
+    if (!value || !String(value).trim()) {
       return `${name.charAt(0).toUpperCase() + name.slice(1)} is required`
+    } else if (name === 'phone' && !isValidPhoneNumber(String(value))) {
+      return 'Invalid phone number'
     }
     return ''
   }
@@ -538,14 +542,27 @@ export default function PartnerPage() {
                       <span className="mb-1 block text-[11px] text-white/45">
                         {field.label}
                       </span>
-                      <input
-                        name={field.name}
-                        type={field.type}
-                        required
-                        value={form[field.name]}
-                        onChange={onChange}
-                        className={`w-full rounded-lg border bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400/50 ${errors[field.name] ? 'border-rose-500/50' : 'border-white/15'}`}
-                      />
+                      {field.name === 'phone' ? (
+                        <PhoneInput
+                          defaultCountry="IN"
+                          value={form.phone}
+                          onChange={(val) => {
+                            setForm((f) => ({ ...f, phone: val || '' }))
+                            setErrors((prev) => ({ ...prev, phone: validateField('phone', val || '') }))
+                          }}
+                          className={`flex items-center w-full rounded-lg border bg-black/40 px-3 py-2 text-sm text-white outline-none focus-within:border-cyan-400/50 ${errors.phone ? 'border-rose-500/50' : 'border-white/15'}`}
+                          numberInputProps={{ className: "bg-transparent outline-none w-full ml-2 text-white placeholder:text-white/30", required: true }}
+                        />
+                      ) : (
+                        <input
+                          name={field.name}
+                          type={field.type}
+                          required
+                          value={form[field.name]}
+                          onChange={onChange}
+                          className={`w-full rounded-lg border bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400/50 ${errors[field.name] ? 'border-rose-500/50' : 'border-white/15'}`}
+                        />
+                      )}
                       {errors[field.name] && <span className="mt-1 block text-[10px] text-rose-400">{errors[field.name]}</span>}
                     </label>
                   ))}

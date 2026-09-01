@@ -1,11 +1,13 @@
 import { Suspense, lazy, useState } from 'react'
 import { Link } from '@/features/landing/lib/router'
+import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input'
+import 'react-phone-number-input/style.css'
 import PageShell, { SectionCard } from '../components/PageShell'
 
 const AuraOrb = lazy(() => import('../components/3d/AuraOrb'))
 
 const API_BASE = import.meta.env.VITE_API_URL ?? ''
-const DEMO_NUMBER = '98894 79110'
+const DEMO_NUMBER = '+919889479110'
 const DEMO_TEL = 'tel:+919889479110'
 
 const emptyForm = {
@@ -26,12 +28,14 @@ export default function LiveDemoPage() {
 
   const validateField = (name, value) => {
     let err = ''
-    if (!value.trim()) {
+    if (!value || !String(value).trim()) {
       if (name === 'name') err = 'Name is required'
       if (name === 'email') err = 'Email is required'
       if (name === 'phone') err = 'Phone is required'
       if (name === 'company') err = 'Company is required'
       if (name === 'otherIndustry' && form.industry === 'Other') err = 'Industry is required'
+    } else if (name === 'phone' && !isValidPhoneNumber(String(value))) {
+      err = 'Invalid phone number'
     }
     return err
   }
@@ -199,14 +203,28 @@ export default function LiveDemoPage() {
                       <span className="mb-1.5 block text-xs font-medium text-white/45">
                         {field.label}
                       </span>
-                      <input
-                        name={field.name}
-                        type={field.type}
-                        value={form[field.name]}
-                        onChange={onChange}
-                        placeholder={field.placeholder}
-                        className={`w-full rounded-xl border bg-black/50 px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-cyan-400/50 ${errors[field.name] ? 'border-rose-500/50' : 'border-white/15'}`}
-                      />
+                      {field.name === 'phone' ? (
+                        <PhoneInput
+                          defaultCountry="IN"
+                          value={form.phone}
+                          onChange={(val) => {
+                            setForm((f) => ({ ...f, phone: val || '' }))
+                            setErrors((prev) => ({ ...prev, phone: validateField('phone', val || '') }))
+                          }}
+                          placeholder={field.placeholder}
+                          className={`flex items-center w-full rounded-xl border bg-black/50 px-4 py-2.5 text-sm text-white outline-none transition focus-within:border-cyan-400/50 ${errors.phone ? 'border-rose-500/50' : 'border-white/15'}`}
+                          numberInputProps={{ className: "bg-transparent outline-none w-full ml-2 text-white placeholder:text-white/30" }}
+                        />
+                      ) : (
+                        <input
+                          name={field.name}
+                          type={field.type}
+                          value={form[field.name]}
+                          onChange={onChange}
+                          placeholder={field.placeholder}
+                          className={`w-full rounded-xl border bg-black/50 px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-cyan-400/50 ${errors[field.name] ? 'border-rose-500/50' : 'border-white/15'}`}
+                        />
+                      )}
                       {errors[field.name] && <span className="mt-1 block text-xs text-rose-400">{errors[field.name]}</span>}
                     </label>
                   ))}
@@ -323,14 +341,7 @@ export default function LiveDemoPage() {
               You&apos;re all set
             </h2>
             <p className="mx-auto mt-3 max-w-md text-sm text-white/55">
-              We saved your details
-              {leadId ? (
-                <>
-                  {' '}
-                  (ref <span className="font-mono text-cyan-300">{leadId}</span>)
-                </>
-              ) : null}{' '}
-              and will call{' '}
+              We saved your details and will call{' '}
               <span className="font-semibold text-white/80">{form.phone}</span>{' '}
               shortly.
             </p>
