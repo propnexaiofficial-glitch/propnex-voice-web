@@ -109,9 +109,12 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
                 : "bg-white text-black cursor-pointer hover:bg-zinc-200"
           )}
           onClick={() => {
-            if (!agent.assigned) {
+            if (!agent.assigned && !requested) {
               setRequested(true);
               onAssign(agent.id);
+              setTimeout(() => {
+                setRequested(false);
+              }, 3000);
             }
           }}
         >

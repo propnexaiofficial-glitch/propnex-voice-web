@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
     // Check if an unread notification already exists for this agent assignment request
-    const existingNotification = await (prisma as any).notification.findFirst({
+    const existingNotifications = await (prisma as any).notification.findMany({
       where: {
         companyId,
         type: "SYSTEM",
@@ -48,8 +48,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Check if the data payload has this agent ID
-    if (existingNotification && existingNotification.data && typeof existingNotification.data === 'object' && (existingNotification.data as any).agentId === agentId) {
+    const alreadyRequested = existingNotifications.some((n: any) => n.data && typeof n.data === 'object' && n.data.agentId === agentId);
+    
+    if (alreadyRequested) {
       // Notification already exists and hasn't been read/cut by admin
       return NextResponse.json({ success: true, message: "Already requested" });
     }

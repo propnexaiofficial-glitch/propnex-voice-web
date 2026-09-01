@@ -181,7 +181,7 @@ export function VoiceAudioPlayer({
       </div>
 
       <div className="text-xs tabular-nums text-zinc-400 font-medium">
-        {duration ? fmt(duration) : "0:00"}
+        {duration ? fmt(duration) : (error ? "0:00" : "...")}
       </div>
     </div>
   );

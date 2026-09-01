@@ -32,9 +32,9 @@ export function useAgentLibrary() {
   const [agents, setAgents] = useState<AgentEntry[]>(globalAgentsCache || []);
   const [loading, setLoading] = useState(!globalAgentsCache);
 
-  const fetchAgents = useCallback(async () => {
+  const fetchAgents = useCallback(async (isPolling = false) => {
     try {
-      if (!globalAgentsCache) setLoading(true);
+      if (!isPolling && agents.length === 0) setLoading(true);
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
       const res = await fetch("/api/agent-library", {
         headers: { "Authorization": `Bearer ${token}` }
@@ -52,7 +52,11 @@ export function useAgentLibrary() {
   }, []);
 
   useEffect(() => {
-    fetchAgents();
+    fetchAgents(false);
+    const interval = setInterval(() => {
+      fetchAgents(true);
+    }, 15000); // 15s polling
+    return () => clearInterval(interval);
   }, [fetchAgents]);
 
   const assignedCount = useMemo(
