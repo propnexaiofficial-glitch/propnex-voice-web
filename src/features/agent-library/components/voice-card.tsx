@@ -28,21 +28,20 @@ type VoiceCardProps = {
 
 export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
   const [loading, setLoading] = useState(false);
-  const [localRequested, setLocalRequested] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
 
-  // Use server state as source of truth; localRequested is just immediate feedback
   const isAssigned = agent.assigned;
-  const isRequested = agent.requested || localRequested;
 
   const handleAssignClick = async () => {
-    // If admin already assigned it, or user already requested — do nothing
-    if (isAssigned || isRequested || loading) return;
+    if (isAssigned || loading) return;
 
     setLoading(true);
     try {
       await onAssign(agent.id);
-      // Optimistically mark as requested locally until next poll
-      setLocalRequested(true);
+      setShowNotification(true);
+      setTimeout(() => {
+        setShowNotification(false);
+      }, 3500); // Revert back to white button after 3.5 seconds
     } catch (err) {
       console.error(err);
     } finally {
@@ -117,21 +116,21 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
             "w-full h-12 rounded-xl text-sm font-semibold transition-all duration-300",
             isAssigned
               ? "bg-transparent border border-[#00d084] text-[#00d084] cursor-default"
-              : isRequested
+              : showNotification
                 ? "bg-white/10 border border-white/20 text-white/70 cursor-default"
                 : loading
                   ? "bg-white/80 text-black/60 cursor-wait"
                   : "bg-white text-black cursor-pointer hover:bg-zinc-100 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-[0.98]"
           )}
           onClick={handleAssignClick}
-          disabled={loading || isAssigned || isRequested}
+          disabled={loading || isAssigned || showNotification}
         >
           {isAssigned ? (
             <span className="flex items-center gap-2">
               <Check className="size-4" />
               Assigned Campaign
             </span>
-          ) : isRequested ? (
+          ) : showNotification ? (
             <span className="flex items-center gap-2 text-[13px]">
               <Check className="size-4 shrink-0" />
               Admin is notified — we will let you know

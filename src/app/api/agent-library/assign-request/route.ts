@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
       };
 
       // Notify Admin
-      await fetch(webhookUrl, {
+      fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "agent_assign_request_admin", ...payload }),
