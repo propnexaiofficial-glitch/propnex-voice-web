@@ -66,7 +66,7 @@ export function OutboundPageContent() {
 
   const { user, isLoading } = useUserContext();
   const hasOutboundNumber = isLoading ? true : (
-    user?.role === "SYSTEM_ADMIN" || (user?.assignedNumbersDetailed && user.assignedNumbersDetailed.length > 0)
+    user?.role === "SYSTEM_ADMIN" || (user?.assignedNumbersDetailed && user.assignedNumbersDetailed.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH"))
   );
 
   const [editCampaignId, setEditCampaignId] = useState<string | null>(null);

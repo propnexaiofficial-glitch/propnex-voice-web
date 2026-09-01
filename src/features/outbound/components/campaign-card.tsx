@@ -626,16 +626,16 @@ export function CampaignCard({
                       variant="outline"
                       className="border-primary text-primary hover:bg-primary/10 gap-2 h-9 text-sm"
                       onClick={onSchedule}
-                      disabled={disableSchedule || failedCallsCount === 0}
+                      disabled={!hasOutboundNumber || disableSchedule || failedCallsCount === 0}
                     >
                       <CalendarClock className="size-4" />
                       Schedule Reactivation
                     </Button>
                   </div>
                 </TooltipTrigger>
-                {(disableSchedule || failedCallsCount === 0) && (
+                {(!hasOutboundNumber || disableSchedule || failedCallsCount === 0) && (
                   <TooltipContent>
-                    <p>{scheduleDisabledReason || "Available when there are failed calls"}</p>
+                    <p>{!hasOutboundNumber ? "Request an outbound number first" : (scheduleDisabledReason || "Available when there are failed calls")}</p>
                   </TooltipContent>
                 )}
               </Tooltip>

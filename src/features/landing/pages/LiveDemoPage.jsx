@@ -14,35 +14,69 @@ const emptyForm = {
   phone: '',
   company: '',
   industry: 'Real Estate',
+  otherIndustry: '',
 }
 
 export default function LiveDemoPage() {
   const [step, setStep] = useState('form') // form | calling | done
   const [form, setForm] = useState(emptyForm)
-  const [error, setError] = useState('')
+  const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [leadId, setLeadId] = useState(null)
 
+  const validateField = (name, value) => {
+    let err = ''
+    if (!value.trim()) {
+      if (name === 'name') err = 'Name is required'
+      if (name === 'email') err = 'Email is required'
+      if (name === 'phone') err = 'Phone is required'
+      if (name === 'company') err = 'Company is required'
+      if (name === 'otherIndustry' && form.industry === 'Other') err = 'Industry is required'
+    }
+    return err
+  }
+
   const onChange = (e) => {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
-    setError('')
+    const { name, value } = e.target
+    setForm((f) => ({ ...f, [name]: value }))
+    const fieldErr = validateField(name, value)
+    setErrors((prev) => ({ ...prev, [name]: fieldErr }))
   }
 
   const onSubmit = async (e) => {
     e.preventDefault()
-    if (!form.name.trim() || !form.phone.trim() || !form.email.trim()) {
-      setError('Please fill name, email, and phone.')
+    
+    // Validate all
+    const newErrors = {
+      name: validateField('name', form.name),
+      email: validateField('email', form.email),
+      phone: validateField('phone', form.phone),
+      company: validateField('company', form.company),
+      otherIndustry: validateField('otherIndustry', form.otherIndustry),
+    }
+
+    setErrors(newErrors)
+
+    if (Object.values(newErrors).some(err => err)) {
       return
     }
 
     setSubmitting(true)
-    setError('')
 
     try {
-      const res = await fetch(`${API_BASE}/api/demo-leads`, {
+      const payload = {
+        formType: 'DEMO_CALL',
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        company: form.company,
+        industry: form.industry === 'Other' ? form.otherIndustry : form.industry
+      }
+
+      const res = await fetch(`/api/marketing/forms`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -52,10 +86,7 @@ export default function LiveDemoPage() {
       setStep('calling')
       window.setTimeout(() => setStep('done'), 4500)
     } catch (err) {
-      setError(
-        err.message ||
-          'Server unavailable. Start the API (npm run server) and try again.',
-      )
+      setErrors({ global: err.message || 'Server unavailable. Try again later.' })
     } finally {
       setSubmitting(false)
     }
@@ -174,9 +205,9 @@ export default function LiveDemoPage() {
                         value={form[field.name]}
                         onChange={onChange}
                         placeholder={field.placeholder}
-                        required={field.name !== 'company'}
-                        className="w-full rounded-xl border border-white/15 bg-black/50 px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-cyan-400/50"
+                        className={`w-full rounded-xl border bg-black/50 px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-cyan-400/50 ${errors[field.name] ? 'border-rose-500/50' : 'border-white/15'}`}
                       />
+                      {errors[field.name] && <span className="mt-1 block text-xs text-rose-400">{errors[field.name]}</span>}
                     </label>
                   ))}
 
@@ -205,9 +236,26 @@ export default function LiveDemoPage() {
                     </select>
                   </label>
 
-                  {error ? (
+                  {form.industry === 'Other' && (
+                    <label className="block">
+                      <span className="mb-1.5 block text-xs font-medium text-white/45">
+                        Write your own industry
+                      </span>
+                      <input
+                        name="otherIndustry"
+                        type="text"
+                        value={form.otherIndustry}
+                        onChange={onChange}
+                        placeholder="Your industry"
+                        className={`w-full rounded-xl border bg-black/50 px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-cyan-400/50 ${errors.otherIndustry ? 'border-rose-500/50' : 'border-white/15'}`}
+                      />
+                      {errors.otherIndustry && <span className="mt-1 block text-xs text-rose-400">{errors.otherIndustry}</span>}
+                    </label>
+                  )}
+
+                  {errors.global ? (
                     <p className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-200">
-                      {error}
+                      {errors.global}
                     </p>
                   ) : null}
 

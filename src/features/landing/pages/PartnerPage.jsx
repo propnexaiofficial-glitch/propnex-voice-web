@@ -224,6 +224,10 @@ export default function PartnerPage() {
   const [form, setForm] = useState(emptyForm)
   const [sent, setSent] = useState(false)
 
+  const [errors, setErrors] = useState({})
+  const [submitting, setSubmitting] = useState(false)
+  const [globalError, setGlobalError] = useState('')
+
   useGSAP(
     () => {
       gsap.fromTo(
@@ -299,12 +303,59 @@ export default function PartnerPage() {
     { scope: ref },
   )
 
-  const onChange = (e) =>
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
+  const validateField = (name, value) => {
+    if (!value.trim()) {
+      return `${name.charAt(0).toUpperCase() + name.slice(1)} is required`
+    }
+    return ''
+  }
 
-  const onSubmit = (e) => {
+  const onChange = (e) => {
+    const { name, value } = e.target
+    setForm((f) => ({ ...f, [name]: value }))
+    setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }))
+  }
+
+  const onSubmit = async (e) => {
     e.preventDefault()
-    setSent(true)
+
+    const newErrors = {
+      name: validateField('name', form.name),
+      company: validateField('company', form.company),
+      email: validateField('email', form.email),
+      phone: validateField('phone', form.phone),
+      clients: validateField('clients', form.clients),
+      volume: validateField('volume', form.volume),
+    }
+
+    setErrors(newErrors)
+
+    if (Object.values(newErrors).some(err => err)) {
+      return
+    }
+
+    setSubmitting(true)
+    setGlobalError('')
+
+    try {
+      const res = await fetch(`/api/marketing/forms`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          formType: 'PARTNER_APP',
+          ...form
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        throw new Error(data.error || 'Could not submit your application.')
+      }
+      setSent(true)
+    } catch (err) {
+      setGlobalError(err.message || 'Server error. Please try again later.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -493,16 +544,27 @@ export default function PartnerPage() {
                         required
                         value={form[field.name]}
                         onChange={onChange}
-                        className="w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400/50"
+                        className={`w-full rounded-lg border bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400/50 ${errors[field.name] ? 'border-rose-500/50' : 'border-white/15'}`}
                       />
+                      {errors[field.name] && <span className="mt-1 block text-[10px] text-rose-400">{errors[field.name]}</span>}
                     </label>
                   ))}
+
+                  {globalError && (
+                    <div className="sm:col-span-2">
+                      <p className="rounded-lg border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
+                        {globalError}
+                      </p>
+                    </div>
+                  )}
+
                   <div className="sm:col-span-2">
                     <button
                       type="submit"
-                      className="mt-1 w-full rounded-full bg-gradient-to-r from-cyan-400 to-violet-400 py-2.5 text-sm font-semibold text-black transition hover:brightness-110 sm:w-auto sm:px-8"
+                      disabled={submitting}
+                      className="mt-1 w-full rounded-full bg-gradient-to-r from-cyan-400 to-violet-400 py-2.5 text-sm font-semibold text-black transition hover:brightness-110 disabled:opacity-60 sm:w-auto sm:px-8"
                     >
-                      Submit application
+                      {submitting ? 'Submitting...' : 'Submit application'}
                     </button>
                   </div>
                 </form>
