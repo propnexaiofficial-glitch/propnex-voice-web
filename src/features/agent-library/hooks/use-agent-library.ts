@@ -30,8 +30,24 @@ export type AgentEntry = {
 };
 
 export function useAgentLibrary() {
-  const [agents, setAgents] = useState<AgentEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [agents, setAgents] = useState<AgentEntry[]>(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const cached = localStorage.getItem("agentLibraryCache");
+        if (cached) return JSON.parse(cached);
+      }
+    } catch (e) {}
+    return [];
+  });
+  
+  const [loading, setLoading] = useState(() => {
+    try {
+      if (typeof window !== "undefined" && localStorage.getItem("agentLibraryCache")) {
+        return false;
+      }
+    } catch (e) {}
+    return true;
+  });
 
   const fetchAgents = useCallback(async (isPolling = false) => {
     try {
@@ -43,6 +59,9 @@ export function useAgentLibrary() {
       if (!res.ok) throw new Error("Failed to fetch agents");
       const data = await res.json();
       setAgents(data);
+      try {
+        localStorage.setItem("agentLibraryCache", JSON.stringify(data));
+      } catch (e) {}
     } catch (err) {
       console.error(err);
       if (!isPolling) toast.error("Failed to load agent library");
