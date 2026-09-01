@@ -21,6 +21,14 @@ export async function GET() {
         totalCreditsUsed += log.creditsUsed || 0;
       }
 
+      // Also include manual deductions made by admins
+      const manualUsages = await prisma.creditUsage.findMany({
+        where: { companyId: company.id, reason: "MANUAL_ADJUSTMENT" }
+      });
+      for (const usage of manualUsages) {
+        totalCreditsUsed += usage.amount || 0;
+      }
+
       if (totalCreditsUsed !== company.creditBalance.creditsUsed) {
         const diff = totalCreditsUsed - company.creditBalance.creditsUsed;
         
