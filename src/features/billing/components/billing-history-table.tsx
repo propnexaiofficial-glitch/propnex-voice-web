@@ -14,10 +14,14 @@ type BillingHistoryTableProps = {
 
 const PAGE_SIZE = 5;
 
-const typeStyles = {
+const typeStyles: Record<string, string> = {
   "top-up": "bg-emerald-500/15 text-emerald-400 border-emerald-500/25",
   usage: "bg-muted text-foreground border-border",
   subscription: "bg-muted text-foreground border-border",
+  deduction: "bg-red-500/15 text-red-400 border-red-500/25",
+  "Deduction": "bg-red-500/15 text-red-400 border-red-500/25",
+  "Top-up": "bg-emerald-500/15 text-emerald-400 border-emerald-500/25",
+  "Top Up": "bg-emerald-500/15 text-emerald-400 border-emerald-500/25",
 };
 
 const statusStyles = {
@@ -84,7 +88,7 @@ export function BillingHistoryTable({ items }: BillingHistoryTableProps) {
                 <td className="px-4 py-3.5">
                   <Badge
                     variant="outline"
-                    className={cn("text-[10px] capitalize", typeStyles[item.type])}
+                    className={cn("text-[10px] capitalize", typeStyles[item.type] || typeStyles[item.type.toLowerCase()])}
                   >
                     {item.type.replace("-", " ")}
                   </Badge>
