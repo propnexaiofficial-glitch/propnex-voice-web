@@ -65,7 +65,7 @@ function mapApiItemToCallRecord(item: any, fallbackAssignedNumber: string): Call
     id: item.id || item.publicId,
     customerNumber: leadPhone || item.customerNumber || fallbackCustomerPhone || "Unknown",
     assignedNumber: pNum || item.assignedNumber || fallbackAssignedRaw || item.providerWebhook?.callid || item.providerWebhook?.calledno || fallbackAssignedNumber,
-    callDateTime: item.startedAt || new Date().toISOString(),
+    callDateTime: item.callDateTime || item.startedAt || item.createdAt || item.updatedAt || new Date().toISOString(),
     duration: isLive ? "Live" : formatDuration(item.durationSeconds || 0),
     durationSeconds: item.durationSeconds || 0,
     status: mappedStatus,
@@ -73,7 +73,7 @@ function mapApiItemToCallRecord(item: any, fallbackAssignedNumber: string): Call
     recordingUrl: item.recordingUrl || undefined,
     transcriptUrl: item.transcriptUrl || undefined,
     transcript: [],
-    liveStartedAt: isLive ? (item.liveStartedAt || item.callDateTime || item.startedAt || new Date().toISOString()) : undefined,
+    liveStartedAt: isLive ? (item.liveStartedAt || item.callDateTime || item.startedAt || item.createdAt || item.updatedAt || new Date().toISOString()) : undefined,
   };
 }
 
