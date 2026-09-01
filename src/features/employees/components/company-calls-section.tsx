@@ -408,8 +408,12 @@ export function CompanyCallsSection({
   const title = direction === "inbound" ? "Inbound Calls" : "Outbound Calls";
   const description =
     direction === "inbound"
-      ? "Incoming calls handled for this sub-company"
-      : "Outgoing campaigns and calls for this sub-company";
+      ? totalItems > 0 
+        ? `${totalItems} incoming call${totalItems === 1 ? '' : 's'} found`
+        : "Incoming calls handled for this sub-company"
+      : totalItems > 0
+        ? `${totalItems} outgoing call${totalItems === 1 ? '' : 's'} found`
+        : "Outgoing campaigns and calls for this sub-company";
 
   const handleViewTranscript = (call: CallRecord) => {
     setSelectedCall(call);
