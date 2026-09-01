@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Send, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,11 @@ export function SidebarChatbot() {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   const [bubbleText, setBubbleText] = useState("");
   const [showBubble, setShowBubble] = useState(false);
@@ -157,8 +163,10 @@ export function SidebarChatbot() {
         @keyframes conic-spin{to{--a:360deg}}
         .fab-glow-mask{position:absolute;inset:2px;border-radius:50%;background:#18181b;z-index:1}
         
-        .fab-icon{font-size:1.35rem;z-index:3;position:relative;animation:icon-pulse 3s ease-in-out infinite}
+        .fab-icon{font-size:1.35rem;z-index:3;position:relative;animation:icon-pulse 3s ease-in-out infinite;transition:transform 0.2s}
+        .fab-wrap:hover .fab-icon{animation:icon-wiggle .6s ease-in-out infinite}
         @keyframes icon-pulse{0%,100%{transform:scale(1) rotate(0deg)}25%{transform:scale(1.1) rotate(-3deg)}75%{transform:scale(1.05) rotate(3deg)}}
+        @keyframes icon-wiggle{0%,100%{transform:scale(1.15) rotate(0deg)}25%{transform:scale(1.25) rotate(-15deg)}75%{transform:scale(1.25) rotate(15deg)}}
         
         .fab-scan{position:absolute;left:8px;right:8px;height:1.5px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.8),transparent);border-radius:2px;animation:fab-scan 2.5s ease-in-out infinite;z-index:4}
         @keyframes fab-scan{0%{top:10px;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:44px;opacity:0}}
@@ -290,81 +298,86 @@ export function SidebarChatbot() {
         <div className="fab-label"><div className="fab-dot"></div>Propnex AI</div>
       </div>
 
-      {/* BACKDROP */}
-      <div 
-        className={cn("chat-backdrop", isOpen && "show")} 
-        onClick={() => setIsOpen(false)}
-      ></div>
+      {mounted && createPortal(
+        <>
+          {/* BACKDROP */}
+          <div 
+            className={cn("chat-backdrop", isOpen && "show")} 
+            onClick={() => setIsOpen(false)}
+          ></div>
 
-      {/* CHAT PANEL */}
-      <div className={cn("chat-window", isOpen && "open")}>
-        <div className="ch-head">
-          <div className="ch-head-bg"></div>
-          <div className="ch-orb"></div>
-          <div className="ch-actions">
-            <div className="ch-btn" onClick={() => setIsOpen(false)}>
-              <X className="size-[13px] text-zinc-400" />
+          {/* CHAT PANEL */}
+          <div className={cn("chat-window", isOpen && "open")}>
+            <div className="ch-head">
+              <div className="ch-head-bg"></div>
+              <div className="ch-orb"></div>
+              <div className="ch-actions">
+                <div className="ch-btn" onClick={() => setIsOpen(false)}>
+                  <X className="size-[13px] text-zinc-400" />
+                </div>
+              </div>
+              <div className="ch-agent">
+                <div className="ch-av-wrap">
+                  <div className="ch-av-ring2"></div>
+                  <div className="ch-av-ring"></div>
+                  <div className="ch-av">🤖</div>
+                </div>
+                <div className="ch-info">
+                  <h3>Propnex AI</h3>
+                  <div className="ch-status"><div className="ch-dot"></div>Online & active</div>
+                </div>
+              </div>
+              {messages.length <= 1 && (
+                <div className="ch-tags">
+                  <div className="ch-tag" onClick={() => handleTagClick("🚀 Setup campaign")}>🚀 Setup campaign</div>
+                  <div className="ch-tag" onClick={() => handleTagClick("🤖 Agent library")}>🤖 Agent library</div>
+                  <div className="ch-tag" onClick={() => handleTagClick("📊 Analytics")}>📊 Analytics</div>
+                  <div className="ch-tag" onClick={() => handleTagClick("💳 Billing")}>💳 Billing</div>
+                </div>
+              )}
             </div>
-          </div>
-          <div className="ch-agent">
-            <div className="ch-av-wrap">
-              <div className="ch-av-ring2"></div>
-              <div className="ch-av-ring"></div>
-              <div className="ch-av">🤖</div>
-            </div>
-            <div className="ch-info">
-              <h3>Propnex AI</h3>
-              <div className="ch-status"><div className="ch-dot"></div>Online & active</div>
-            </div>
-          </div>
-          {messages.length <= 1 && (
-            <div className="ch-tags">
-              <div className="ch-tag" onClick={() => handleTagClick("🚀 Setup campaign")}>🚀 Setup campaign</div>
-              <div className="ch-tag" onClick={() => handleTagClick("🤖 Agent library")}>🤖 Agent library</div>
-              <div className="ch-tag" onClick={() => handleTagClick("📊 Analytics")}>📊 Analytics</div>
-              <div className="ch-tag" onClick={() => handleTagClick("💳 Billing")}>💳 Billing</div>
-            </div>
-          )}
-        </div>
 
-        <div className="ch-msgs">
-          {messages.map((msg) => (
-            <div key={msg.id} className={cn("mrow", msg.type)}>
-              {msg.type === "bot" && <div className="mav">🤖</div>}
-              <div className={cn("mbub", msg.type)}>{msg.text}</div>
+            <div className="ch-msgs">
+              {messages.map((msg) => (
+                <div key={msg.id} className={cn("mrow", msg.type)}>
+                  {msg.type === "bot" && <div className="mav">🤖</div>}
+                  <div className={cn("mbub", msg.type)}>{msg.text}</div>
+                </div>
+              ))}
+              
+              <div className="type-row">
+                <div className="mav" style={{ flexShrink: 0, opacity: isTyping ? 1 : 0, transition: 'opacity 0.2s' }}>🤖</div>
+                <div className={cn("type-bub", isTyping && "show")}>
+                  <div className="td"></div><div className="td"></div><div className="td"></div>
+                </div>
+              </div>
+              <div ref={msgsEndRef} />
             </div>
-          ))}
-          
-          <div className="type-row">
-            <div className="mav" style={{ flexShrink: 0, opacity: isTyping ? 1 : 0, transition: 'opacity 0.2s' }}>🤖</div>
-            <div className={cn("type-bub", isTyping && "show")}>
-              <div className="td"></div><div className="td"></div><div className="td"></div>
-            </div>
-          </div>
-          <div ref={msgsEndRef} />
-        </div>
 
-        <div className="ch-inp-wrap">
-          <div className="ch-inp">
-            <textarea 
-              className="ch-ta" 
-              rows={1} 
-              placeholder="Message Propnex AI…" 
-              value={inputValue}
-              onChange={(e) => {
-                setInputValue(e.target.value);
-                e.target.style.height = 'auto';
-                e.target.style.height = Math.min(e.target.scrollHeight, 90) + 'px';
-              }}
-              onKeyDown={handleKeyDown}
-            />
-            <button className="ch-send" onClick={handleSend} disabled={isTyping || !inputValue.trim()}>
-              <Send className="size-3.5 text-zinc-900" />
-            </button>
+            <div className="ch-inp-wrap">
+              <div className="ch-inp">
+                <textarea 
+                  className="ch-ta" 
+                  rows={1} 
+                  placeholder="Message Propnex AI…" 
+                  value={inputValue}
+                  onChange={(e) => {
+                    setInputValue(e.target.value);
+                    e.target.style.height = 'auto';
+                    e.target.style.height = Math.min(e.target.scrollHeight, 90) + 'px';
+                  }}
+                  onKeyDown={handleKeyDown}
+                />
+                <button className="ch-send" onClick={handleSend} disabled={isTyping || !inputValue.trim()}>
+                  <Send className="size-3.5 text-zinc-900" />
+                </button>
+              </div>
+              <div className="ch-hint">Propnex AI · Demo mode</div>
+            </div>
           </div>
-          <div className="ch-hint">Propnex AI · Demo mode</div>
-        </div>
-      </div>
+        </>,
+        document.body
+      )}
     </>
   );
 }
