@@ -105,8 +105,8 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
             agent.assigned 
               ? "bg-transparent border border-[#00d084] text-[#00d084] cursor-pointer hover:bg-[#00d084]/10"
               : requested
-                ? "bg-white text-black cursor-pointer hover:bg-zinc-200"
-                : "bg-white text-black cursor-pointer hover:bg-zinc-200"
+                ? "bg-white text-black cursor-pointer hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98]"
+                : "bg-white text-black cursor-pointer hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98]"
           )}
           onClick={() => {
             if (!agent.assigned && !requested) {
