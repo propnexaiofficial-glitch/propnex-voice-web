@@ -9,6 +9,9 @@ export type DashboardStat = {
   isNewAccount?: boolean;
   inboundCreditsUsed?: number;
   outboundCreditsUsed?: number;
+  assignedAgents?: number;
+  availableAgents?: number;
+  creditsPercentage?: number;
   icon: LucideIcon;
   accent: "purple" | "blue" | "green" | "gold";
 };

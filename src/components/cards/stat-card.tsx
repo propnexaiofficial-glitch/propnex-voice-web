@@ -85,6 +85,24 @@ export function StatCard({ stat, index = 0, className }: StatCardProps) {
             Storing data for next month
           </span>
         </div>
+      ) : stat.id === "total-agents" ? (
+        <div className="mt-3 flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-1 text-emerald-500 font-medium">
+            <span className="size-1.5 rounded-full bg-emerald-500"></span>
+            {stat.assignedAgents ?? 0} Assigned
+          </div>
+          <span className="text-muted-foreground/30">•</span>
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <span className="size-1.5 rounded-full bg-muted-foreground/50"></span>
+            {stat.availableAgents ?? 0} Available
+          </div>
+        </div>
+      ) : stat.id === "credits-used" ? (
+        <div className="mt-3 flex items-center gap-1.5 text-xs">
+          <span className="inline-flex items-center rounded-sm bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-500">
+            {stat.creditsPercentage ?? 0}% of total limit used
+          </span>
+        </div>
       ) : stat.change !== undefined && (
         <div className="mt-3 flex items-center gap-1.5 text-xs">
           {isPositive ? (

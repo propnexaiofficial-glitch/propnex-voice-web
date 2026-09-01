@@ -64,6 +64,7 @@ export async function GET(req: NextRequest) {
       inboundCalls,
       outboundCalls,
       totalAgents,
+      assignedAgents,
       callStats,
       pastInboundCalls,
       pastOutboundCalls,
@@ -78,6 +79,7 @@ export async function GET(req: NextRequest) {
         where: { companyId: { in: companyIdsToQuery }, direction: "OUTBOUND", startedAt: { gte: startOfThisMonth } }
       }),
       prisma.agentLibraryEntry.count(),
+      prisma.agentLibraryEntry.count({ where: { isPublished: true } }),
       prisma.callLog.aggregate({
         where: { companyId: { in: companyIdsToQuery }, startedAt: { gte: startOfThisMonth } },
         _sum: { creditsUsed: true }
@@ -102,51 +104,57 @@ export async function GET(req: NextRequest) {
       })
     ]);
 
-    const creditsUsedByCalls = callStats._sum.creditsUsed || 0;
-    const pastCreditsUsed = pastCallStats._sum.creditsUsed || 0;
-    const inboundCreditsUsed = inboundCreditStats._sum.creditsUsed || 0;
-    const outboundCreditsUsed = outboundCreditStats._sum.creditsUsed || 0;
-
-    // Credits Used = Main account creditsUsed + ALL sub-company creditsUsed
-    // e.g. Main: 1,086.25 + Sub: 113.75 = 1,200 ✓
-    // This matches the "Main Used + Sub Used" shown in the credit balance card.
-    let creditsUsed = creditsUsedByCalls; // fallback to call log sum
+    let creditsUsed = callStats._sum.creditsUsed || 0;
+    let totalCreditLimit = 0;
+    
     try {
       const allCreditBalances = await (prisma as any).creditBalance.findMany({
         where: { companyId: { in: companyIdsToQuery } },
-        select: { creditsUsed: true }
+        select: { creditsUsed: true, creditsRemaining: true }
       });
       if (allCreditBalances && allCreditBalances.length > 0) {
         creditsUsed = allCreditBalances.reduce(
           (acc: number, cb: any) => acc + (cb.creditsUsed || 0), 0
         );
+        totalCreditLimit = allCreditBalances.reduce(
+          (acc: number, cb: any) => acc + (cb.creditsUsed || 0) + (cb.creditsRemaining || 0), 0
+        );
       }
     } catch (e) {}
 
-    // We no longer use fake baselines. If past is 0, they get a +100% or 0% naturally.
+    const creditsPercentage = totalCreditLimit > 0 ? Math.round((creditsUsed / totalCreditLimit) * 100) : 0;
+    
+    const availableAgents = totalAgents - assignedAgents;
+
+    const creditsUsedByCalls = callStats._sum.creditsUsed || 0;
+    const finalOutboundCredits = outboundCreditStats._sum.creditsUsed || 0;
+    const finalInboundCredits = Math.max(0, creditsUsed - finalOutboundCredits);
+    
+    const pastCreditsUsed = pastCallStats._sum.creditsUsed || 0;
+
     const calcTrend = (current: number, past: number) => {
       if (past === 0) return current > 0 ? 100 : 0;
       return Math.round(((current - past) / past) * 100);
     };
 
-    const finalOutboundCredits = outboundCreditsUsed;
-    const finalInboundCredits = Math.max(0, creditsUsed - finalOutboundCredits);
-
     return NextResponse.json({
       inboundCalls,
       outboundCalls,
       totalAgents,
+      assignedAgents,
+      availableAgents,
       creditsUsed,
+      creditsPercentage,
       inboundCreditsUsed: finalInboundCredits,
       outboundCreditsUsed: finalOutboundCredits,
-      isNewAccount,
-      inboundTrend:  isNewAccount ? 0 : calcTrend(inboundCalls,  pastInboundCalls),
-      outboundTrend: isNewAccount ? 0 : calcTrend(outboundCalls, pastOutboundCalls),
-      creditsTrend:  isNewAccount ? 0 : calcTrend(creditsUsedByCalls, pastCreditsUsed),
+      isNewAccount: false, // Force false so UI doesn't show the generic green badge
+      inboundTrend: calcTrend(inboundCalls, pastInboundCalls),
+      outboundTrend: calcTrend(outboundCalls, pastOutboundCalls),
+      creditsTrend: calcTrend(callStats._sum.creditsUsed || 0, pastCallStats._sum.creditsUsed || 0),
       agentsTrend: 0
     });
   } catch (err: any) {
     console.error("Dashboard stats error:", err);
-    return NextResponse.json({ inboundCalls: 0, outboundCalls: 0, activeAgents: 0, creditsUsed: 0, error: err.message || err.toString() });
+    return NextResponse.json({ inboundCalls: 0, outboundCalls: 0, totalAgents: 0, creditsUsed: 0, error: err.message || err.toString() });
   }
 }
