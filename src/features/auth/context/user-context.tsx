@@ -19,10 +19,54 @@ const UserContext = createContext<UserContextType>({
 });
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<any>(null);
-  const [mainBalance, setMainBalance] = useState(0);
-  const [mainUsed, setMainUsed] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<any>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.email) return parsed;
+        }
+      } catch {}
+    }
+    return null;
+  });
+  const [mainBalance, setMainBalance] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.creditBalance) return parsed.creditBalance.creditsRemaining || 0;
+        }
+      } catch {}
+    }
+    return 0;
+  });
+  const [mainUsed, setMainUsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.creditBalance) return parsed.creditBalance.creditsUsed || 0;
+        }
+      } catch {}
+    }
+    return 0;
+  });
+  const [isLoading, setIsLoading] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.email) return false;
+        }
+      } catch {}
+    }
+    return true;
+  });
 
   const applyUser = useCallback((parsed: any) => {
     setUser(parsed);
@@ -68,16 +112,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, [applyUser, fetchFreshUser]);
 
   useEffect(() => {
-    // On mount: load from localStorage immediately (no flash), then fetch fresh
-    try {
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        const parsed = JSON.parse(storedUser);
-        applyUser(parsed);
-        setIsLoading(false); // We have cached data, no need to show loading
-      }
-    } catch {}
-
+    // On mount: we already initialized from localStorage in useState
     // Always fetch fresh data from the API
     fetchFreshUser();
 

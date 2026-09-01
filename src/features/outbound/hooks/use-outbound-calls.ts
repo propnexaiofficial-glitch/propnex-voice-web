@@ -5,7 +5,24 @@ import type { CallLogFilters, CallRecord } from "@/types/call";
 import { useUserContext } from "@/features/auth/context/user-context";
 
 const OUTBOUND_PAGE_SIZE = 8;
-const outboundCache: Record<string, any> = {};
+const getOutboundCache = () => {
+  if (typeof window === "undefined") return {};
+  try {
+    const stored = sessionStorage.getItem("outboundCache");
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return {};
+};
+
+const outboundCache: Record<string, any> = getOutboundCache();
+
+const saveOutboundCache = () => {
+  if (typeof window !== "undefined") {
+    try {
+      sessionStorage.setItem("outboundCache", JSON.stringify(outboundCache));
+    } catch {}
+  }
+};
 
 export function useOutboundCalls() {
   const { user } = useUserContext();
@@ -73,6 +90,7 @@ export function useOutboundCalls() {
 
       // Update cache
       outboundCache[cacheKey] = { calls: newCalls, total: newTotal, pages: newPages };
+      saveOutboundCache();
 
       setCalls(newCalls);
       setTotalCalls(newTotal);

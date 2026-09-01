@@ -11,6 +11,8 @@ type CallPreviewPanelProps = {
   direction: "inbound" | "outbound";
   className?: string;
   isLocked?: boolean | string;
+  total?: number;
+  loading?: boolean;
   onAddCredits?: () => void;
 };
 
@@ -19,6 +21,8 @@ export function CallPreviewPanel({
   direction,
   className,
   isLocked,
+  total,
+  loading,
   onAddCredits,
 }: CallPreviewPanelProps) {
   const filtered = calls.filter((c) => c.direction === direction);
@@ -31,8 +35,8 @@ export function CallPreviewPanel({
         <Icon className="size-4 shrink-0 text-foreground" />
         <h4 className="text-sm font-semibold">{label} Preview</h4>
         {!isLocked && (
-          <span className="ml-auto text-[11px] text-muted-foreground">
-            {filtered.length} recent
+          <span className="ml-auto text-[11px] text-muted-foreground font-medium">
+            {total !== undefined ? `${total} total` : `${filtered.length} recent`}
           </span>
         )}
       </div>
@@ -52,6 +56,12 @@ export function CallPreviewPanel({
             </button>
           )}
         </div>
+      ) : loading && filtered.length === 0 ? (
+        <ul className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <li key={i} className="h-14 rounded-lg bg-muted animate-pulse" />
+          ))}
+        </ul>
       ) : filtered.length === 0 ? (
         <p className="flex flex-1 items-center justify-center py-6 text-center text-xs text-muted-foreground">
           No {direction} calls yet

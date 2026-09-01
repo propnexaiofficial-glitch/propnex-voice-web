@@ -77,8 +77,24 @@ function mapApiItemToCallRecord(item: any, fallbackAssignedNumber: string): Call
   };
 }
 
-const inboundCache: Record<string, any> = {};
+const getInboundCache = () => {
+  if (typeof window === "undefined") return {};
+  try {
+    const stored = sessionStorage.getItem("inboundCache");
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return {};
+};
 
+const inboundCache: Record<string, any> = getInboundCache();
+
+const saveInboundCache = () => {
+  if (typeof window !== "undefined") {
+    try {
+      sessionStorage.setItem("inboundCache", JSON.stringify(inboundCache));
+    } catch {}
+  }
+};
 export function useInboundCallsApi(
   filters: CallLogFilters,
   page: number,
@@ -155,7 +171,9 @@ export function useInboundCallsApi(
           rawItems: res.data || [],
           rawTotal: res.meta?.total || 0,
           rawTotalPages: res.meta?.totalPages || 1,
+          timestamp: Date.now()
         };
+        saveInboundCache();
       } catch (err) {
         if (isCancelled) return;
         const message =

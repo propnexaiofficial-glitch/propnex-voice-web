@@ -13,8 +13,24 @@ import { useInboundCallsApi } from "@/features/inbound/hooks/use-inbound-calls-a
 import { DEFAULT_CALL_FILTERS } from "@/types/call";
 import { cn } from "@/lib/utils";
 
-// Simple module-level cache to prevent flickering on tab switches
-const statsCache: Record<string, any> = {};
+const getStatsCache = () => {
+  if (typeof window === "undefined") return {};
+  try {
+    const stored = sessionStorage.getItem("companyStatsCache");
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return {};
+};
+
+const statsCache: Record<string, any> = getStatsCache();
+
+const saveStatsCache = () => {
+  if (typeof window !== "undefined") {
+    try {
+      sessionStorage.setItem("companyStatsCache", JSON.stringify(statsCache));
+    } catch {}
+  }
+};
 
 type CompanyOverviewSectionProps = {
   company: SubCompany;
@@ -26,8 +42,8 @@ export function CompanyOverviewSection({
 }: CompanyOverviewSectionProps) {
   const [transferOpen, setTransferOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const { calls: inboundCallsRaw } = useInboundCallsApi(DEFAULT_CALL_FILTERS, 1, 0, true, company.id, "inbound");
-  const { calls: outboundCallsRaw } = useInboundCallsApi(DEFAULT_CALL_FILTERS, 1, 0, true, company.id, "outbound");
+  const { calls: inboundCallsRaw, total: inboundTotal, loading: inboundLoading } = useInboundCallsApi(DEFAULT_CALL_FILTERS, 1, 0, true, company.id, "inbound");
+  const { calls: outboundCallsRaw, total: outboundTotal, loading: outboundLoading } = useInboundCallsApi(DEFAULT_CALL_FILTERS, 1, 0, true, company.id, "outbound");
 
   const [stats, setStats] = useState(
     statsCache[company.id] || {
@@ -66,6 +82,7 @@ export function CompanyOverviewSection({
             isNewAccount: data.isNewAccount || false,
           };
           statsCache[company.id] = newStats;
+          saveStatsCache();
           setStats(newStats);
         }
       } catch (e) {
@@ -262,12 +279,6 @@ export function CompanyOverviewSection({
                 <div className="mt-2 flex items-center justify-center">
                   <div className="h-3 w-20 animate-pulse rounded bg-muted-foreground/20"></div>
                 </div>
-              ) : stat.isNewAccount ? (
-                <div className="mt-2 flex items-center justify-center">
-                  <span className="inline-flex items-center rounded-sm bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-500">
-                    Storing data for next month
-                  </span>
-                </div>
               ) : (
                 <div className="mt-2 flex items-center justify-center gap-1 text-[10px]">
                   {getTrendIcon(stat.trendValue)}
@@ -286,12 +297,16 @@ export function CompanyOverviewSection({
         <CallPreviewPanel 
           calls={inboundPreviews} 
           direction="inbound" 
+          total={inboundTotal}
+          loading={inboundLoading}
           isLocked={company.creditsRemaining <= 0 ? "Locked (0 Credits)" : !(company.contactPhone || company.assignedNumbers?.length)} 
           onAddCredits={company.creditsRemaining <= 0 ? () => setTransferOpen(true) : undefined}
         />
         <CallPreviewPanel 
           calls={outboundPreviews} 
           direction="outbound" 
+          total={outboundTotal}
+          loading={outboundLoading}
           isLocked={company.creditsRemaining <= 0 ? "Locked (0 Credits)" : !(company.contactPhone || company.assignedNumbers?.length)} 
           onAddCredits={company.creditsRemaining <= 0 ? () => setTransferOpen(true) : undefined}
         />

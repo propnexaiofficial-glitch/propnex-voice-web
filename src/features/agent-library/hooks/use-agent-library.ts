@@ -26,8 +26,24 @@ export type AgentEntry = {
   _count: { deployedAgents: number };
 };
 
-let globalAgentsCache: AgentEntry[] | null = null;
+const getGlobalAgentsCache = () => {
+  if (typeof window === "undefined") return null;
+  try {
+    const stored = sessionStorage.getItem("globalAgentsCache");
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return null;
+};
 
+let globalAgentsCache: AgentEntry[] | null = getGlobalAgentsCache();
+
+const saveGlobalAgentsCache = () => {
+  if (typeof window !== "undefined" && globalAgentsCache) {
+    try {
+      sessionStorage.setItem("globalAgentsCache", JSON.stringify(globalAgentsCache));
+    } catch {}
+  }
+};
 export function useAgentLibrary() {
   const [agents, setAgents] = useState<AgentEntry[]>(globalAgentsCache || []);
   const [loading, setLoading] = useState(!globalAgentsCache);
@@ -42,6 +58,7 @@ export function useAgentLibrary() {
       if (!res.ok) throw new Error("Failed to fetch agents");
       const data = await res.json();
       globalAgentsCache = data;
+      saveGlobalAgentsCache();
       setAgents(data);
     } catch (err) {
       console.error(err);
