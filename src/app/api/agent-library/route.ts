@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
 
     const mapped = agents.map((agent: any) => ({
       ...agent,
-      assigned: agent.isPublished,
+      assigned: false,
       _count: agent._count,
     }));
 

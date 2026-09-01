@@ -39,9 +39,6 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
     try {
       await onAssign(agent.id);
       setRequested(true);
-      setTimeout(() => {
-        setRequested(false);
-      }, 3000);
     } catch (err) {
       console.error(err);
     } finally {
@@ -137,9 +134,9 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
               Assigned Campaign
             </span>
           ) : requested ? (
-            <span className="flex items-center gap-2 text-sm">
-              <Check className="size-4" />
-              Admin notified
+            <span className="flex items-center gap-2 text-[13px]">
+              <Check className="size-4 shrink-0" />
+              Admin is notified we will let you know
             </span>
           ) : (
             <span className="flex items-center gap-2">
