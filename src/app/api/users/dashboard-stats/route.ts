@@ -147,7 +147,7 @@ export async function GET(req: NextRequest) {
       creditsPercentage,
       inboundCreditsUsed: finalInboundCredits,
       outboundCreditsUsed: finalOutboundCredits,
-      isNewAccount: false, // Force false so UI doesn't show the generic green badge
+      isNewAccount,
       inboundTrend: calcTrend(inboundCalls, pastInboundCalls),
       outboundTrend: calcTrend(outboundCalls, pastOutboundCalls),
       creditsTrend: calcTrend(callStats._sum.creditsUsed || 0, pastCallStats._sum.creditsUsed || 0),

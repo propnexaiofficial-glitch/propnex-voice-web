@@ -79,13 +79,7 @@ export function StatCard({ stat, index = 0, className }: StatCardProps) {
         </p>
       </div>
 
-      {stat.isNewAccount ? (
-        <div className="mt-3 flex items-center gap-1.5 text-xs">
-          <span className="inline-flex items-center rounded-sm bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-500">
-            Storing data for next month
-          </span>
-        </div>
-      ) : stat.id === "total-agents" ? (
+      {stat.id === "total-agents" ? (
         <div className="mt-3 flex items-center gap-2 text-xs">
           <div className="flex items-center gap-1 text-emerald-500 font-medium">
             <span className="size-1.5 rounded-full bg-emerald-500"></span>
@@ -101,6 +95,12 @@ export function StatCard({ stat, index = 0, className }: StatCardProps) {
         <div className="mt-3 flex items-center gap-1.5 text-xs">
           <span className="inline-flex items-center rounded-sm bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-500">
             {stat.creditsPercentage ?? 0}% of total limit used
+          </span>
+        </div>
+      ) : stat.isNewAccount ? (
+        <div className="mt-3 flex items-center gap-1.5 text-xs">
+          <span className="inline-flex items-center rounded-sm bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-500">
+            Storing data for next month
           </span>
         </div>
       ) : stat.change !== undefined && (
