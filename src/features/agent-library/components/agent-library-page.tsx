@@ -28,7 +28,7 @@ function LibraryStat({ label, value, icon: Icon }: LibraryStatProps) {
 }
 
 export function AgentLibraryPageContent() {
-  const { agents, assignedCount, totalCount, toggleAssign } = useAgentLibrary();
+  const { agents, assignedCount, totalCount, requestAssign } = useAgentLibrary();
 
   const availableCount = totalCount - assignedCount;
 
@@ -70,7 +70,7 @@ export function AgentLibraryPageContent() {
             key={agent.id}
             agent={agent}
             index={index}
-            onAssign={toggleAssign}
+            onAssign={requestAssign}
           />
         ))}
       </div>

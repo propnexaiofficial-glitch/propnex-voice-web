@@ -2,6 +2,7 @@
 
 import { Check, UserPlus, Volume2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState } from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -25,20 +26,23 @@ type VoiceCardProps = {
   onAssign: (id: string) => void;
 };
 
-import { useState } from "react";
-
 export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
   const [loading, setLoading] = useState(false);
-  const [requested, setRequested] = useState(false);
-  const [simulatedAssigned, setSimulatedAssigned] = useState(false);
-  const isAssigned = agent.assigned || simulatedAssigned;
+  const [localRequested, setLocalRequested] = useState(false);
+
+  // Use server state as source of truth; localRequested is just immediate feedback
+  const isAssigned = agent.assigned;
+  const isRequested = agent.requested || localRequested;
 
   const handleAssignClick = async () => {
-    if (isAssigned || requested) return;
+    // If admin already assigned it, or user already requested — do nothing
+    if (isAssigned || isRequested || loading) return;
+
     setLoading(true);
     try {
       await onAssign(agent.id);
-      setRequested(true);
+      // Optimistically mark as requested locally until next poll
+      setLocalRequested(true);
     } catch (err) {
       console.error(err);
     } finally {
@@ -79,27 +83,19 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
 
         <div className="mt-4 grid grid-cols-2 gap-2">
           <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 transition-colors hover:bg-white/[0.04]">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-              TONE
-            </p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">TONE</p>
             <p className="mt-1 text-sm font-semibold text-zinc-100">{agent.tone || "Professional"}</p>
           </div>
           <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 transition-colors hover:bg-white/[0.04]">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-              LANGUAGE
-            </p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">LANGUAGE</p>
             <p className="mt-1 text-sm font-semibold text-zinc-100">{agent.language || "English"}</p>
           </div>
           <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 transition-colors hover:bg-white/[0.04]">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-              VOICE
-            </p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">VOICE</p>
             <p className="mt-1 text-sm font-semibold text-zinc-100">{agent.voice || "Female"}</p>
           </div>
           <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 transition-colors hover:bg-white/[0.04]">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-              BEST FOR
-            </p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">BEST FOR</p>
             <p className="mt-1 truncate text-sm font-semibold text-zinc-100">{agent.bestFor || "Inbound calls"}</p>
           </div>
         </div>
@@ -110,33 +106,40 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
           <Volume2 className="size-4" />
           <span>Voice preview</span>
         </div>
-        
-        <VoiceAudioPlayer 
-          src={agent.demoAudioUrl || ""} 
+
+        <VoiceAudioPlayer
+          src={agent.demoAudioUrl || ""}
           className="mb-5"
         />
 
         <Button
           className={cn(
             "w-full h-12 rounded-xl text-sm font-semibold transition-all duration-300",
-            isAssigned 
+            isAssigned
               ? "bg-transparent border border-[#00d084] text-[#00d084] cursor-default"
-              : requested
-                ? "bg-emerald-500/20 text-emerald-400 cursor-default"
-                : "bg-white text-black cursor-pointer hover:bg-zinc-100 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-[0.98]"
+              : isRequested
+                ? "bg-white/10 border border-white/20 text-white/70 cursor-default"
+                : loading
+                  ? "bg-white/80 text-black/60 cursor-wait"
+                  : "bg-white text-black cursor-pointer hover:bg-zinc-100 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-[0.98]"
           )}
           onClick={handleAssignClick}
-          disabled={loading || isAssigned || requested}
+          disabled={loading || isAssigned || isRequested}
         >
           {isAssigned ? (
             <span className="flex items-center gap-2">
               <Check className="size-4" />
               Assigned Campaign
             </span>
-          ) : requested ? (
+          ) : isRequested ? (
             <span className="flex items-center gap-2 text-[13px]">
               <Check className="size-4 shrink-0" />
-              Admin is notified we will let you know
+              Admin is notified — we will let you know
+            </span>
+          ) : loading ? (
+            <span className="flex items-center gap-2">
+              <span className="size-4 rounded-full border-2 border-black/30 border-t-black animate-spin" />
+              Sending...
             </span>
           ) : (
             <span className="flex items-center gap-2">

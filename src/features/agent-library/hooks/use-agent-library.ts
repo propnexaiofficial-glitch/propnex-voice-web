@@ -22,47 +22,30 @@ export type AgentEntry = {
   isPublished: boolean;
   sortOrder: number;
   totalVoices: number;
+  // assigned = admin marked Yes
   assigned: boolean;
+  // requested = user already sent a request (pending admin action)
+  requested: boolean;
   _count: { deployedAgents: number };
 };
 
-const getGlobalAgentsCache = () => {
-  if (typeof window === "undefined") return null;
-  try {
-    const stored = sessionStorage.getItem("globalAgentsCache");
-    if (stored) return JSON.parse(stored);
-  } catch {}
-  return null;
-};
-
-let globalAgentsCache: AgentEntry[] | null = getGlobalAgentsCache();
-
-const saveGlobalAgentsCache = () => {
-  if (typeof window !== "undefined" && globalAgentsCache) {
-    try {
-      sessionStorage.setItem("globalAgentsCache", JSON.stringify(globalAgentsCache));
-    } catch {}
-  }
-};
 export function useAgentLibrary() {
-  const [agents, setAgents] = useState<AgentEntry[]>(globalAgentsCache || []);
-  const [loading, setLoading] = useState(!globalAgentsCache);
+  const [agents, setAgents] = useState<AgentEntry[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchAgents = useCallback(async (isPolling = false) => {
     try {
-      if (!isPolling && agents.length === 0) setLoading(true);
+      if (!isPolling) setLoading(true);
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
       const res = await fetch("/api/agent-library", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (!res.ok) throw new Error("Failed to fetch agents");
       const data = await res.json();
-      globalAgentsCache = data;
-      saveGlobalAgentsCache();
       setAgents(data);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to load agent library");
+      if (!isPolling) toast.error("Failed to load agent library");
     } finally {
       setLoading(false);
     }
@@ -72,7 +55,7 @@ export function useAgentLibrary() {
     fetchAgents(false);
     const interval = setInterval(() => {
       fetchAgents(true);
-    }, 15000); // 15s polling
+    }, 12000); // 12s polling — picks up admin Yes changes automatically
     return () => clearInterval(interval);
   }, [fetchAgents]);
 
@@ -86,28 +69,22 @@ export function useAgentLibrary() {
     [agents]
   );
 
-  const toggleAssign = useCallback(async (id: string) => {
+  const requestAssign = useCallback(async (id: string) => {
     const agent = agents.find((a) => a.id === id);
     if (!agent) return;
-    if (agent.assigned) return;
+    // Don't allow if already assigned or already requested
+    if (agent.assigned || agent.requested) return;
 
-    try {
-      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
-      const res = await fetch("/api/agent-library/assign-request", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ agentId: id }),
-      });
-      if (!res.ok) throw new Error("Failed to send assignment request");
-      toast.success("Assignment request sent to admin!");
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to request agent assignment");
-      throw err;
-    }
+    const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
+    const res = await fetch("/api/agent-library/assign-request", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ agentId: id }),
+    });
+    if (!res.ok) throw new Error("Failed to send assignment request");
   }, [agents]);
 
   return {
@@ -115,6 +92,6 @@ export function useAgentLibrary() {
     assignedCount,
     totalCount,
     loading,
-    toggleAssign,
+    requestAssign,
   };
 }
