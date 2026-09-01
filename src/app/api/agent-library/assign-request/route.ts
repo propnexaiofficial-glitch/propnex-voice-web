@@ -84,19 +84,23 @@ export async function POST(req: NextRequest) {
         agentUrl: agent.demoAudioUrl,
       };
 
-      // Notify Admin (with 3-second timeout so it never hangs the API)
+      // Notify Admin (with 3-second timeout)
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-      fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "agent_assign_request_admin", ...payload }),
-        signal: controller.signal
-      }).catch(err => {
+      try {
+        await fetch(webhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "agent_assign_request_admin", ...payload }),
+          signal: controller.signal
+        });
+      } catch (err: any) {
         if (err.name === 'AbortError') console.error('Webhook timeout');
         else console.error('Webhook error', err);
-      }).finally(() => clearTimeout(timeoutId));
+      } finally {
+        clearTimeout(timeoutId);
+      }
     }
 
     return NextResponse.json({ success: true });
