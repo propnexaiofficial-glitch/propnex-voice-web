@@ -177,7 +177,7 @@ export function CreditsWidget({
       <TooltipTrigger asChild>{widgetContent}</TooltipTrigger>
       <TooltipContent side="bottom" align="end" className="w-[280px] p-0 glass-card">
         <div className="p-3 border-b border-border/50">
-          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sub-Company Credits</h4>
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Main & Sub-Company Credits</h4>
         </div>
         <div className="max-h-[300px] overflow-y-auto">
           <div className="flex flex-col">

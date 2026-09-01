@@ -80,7 +80,7 @@ export function CreditsOverviewCard({ className }: CreditsOverviewCardProps) {
                   </TooltipTrigger>
                   <TooltipContent side="top" align="start" className="w-[220px] p-3 space-y-1.5">
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                      Sub-Company Credits
+                      Main & Sub-Company Credits
                     </p>
                     {companies.map((c) => (
                       <div key={c.id} className="flex items-center justify-between gap-2">
