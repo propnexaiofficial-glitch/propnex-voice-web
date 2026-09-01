@@ -72,8 +72,8 @@ export function useAgentLibrary() {
   const requestAssign = useCallback(async (id: string) => {
     const agent = agents.find((a) => a.id === id);
     if (!agent) return;
-    // Don't allow if already assigned or already requested
-    if (agent.assigned || agent.requested) return;
+    // Don't allow if already assigned
+    if (agent.assigned) return;
 
     const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
     const res = await fetch("/api/agent-library/assign-request", {

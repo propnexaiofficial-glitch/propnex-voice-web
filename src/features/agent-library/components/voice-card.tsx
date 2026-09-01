@@ -123,7 +123,7 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
                   : "bg-white text-black cursor-pointer hover:bg-zinc-100 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-[0.98]"
           )}
           onClick={handleAssignClick}
-          disabled={loading || isAssigned || showNotification}
+          disabled={loading || showNotification}
         >
           {isAssigned ? (
             <span className="flex items-center gap-2">
