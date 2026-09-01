@@ -115,7 +115,7 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
           className={cn(
             "w-full h-12 rounded-xl text-sm font-semibold transition-all duration-300",
             isAssigned
-              ? "bg-transparent border border-[#00d084] text-[#00d084] cursor-default"
+              ? "bg-transparent border border-[#00d084] text-[#00d084] cursor-default hover:bg-[#00d084]/10 hover:shadow-[0_0_15px_rgba(0,208,132,0.2)]"
               : showNotification
                 ? "bg-white/10 border border-white/20 text-white/70 cursor-default"
                 : loading

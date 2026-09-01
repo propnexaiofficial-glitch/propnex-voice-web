@@ -39,31 +39,28 @@ export async function POST(req: NextRequest) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
     // Check if an unread notification already exists for this agent assignment request
-    const existingNotificationsResult = await prisma.$runCommandRaw({
-      find: "Notification",
-      filter: {
-        companyId: { $oid: companyId },
+    const existingNotifications = await prisma.notification.findMany({
+      where: {
+        companyId,
         type: "SYSTEM",
         title: "Agent Assignment Request",
-        readAt: null,
+        readAt: null
       }
     });
 
-    const existingNotifications = (existingNotificationsResult as any)?.cursor?.firstBatch || [];
+    const existingNotification = existingNotifications.find((n: any) => 
+      n.data && typeof n.data === 'object' && n.data.agentId === agentId
+    );
 
-    const alreadyRequested = existingNotifications.some((n: any) => n.data && typeof n.data === 'object' && n.data.agentId === agentId);
-    
-    if (alreadyRequested) {
-      // Notification already exists and hasn't been read/cut by admin
+    if (existingNotification) {
       return NextResponse.json({ success: true, message: "Already requested" });
     }
 
     // Create a new Notification for the Admin Panel
-    await prisma.$runCommandRaw({
-      insert: "Notification",
-      documents: [{
-        userId: { $oid: userId },
-        companyId: { $oid: companyId },
+    await prisma.notification.create({
+      data: {
+        userId,
+        companyId,
         type: "SYSTEM",
         title: "Agent Assignment Request",
         body: `User ${user?.firstName} ${user?.lastName} requested assignment for ${agent.name}`,
@@ -72,11 +69,8 @@ export async function POST(req: NextRequest) {
           agentName: agent.name,
           userName: `${user?.firstName} ${user?.lastName}`.trim(),
           userEmail: user?.email,
-        },
-        readAt: null,
-        createdAt: { $date: new Date().toISOString() },
-        updatedAt: { $date: new Date().toISOString() }
-      }]
+        }
+      }
     });
 
     // Trigger webhook for email notifications
@@ -90,12 +84,19 @@ export async function POST(req: NextRequest) {
         agentUrl: agent.demoAudioUrl,
       };
 
-      // Notify Admin
+      // Notify Admin (with 3-second timeout so it never hangs the API)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+
       fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "agent_assign_request_admin", ...payload }),
-      }).catch(console.error);
+        signal: controller.signal
+      }).catch(err => {
+        if (err.name === 'AbortError') console.error('Webhook timeout');
+        else console.error('Webhook error', err);
+      }).finally(() => clearTimeout(timeoutId));
     }
 
     return NextResponse.json({ success: true });
