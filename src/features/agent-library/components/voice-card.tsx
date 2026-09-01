@@ -28,7 +28,28 @@ type VoiceCardProps = {
 import { useState } from "react";
 
 export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
+  const [loading, setLoading] = useState(false);
   const [requested, setRequested] = useState(false);
+  const [simulatedAssigned, setSimulatedAssigned] = useState(false);
+  const isAssigned = agent.assigned || simulatedAssigned;
+
+  const handleAssignClick = async () => {
+    if (isAssigned || requested) return;
+    setLoading(true);
+    try {
+      await onAssign(agent.id);
+      setRequested(true);
+      setTimeout(() => {
+        setRequested(false);
+        setSimulatedAssigned(true);
+      }, 3000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 10 }}
@@ -101,32 +122,25 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
 
         <Button
           className={cn(
-            "w-full h-12 rounded-xl text-sm font-semibold transition-all duration-200",
-            agent.assigned 
-              ? "bg-transparent border border-[#00d084] text-[#00d084] cursor-pointer hover:bg-[#00d084]/10"
+            "w-full h-12 rounded-xl text-sm font-semibold transition-all duration-300",
+            isAssigned 
+              ? "bg-transparent border border-[#00d084] text-[#00d084] cursor-default"
               : requested
-                ? "bg-white text-black cursor-pointer hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98]"
-                : "bg-white text-black cursor-pointer hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98]"
+                ? "bg-emerald-500/20 text-emerald-400 cursor-default"
+                : "bg-white text-black cursor-pointer hover:bg-zinc-100 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-[0.98]"
           )}
-          onClick={() => {
-            if (!agent.assigned && !requested) {
-              setRequested(true);
-              onAssign(agent.id);
-              setTimeout(() => {
-                setRequested(false);
-              }, 3000);
-            }
-          }}
+          onClick={handleAssignClick}
+          disabled={loading || isAssigned || requested}
         >
-          {agent.assigned ? (
+          {isAssigned ? (
             <span className="flex items-center gap-2">
               <Check className="size-4" />
               Assigned Campaign
             </span>
           ) : requested ? (
-            <span className="flex items-center gap-2 text-xs">
+            <span className="flex items-center gap-2 text-sm">
               <Check className="size-4" />
-              Admin got notification we will update
+              Admin notified
             </span>
           ) : (
             <span className="flex items-center gap-2">
