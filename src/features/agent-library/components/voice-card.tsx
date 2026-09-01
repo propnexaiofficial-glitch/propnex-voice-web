@@ -25,7 +25,10 @@ type VoiceCardProps = {
   onAssign: (id: string) => void;
 };
 
+import { useState } from "react";
+
 export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
+  const [requested, setRequested] = useState(false);
   return (
     <motion.article
       initial={{ opacity: 0, y: 10 }}
@@ -98,13 +101,16 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
 
         <Button
           className={cn(
-            "w-full h-12 rounded-xl text-sm font-semibold transition-all",
+            "w-full h-12 rounded-xl text-sm font-semibold transition-all duration-200",
             agent.assigned 
-              ? "bg-transparent border border-[#00d084] text-[#00d084] cursor-default hover:bg-[#00d084]/10 hover:shadow-[0_0_20px_rgba(0,208,132,0.6)] duration-300"
-              : "bg-white text-black hover:bg-zinc-200"
+              ? "bg-transparent border border-[#00d084] text-[#00d084] cursor-pointer hover:bg-[#00d084]/10"
+              : requested
+                ? "bg-white text-black cursor-pointer hover:bg-zinc-200"
+                : "bg-white text-black cursor-pointer hover:bg-zinc-200"
           )}
           onClick={() => {
             if (!agent.assigned) {
+              setRequested(true);
               onAssign(agent.id);
             }
           }}
@@ -113,6 +119,11 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
             <span className="flex items-center gap-2">
               <Check className="size-4" />
               Assigned Campaign
+            </span>
+          ) : requested ? (
+            <span className="flex items-center gap-2 text-xs">
+              <Check className="size-4" />
+              Admin got notification we will update
             </span>
           ) : (
             <span className="flex items-center gap-2">

@@ -71,11 +71,16 @@ export function VoiceAudioPlayer({
       setIsPlaying(false);
     };
 
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
+
     el.addEventListener("timeupdate",    onTime);
     el.addEventListener("loadedmetadata",onMeta);
     el.addEventListener("durationchange",onMeta);
     el.addEventListener("ended",         onEnded);
     el.addEventListener("error",         onError);
+    el.addEventListener("play",          onPlay);
+    el.addEventListener("pause",         onPause);
 
     return () => {
       el.removeEventListener("timeupdate",    onTime);
@@ -83,6 +88,8 @@ export function VoiceAudioPlayer({
       el.removeEventListener("durationchange",onMeta);
       el.removeEventListener("ended",         onEnded);
       el.removeEventListener("error",         onError);
+      el.removeEventListener("play",          onPlay);
+      el.removeEventListener("pause",         onPause);
     };
   }, [audioSrc]);
 

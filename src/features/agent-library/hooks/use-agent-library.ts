@@ -68,40 +68,25 @@ export function useAgentLibrary() {
   const toggleAssign = useCallback(async (id: string) => {
     const agent = agents.find((a) => a.id === id);
     if (!agent) return;
-    const isAssigning = !agent.assigned;
-
-    // Optimistic update
-    setAgents((prev) =>
-      prev.map((a) =>
-        a.id === id ? { ...a, assigned: isAssigning } : a
-      )
-    );
+    if (agent.assigned) return;
 
     try {
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
-      const res = await fetch("/api/agent-library/assign", {
+      const res = await fetch("/api/agent-library/assign-request", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ agentId: id, assign: isAssigning }),
+        body: JSON.stringify({ agentId: id }),
       });
-      if (!res.ok) throw new Error("Failed to update assignment");
-      toast.success(isAssigning ? "Agent assigned successfully!" : "Agent revoked successfully!");
-      // Re-fetch to update actual assigned numbers and availability
-      fetchAgents();
+      if (!res.ok) throw new Error("Failed to send assignment request");
+      toast.success("Assignment request sent to admin!");
     } catch (err) {
       console.error(err);
-      toast.error("Failed to update agent assignment");
-      // Revert optimistic update
-      setAgents((prev) =>
-        prev.map((a) =>
-          a.id === id ? { ...a, assigned: !isAssigning } : a
-        )
-      );
+      toast.error("Failed to request agent assignment");
     }
-  }, [agents, fetchAgents]);
+  }, [agents]);
 
   return {
     agents,
