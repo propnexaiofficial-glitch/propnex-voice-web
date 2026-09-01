@@ -19,7 +19,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: "Invalid token" }, { status: 401 });
     }
 
-    const userId = decoded.userId;
+    const userId = decoded.sub || decoded.id || decoded.userId;
+    if (!userId) {
+      return NextResponse.json({ message: "Invalid token structure" }, { status: 401 });
+    }
 
     const agents = await prisma.agentLibraryEntry.findMany({
       orderBy: { sortOrder: "asc" },

@@ -19,7 +19,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Invalid token" }, { status: 401 });
     }
 
-    const userId = decoded.userId;
+    const userId = decoded.sub || decoded.id || decoded.userId;
+    if (!userId) {
+      console.error("No user ID found in token:", decoded);
+      return NextResponse.json({ message: "Invalid token structure" }, { status: 401 });
+    }
     const { agentId } = await req.json();
 
     const companyMember = await prisma.companyMember.findFirst({
