@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
     // Check if an unread notification already exists for this agent assignment request
-    const existingNotifications = await (prisma as any).notification.findMany({
+    const existingNotifications = await prisma.notification.findMany({
       where: {
         companyId,
         type: "SYSTEM",
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create a new Notification for the Admin Panel
-    await (prisma as any).notification.create({
+    await prisma.notification.create({
       data: {
         userId,
         companyId,

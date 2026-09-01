@@ -106,6 +106,7 @@ export function useAgentLibrary() {
     } catch (err) {
       console.error(err);
       toast.error("Failed to request agent assignment");
+      throw err;
     }
   }, [agents]);
 

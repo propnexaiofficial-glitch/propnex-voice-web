@@ -39,6 +39,9 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
     try {
       await onAssign(agent.id);
       setRequested(true);
+      setTimeout(() => {
+        setRequested(false);
+      }, 3000);
     } catch (err) {
       console.error(err);
     } finally {
