@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useMemo } from 'react'
 import '../../css-animations.css'
 
 class Vec3 {
