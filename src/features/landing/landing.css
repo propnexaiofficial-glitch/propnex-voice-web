@@ -8,6 +8,9 @@
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   max-width: 100%;
+  /* Smooth native scroll on mobile */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none;
 }
 
 .landing-root ::selection {
@@ -84,7 +87,7 @@
 .landing-root .btn-primary:hover {
   transform: translateY(-1px);
   box-shadow: 0 10px 40px rgba(59, 130, 246, 0.35);
-  filter: brightness(1.05);
+  opacity: 0.92;
 }
 
 .landing-root .btn-ghost {

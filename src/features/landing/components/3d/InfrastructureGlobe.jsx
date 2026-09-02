@@ -1,4 +1,4 @@
-import { Suspense, useMemo, useRef } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Float, Line } from '@react-three/drei'
 import * as THREE from 'three'
@@ -29,7 +29,7 @@ const MARKERS = [
   { lat: 32.0, lon: 34.8 }, // Israel
 ]
 
-function ContinentDots({ count = 3200 }) {
+function ContinentDots({ count = 1400 }) {
   const points = useRef()
   const { positions, colors } = useMemo(() => {
     const pos = new Float32Array(count * 3)
@@ -149,20 +149,34 @@ function WireSphere() {
   })
   return (
     <mesh ref={mesh}>
-      <sphereGeometry args={[1.36, 48, 48]} />
+      <sphereGeometry args={[1.36, 28, 28]} />
       <meshBasicMaterial color="#1e293b" wireframe transparent opacity={0.12} />
     </mesh>
   )
 }
 
 export default function InfrastructureGlobe({ className = '' }) {
+  const containerRef = useRef(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => setInView(e.isIntersecting),
+      { threshold: 0.05 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
   return (
-    <div className={`relative ${className}`}>
+    <div ref={containerRef} className={`relative ${className}`}>
       <Canvas
-        dpr={[1, 1.6]}
-        // Adjusted camera z from 4.1 to 4.9 to fit the globe completely and prevent vertical clipping
+        dpr={[1, 1.2]}
+        frameloop={inView ? 'always' : 'never'}
         camera={{ position: [0, 0.15, 4.9], fov: 38 }}
-        gl={{ antialias: true, alpha: true }}
+        gl={{ antialias: false, alpha: true, powerPreference: 'low-power' }}
         onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
       >
         <ambientLight intensity={0.4} />
