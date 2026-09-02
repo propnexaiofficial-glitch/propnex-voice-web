@@ -1,35 +1,11 @@
 import { useRef } from 'react'
-import { useGSAP } from '@gsap/react'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import PhoneCarousel from './PhoneCarousel'
-
-gsap.registerPlugin(ScrollTrigger)
+import { useReveal } from '../hooks/useReveal'
 
 export default function PhoneShowcase() {
   const ref = useRef(null)
 
-  useGSAP(
-    () => {
-      gsap.fromTo(
-        '.phone-copy',
-        { opacity: 0, y: 24 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.75,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: {
-            trigger: ref.current,
-            start: 'top 85%',
-            once: true,
-          },
-        },
-      )
-    },
-    { scope: ref },
-  )
+  useReveal(ref, '.reveal')
 
   return (
     <section
@@ -40,7 +16,7 @@ export default function PhoneShowcase() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.12),transparent_60%)]" />
 
       <div className="relative mx-auto grid max-w-7xl items-center gap-8 px-5 md:grid-cols-2 md:gap-6 md:px-8">
-        <div className="phone-copy order-2 md:order-1">
+        <div className="reveal order-2 md:order-1">
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-blue-400/80">
             Agent personalities
           </p>
