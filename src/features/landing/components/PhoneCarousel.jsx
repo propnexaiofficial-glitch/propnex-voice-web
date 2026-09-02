@@ -189,7 +189,7 @@ export default function PhoneCarousel() {
       onTouchEnd={onPointerUp}
     >
       {/* Soft glow behind phone */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-72 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.25),transparent_70%)] blur-2xl" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-72 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.25),transparent_70%)]" />
 
       {/* Main phone */}
       <div

@@ -45,8 +45,8 @@ function PipelineVisual() {
       className="relative mx-auto aspect-square w-full max-w-[420px] md:max-w-none md:aspect-[5/4]"
     >
       {/* Glow wash */}
-      <div className="pointer-events-none absolute inset-[10%] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.18),transparent_65%)] blur-2xl" />
-      <div className="pointer-events-none absolute inset-[20%] rounded-full bg-[radial-gradient(circle,rgba(168,85,247,0.15),transparent_60%)] blur-2xl" />
+      <div className="pointer-events-none absolute inset-[10%] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.18),transparent_65%)]" />
+      <div className="pointer-events-none absolute inset-[20%] rounded-full bg-[radial-gradient(circle,rgba(168,85,247,0.15),transparent_60%)]" />
 
       {/* Orbit rings — pure CSS spin */}
       <div className="pipe-ring absolute inset-[12%] rounded-full border border-dashed border-white/10" style={{ animation: 'spin-slow 18s linear infinite' }} />

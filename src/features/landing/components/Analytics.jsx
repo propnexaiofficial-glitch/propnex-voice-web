@@ -138,8 +138,8 @@ export default function Analytics() {
           onMouseLeave={onLeave}
         >
           {/* Crazy outer glow bloom */}
-          <div className="pointer-events-none absolute -inset-8 rounded-[2rem] bg-[radial-gradient(circle_at_30%_20%,rgba(168,85,247,0.45),transparent_55%),radial-gradient(circle_at_70%_80%,rgba(244,114,182,0.25),transparent_50%)] blur-2xl" />
-          <div className="pointer-events-none absolute -inset-2 animate-pulse rounded-3xl bg-gradient-to-r from-violet-500/20 via-fuchsia-500/10 to-cyan-400/10 blur-xl" />
+          <div className="pointer-events-none absolute -inset-8 rounded-[2rem] bg-[radial-gradient(circle_at_30%_20%,rgba(168,85,247,0.45),transparent_55%),radial-gradient(circle_at_70%_80%,rgba(244,114,182,0.25),transparent_50%)]" />
+          <div className="pointer-events-none absolute -inset-2 animate-pulse rounded-3xl bg-gradient-to-r from-violet-500/20 via-fuchsia-500/10 to-cyan-400/10" />
 
           <div
             ref={card}

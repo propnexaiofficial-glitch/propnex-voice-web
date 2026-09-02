@@ -101,8 +101,8 @@ export default function PricingPage() {
 
       <main className="relative overflow-hidden pt-24 md:pt-28">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-24 top-20 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.16),transparent_70%)] blur-2xl" />
-          <div className="absolute -right-20 top-40 h-80 w-80 rounded-full bg-[radial-gradient(circle,rgba(232,121,249,0.16),transparent_70%)] blur-3xl" />
+          <div className="absolute -left-24 top-20 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.16),transparent_70%)]" />
+          <div className="absolute -right-20 top-40 h-80 w-80 rounded-full bg-[radial-gradient(circle,rgba(232,121,249,0.16),transparent_70%)]" />
         </div>
 
         <section className="relative mx-auto max-w-5xl px-5 pb-16 md:px-8 md:pb-20">

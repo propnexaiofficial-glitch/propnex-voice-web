@@ -68,7 +68,7 @@ export default function FeatureShowcase() {
         </div>
 
         <div className="relative mx-auto aspect-square w-full max-w-md">
-          <div className="pointer-events-none absolute inset-[18%] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.16),rgba(139,92,246,0.1)_50%,transparent_70%)] blur-2xl" />
+          <div className="pointer-events-none absolute inset-[18%] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.16),rgba(139,92,246,0.1)_50%,transparent_70%)]" />
           <RadialVisualizer3D
             className="absolute inset-0"
             active={speaking}

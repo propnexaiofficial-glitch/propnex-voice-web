@@ -6,7 +6,7 @@ import { useEffect } from 'react'
  * Completely eliminates the "flash → visible → flash" GSAP ScrollTrigger bug.
  */
 
-const observerOptions = { threshold: 0.08, rootMargin: '0px 0px -6% 0px' }
+const observerOptions = { threshold: 0, rootMargin: '0px 0px 50px 0px' }
 
 function observeReveal(root, selector, delay = 0) {
   if (!root) return () => {}

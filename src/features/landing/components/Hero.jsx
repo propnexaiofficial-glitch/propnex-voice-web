@@ -99,9 +99,9 @@ export default function Hero() {
       className="relative overflow-hidden pt-24 pb-12 md:pt-28 md:pb-16"
     >
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute right-[-5%] top-[35%] h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.16),transparent_68%)] blur-2xl md:right-[8%]" />
-        <div className="absolute right-[5%] top-[48%] h-[380px] w-[380px] rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.12),transparent_70%)] blur-3xl md:right-[14%]" />
-        <div className="absolute left-[-10%] top-[40%] h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.08),transparent_70%)] blur-3xl" />
+        <div className="absolute right-[-5%] top-[35%] h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.16),transparent_68%)] md:right-[8%]" />
+        <div className="absolute right-[5%] top-[48%] h-[380px] w-[380px] rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.12),transparent_70%)] md:right-[14%]" />
+        <div className="absolute left-[-10%] top-[40%] h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.08),transparent_70%)]" />
       </div>
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-5 md:grid-cols-2 md:gap-6 md:px-8 lg:gap-10">

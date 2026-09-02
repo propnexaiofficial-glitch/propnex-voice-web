@@ -93,7 +93,7 @@ export default function InteractiveCard({
       <span
         ref={shine}
         aria-hidden
-        className="pointer-events-none absolute -left-1/4 -top-1/4 h-1/2 w-1/2 rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.25),transparent_70%)] opacity-0 blur-2xl"
+        className="pointer-events-none absolute -left-1/4 -top-1/4 h-1/2 w-1/2 rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.25),transparent_70%)] opacity-0"
       />
       <div className="relative z-[1] h-full">{children}</div>
     </Tag>
