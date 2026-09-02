@@ -1,4 +1,5 @@
 import AuraOrb from './3d/AuraOrb'
+import { Link } from '@/features/landing/lib/router'
 
 const steps = [
   {
