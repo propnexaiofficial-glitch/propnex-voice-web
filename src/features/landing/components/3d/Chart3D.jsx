@@ -3,6 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { Float } from '@react-three/drei'
 import * as THREE from 'three'
 import { ErrorBoundary } from '../../../../components/ErrorBoundary'
+import { useWebGL } from '../../../../hooks/useWebGL'
 
 const DATA = [0.38, 0.55, 0.48, 0.72, 0.64, 0.92, 0.78]
 
@@ -157,23 +158,29 @@ function ChartScene() {
 }
 
 export default function Chart3D({ className = '' }) {
+  const isWebGLSupported = useWebGL();
+
   return (
     <div className={`relative ${className}`}>
-      <ErrorBoundary>
-        <Canvas
-          dpr={[1, 1.2]}
-          camera={{ position: [0, 1.4, 3.4], fov: 42 }}
-          gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
-          onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
-        >
-          <ambientLight intensity={0.35} />
-          <pointLight position={[2, 3, 2]} intensity={1.4} color="#e879f9" />
-          <pointLight position={[-2, 2, 1]} intensity={0.8} color="#67e8f9" />
-          <Suspense fallback={null}>
-            <ChartScene />
-          </Suspense>
-        </Canvas>
-      </ErrorBoundary>
+      {isWebGLSupported ? (
+        <ErrorBoundary>
+          <Canvas
+            dpr={[1, 1.2]}
+            camera={{ position: [0, 1.4, 3.4], fov: 42 }}
+            gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
+            onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
+          >
+            <ambientLight intensity={0.35} />
+            <pointLight position={[2, 3, 2]} intensity={1.4} color="#e879f9" />
+            <pointLight position={[-2, 2, 1]} intensity={0.8} color="#67e8f9" />
+            <Suspense fallback={null}>
+              <ChartScene />
+            </Suspense>
+          </Canvas>
+        </ErrorBoundary>
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 rounded-2xl" />
+      )}
     </div>
   )
 }

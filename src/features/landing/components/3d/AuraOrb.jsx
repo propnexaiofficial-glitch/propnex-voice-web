@@ -2,6 +2,7 @@ import { Suspense, useMemo, useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { ErrorBoundary } from '../../../../components/ErrorBoundary'
+import { useWebGL } from '../../../../hooks/useWebGL'
 
 const auraVertex = /* glsl */ `
   varying vec2 vUv;
@@ -127,27 +128,33 @@ export default function AuraOrb({
   className = '',
   intensity = 1,
 }) {
+  const isWebGLSupported = useWebGL();
+
   return (
     <div className={`relative ${className}`}>
-      <ErrorBoundary>
-        <Canvas
-          dpr={[1, 1.2]}
-          camera={{ position: [0, 0, 3.2], fov: 42 }}
-          gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
-          style={{ background: 'transparent' }}
-          onCreated={({ gl }) => {
-            gl.setClearColor(0x000000, 0)
-          }}
-        >
-          <ambientLight intensity={0.6} />
-          <pointLight position={[2, 2, 3]} intensity={1.2} color="#67e8f9" />
-          <pointLight position={[-2, -1, 2]} intensity={0.8} color="#c084fc" />
-          <Suspense fallback={null}>
-            <AuraMesh intensity={intensity} />
-            <InnerOrb />
-          </Suspense>
-        </Canvas>
-      </ErrorBoundary>
+      {isWebGLSupported ? (
+        <ErrorBoundary>
+          <Canvas
+            dpr={[1, 1.2]}
+            camera={{ position: [0, 0, 3.2], fov: 42 }}
+            gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
+            style={{ background: 'transparent' }}
+            onCreated={({ gl }) => {
+              gl.setClearColor(0x000000, 0)
+            }}
+          >
+            <ambientLight intensity={0.6} />
+            <pointLight position={[2, 2, 3]} intensity={1.2} color="#67e8f9" />
+            <pointLight position={[-2, -1, 2]} intensity={0.8} color="#c084fc" />
+            <Suspense fallback={null}>
+              <AuraMesh intensity={intensity} />
+              <InnerOrb />
+            </Suspense>
+          </Canvas>
+        </ErrorBoundary>
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 rounded-2xl" />
+      )}
     </div>
   )
 }
