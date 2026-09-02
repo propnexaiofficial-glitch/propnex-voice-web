@@ -14,8 +14,6 @@ class Vec3 {
 }
 
 export default function AuraOrb({ className = '', variant = 'small' }) {
-  const globeRef = useRef(null);
-
   const isLarge = variant === 'large';
   const isIcon = variant === 'icon';
   const R = isLarge ? 60 : 45;
