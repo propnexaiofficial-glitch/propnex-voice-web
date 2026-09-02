@@ -96,12 +96,16 @@ export default function AuraOrb({ className = '', variant = 'small' }) {
       lineElements.push({ el: line, v1: edge[0], v2: edge[1] });
     });
 
-    let animationFrameId;
+    let animationFrameId = null;
     let startTime = performance.now();
     let isVisible = false;
+    let isRunning = false;
 
     function animate(time) {
-      if (!isVisible) { animationFrameId = requestAnimationFrame(animate); return; }
+      if (!isVisible || document.hidden) {
+        isRunning = false;
+        return; // Completely stop loop — do NOT re-queue rAF
+      }
 
       const elapsed = (time - startTime) * 0.001;
       
@@ -123,41 +127,49 @@ export default function AuraOrb({ className = '', variant = 'small' }) {
       lineElements.forEach(item => {
         const v1 = rotate(item.v1);
         const v2 = rotate(item.v2);
-        
-        const dx = v2.x - v1.x;
-        const dy = v2.y - v1.y;
-        const dz = v2.z - v1.z;
-        
+        const dx = v2.x - v1.x, dy = v2.y - v1.y, dz = v2.z - v1.z;
         const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
         const rY = Math.atan2(dz, dx) * (180 / Math.PI);
-        const distXZ = Math.sqrt(dx*dx + dz*dz);
-        const rZ = Math.atan2(dy, distXZ) * (180 / Math.PI);
-
+        const rZ = Math.atan2(dy, Math.sqrt(dx*dx + dz*dz)) * (180 / Math.PI);
         const avgZ = (v1.z + v2.z) / 2;
-        
         let opacity = 1.0;
         if (avgZ < -10) opacity = 0.05;
         else if (avgZ < 20) opacity = (avgZ + 10) / 30;
-
-        item.el.style.transform = `translate3d(${v1.x}px, ${v1.y}px, ${v1.z}px) rotateY(${-rY}deg) rotateZ(${rZ}deg) scaleX(${distance})`;
+        item.el.style.transform = `translate3d(${v1.x}px,${v1.y}px,${v1.z}px) rotateY(${-rY}deg) rotateZ(${rZ}deg) scaleX(${distance})`;
         item.el.style.opacity = opacity.toString();
       });
 
       animationFrameId = requestAnimationFrame(animate);
     }
 
-    // Only animate when the orb is on-screen — saves massive GPU resources while scrolling
+    function startLoop() {
+      if (!isRunning && isVisible && !document.hidden) {
+        isRunning = true;
+        startTime = performance.now() - startTime; // keep time continuous
+        animationFrameId = requestAnimationFrame(animate);
+      }
+    }
+
+    // Pause when tab hidden
+    const onVisibility = () => {
+      if (!document.hidden && isVisible) startLoop();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    // Only animate when the orb is on-screen
     const observer = new IntersectionObserver(
-      ([entry]) => { isVisible = entry.isIntersecting; },
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible) startLoop();
+      },
       { threshold: 0.01 }
     );
     observer.observe(globe);
-    
-    animationFrameId = requestAnimationFrame(animate);
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
       observer.disconnect();
+      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [R]);
 

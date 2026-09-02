@@ -41,8 +41,10 @@ export default function AIInterview() {
     >
       <div className="pointer-events-none absolute inset-0">
         <img
-          src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=2000&q=80"
+          src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=1200&q=60"
           alt=""
+          loading="lazy"
+          decoding="async"
           className="h-full w-full object-cover opacity-[0.18]"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black via-black/90 to-black" />
