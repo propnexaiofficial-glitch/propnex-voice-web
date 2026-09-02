@@ -101,6 +101,81 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   HERO ORB (Matches original WebGL wireframe design)
+   ═══════════════════════════════════════════════════════════════ */
+.hero-orb-core {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 45% 45%, rgba(103,232,249,.8) 0%, rgba(14,165,233,.4) 40%, rgba(30,58,138,.3) 70%, transparent 100%);
+  box-shadow: 0 0 40px rgba(103,232,249,.5), inset 0 0 40px rgba(103,232,249,.7);
+  overflow: hidden;
+  animation: pulse-scale 3.5s ease-in-out infinite;
+}
+
+/* Wireframe texture via SVG pattern */
+.hero-orb-wireframe {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-image: url("data:image/svg+xml,%3Csvg width='80' height='138' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 40 0 L 80 69 L 40 138 L 0 69 Z M 0 69 L 80 69 M 40 0 L 40 138 M 20 34.5 L 60 103.5 M 60 34.5 L 20 103.5' stroke='rgba(103,232,249,0.6)' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-size: 80px 138px;
+  animation: hero-wireframe-spin 12s linear infinite;
+  mask-image: radial-gradient(circle, black 50%, transparent 85%);
+  -webkit-mask-image: radial-gradient(circle, black 50%, transparent 85%);
+}
+@keyframes hero-wireframe-spin {
+  0% { background-position: 0 0; }
+  100% { background-position: -80px -138px; }
+}
+
+/* 3D Tilted Purple Ring */
+.hero-ring-1 {
+  position: absolute;
+  inset: -15%; border-radius: 50%;
+  border: 4px solid rgba(168,85,247,.5);
+  box-shadow: 0 0 15px rgba(168,85,247,.6), inset 0 0 10px rgba(168,85,247,.6);
+  animation: hero-spin-1 12s linear infinite;
+}
+@keyframes hero-spin-1 {
+  0% { transform: rotateX(75deg) rotateY(15deg) rotateZ(0deg); }
+  100% { transform: rotateX(75deg) rotateY(15deg) rotateZ(360deg); }
+}
+
+/* 3D Tilted Cyan Ring */
+.hero-ring-2 {
+  position: absolute;
+  inset: -45%; border-radius: 50%;
+  border: 1px solid rgba(103,232,249,.3);
+  box-shadow: 0 0 10px rgba(103,232,249,.3);
+  animation: hero-spin-2 18s linear infinite reverse;
+}
+@keyframes hero-spin-2 {
+  0% { transform: rotateX(65deg) rotateY(-20deg) rotateZ(0deg); }
+  100% { transform: rotateX(65deg) rotateY(-20deg) rotateZ(360deg); }
+}
+
+/* 3D Particles */
+.hero-particles {
+  position: absolute;
+  inset: -60%;
+  animation: hero-particles-spin 25s linear infinite;
+}
+@keyframes hero-particles-spin {
+  0% { transform: rotateZ(0deg) rotateX(15deg); }
+  100% { transform: rotateZ(360deg) rotateX(15deg); }
+}
+.hero-particle {
+  position: absolute;
+  width: 4px; height: 4px;
+  background: #67e8f9;
+  border-radius: 50%;
+  box-shadow: 0 0 8px 2px rgba(103,232,249,0.8);
+  top: 50%; left: 50%;
+  /* translate applied via React inline styles */
+}
+
+/* ═══════════════════════════════════════════════════════════════
    BAR CHART
    ═══════════════════════════════════════════════════════════════ */
 .css-chart {
