@@ -1,7 +1,6 @@
 import { Suspense, useMemo, useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { useInView } from 'framer-motion'
 
 const vertex = /* glsl */ `
   uniform float uTime;
@@ -119,11 +118,8 @@ export default function WaveRingVisualizer({
   active = true,
   compact = false,
 }) {
-  const ref = useRef(null)
-  const inView = useInView(ref, { margin: '200px' })
-
   return (
-    <div ref={ref} className={`relative ${className}`}>
+    <div className={`relative ${className}`}>
       <div
         className={`pointer-events-none absolute inset-0 ${
           compact
@@ -131,27 +127,25 @@ export default function WaveRingVisualizer({
             : 'bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.14),rgba(168,85,247,0.1)_45%,transparent_70%)]'
         }`}
       />
-      {inView && (
-        <Canvas
-          dpr={[1, 1.6]}
-          camera={{
-            position: [0, 0.1, compact ? 5.1 : 3.6],
-            fov: compact ? 32 : 40,
-          }}
-          gl={{ antialias: true, alpha: true }}
-          onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
-        >
-          <ambientLight intensity={0.3} />
-          <pointLight position={[2, 2, 3]} intensity={compact ? 0.9 : 1.1} color="#67e8f9" />
-          <pointLight position={[-2, -1, 2]} intensity={compact ? 0.65 : 0.8} color="#c084fc" />
-          <Suspense fallback={null}>
-            <group scale={compact ? 0.68 : 1}>
-              <SoftHalo />
-              <GlowRing amp={active ? (compact ? 0.08 : 0.14) : 0.05} />
-            </group>
-          </Suspense>
-        </Canvas>
-      )}
+      <Canvas
+        dpr={[1, 1.6]}
+        camera={{
+          position: [0, 0.1, compact ? 5.1 : 3.6],
+          fov: compact ? 32 : 40,
+        }}
+        gl={{ antialias: true, alpha: true }}
+        onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
+      >
+        <ambientLight intensity={0.3} />
+        <pointLight position={[2, 2, 3]} intensity={compact ? 0.9 : 1.1} color="#67e8f9" />
+        <pointLight position={[-2, -1, 2]} intensity={compact ? 0.65 : 0.8} color="#c084fc" />
+        <Suspense fallback={null}>
+          <group scale={compact ? 0.68 : 1}>
+            <SoftHalo />
+            <GlowRing amp={active ? (compact ? 0.08 : 0.14) : 0.05} />
+          </group>
+        </Suspense>
+      </Canvas>
     </div>
   )
 }

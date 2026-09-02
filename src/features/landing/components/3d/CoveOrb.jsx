@@ -1,7 +1,6 @@
 import { useMemo, useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { useInView } from 'framer-motion'
 
 const vertex = /* glsl */ `
   varying vec2 vUv;
@@ -109,21 +108,16 @@ export default function CoveOrb({
   className = '',
   colors = ['#7eb8ff', '#3b82f6', '#e8f3ff'],
 }) {
-  const ref = useRef(null)
-  const inView = useInView(ref, { margin: '200px' })
-
   return (
-    <div ref={ref} className={`overflow-hidden rounded-full ${className}`}>
-      {inView && (
-        <Canvas
-          dpr={[1, 1.75]}
-          camera={{ position: [0, 0, 2.6], fov: 40 }}
-          gl={{ antialias: true, alpha: true }}
-          onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
-        >
-          <CoveCloud colors={colors} />
-        </Canvas>
-      )}
+    <div className={`overflow-hidden rounded-full ${className}`}>
+      <Canvas
+        dpr={[1, 1.75]}
+        camera={{ position: [0, 0, 2.6], fov: 40 }}
+        gl={{ antialias: true, alpha: true }}
+        onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
+      >
+        <CoveCloud colors={colors} />
+      </Canvas>
     </div>
   )
 }

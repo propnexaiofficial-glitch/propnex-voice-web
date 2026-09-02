@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { useInView } from 'framer-motion'
 import '../../css-animations.css'
 
 function Bars({ count = 32, active = true }) {
@@ -119,67 +118,52 @@ function WaveRibbon({ active = true }) {
 }
 
 export function BarVisualizer3D({ className = '', active = true }) {
-  const ref = useRef(null)
-  const inView = useInView(ref, { margin: '200px' })
-
   return (
-    <div ref={ref} className={className}>
-      {inView && (
-        <Canvas
-          dpr={[1, 1.5]}
-          camera={{ position: [0, 0.2, 3.2], fov: 40 }}
-          gl={{ alpha: true, antialias: true }}
-          onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
-        >
-          <ambientLight intensity={0.5} />
-          <pointLight position={[2, 2, 3]} intensity={1.2} color="#67e8f9" />
-          <Bars active={active} />
-        </Canvas>
-      )}
+    <div className={className}>
+      <Canvas
+        dpr={[1, 1.5]}
+        camera={{ position: [0, 0.2, 3.2], fov: 40 }}
+        gl={{ alpha: true, antialias: true }}
+        onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
+      >
+        <ambientLight intensity={0.5} />
+        <pointLight position={[2, 2, 3]} intensity={1.2} color="#67e8f9" />
+        <Bars active={active} />
+      </Canvas>
     </div>
   )
 }
 
 export function RadialVisualizer3D({ className = '', active = true }) {
-  const ref = useRef(null)
-  const inView = useInView(ref, { margin: '200px' })
-
   return (
-    <div ref={ref} className={className}>
-      {inView && (
-        <Canvas
-          dpr={[1, 1.5]}
-          camera={{ position: [0, 0, 3.4], fov: 40 }}
-          gl={{ alpha: true, antialias: true }}
-          onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
-        >
-          <ambientLight intensity={0.5} />
-          <pointLight position={[2, 2, 3]} intensity={1} color="#c084fc" />
-          <Radial active={active} />
-        </Canvas>
-      )}
+    <div className={className}>
+      <Canvas
+        dpr={[1, 1.5]}
+        camera={{ position: [0, 0, 3.4], fov: 40 }}
+        gl={{ alpha: true, antialias: true }}
+        onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
+      >
+        <ambientLight intensity={0.5} />
+        <pointLight position={[2, 2, 3]} intensity={1} color="#c084fc" />
+        <Radial active={active} />
+      </Canvas>
     </div>
   )
 }
 
 export function WaveVisualizer3D({ className = '', active = true }) {
-  const ref = useRef(null)
-  const inView = useInView(ref, { margin: '200px' })
-
   return (
-    <div ref={ref} className={className}>
-      {inView && (
-        <Canvas
-          dpr={[1, 1.5]}
-          camera={{ position: [0, 0.4, 3.5], fov: 40 }}
-          gl={{ alpha: true, antialias: true }}
-          onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
-        >
-          <ambientLight intensity={0.4} />
-          <pointLight position={[1, 2, 3]} intensity={1.1} color="#67e8f9" />
-          <WaveRibbon active={active} />
-        </Canvas>
-      )}
+    <div className={className}>
+      <Canvas
+        dpr={[1, 1.5]}
+        camera={{ position: [0, 0.4, 3.5], fov: 40 }}
+        gl={{ alpha: true, antialias: true }}
+        onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
+      >
+        <ambientLight intensity={0.4} />
+        <pointLight position={[1, 2, 3]} intensity={1.1} color="#67e8f9" />
+        <WaveRibbon active={active} />
+      </Canvas>
     </div>
   )
 }
