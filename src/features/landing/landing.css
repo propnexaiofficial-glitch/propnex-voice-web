@@ -19,10 +19,23 @@
 .landing-root .sol-card,
 .landing-root .gsap-card,
 .landing-root .how-card,
-.landing-root .how-head {
+.landing-root .how-head,
+.landing-root .cta-inner,
+.landing-root .cta-copy > * {
   opacity: 0;
   transform: translateY(24px);
-  transition: opacity 0.55s ease, transform 0.55s ease;
+  /* Removed transition to avoid conflict with GSAP InteractiveCard transforms */
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Once IntersectionObserver adds .revealed, they stay visible FOREVER */
@@ -31,9 +44,12 @@
 .landing-root .sol-card.revealed,
 .landing-root .gsap-card.revealed,
 .landing-root .how-card.revealed,
-.landing-root .how-head.revealed {
+.landing-root .how-head.revealed,
+.landing-root .cta-inner.revealed,
+.landing-root .cta-copy > *.revealed {
   opacity: 1;
   transform: translateY(0);
+  animation: reveal-up 0.55s ease-out backwards;
 }
 
 /* Respect reduced-motion preference */
@@ -43,7 +59,9 @@
   .landing-root .sol-card,
   .landing-root .gsap-card,
   .landing-root .how-card,
-  .landing-root .how-head {
+  .landing-root .how-head,
+  .landing-root .cta-inner,
+  .landing-root .cta-copy > * {
     opacity: 1;
     transform: none;
     transition: none;

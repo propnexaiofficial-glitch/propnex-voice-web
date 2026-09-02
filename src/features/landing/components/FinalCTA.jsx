@@ -1,55 +1,12 @@
 import { useRef } from 'react'
 import { Link } from '@/features/landing/lib/router'
-import { useGSAP } from '@gsap/react'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import AuraOrb from './3d/AuraOrb'
-
-gsap.registerPlugin(ScrollTrigger)
+import { useReveal, useStaggerReveal } from '../hooks/useReveal'
 
 export default function FinalCTA() {
   const ref = useRef(null)
-
-  useGSAP(
-    () => {
-      gsap.fromTo(
-        '.cta-inner',
-        { autoAlpha: 0, scale: 0.96, y: 30 },
-        {
-          autoAlpha: 1,
-          scale: 1,
-          y: 0,
-          duration: 0.9,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: {
-            trigger: ref.current,
-            start: 'top 85%',
-            once: true,
-          },
-        },
-      )
-      gsap.fromTo(
-        '.cta-copy > *',
-        { autoAlpha: 0, y: 18 },
-        {
-          autoAlpha: 1,
-          y: 0,
-          stagger: 0.1,
-          duration: 0.65,
-          delay: 0.15,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: {
-            trigger: ref.current,
-            start: 'top 85%',
-            once: true,
-          },
-        },
-      )
-    },
-    { scope: ref },
-  )
+  useReveal(ref, '.cta-inner')
+  useStaggerReveal(ref, '.cta-copy > *', { stagger: 0.1 })
 
   return (
     <section ref={ref} className="section-edge relative py-16 md:py-24">
