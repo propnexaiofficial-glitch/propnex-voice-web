@@ -37,7 +37,7 @@ export default function AIInterview() {
   return (
     <section
       id="ai-interview"
-      className="relative overflow-hidden py-20 md:py-28"
+      className="relative overflow-hidden py-16 md:py-28"
     >
       <div className="pointer-events-none absolute inset-0">
         <img
@@ -52,7 +52,7 @@ export default function AIInterview() {
       </div>
 
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
-        <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-violet-300/90">
               AI Interview Services

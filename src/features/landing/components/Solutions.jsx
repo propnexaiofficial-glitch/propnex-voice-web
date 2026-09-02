@@ -28,7 +28,7 @@ export default function Solutions() {
 
 
   return (
-    <section id="solutions" ref={ref} className="section-edge relative py-20 md:py-28">
+    <section id="solutions" ref={ref} className="section-edge relative py-16 md:py-28">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <div className="reveal-head mb-12 text-center">
           <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
@@ -40,7 +40,7 @@ export default function Solutions() {
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2">
           <InteractiveCard className="sol-card p-8 md:p-10">
             <p className="mb-3 text-sm font-semibold text-cyan-400">Enterprise ready</p>
             <h3 className="mb-4 text-2xl font-bold text-white md:text-3xl">

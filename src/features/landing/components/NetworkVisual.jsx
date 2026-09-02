@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { useGSAP } from '@gsap/react'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import InfrastructureGlobe from './3d/InfrastructureGlobe'
-
-gsap.registerPlugin(ScrollTrigger)
+import { useReveal, useStaggerReveal } from '../hooks/useReveal'
 
 const compliance = ['GDPR', 'SOC 2 TYPE 2', 'HIPAA']
 
@@ -115,52 +111,15 @@ export default function NetworkVisual() {
     }
   }, [active])
 
-  useGSAP(
-    () => {
-      gsap.fromTo(
-        '.infra-left > *',
-        { opacity: 0, x: -20 },
-        {
-          opacity: 1,
-          x: 0,
-          stagger: 0.08,
-          duration: 0.65,
-          ease: 'power3.out',
-          scrollTrigger: { trigger: ref.current, start: 'top 72%' },
-        },
-      )
-      gsap.fromTo(
-        '.infra-globe',
-        { opacity: 0, scale: 0.92 },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 1,
-          ease: 'power3.out',
-          scrollTrigger: { trigger: ref.current, start: 'top 72%' },
-        },
-      )
-      gsap.fromTo(
-        '.infra-right > *',
-        { opacity: 0, x: 20 },
-        {
-          opacity: 1,
-          x: 0,
-          stagger: 0.06,
-          duration: 0.6,
-          ease: 'power3.out',
-          scrollTrigger: { trigger: ref.current, start: 'top 72%' },
-        },
-      )
-    },
-    { scope: ref },
-  )
+  useReveal(ref, '.infra-globe')
+  useStaggerReveal(ref, '.infra-left > *', { stagger: 0.08, direction: 'left' })
+  useStaggerReveal(ref, '.infra-right > *', { stagger: 0.06, direction: 'right' })
 
   return (
     <section
       id="infrastructure"
       ref={ref}
-      className="relative overflow-hidden py-20 md:py-28"
+      className="relative overflow-hidden py-16 md:py-28"
     >
       {/* LiveKit-style grid floor */}
       <div

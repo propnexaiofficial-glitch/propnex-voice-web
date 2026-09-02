@@ -19,7 +19,7 @@ export default function FeatureShowcase() {
 
   return (
     <section ref={ref} className="section-edge relative py-20 md:py-28">
-      <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 md:grid-cols-2 md:px-8">
+      <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 md:grid-cols-2 md:gap-14 md:px-8">
         <div>
           <h2 className="reveal-head text-3xl font-bold tracking-tight text-white md:text-4xl">
             Infrastructure for{' '}
