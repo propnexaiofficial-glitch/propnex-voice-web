@@ -1,10 +1,6 @@
 import { useRef } from 'react'
-import { useGSAP } from '@gsap/react'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import InteractiveCard from './InteractiveCard'
-
-gsap.registerPlugin(ScrollTrigger)
+import { useHeadReveal, useStaggerReveal } from '../hooks/useReveal'
 
 const steps = [
   {
@@ -36,51 +32,6 @@ const steps = [
 function PipelineVisual() {
   const ref = useRef(null)
 
-  useGSAP(
-    () => {
-      gsap.to('.pipe-orb', {
-        scale: 1.08,
-        opacity: 0.9,
-        duration: 1.8,
-        yoyo: true,
-        repeat: -1,
-        ease: 'sine.inOut',
-        stagger: 0.25,
-      })
-
-      gsap.to('.pipe-flow', {
-        strokeDashoffset: -120,
-        duration: 2.4,
-        repeat: -1,
-        ease: 'none',
-      })
-
-      gsap.to('.pipe-ring', {
-        rotate: 360,
-        duration: 18,
-        repeat: -1,
-        ease: 'none',
-      })
-
-      gsap.to('.pipe-ring-rev', {
-        rotate: -360,
-        duration: 24,
-        repeat: -1,
-        ease: 'none',
-      })
-
-      gsap.from('.pipe-node', {
-        scale: 0.6,
-        opacity: 0,
-        duration: 0.7,
-        stagger: 0.12,
-        ease: 'back.out(1.6)',
-        scrollTrigger: { trigger: ref.current, start: 'top 75%' },
-      })
-    },
-    { scope: ref },
-  )
-
   const nodes = [
     { label: 'User', x: 12, y: 58, c: '#22d3ee' },
     { label: 'Stream', x: 34, y: 32, c: '#818cf8' },
@@ -97,9 +48,9 @@ function PipelineVisual() {
       <div className="pointer-events-none absolute inset-[10%] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.18),transparent_65%)] blur-2xl" />
       <div className="pointer-events-none absolute inset-[20%] rounded-full bg-[radial-gradient(circle,rgba(168,85,247,0.15),transparent_60%)] blur-2xl" />
 
-      {/* Orbit rings */}
-      <div className="pipe-ring absolute inset-[12%] rounded-full border border-dashed border-white/10" />
-      <div className="pipe-ring-rev absolute inset-[22%] rounded-full border border-white/[0.07]" />
+      {/* Orbit rings — pure CSS spin */}
+      <div className="pipe-ring absolute inset-[12%] rounded-full border border-dashed border-white/10" style={{ animation: 'spin-slow 18s linear infinite' }} />
+      <div className="pipe-ring-rev absolute inset-[22%] rounded-full border border-white/[0.07]" style={{ animation: 'spin-rev 24s linear infinite' }} />
 
       <svg
         className="absolute inset-0 h-full w-full"
@@ -173,57 +124,8 @@ function PipelineVisual() {
 
 export default function HowItWorks() {
   const ref = useRef(null)
-
-  useGSAP(
-    () => {
-      gsap.fromTo(
-        '.how-head',
-        { opacity: 0, y: 24 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.7,
-          ease: 'power3.out',
-          scrollTrigger: { trigger: ref.current, start: 'top 75%' },
-        },
-      )
-
-      gsap.fromTo(
-        '.how-card',
-        { opacity: 0, x: -28 },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.65,
-          stagger: 0.12,
-          ease: 'power3.out',
-          scrollTrigger: { trigger: '.how-list', start: 'top 80%' },
-        },
-      )
-
-      gsap.fromTo(
-        '.how-progress',
-        { scaleY: 0 },
-        {
-          scaleY: 1,
-          duration: 1.2,
-          ease: 'power2.inOut',
-          scrollTrigger: { trigger: '.how-list', start: 'top 75%' },
-        },
-      )
-
-      // Active glow pulse on cards
-      gsap.to('.how-card-glow', {
-        opacity: 0.55,
-        duration: 1.6,
-        yoyo: true,
-        repeat: -1,
-        stagger: 0.35,
-        ease: 'sine.inOut',
-      })
-    },
-    { scope: ref },
-  )
+  useHeadReveal(ref, '.how-head')
+  useStaggerReveal(ref, '.how-card', { stagger: 0.1 })
 
   return (
     <section id="how" ref={ref} className="section-edge relative overflow-hidden py-24 md:py-32">

@@ -12,6 +12,56 @@
   -webkit-overflow-scrolling: touch;
 }
 
+/* ─── CSS Reveal System (replaces all GSAP ScrollTrigger reveals) ─── */
+/* Elements start in this state — CSS hides them BEFORE JS loads (no flash) */
+.landing-root .reveal,
+.landing-root .reveal-head,
+.landing-root .sol-card,
+.landing-root .gsap-card,
+.landing-root .how-card,
+.landing-root .how-head {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+/* Once IntersectionObserver adds .revealed, they stay visible FOREVER */
+.landing-root .reveal.revealed,
+.landing-root .reveal-head.revealed,
+.landing-root .sol-card.revealed,
+.landing-root .gsap-card.revealed,
+.landing-root .how-card.revealed,
+.landing-root .how-head.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .landing-root .reveal,
+  .landing-root .reveal-head,
+  .landing-root .sol-card,
+  .landing-root .gsap-card,
+  .landing-root .how-card,
+  .landing-root .how-head {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Pipe flow dash animation in HowItWorks */
+@keyframes pipe-dash {
+  to { stroke-dashoffset: -120; }
+}
+.pipe-flow {
+  animation: pipe-dash 2.4s linear infinite;
+}
+/* Pipe orb pulse */
+.pipe-orb {
+  animation: pulse-glow 1.8s ease-in-out infinite alternate;
+}
+
 .landing-root ::selection {
   background: rgba(0, 210, 255, 0.35);
   color: #fff;
