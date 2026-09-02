@@ -1,7 +1,4 @@
-import { Suspense, lazy } from 'react'
-import { Link } from '@/features/landing/lib/router'
-
-const AuraOrb = lazy(() => import('./3d/AuraOrb'))
+import AuraOrb from './3d/AuraOrb'
 
 const steps = [
   {
@@ -126,9 +123,7 @@ export default function AIInterview() {
 
           <div className="relative mx-auto h-[320px] w-full max-w-md md:h-[400px]">
             <div className="absolute inset-0 rounded-3xl border border-white/10 bg-gradient-to-b from-violet-500/10 to-cyan-500/5" />
-            <Suspense fallback={null}>
-              <AuraOrb className="h-full w-full" intensity={1.2} />
-            </Suspense>
+            <AuraOrb className="h-full w-full" intensity={1.2} />
             <div className="pointer-events-none absolute inset-x-6 bottom-6 rounded-xl border border-white/10 bg-black/60 p-4 backdrop-blur-md">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/40">
                 Fit score
