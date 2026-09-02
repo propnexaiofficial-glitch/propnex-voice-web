@@ -59,22 +59,54 @@ function CornerFrame({ className = '' }) {
 
 export default function NetworkVisual() {
   const ref = useRef(null)
-  const listRef = useRef(null)
-  const [active, setActive] = useState(4)
+  const scrollContainerRef = useRef(null)
+  const [active, setActive] = useState(0)
 
+  // Only start auto-cycling once the section scrolls into view
   useEffect(() => {
-    const id = setInterval(() => {
-      setActive((i) => (i + 1) % regions.length)
-    }, 1800)
-    return () => clearInterval(id)
+    const section = ref.current
+    if (!section) return
+
+    let id = null
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          // Section entered viewport — start cycling
+          id = setInterval(() => {
+            setActive((i) => (i + 1) % regions.length)
+          }, 1800)
+        } else {
+          // Section left viewport — stop cycling
+          if (id) clearInterval(id)
+        }
+      },
+      { threshold: 0.2 },
+    )
+
+    observer.observe(section)
+    return () => {
+      observer.disconnect()
+      if (id) clearInterval(id)
+    }
   }, [])
 
-  // Auto-scroll the list to keep the active region visible
+  // Scroll ONLY within the list container — never the page
   useEffect(() => {
-    if (!listRef.current) return
-    const items = listRef.current.querySelectorAll('li')
-    if (items[active]) {
-      items[active].scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    const container = scrollContainerRef.current
+    if (!container) return
+    const items = container.querySelectorAll('li')
+    const item = items[active]
+    if (!item) return
+    // Manual scroll within container
+    const containerTop = container.scrollTop
+    const containerBottom = containerTop + container.clientHeight
+    const itemTop = item.offsetTop
+    const itemBottom = itemTop + item.offsetHeight
+    if (itemBottom > containerBottom) {
+      container.scrollTop = itemBottom - container.clientHeight + 8
+    } else if (itemTop < containerTop) {
+      container.scrollTop = itemTop - 8
     }
   }, [active])
 
@@ -199,8 +231,8 @@ export default function NetworkVisual() {
               <span className="text-cyan-400">19+</span> Regions globally
             </p>
 
-            <div className="relative max-h-[280px] overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)]">
-              <ul ref={listRef} className="space-y-1">
+            <div ref={scrollContainerRef} className="relative max-h-[280px] overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10">
+              <ul className="space-y-1">
                 {regions.map((r, i) => {
                   const on = i === active
                   return (
