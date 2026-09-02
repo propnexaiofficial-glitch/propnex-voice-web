@@ -66,12 +66,12 @@ function highlightLine(line) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
+    .replace(/(".*?")/g, "<span class='text-emerald-300'>$1</span>")
     .replace(
       /\b(from|import|export|function|return|const|Agent|PropnexAI|agent|connect|speak|Preview|realtime)\b/g,
-      '<span class="text-violet-300">$1</span>',
+      "<span class='text-violet-300'>$1</span>",
     )
-    .replace(/(".*?")/g, '<span class="text-emerald-300">$1</span>')
-    .replace(/(@propnexai\/agent|propnexai)/g, '<span class="text-cyan-300">$1</span>')
+    .replace(/(@propnexai\/agent|propnexai)/g, "<span class='text-cyan-300'>$1</span>")
 }
 
 function TypewriterCode({ code, active }) {
