@@ -1,20 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { useInView } from 'framer-motion'
 import '../../css-animations.css'
-
-function useInView(ref) {
-  const [isIntersecting, setIntersecting] = useState(false)
-  useEffect(() => {
-    if (!ref.current) return
-    const observer = new IntersectionObserver(([entry]) => {
-      setIntersecting(entry.isIntersecting)
-    }, { rootMargin: '200px' })
-    observer.observe(ref.current)
-    return () => observer.disconnect()
-  }, [])
-  return isIntersecting
-}
 
 function Bars({ count = 32, active = true }) {
   const group = useRef()
@@ -132,7 +120,7 @@ function WaveRibbon({ active = true }) {
 
 export function BarVisualizer3D({ className = '', active = true }) {
   const ref = useRef(null)
-  const inView = useInView(ref)
+  const inView = useInView(ref, { margin: '200px' })
 
   return (
     <div ref={ref} className={className}>
@@ -154,7 +142,7 @@ export function BarVisualizer3D({ className = '', active = true }) {
 
 export function RadialVisualizer3D({ className = '', active = true }) {
   const ref = useRef(null)
-  const inView = useInView(ref)
+  const inView = useInView(ref, { margin: '200px' })
 
   return (
     <div ref={ref} className={className}>
@@ -176,7 +164,7 @@ export function RadialVisualizer3D({ className = '', active = true }) {
 
 export function WaveVisualizer3D({ className = '', active = true }) {
   const ref = useRef(null)
-  const inView = useInView(ref)
+  const inView = useInView(ref, { margin: '200px' })
 
   return (
     <div ref={ref} className={className}>

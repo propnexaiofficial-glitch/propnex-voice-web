@@ -1,19 +1,7 @@
 import { useMemo, useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-
-function useInView(ref) {
-  const [isIntersecting, setIntersecting] = useState(false)
-  useEffect(() => {
-    if (!ref.current) return
-    const observer = new IntersectionObserver(([entry]) => {
-      setIntersecting(entry.isIntersecting)
-    }, { rootMargin: '200px' })
-    observer.observe(ref.current)
-    return () => observer.disconnect()
-  }, [])
-  return isIntersecting
-}
+import { useInView } from 'framer-motion'
 
 const vertex = /* glsl */ `
   varying vec2 vUv;
@@ -122,7 +110,7 @@ export default function CoveOrb({
   colors = ['#7eb8ff', '#3b82f6', '#e8f3ff'],
 }) {
   const ref = useRef(null)
-  const inView = useInView(ref)
+  const inView = useInView(ref, { margin: '200px' })
 
   return (
     <div ref={ref} className={`overflow-hidden rounded-full ${className}`}>

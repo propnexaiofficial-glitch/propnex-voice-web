@@ -18,7 +18,7 @@ export default function FinalCTA() {
             <AuraOrb className="h-full w-full" variant="large" />
           </div>
 
-          <div className="cta-copy relative px-6 py-16 text-center md:px-12 md:py-24">
+          <div className="cta-copy relative z-10 px-6 py-16 text-center md:px-12 md:py-24">
             <h2 className="mx-auto max-w-2xl text-3xl font-extrabold tracking-tight text-white md:text-5xl">
               Ready to Transform Your Business with AI?
             </h2>
