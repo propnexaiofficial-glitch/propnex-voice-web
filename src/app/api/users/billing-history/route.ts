@@ -29,15 +29,30 @@ export async function GET(req: NextRequest) {
       take: 50
     });
 
-    const history = usages.map((u: any) => ({
-      id: u.id,
-      date: u.createdAt.toISOString(),
-      description: u.description || (u.amount > 0 ? "Credit Top-up" : "Usage Charge"),
-      amount: 0, // Not explicitly tracked in DB for this view, mock as 0
-      credits: Math.abs(u.amount),
-      status: "completed",
-      type: u.amount > 0 ? "top-up" : "usage"
-    }));
+    const history = usages.map((u: any) => {
+      let type = "usage";
+      let credits = -Math.abs(u.amount);
+      let desc = u.description || "Usage Charge";
+
+      if (u.reason === "PURCHASE") {
+        type = "top-up";
+        credits = Math.abs(u.amount);
+        desc = u.description || "Credit Top-up";
+      } else if (u.reason === "MANUAL_ADJUSTMENT") {
+        type = "deduction";
+        desc = u.description || "Miscellaneous Fees";
+      }
+
+      return {
+        id: u.id,
+        date: u.createdAt.toISOString(),
+        description: desc,
+        amount: 0, // Not explicitly tracked in DB for this view, mock as 0
+        credits: credits,
+        status: "completed",
+        type: type
+      };
+    });
 
     return NextResponse.json(history);
   } catch (err: any) {
