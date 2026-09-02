@@ -28,67 +28,70 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  /* Isolate this subtree from page paint — stops orb causing full-page repaints */
+  contain: strict;
+  isolation: isolate;
 }
 
 .css-aura-container {
   position: absolute;
   width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
-  mix-blend-mode: screen;
   pointer-events: none;
   transform: scale(1.5);
+  will-change: transform;
 }
 
 .aura-noise-overlay {
   position: absolute;
   inset: -50%;
   background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)"/></svg>') no-repeat center / cover;
-  opacity: 0.1;
-  /* Removed mix-blend-mode: color-dodge for massive performance boost */
+  opacity: 0.08;
   pointer-events: none;
-  animation: aura-drift 40s linear infinite;
+  /* Slow rotation only — translate/scale cause composite layer uploads */
+  animation: aura-drift 60s linear infinite;
 }
 @keyframes aura-drift {
-  0% { transform: rotate(0deg) translate(0, 0) scale(1); }
-  50% { transform: rotate(10deg) translate(8%, 8%) scale(1.2); }
-  100% { transform: rotate(0deg) translate(0, 0) scale(1); }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .aura-blob {
   position: absolute;
   border-radius: 50%;
   filter: blur(40px);
+  /* will-change promotes to own GPU layer - stops blobs from causing repaints */
   will-change: transform;
+  contain: strict;
 }
 
-.blob-1 { background: #38bdf8; opacity: 0.95; animation: aura-swirl-1 8s infinite; }
-.blob-2 { background: #818cf8; opacity: 0.85; animation: aura-swirl-2 12s infinite; }
-.blob-3 { background: #1d4ed8; opacity: 0.9; animation: aura-swirl-3 15s infinite; }
+/* Slower, simpler animations — scale changes cause repaints, keep range minimal */
+.blob-1 { background: #38bdf8; opacity: 0.8; animation: aura-swirl-1 12s ease-in-out infinite; }
+.blob-2 { background: #818cf8; opacity: 0.7; animation: aura-swirl-2 18s ease-in-out infinite; }
+.blob-3 { background: #1d4ed8; opacity: 0.75; animation: aura-swirl-3 22s ease-in-out infinite; }
 
 @keyframes aura-swirl-1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -40px) scale(1.1); }
-  66% { transform: translate(-20px, 30px) scale(0.95); }
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(25px, -30px); }
 }
 @keyframes aura-swirl-2 {
-  0%, 100% { transform: translate(20px, -20px) scale(1); }
-  33% { transform: translate(-30px, 10px) scale(1.1); }
-  66% { transform: translate(40px, 40px) scale(0.9); }
+  0%, 100% { transform: translate(15px, -15px); }
+  50% { transform: translate(-25px, 20px); }
 }
 @keyframes aura-swirl-3 {
-  0%, 100% { transform: translate(-30px, 10px) scale(1); }
-  33% { transform: translate(40px, -20px) scale(0.9); }
-  66% { transform: translate(-20px, -40px) scale(1.1); }
+  0%, 100% { transform: translate(-20px, 10px); }
+  50% { transform: translate(30px, -20px); }
 }
 
 .aura-center-glow {
   position: absolute;
   background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(56,189,248,1) 40%, transparent 80%);
-  animation: aura-pulse-center 3s ease-in-out infinite alternate;
+  /* opacity-only pulse is the only GPU-safe way to animate brightness */
+  animation: aura-pulse-center 4s ease-in-out infinite alternate;
 }
 @keyframes aura-pulse-center {
-  0% { transform: scale(1); opacity: 0.8; }
-  100% { transform: scale(1.2); opacity: 1; }
+  0% { opacity: 0.75; }
+  100% { opacity: 1; }
 }
 
 .css-wireframe-scene {
@@ -177,12 +180,13 @@
   position: absolute; top: 50%; left: 50%;
   width: 0; height: 0;
   transform-style: preserve-3d;
-  animation: hero-pulseWireframe 3s ease-in-out infinite alternate;
+  /* Reduced scale range to stop visual flickering */
+  animation: hero-pulseWireframe 4s ease-in-out infinite alternate;
 }
 
 @keyframes hero-pulseWireframe {
-  0% { transform: scale(0.9); }
-  100% { transform: scale(1.1); }
+  0% { transform: scale(0.95); }
+  100% { transform: scale(1.05); }
 }
 
 .hero-glow-core {
@@ -197,12 +201,13 @@
     transparent 100%);
   box-shadow: 0 0 60px rgba(34,211,238,0.4), 0 0 120px rgba(30,58,138,0.5);
   transform: translateZ(0); 
+  /* Use opacity-only animation — filter:brightness is extremely expensive! */
   animation: hero-pulseCoreBrightness 2.5s ease-in-out infinite alternate;
 }
 
 @keyframes hero-pulseCoreBrightness {
-  0% { opacity: 1; filter: brightness(1.05); }
-  100% { opacity: 1; filter: brightness(1.25); }
+  0% { opacity: 0.85; }
+  100% { opacity: 1; }
 }
 
 .hero-orb-wrapper {
