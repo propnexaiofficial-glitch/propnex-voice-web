@@ -1,10 +1,6 @@
 import { useRef } from 'react'
-import { useGSAP } from '@gsap/react'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useStaggerReveal } from '../hooks/useReveal'
 import IsometricStackDiagram from './IsometricStackDiagram'
-
-gsap.registerPlugin(ScrollTrigger)
 
 const features = [
   {
@@ -42,31 +38,10 @@ const features = [
 export default function CompleteStack() {
   const ref = useRef(null)
 
-  useGSAP(
-    () => {
-      gsap.fromTo(
-        '.stack-copy-item',
-        { opacity: 0, y: 16 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.65,
-          stagger: 0.07,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: {
-            trigger: ref.current,
-            start: 'top 85%',
-            once: true,
-          },
-        },
-      )
-    },
-    { scope: ref },
-  )
+  useStaggerReveal(ref, '.stack-copy-item', { stagger: 0.07 })
 
   return (
-    <section id="stack" ref={ref} className="relative py-20 md:py-24">
+    <section id="stack" ref={ref} className="relative py-16 md:py-24">
       <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 md:px-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-10 xl:gap-14">
         {/* Left — LiveKit-style clean column */}
         <div className="stack-copy relative z-10 max-w-md lg:max-w-none">

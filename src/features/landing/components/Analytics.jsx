@@ -1,10 +1,8 @@
 import { useRef } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Chart3D from './3d/Chart3D'
-
-gsap.registerPlugin(ScrollTrigger)
+import { useReveal, useStaggerReveal } from '../hooks/useReveal'
 
 const points = [
   'Detect buying intent mid-conversation',
@@ -21,32 +19,6 @@ export default function Analytics() {
 
   useGSAP(
     () => {
-      gsap.fromTo(
-        '.analytics-copy > *',
-        { opacity: 0, x: -24 },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.7,
-          stagger: 0.1,
-          ease: 'power3.out',
-          scrollTrigger: { trigger: ref.current, start: 'top 75%' },
-        },
-      )
-
-      gsap.fromTo(
-        '.chart-wrap',
-        { opacity: 0, y: 30, rotateX: 8 },
-        {
-          opacity: 1,
-          y: 0,
-          rotateX: 0,
-          duration: 0.9,
-          ease: 'power3.out',
-          scrollTrigger: { trigger: '.chart-wrap', start: 'top 82%' },
-        },
-      )
-
       // Live counter pulse
       gsap.to('.live-dot', {
         scale: 1.4,
@@ -94,8 +66,11 @@ export default function Analytics() {
     })
   }
 
+  useStaggerReveal(ref, '.analytics-copy > *', { stagger: 0.1 })
+  useReveal(ref, '.chart-wrap')
+
   return (
-    <section ref={ref} className="relative py-20 md:py-28">
+    <section ref={ref} className="relative py-16 md:py-28">
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 md:grid-cols-2 md:gap-14 md:px-8">
         <div className="analytics-copy">
           <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-400">

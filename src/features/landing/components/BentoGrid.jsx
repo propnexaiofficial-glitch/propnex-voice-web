@@ -1,10 +1,8 @@
 import { useRef } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import InteractiveCard from './InteractiveCard'
-
-gsap.registerPlugin(ScrollTrigger)
+import { useReveal, useStaggerReveal } from '../hooks/useReveal'
 
 const tiles = [
   {
@@ -32,32 +30,6 @@ export default function BentoGrid() {
 
   useGSAP(
     () => {
-      gsap.fromTo(
-        '.gallery-head > *',
-        { opacity: 0, y: 20 },
-        {
-          opacity: 1,
-          y: 0,
-          stagger: 0.1,
-          duration: 0.7,
-          ease: 'power3.out',
-          scrollTrigger: { trigger: ref.current, start: 'top 78%' },
-        },
-      )
-
-      gsap.fromTo(
-        '.gallery-tile',
-        { opacity: 0, y: 40, scale: 0.97 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.85,
-          stagger: 0.1,
-          ease: 'power3.out',
-          scrollTrigger: { trigger: '.gallery-grid', start: 'top 82%' },
-        },
-      )
 
       gsap.utils.toArray('.gallery-img').forEach((img, i) => {
         gsap.to(img, {
@@ -73,11 +45,14 @@ export default function BentoGrid() {
     { scope: ref },
   )
 
+  useStaggerReveal(ref, '.gallery-head > *', { stagger: 0.1 })
+  useStaggerReveal(ref, '.gallery-tile', { stagger: 0.1 })
+
   return (
     <section
       id="gallery"
       ref={ref}
-      className="relative overflow-hidden py-14 md:py-20"
+      className="relative overflow-hidden py-10 md:py-20"
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_0%,rgba(34,211,238,0.06),transparent_45%)]" />
 

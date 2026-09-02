@@ -1,12 +1,9 @@
 import { useRef } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { useHeadReveal, useStaggerReveal } from '../hooks/useReveal'
+import { useHeadReveal, useStaggerReveal, useReveal } from '../hooks/useReveal'
 import InteractiveCard from './InteractiveCard'
 import '../css-animations.css'
-
-gsap.registerPlugin(ScrollTrigger)
 
 // Particle positions for CTA background
 const PARTICLES = Array.from({ length: 18 }, (_, i) => ({
@@ -97,23 +94,6 @@ export default function Testimonials() {
       const track = trackRef.current
       if (!track) return
 
-      gsap.fromTo(
-        '.quote-marquee',
-        { autoAlpha: 0, y: 28 },
-        {
-          autoAlpha: 1,
-          y: 0,
-          duration: 0.8,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: {
-            trigger: '.quote-marquee',
-            start: 'top 88%',
-            once: true,
-          },
-        },
-      )
-
       const tween = gsap.to(track, {
         xPercent: -50,
         duration: 48,
@@ -141,8 +121,10 @@ export default function Testimonials() {
 
   const loop = [...testimonials, ...testimonials]
 
+  useReveal(ref, '.quote-marquee')
+
   return (
-    <section id="about" ref={ref} className="section-edge relative py-20 md:py-28 overflow-hidden">
+    <section id="about" ref={ref} className="section-edge relative py-16 md:py-28 overflow-hidden">
       {/* Animated background */}
       <div className="cta-bg-gradient" />
       <div className="cta-grid" />

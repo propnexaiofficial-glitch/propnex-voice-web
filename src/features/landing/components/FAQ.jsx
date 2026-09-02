@@ -1,10 +1,6 @@
 import { useRef, useState } from 'react'
-import { useGSAP } from '@gsap/react'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import InteractiveCard from './InteractiveCard'
-
-gsap.registerPlugin(ScrollTrigger)
+import { useStaggerReveal, useReveal } from '../hooks/useReveal'
 
 const faqs = [
   {
@@ -33,48 +29,11 @@ export default function FAQ() {
   const ref = useRef(null)
   const [open, setOpen] = useState(0)
 
-  useGSAP(
-    () => {
-      gsap.fromTo(
-        '.faq-side > *',
-        { autoAlpha: 0, x: -24 },
-        {
-          autoAlpha: 1,
-          x: 0,
-          duration: 0.75,
-          stagger: 0.1,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: {
-            trigger: ref.current,
-            start: 'top 80%',
-            once: true,
-          },
-        },
-      )
-      gsap.fromTo(
-        '.faq-item',
-        { autoAlpha: 0, y: 20 },
-        {
-          autoAlpha: 1,
-          y: 0,
-          stagger: 0.08,
-          duration: 0.55,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: {
-            trigger: '.faq-list',
-            start: 'top 85%',
-            once: true,
-          },
-        },
-      )
-    },
-    { scope: ref },
-  )
+  useReveal(ref, '.faq-side')
+  useStaggerReveal(ref, '.faq-item', { stagger: 0.08 })
 
   return (
-    <section ref={ref} className="section-edge relative py-20 md:py-28">
+    <section ref={ref} className="section-edge relative py-16 md:py-28">
       <div className="mx-auto grid max-w-7xl gap-12 px-5 md:grid-cols-[0.9fr_1.1fr] md:gap-16 md:px-8">
         <div className="faq-side">
           <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">

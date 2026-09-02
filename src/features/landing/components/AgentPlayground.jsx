@@ -1,12 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { useGSAP } from '@gsap/react'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useInView } from 'framer-motion'
 import WaveRingVisualizer from './3d/WaveRingVisualizer'
 import { useSimulatedSpeaking } from './3d/Visualizers'
 import InteractiveCard from './InteractiveCard'
-
-gsap.registerPlugin(ScrollTrigger)
+import { useStaggerReveal } from '../hooks/useReveal'
 
 const codeTabs = [
   {
@@ -148,34 +145,14 @@ function TypewriterCode({ code, active }) {
 export default function AgentPlayground() {
   const ref = useRef(null)
   const [tab, setTab] = useState('py')
-  const [inView, setInView] = useState(false)
+  const inView = useInView(ref, { once: true, amount: 0.3 })
   const speaking = useSimulatedSpeaking(3200)
   const active = codeTabs.find((t) => t.id === tab) || codeTabs[0]
 
-  useGSAP(
-    () => {
-      gsap.fromTo(
-        '.build-reveal',
-        { opacity: 0, y: 24 },
-        {
-          opacity: 1,
-          y: 0,
-          stagger: 0.1,
-          duration: 0.75,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: ref.current,
-            start: 'top 75%',
-            onEnter: () => setInView(true),
-          },
-        },
-      )
-    },
-    { scope: ref },
-  )
+  useStaggerReveal(ref, '.build-reveal', { stagger: 0.1 })
 
   return (
-    <section ref={ref} className="relative py-20 md:py-28">
+    <section ref={ref} className="relative py-16 md:py-28">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <div className="build-reveal mb-9 text-center">
           <h2 className="text-[30px] font-semibold tracking-[-0.03em] text-white md:text-[36px]">
