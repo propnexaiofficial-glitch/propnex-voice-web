@@ -98,8 +98,11 @@ export default function AuraOrb({ className = '', variant = 'small' }) {
 
     let animationFrameId;
     let startTime = performance.now();
-    
+    let isVisible = false;
+
     function animate(time) {
+      if (!isVisible) { animationFrameId = requestAnimationFrame(animate); return; }
+
       const elapsed = (time - startTime) * 0.001;
       
       const rotY = elapsed * 0.4;
@@ -136,18 +139,25 @@ export default function AuraOrb({ className = '', variant = 'small' }) {
         if (avgZ < -10) opacity = 0.05;
         else if (avgZ < 20) opacity = (avgZ + 10) / 30;
 
-        // Use scaleX instead of width to prevent massive layout thrashing (reflows) every frame!
         item.el.style.transform = `translate3d(${v1.x}px, ${v1.y}px, ${v1.z}px) rotateY(${-rY}deg) rotateZ(${rZ}deg) scaleX(${distance})`;
         item.el.style.opacity = opacity.toString();
       });
 
       animationFrameId = requestAnimationFrame(animate);
     }
+
+    // Only animate when the orb is on-screen — saves massive GPU resources while scrolling
+    const observer = new IntersectionObserver(
+      ([entry]) => { isVisible = entry.isIntersecting; },
+      { threshold: 0.01 }
+    );
+    observer.observe(globe);
     
     animationFrameId = requestAnimationFrame(animate);
 
     return () => {
       cancelAnimationFrame(animationFrameId);
+      observer.disconnect();
     };
   }, [R]);
 
