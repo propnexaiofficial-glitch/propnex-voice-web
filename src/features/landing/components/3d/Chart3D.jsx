@@ -2,6 +2,7 @@ import { Suspense, useMemo, useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Float } from '@react-three/drei'
 import * as THREE from 'three'
+import { ErrorBoundary } from '../../../../components/ErrorBoundary'
 
 const DATA = [0.38, 0.55, 0.48, 0.72, 0.64, 0.92, 0.78]
 
@@ -158,19 +159,21 @@ function ChartScene() {
 export default function Chart3D({ className = '' }) {
   return (
     <div className={`relative ${className}`}>
-      <Canvas
-        dpr={[1, 1.6]}
-        camera={{ position: [0, 1.4, 3.4], fov: 42 }}
-        gl={{ antialias: true, alpha: true }}
-        onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
-      >
-        <ambientLight intensity={0.35} />
-        <pointLight position={[2, 3, 2]} intensity={1.4} color="#e879f9" />
-        <pointLight position={[-2, 2, 1]} intensity={0.8} color="#67e8f9" />
-        <Suspense fallback={null}>
-          <ChartScene />
-        </Suspense>
-      </Canvas>
+      <ErrorBoundary>
+        <Canvas
+          dpr={[1, 1.2]}
+          camera={{ position: [0, 1.4, 3.4], fov: 42 }}
+          gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
+          onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
+        >
+          <ambientLight intensity={0.35} />
+          <pointLight position={[2, 3, 2]} intensity={1.4} color="#e879f9" />
+          <pointLight position={[-2, 2, 1]} intensity={0.8} color="#67e8f9" />
+          <Suspense fallback={null}>
+            <ChartScene />
+          </Suspense>
+        </Canvas>
+      </ErrorBoundary>
     </div>
   )
 }
