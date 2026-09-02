@@ -1,139 +1,236 @@
-/* ─────────────────────────────────────────────────────── */
-/* Pure CSS 3D replacements — no WebGL, works everywhere  */
-/* ─────────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   CSS Animation System – No WebGL, works everywhere
+   ═══════════════════════════════════════════════════════════════ */
 
-/* CSS Aura Orb */
+/* ─── Shared keyframes ─── */
+@keyframes spin-slow    { to { transform: rotate(360deg); } }
+@keyframes spin-rev     { to { transform: rotate(-360deg); } }
+@keyframes pulse-scale  { 0%,100% { transform: scale(1); opacity:1; } 50% { transform: scale(1.1); opacity:.8; } }
+@keyframes pulse-glow   { 0%,100% { opacity:.6; } 50% { opacity:1; } }
+@keyframes hue-shift    { 0% { filter: hue-rotate(0deg);} 100% { filter: hue-rotate(40deg);} }
+@keyframes bar-rise     { from { transform: scaleY(0); opacity:0; } to { transform: scaleY(1); opacity:1; } }
+@keyframes bar-breathe  { 0%,100% { opacity:.75; filter: brightness(1); } 50% { opacity:1; filter: brightness(1.4) drop-shadow(0 0 8px rgba(103,232,249,.7)); } }
+@keyframes globe-orbit  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes globe-ping   { 0%,100% { transform: scale(1); opacity:1; } 50% { transform: scale(1.8); opacity:0; } }
+@keyframes cta-float    { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+@keyframes marquee-bg   { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+@keyframes particle     { 0% { transform: translateY(0) translateX(0); opacity:0; }
+                          20% { opacity:.8; }
+                          100% { transform: translateY(-120px) translateX(var(--tx,20px)); opacity:0; } }
+
+/* ═══════════════════════════════════════════════════════════════
+   ORB (HeroScene + AuraOrb)
+   ═══════════════════════════════════════════════════════════════ */
 .css-orb {
   position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
 }
 
-.css-orb-core {
-  position: relative;
-  width: 60%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%,
-    rgba(103, 232, 249, 0.9) 0%,
-    rgba(139, 92, 246, 0.7) 45%,
-    rgba(168, 85, 247, 0.3) 75%,
-    transparent 100%);
-  box-shadow:
-    0 0 60px rgba(103, 232, 249, 0.5),
-    0 0 120px rgba(139, 92, 246, 0.4),
-    0 0 200px rgba(168, 85, 247, 0.2);
-  animation: orb-pulse 3s ease-in-out infinite, orb-rotate 8s linear infinite;
-}
-
-.css-orb-ring {
-  position: absolute;
-  inset: -12%;
-  border-radius: 50%;
-  border: 1px solid rgba(103, 232, 249, 0.25);
-  animation: ring-spin 6s linear infinite;
-}
-
-.css-orb-ring::before {
-  content: '';
-  position: absolute;
-  top: 5%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(103, 232, 249, 0.9);
-  box-shadow: 0 0 12px rgba(103, 232, 249, 0.8);
-}
-
-.css-orb-ring2 {
-  position: absolute;
-  inset: -24%;
-  border-radius: 50%;
-  border: 1px solid rgba(168, 85, 247, 0.15);
-  animation: ring-spin 10s linear infinite reverse;
-}
-
-.css-orb-ring2::before {
-  content: '';
-  position: absolute;
-  bottom: 5%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(168, 85, 247, 0.9);
-  box-shadow: 0 0 10px rgba(168, 85, 247, 0.8);
-}
-
+/* Outer diffuse glow */
 .css-orb-glow {
   position: absolute;
-  inset: -40%;
+  inset: -30%;
   border-radius: 50%;
   background: radial-gradient(circle,
-    rgba(103, 232, 249, 0.12) 0%,
-    rgba(139, 92, 246, 0.08) 50%,
+    rgba(139,92,246,.22) 0%,
+    rgba(103,232,249,.10) 45%,
     transparent 70%);
-  animation: orb-pulse 4s ease-in-out infinite alternate;
+  animation: pulse-glow 4s ease-in-out infinite alternate;
+  pointer-events: none;
 }
 
-@keyframes orb-pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.08); opacity: 0.85; }
+/* Main sphere body – mimics the purple/cyan blob */
+.css-orb-core {
+  position: relative;
+  width: 68%; aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 38% 30%,
+    rgba(180,220,255,.85) 0%,
+    rgba(103,232,249,.7)  15%,
+    rgba(139,92,246,.75)  45%,
+    rgba(168,85,247,.6)   68%,
+    rgba(80,30,140,.4)    85%,
+    transparent           100%);
+  box-shadow:
+    0 0 50px rgba(139,92,246,.5),
+    0 0 100px rgba(103,232,249,.25),
+    inset 0 0 40px rgba(255,255,255,.05);
+  animation: pulse-scale 3.5s ease-in-out infinite, hue-shift 8s ease-in-out infinite alternate;
 }
 
-@keyframes orb-rotate {
-  0% { filter: hue-rotate(0deg); }
-  100% { filter: hue-rotate(30deg); }
+/* Thin orbital ring 1 */
+.css-orb-ring {
+  position: absolute;
+  inset: -16%; border-radius: 50%;
+  border: 1px solid rgba(103,232,249,.22);
+  animation: spin-slow 7s linear infinite;
+}
+.css-orb-ring::before {
+  content: '';
+  position: absolute; top: 4%; left: 50%;
+  transform: translateX(-50%);
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #67e8f9;
+  box-shadow: 0 0 14px 4px rgba(103,232,249,.9);
 }
 
-@keyframes ring-spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+/* Thin orbital ring 2 – tilted + reversed */
+.css-orb-ring2 {
+  position: absolute;
+  inset: -28%; border-radius: 50%;
+  border: 1px solid rgba(168,85,247,.18);
+  animation: spin-rev 11s linear infinite;
+  transform: rotate(45deg);
+}
+.css-orb-ring2::before {
+  content: '';
+  position: absolute; bottom: 5%; left: 50%;
+  transform: translateX(-50%);
+  width: 5px; height: 5px; border-radius: 50%;
+  background: #c084fc;
+  box-shadow: 0 0 12px 4px rgba(192,132,252,.85);
 }
 
-/* CSS Bar Chart */
+/* Extra outer halo ring */
+.css-orb-halo {
+  position: absolute;
+  inset: -42%; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.06);
+  animation: spin-slow 18s linear infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BAR CHART
+   ═══════════════════════════════════════════════════════════════ */
 .css-chart {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  height: 100%;
-  padding: 20px 24px;
+  display: flex; align-items: flex-end; justify-content: center;
+  gap: 10px;
+  width: 100%; height: 100%;
+  padding: 24px 28px 12px;
 }
 
 .css-bar {
   flex: 1;
-  border-radius: 6px 6px 0 0;
+  border-radius: 5px 5px 0 0;
   background: linear-gradient(to top,
-    rgba(168, 85, 247, 0.6),
-    rgba(103, 232, 249, 0.8));
-  box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+    rgba(139,92,246,.9)  0%,
+    rgba(103,232,249,.95) 100%);
+  box-shadow: 0 0 10px rgba(103,232,249,.35), 0 0 24px rgba(139,92,246,.3);
   transform-origin: bottom;
-  animation: bar-grow 0.8s ease-out forwards,
-             bar-breathe 3s ease-in-out infinite;
+  transform: scaleY(0); opacity: 0;
+  animation:
+    bar-rise    .7s ease-out forwards,
+    bar-breathe 3s ease-in-out infinite;
 }
 
-.css-bar:nth-child(1) { animation-delay: 0s, 0.2s; }
-.css-bar:nth-child(2) { animation-delay: 0.1s, 0.5s; }
-.css-bar:nth-child(3) { animation-delay: 0.2s, 0.8s; }
-.css-bar:nth-child(4) { animation-delay: 0.3s, 1.1s; }
-.css-bar:nth-child(5) { animation-delay: 0.4s, 0.3s; }
-.css-bar:nth-child(6) { animation-delay: 0.5s, 0.7s; }
-.css-bar:nth-child(7) { animation-delay: 0.6s, 0.1s; }
+/* Staggered delays */
+.css-bar:nth-child(1) { animation-delay: .05s, .9s; }
+.css-bar:nth-child(2) { animation-delay: .15s, 1.3s; }
+.css-bar:nth-child(3) { animation-delay: .25s, 0.6s; }
+.css-bar:nth-child(4) { animation-delay: .35s, 1.8s; }
+.css-bar:nth-child(5) { animation-delay: .45s, 0.3s; }
+.css-bar:nth-child(6) { animation-delay: .55s, 1.0s; }
+.css-bar:nth-child(7) { animation-delay: .65s, 0.7s; }
 
-@keyframes bar-grow {
-  from { transform: scaleY(0); opacity: 0; }
-  to { transform: scaleY(1); opacity: 1; }
+/* ═══════════════════════════════════════════════════════════════
+   GLOBE (InfrastructureGlobe CSS replacement)
+   ═══════════════════════════════════════════════════════════════ */
+.css-globe {
+  position: relative;
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
 }
 
-@keyframes bar-breathe {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; box-shadow: 0 0 20px rgba(103, 232, 249, 0.5); }
+.css-globe-sphere {
+  position: relative;
+  width: min(400px, 85%); aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 35% 30%, rgba(103,232,249,.12) 0%, transparent 55%),
+    radial-gradient(ellipse at 65% 70%, rgba(139,92,246,.08) 0%, transparent 55%);
+  border: 1px solid rgba(103,232,249,.14);
+  box-shadow:
+    inset 0 0 60px rgba(103,232,249,.06),
+    0 0 80px rgba(103,232,249,.08);
+}
+
+/* Wireframe latitude lines (pure CSS circles) */
+.css-globe-lat {
+  position: absolute; border-radius: 50%;
+  border: 1px solid rgba(103,232,249,.1);
+  left: 50%; top: 50%; transform: translate(-50%,-50%);
+}
+
+/* Longitude-like ovals */
+.css-globe-lon {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(103,232,249,.08);
+  left: 50%; top: 50%;
+  transform-origin: center;
+  animation: spin-slow var(--dur, 20s) linear infinite var(--dir, normal);
+}
+
+/* Nodes on the globe */
+.css-globe-node {
+  position: absolute;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(103,232,249,.9);
+  box-shadow: 0 0 10px 3px rgba(103,232,249,.6);
+  transform: translate(-50%, -50%);
+}
+.css-globe-node::after {
+  content: '';
+  position: absolute; inset: -4px; border-radius: 50%;
+  border: 1px solid rgba(103,232,249,.4);
+  animation: globe-ping 2.5s ease-in-out infinite var(--ping-delay, 0s);
+}
+
+/* Arc connector lines */
+.css-arc-line {
+  position: absolute;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(103,232,249,.5), transparent);
+  transform-origin: left center;
+  opacity: .6;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CTA SECTION BACKGROUND
+   ═══════════════════════════════════════════════════════════════ */
+.cta-particles {
+  position: absolute; inset: 0;
+  overflow: hidden; pointer-events: none;
+}
+
+.cta-particle {
+  position: absolute;
+  width: 3px; height: 3px; border-radius: 50%;
+  background: rgba(103,232,249,.7);
+  box-shadow: 0 0 6px 2px rgba(103,232,249,.5);
+  animation: particle 4s ease-in infinite;
+  animation-delay: var(--d, 0s);
+  left: var(--x, 50%);
+  bottom: 0;
+}
+
+.cta-bg-gradient {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 60%, rgba(139,92,246,.18) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 40%, rgba(103,232,249,.12) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 60% at 50% 80%, rgba(168,85,247,.10) 0%, transparent 50%);
+  animation: pulse-glow 6s ease-in-out infinite alternate;
+}
+
+.cta-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%);
 }

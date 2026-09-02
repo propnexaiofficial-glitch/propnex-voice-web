@@ -59,6 +59,7 @@ function CornerFrame({ className = '' }) {
 
 export default function NetworkVisual() {
   const ref = useRef(null)
+  const listRef = useRef(null)
   const [active, setActive] = useState(4)
 
   useEffect(() => {
@@ -67,6 +68,15 @@ export default function NetworkVisual() {
     }, 1800)
     return () => clearInterval(id)
   }, [])
+
+  // Auto-scroll the list to keep the active region visible
+  useEffect(() => {
+    if (!listRef.current) return
+    const items = listRef.current.querySelectorAll('li')
+    if (items[active]) {
+      items[active].scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    }
+  }, [active])
 
   useGSAP(
     () => {
@@ -189,8 +199,8 @@ export default function NetworkVisual() {
               <span className="text-cyan-400">19+</span> Regions globally
             </p>
 
-            <div className="relative max-h-[340px] overflow-hidden pr-1">
-              <ul className="space-y-1">
+            <div className="relative max-h-[280px] overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)]">
+              <ul ref={listRef} className="space-y-1">
                 {regions.map((r, i) => {
                   const on = i === active
                   return (
@@ -200,7 +210,7 @@ export default function NetworkVisual() {
                         type="button"
                         onClick={() => setActive(i)}
                         className={`w-full text-left text-[10px] font-semibold uppercase tracking-[0.16em] transition ${
-                          on ? 'text-white' : 'text-white/35 hover:text-white/60'
+                          on ? 'text-cyan-300 drop-shadow-[0_0_6px_rgba(103,232,249,0.8)]' : 'text-white/35 hover:text-white/60'
                         }`}
                       >
                         {r}

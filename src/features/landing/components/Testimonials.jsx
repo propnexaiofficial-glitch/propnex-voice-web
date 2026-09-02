@@ -4,8 +4,16 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useHeadReveal, useStaggerReveal } from '../hooks/useReveal'
 import InteractiveCard from './InteractiveCard'
+import '../css-animations.css'
 
 gsap.registerPlugin(ScrollTrigger)
+
+// Particle positions for CTA background
+const PARTICLES = Array.from({ length: 18 }, (_, i) => ({
+  x: `${5 + (i * 5.5) % 90}%`,
+  d: `${(i * 0.4).toFixed(1)}s`,
+  tx: `${(i % 2 === 0 ? 1 : -1) * (10 + (i * 7) % 30)}px`,
+}))
 
 const stats = [
   {
@@ -134,7 +142,19 @@ export default function Testimonials() {
   const loop = [...testimonials, ...testimonials]
 
   return (
-    <section id="about" ref={ref} className="section-edge relative py-20 md:py-28">
+    <section id="about" ref={ref} className="section-edge relative py-20 md:py-28 overflow-hidden">
+      {/* Animated background */}
+      <div className="cta-bg-gradient" />
+      <div className="cta-grid" />
+      <div className="cta-particles">
+        {PARTICLES.map((p, i) => (
+          <div
+            key={i}
+            className="cta-particle"
+            style={{ '--x': p.x, '--d': p.d, '--tx': p.tx }}
+          />
+        ))}
+      </div>
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <div className="reveal-head mb-12 text-center md:mb-16">
           <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
