@@ -1,4 +1,4 @@
-import '../css-animations.css'
+import '../../css-animations.css'
 
 // Heights for the 7 bars (38%, 55%, 48%, 72%, 64%, 92%, 78%)
 const BAR_HEIGHTS = [38, 55, 48, 72, 64, 92, 78]

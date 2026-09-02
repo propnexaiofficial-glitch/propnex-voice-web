@@ -1,4 +1,4 @@
-import '../css-animations.css'
+import '../../css-animations.css'
 
 export default function AuraOrb({ className = '', intensity = 1 }) {
   return (

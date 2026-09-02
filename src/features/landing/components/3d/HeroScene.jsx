@@ -1,4 +1,4 @@
-import '../css-animations.css'
+import '../../css-animations.css'
 
 export default function HeroScene({ className = '', active = true }) {
   return (
