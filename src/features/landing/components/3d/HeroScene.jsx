@@ -1,8 +1,6 @@
 import { Suspense, useMemo, useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { ErrorBoundary } from '../../../../components/ErrorBoundary'
-import { useWebGL } from '../../../../hooks/useWebGL'
 
 const auraVertex = /* glsl */ `
   varying vec2 vUv;
@@ -184,8 +182,6 @@ export default function HeroScene({
   className = '',
   active = true,
 }) {
-  const isWebGLSupported = useWebGL();
-
   return (
     <div
       className={`relative ${className}`}
@@ -196,30 +192,25 @@ export default function HeroScene({
           'radial-gradient(ellipse 60% 58% at 50% 58%, #000 40%, transparent 76%)',
       }}
     >
-      {isWebGLSupported ? (
-        <ErrorBoundary>
-          <Canvas
-            dpr={[1, 1.2]}
-            camera={{ position: [0, -0.15, 3.2], fov: 38 }}
-            gl={{ antialias: false, alpha: true, premultipliedAlpha: false, powerPreference: 'high-performance' }}
-            style={{ background: 'transparent' }}
-            onCreated={({ gl }) => {
-              gl.setClearColor(0x000000, 0)
-            }}
-          >
-            <ambientLight intensity={0.45} />
-            <pointLight position={[2.2, 1.8, 2.5]} intensity={1.1} color="#67e8f9" />
-            <pointLight position={[-2, -1.2, 1.8]} intensity={0.7} color="#a78bfa" />
-            <Suspense fallback={null}>
-              <SoftAura intensity={active ? 1.05 : 0.75} />
-              <WireOrb active={active} />
-              <OrbitParticles />
-            </Suspense>
-          </Canvas>
-        </ErrorBoundary>
-      ) : (
-        <div className="absolute inset-0 bg-gradient-radial from-cyan-500/20 via-violet-500/10 to-transparent blur-3xl opacity-50" />
-      )}
+      <Canvas
+        dpr={[1, 1.2]}
+        camera={{ position: [0, -0.15, 3.2], fov: 38 }}
+        gl={{ antialias: false, alpha: true, premultipliedAlpha: false, powerPreference: 'high-performance' }}
+        style={{ background: 'transparent' }}
+        onCreated={({ gl }) => {
+          gl.setClearColor(0x000000, 0)
+        }}
+        fallback={<div className="absolute inset-0 bg-gradient-radial from-cyan-500/20 via-violet-500/10 to-transparent blur-3xl opacity-50" />}
+      >
+        <ambientLight intensity={0.45} />
+        <pointLight position={[2.2, 1.8, 2.5]} intensity={1.1} color="#67e8f9" />
+        <pointLight position={[-2, -1.2, 1.8]} intensity={0.7} color="#a78bfa" />
+        <Suspense fallback={null}>
+          <SoftAura intensity={active ? 1.05 : 0.75} />
+          <WireOrb active={active} />
+          <OrbitParticles />
+        </Suspense>
+      </Canvas>
     </div>
   )
 }
