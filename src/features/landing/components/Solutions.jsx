@@ -1,12 +1,7 @@
 import { useRef } from 'react'
-import { useGSAP } from '@gsap/react'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import AuraOrb from './3d/AuraOrb'
 import InteractiveCard from './InteractiveCard'
 import { useHeadReveal, useStaggerReveal } from '../hooks/useReveal'
-
-gsap.registerPlugin(ScrollTrigger)
 
 const smallCards = [
   {
@@ -31,18 +26,6 @@ export default function Solutions() {
   useHeadReveal(ref)
   useStaggerReveal(ref, '.sol-card', { stagger: 0.1 })
 
-  useGSAP(
-    () => {
-      gsap.to('.globe-float', {
-        y: -12,
-        duration: 2.8,
-        yoyo: true,
-        repeat: -1,
-        ease: 'sine.inOut',
-      })
-    },
-    { scope: ref },
-  )
 
   return (
     <section id="solutions" ref={ref} className="section-edge relative py-20 md:py-28">
@@ -87,7 +70,7 @@ export default function Solutions() {
             tilt={false}
           >
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(124,58,237,0.35),transparent_65%)]" />
-            <div className="globe-float absolute inset-0">
+            <div className="globe-float absolute inset-0" style={{ animation: 'cta-float 4s ease-in-out infinite' }}>
               <AuraOrb className="h-full w-full" intensity={1.15} />
             </div>
             <p className="absolute bottom-6 left-6 right-6 z-10 text-lg font-semibold text-white">

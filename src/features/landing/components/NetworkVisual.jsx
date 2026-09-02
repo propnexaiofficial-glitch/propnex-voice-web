@@ -38,7 +38,12 @@ function SignalBars() {
         <span
           key={i}
           className="infra-bar w-[3px] rounded-sm bg-cyan-400"
-          style={{ height: h }}
+          style={{
+            height: h,
+            animation: `heroBar ${0.6 + i * 0.15}s ease-in-out ${i * 0.1}s infinite alternate`,
+            transformOrigin: 'bottom',
+            display: 'block',
+          }}
         />
       ))}
     </div>
@@ -147,15 +152,6 @@ export default function NetworkVisual() {
           scrollTrigger: { trigger: ref.current, start: 'top 72%' },
         },
       )
-      gsap.to('.infra-bar', {
-        scaleY: 0.45,
-        transformOrigin: 'bottom',
-        duration: 0.55,
-        yoyo: true,
-        repeat: -1,
-        stagger: 0.1,
-        ease: 'sine.inOut',
-      })
     },
     { scope: ref },
   )

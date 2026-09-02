@@ -4,8 +4,12 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
+// Use CSS to pre-hide elements instead of autoAlpha — avoids FOUC (flash of unstyled content)
+const HIDDEN = { opacity: 0, y: 28 }
+const VISIBLE = { opacity: 1, y: 0 }
+
 const defaultScroll = {
-  start: 'top 88%',
+  start: 'top 90%',
   once: true,
 }
 
@@ -18,12 +22,12 @@ export function useReveal(scopeRef, selector = '.reveal', options = {}) {
       els.forEach((el) => {
         gsap.fromTo(
           el,
-          { autoAlpha: 0, y: options.y ?? 36 },
+          { opacity: 0, y: options.y ?? 28 },
           {
-            autoAlpha: 1,
+            opacity: 1,
             y: 0,
-            duration: options.duration ?? 0.8,
-            ease: 'power3.out',
+            duration: options.duration ?? 0.65,
+            ease: 'power2.out',
             immediateRender: false,
             scrollTrigger: {
               trigger: el,
@@ -47,17 +51,17 @@ export function useHeadReveal(scopeRef, selector = '.reveal-head', options = {})
       if (!els.length) return
       gsap.fromTo(
         els,
-        { autoAlpha: 0, y: 28 },
+        { opacity: 0, y: 20 },
         {
-          autoAlpha: 1,
+          opacity: 1,
           y: 0,
-          duration: 0.75,
-          stagger: 0.08,
-          ease: 'power3.out',
+          duration: 0.6,
+          stagger: 0.07,
+          ease: 'power2.out',
           immediateRender: false,
           scrollTrigger: {
             trigger: els[0],
-            start: options.start ?? 'top 90%',
+            start: options.start ?? 'top 92%',
             once: true,
           },
         },
@@ -77,21 +81,17 @@ export function useStaggerReveal(scopeRef, selector, options = {}) {
       gsap.fromTo(
         els,
         {
-          autoAlpha: 0,
-          y: options.y ?? 36,
-          scale: options.scale ?? 0.96,
-          rotateX: options.rotateX ?? 6,
+          opacity: 0,
+          y: options.y ?? 28,
+          // Removed rotateX — creates stacking contexts that cause text flicker
         },
         {
-          autoAlpha: 1,
+          opacity: 1,
           y: 0,
-          scale: 1,
-          rotateX: 0,
-          duration: options.duration ?? 0.75,
-          stagger: options.stagger ?? 0.1,
-          ease: 'power3.out',
+          duration: options.duration ?? 0.65,
+          stagger: options.stagger ?? 0.09,
+          ease: 'power2.out',
           immediateRender: false,
-          transformPerspective: 900,
           scrollTrigger: {
             trigger: options.trigger || els[0].parentElement || els[0],
             start: options.start ?? defaultScroll.start,
@@ -108,7 +108,7 @@ export function useStaggerReveal(scopeRef, selector, options = {}) {
 export function useCardAnimations(scopeRef, options = {}) {
   useStaggerReveal(scopeRef, '.gsap-card', {
     stagger: options.stagger ?? 0.09,
-    y: options.y ?? 32,
+    y: options.y ?? 28,
     ...options,
   })
 }
