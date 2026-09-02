@@ -220,9 +220,9 @@ export default function NetworkVisual() {
           </div>
 
           {/* CENTER — 3D globe */}
-          <div className="infra-globe relative mx-auto w-full max-w-[520px]">
+          <div className="infra-globe relative mx-auto w-full max-w-[520px] aspect-square">
             <div className="pointer-events-none absolute inset-[8%] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.12),transparent_65%)] blur-2xl" />
-            <InfrastructureGlobe className="relative h-[320px] w-full md:h-[420px] lg:h-[460px]" />
+            <InfrastructureGlobe className="relative w-full h-full" />
           </div>
 
           {/* RIGHT — regions */}

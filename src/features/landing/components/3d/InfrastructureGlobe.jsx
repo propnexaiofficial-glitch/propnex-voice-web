@@ -1,72 +1,181 @@
-import '../../css-animations.css'
+import { Suspense, useMemo, useRef } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
+import { Float, Line } from '@react-three/drei'
+import * as THREE from 'three'
 
-// 12 nodes placed roughly on a globe using % positions
-const NODES = [
-  { top: '28%', left: '18%', delay: '0s'   },   // US West
-  { top: '30%', left: '25%', delay: '0.4s' },   // US East
-  { top: '22%', left: '47%', delay: '0.8s' },   // UK
-  { top: '23%', left: '50%', delay: '1.2s' },   // France
-  { top: '21%', left: '53%', delay: '0.2s' },   // Germany
-  { top: '38%', left: '63%', delay: '1.6s' },   // India
-  { top: '42%', left: '74%', delay: '0.6s' },   // Singapore
-  { top: '30%', left: '78%', delay: '1.0s' },   // Japan
-  { top: '65%', left: '72%', delay: '1.4s' },   // Australia
-  { top: '38%', left: '57%', delay: '0.9s' },   // UAE
-  { top: '62%', left: '36%', delay: '1.8s' },   // Brazil
-  { top: '30%', left: '56%', delay: '0.3s' },   // Israel
+/** Rough lat/lon → sphere coords */
+function latLonToVec(lat, lon, r = 1.42) {
+  const phi = ((90 - lat) * Math.PI) / 180
+  const theta = ((lon + 180) * Math.PI) / 180
+  return new THREE.Vector3(
+    -r * Math.sin(phi) * Math.cos(theta),
+    r * Math.cos(phi),
+    r * Math.sin(phi) * Math.sin(theta),
+  )
+}
+
+const MARKERS = [
+  { lat: 37.7, lon: -122.4 }, // US West
+  { lat: 40.7, lon: -74 }, // US East
+  { lat: 51.5, lon: -0.1 }, // UK
+  { lat: 48.8, lon: 2.3 }, // France
+  { lat: 52.5, lon: 13.4 }, // Germany
+  { lat: 28.6, lon: 77.2 }, // India
+  { lat: 1.3, lon: 103.8 }, // Singapore
+  { lat: 35.6, lon: 139.7 }, // Japan
+  { lat: -33.8, lon: 151.2 }, // Australia
+  { lat: 25.2, lon: 55.3 }, // UAE
+  { lat: -23.5, lon: -46.6 }, // Brazil
+  { lat: 32.0, lon: 34.8 }, // Israel
 ]
 
-// Arc lines connecting some nodes
-const ARCS = [
-  { fromTop: '28%', fromLeft: '18%', toTop: '22%', toLeft: '47%', w: '30%', angle: -10 },
-  { fromTop: '22%', fromLeft: '47%', toTop: '38%', toLeft: '63%', w: '18%', angle: 20 },
-  { fromTop: '38%', fromLeft: '63%', toTop: '42%', toLeft: '74%', w: '12%', angle: 5 },
-  { fromTop: '30%', fromLeft: '25%', toTop: '62%', toLeft: '36%', w: '12%', angle: 60 },
-  { fromTop: '38%', fromLeft: '63%', toTop: '65%', toLeft: '72%', w: '16%', angle: 50 },
-]
+function ContinentDots({ count = 3200 }) {
+  const points = useRef()
+  const { positions, colors } = useMemo(() => {
+    const pos = new Float32Array(count * 3)
+    const col = new Float32Array(count * 3)
+    const c = new THREE.Color('#8b9cb3')
+    for (let i = 0; i < count; i++) {
+      // Bias toward equatorial "land-like" bands for a globe feel
+      const lat = (Math.random() * 140 - 70) * (0.55 + Math.random() * 0.45)
+      const lon = Math.random() * 360 - 180
+      const jitter = 0.02 * Math.random()
+      const v = latLonToVec(lat, lon, 1.38 + jitter)
+      pos[i * 3] = v.x
+      pos[i * 3 + 1] = v.y
+      pos[i * 3 + 2] = v.z
+      const shade = 0.55 + Math.random() * 0.45
+      col[i * 3] = c.r * shade
+      col[i * 3 + 1] = c.g * shade
+      col[i * 3 + 2] = c.b * shade
+    }
+    return { positions: pos, colors: col }
+  }, [count])
+
+  useFrame((state) => {
+    if (!points.current) return
+    points.current.rotation.y = state.clock.elapsedTime * 0.07
+  })
+
+  return (
+    <points ref={points}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
+        <bufferAttribute attach="attributes-color" count={count} array={colors} itemSize={3} />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.016}
+        vertexColors
+        sizeAttenuation
+        transparent
+        opacity={0.85}
+        depthWrite={false}
+      />
+    </points>
+  )
+}
+
+function RegionMarkers() {
+  const group = useRef()
+  useFrame((state) => {
+    if (!group.current) return
+    group.current.rotation.y = state.clock.elapsedTime * 0.07
+    group.current.children.forEach((child, i) => {
+      const pulse = 0.85 + Math.sin(state.clock.elapsedTime * 2.4 + i) * 0.2
+      child.scale.setScalar(pulse)
+    })
+  })
+
+  return (
+    <group ref={group}>
+      {MARKERS.map((m, i) => {
+        const p = latLonToVec(m.lat, m.lon, 1.45)
+        return (
+          <mesh key={i} position={p}>
+            <boxGeometry args={[0.07, 0.07, 0.07]} />
+            <meshBasicMaterial color="#22d3ee" toneMapped={false} />
+          </mesh>
+        )
+      })}
+    </group>
+  )
+}
+
+function ArcLines() {
+  const arcs = useMemo(() => {
+    const pairs = [
+      [0, 2],
+      [1, 4],
+      [2, 5],
+      [5, 6],
+      [6, 7],
+      [7, 8],
+      [3, 9],
+      [1, 10],
+    ]
+    return pairs.map(([a, b]) => {
+      const A = latLonToVec(MARKERS[a].lat, MARKERS[a].lon, 1.45)
+      const B = latLonToVec(MARKERS[b].lat, MARKERS[b].lon, 1.45)
+      const mid = A.clone().add(B).multiplyScalar(0.5).normalize().multiplyScalar(2.0)
+      return new THREE.QuadraticBezierCurve3(A, mid, B).getPoints(28)
+    })
+  }, [])
+
+  const group = useRef()
+  useFrame((s) => {
+    if (group.current) group.current.rotation.y = s.clock.elapsedTime * 0.07
+  })
+
+  return (
+    <group ref={group}>
+      {arcs.map((pts, i) => (
+        <Line
+          key={i}
+          points={pts}
+          color="#22d3ee"
+          lineWidth={1}
+          transparent
+          opacity={0.35}
+        />
+      ))}
+    </group>
+  )
+}
+
+function WireSphere() {
+  const mesh = useRef()
+  useFrame((s) => {
+    if (mesh.current) mesh.current.rotation.y = s.clock.elapsedTime * 0.07
+  })
+  return (
+    <mesh ref={mesh}>
+      <sphereGeometry args={[1.36, 48, 48]} />
+      <meshBasicMaterial color="#1e293b" wireframe transparent opacity={0.12} />
+    </mesh>
+  )
+}
 
 export default function InfrastructureGlobe({ className = '' }) {
   return (
     <div className={`relative ${className}`}>
-      <div className="css-globe">
-        <div className="css-globe-sphere">
-          {/* Latitude rings */}
-          {[80, 60, 40, 20].map((s) => (
-            <div
-              key={s}
-              className="css-globe-lat"
-              style={{ width: `${s}%`, height: `${s}%` }}
-            />
-          ))}
-
-          {/* Longitude ovals — tilted */}
-          <div className="css-globe-lon" style={{ width: '100%', height: '40%', '--dur': '22s' }} />
-          <div className="css-globe-lon" style={{ width: '100%', height: '40%', '--dur': '18s', '--dir': 'reverse', transform: 'translate(-50%,-50%) rotate(60deg)' }} />
-          <div className="css-globe-lon" style={{ width: '100%', height: '40%', '--dur': '26s', transform: 'translate(-50%,-50%) rotate(120deg)' }} />
-
-          {/* Arc connector lines */}
-          {ARCS.map((a, i) => (
-            <div
-              key={i}
-              className="css-arc-line"
-              style={{
-                top: a.fromTop, left: a.fromLeft,
-                width: a.w,
-                transform: `rotate(${a.angle}deg)`,
-              }}
-            />
-          ))}
-
-          {/* Region nodes */}
-          {NODES.map((n, i) => (
-            <div
-              key={i}
-              className="css-globe-node"
-              style={{ top: n.top, left: n.left, '--ping-delay': n.delay }}
-            />
-          ))}
-        </div>
-      </div>
+      <Canvas
+        dpr={[1, 1.6]}
+        // Adjusted camera z from 4.1 to 4.9 to fit the globe completely and prevent vertical clipping
+        camera={{ position: [0, 0.15, 4.9], fov: 38 }}
+        gl={{ antialias: true, alpha: true }}
+        onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
+      >
+        <ambientLight intensity={0.4} />
+        <pointLight position={[3, 2, 4]} intensity={0.8} color="#67e8f9" />
+        <Suspense fallback={null}>
+          <Float speed={0.9} rotationIntensity={0.05} floatIntensity={0.25}>
+            <WireSphere />
+            <ContinentDots />
+            <RegionMarkers />
+            <ArcLines />
+          </Float>
+        </Suspense>
+      </Canvas>
     </div>
   )
 }

@@ -55,10 +55,11 @@ export default function FinalCTA() {
     <section ref={ref} className="section-edge relative py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <div className="cta-inner relative overflow-hidden rounded-3xl border border-white/10 bg-[#08080c] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_30px_80px_rgba(0,0,0,0.5)]">
-          <div className="absolute inset-0 opacity-80">
-            <AuraOrb className="h-full w-full scale-125" intensity={1.2} />
-          </div>
           <div className="absolute inset-0 bg-black/55" />
+          
+          <div className="absolute inset-0 opacity-[0.35] pointer-events-none z-[1]">
+            <AuraOrb className="h-full w-full" variant="large" />
+          </div>
 
           <div className="cta-copy relative px-6 py-16 text-center md:px-12 md:py-24">
             <h2 className="mx-auto max-w-2xl text-3xl font-extrabold tracking-tight text-white md:text-5xl">
