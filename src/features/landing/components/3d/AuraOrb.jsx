@@ -136,8 +136,8 @@ export default function AuraOrb({ className = '', variant = 'small' }) {
         if (avgZ < -10) opacity = 0.05;
         else if (avgZ < 20) opacity = (avgZ + 10) / 30;
 
-        item.el.style.width = `${distance}px`;
-        item.el.style.transform = `translate3d(${v1.x}px, ${v1.y}px, ${v1.z}px) rotateY(${-rY}deg) rotateZ(${rZ}deg)`;
+        // Use scaleX instead of width to prevent massive layout thrashing (reflows) every frame!
+        item.el.style.transform = `translate3d(${v1.x}px, ${v1.y}px, ${v1.z}px) rotateY(${-rY}deg) rotateZ(${rZ}deg) scaleX(${distance})`;
         item.el.style.opacity = opacity.toString();
       });
 
