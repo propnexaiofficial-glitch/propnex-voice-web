@@ -461,34 +461,38 @@ export function CampaignCard({
                             className="overflow-hidden"
                           >
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 mt-1 border-t border-border/50">
-                              <div className="flex items-center gap-2 text-muted-foreground pl-6">
-                                <span className="font-medium text-foreground truncate max-w-[120px]" title={schedule.csvName}>
-                                  {schedule.csvName ? schedule.csvName : "Campaign Schedule"}
-                                </span>
-                                <span className="text-muted-foreground">•</span>
-                                
-                                {schedule.did && (
-                                  <>
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <span className="font-mono text-xs cursor-help hover:text-foreground transition-colors border-b border-dashed border-muted-foreground/50 pb-0.5">
-                                            ...{schedule.did.replace(/\D/g, '').slice(-3)}
-                                          </span>
-                                        </TooltipTrigger>
-                                        <TooltipContent className="text-xs space-y-1">
-                                          <p><span className="text-muted-foreground">Number:</span> {schedule.did}</p>
-                                          {schedule.channels && <p><span className="text-muted-foreground">Channels:</span> {schedule.channels}</p>}
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                    <span className="text-muted-foreground">•</span>
-                                  </>
-                                )}
-                                
-                                {/* Failed calls with Info Popover */}
-                                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                                  <span>{schedule.leadsCount || (schedule.leads?.length || 0)} Leads</span>
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground pl-6">
+                                  <span className="flex items-center gap-1">
+                                    File Name <span className="font-medium text-foreground truncate max-w-[120px]" title={schedule.csvName}>{schedule.csvName || "Campaign Schedule"}</span>,
+                                  </span>
+                                  
+                                  {schedule.did && (
+                                    <span className="flex items-center gap-1">
+                                      DID Num -
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <span className="font-mono text-foreground cursor-help hover:text-primary transition-colors border-b border-dashed border-muted-foreground/50 pb-0.5">
+                                              ...{schedule.did.replace(/\D/g, '').slice(-3)}
+                                            </span>
+                                          </TooltipTrigger>
+                                          <TooltipContent className="text-xs space-y-1">
+                                            <p><span className="text-muted-foreground">Full Number:</span> {schedule.did}</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>,
+                                    </span>
+                                  )}
+                                  
+                                  {schedule.channels && (
+                                    <span className="flex items-center gap-1">
+                                      Channel - <span className="font-medium text-foreground">{schedule.channels}</span>,
+                                    </span>
+                                  )}
+                                  
+                                  {/* Failed calls with Info Popover */}
+                                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                    <span>Leads <span className="font-medium text-foreground">{schedule.leadsCount || (schedule.leads?.length || 0)}</span></span>
                                   {(schedule.leads && schedule.leads.length > 0) || (campaign.status === "running" && idx === 0 && (campaign.leads?.length ?? 0) > 0) ? (
                                     <Popover>
                                       <PopoverTrigger asChild>
