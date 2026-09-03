@@ -435,9 +435,9 @@ export function CampaignCard({
                             {isPending ? (
                               <span className="text-amber-500">Pending</span>
                             ) : (campaign.status === "running" && idx === 0) ? (
-                              <span className="text-emerald-500">Running</span>
+                              <span className="text-emerald-500">Running {processedCount} / {campaign.totalContacts}</span>
                             ) : (campaign.status === "paused" && idx === 0) ? (
-                              <span className="text-amber-500">Paused</span>
+                              <span className="text-amber-500">Paused {processedCount} / {campaign.totalContacts}</span>
                             ) : (
                               <span className="text-emerald-500">Completed</span>
                             )}
@@ -470,26 +470,69 @@ export function CampaignCard({
                                 {/* Failed calls with Info Popover */}
                                 <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                                   <span>{schedule.leadsCount || (schedule.leads?.length || 0)} Leads</span>
-                                  {schedule.leads && schedule.leads.length > 0 && (
+                                  {(schedule.leads && schedule.leads.length > 0) || (campaign.status === "running" && idx === 0 && campaign.leads?.length > 0) ? (
                                     <Popover>
                                       <PopoverTrigger asChild>
-                                        <div className="flex size-5 cursor-pointer items-center justify-center rounded-full bg-muted hover:bg-muted-foreground/20 transition-colors" title="View Leads">
-                                          <Info className="size-3 text-foreground" />
+                                        <div className={cn("flex size-5 cursor-pointer items-center justify-center rounded-full transition-colors", (campaign.status === "running" && idx === 0) ? "bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary),0.8)]" : "bg-muted hover:bg-muted-foreground/20")} title="View Leads">
+                                          <Info className={cn("size-3", (campaign.status === "running" && idx === 0) ? "text-primary-foreground" : "text-foreground")} />
                                         </div>
                                       </PopoverTrigger>
-                                      <PopoverContent className="w-[300px] max-h-64 overflow-y-auto p-3 space-y-2 z-50">
-                                        <p className="font-semibold text-sm">Leads</p>
-                                        <div className="space-y-1">
-                                          {schedule.leads.map((lead: any, iIdx: number) => (
-                                            <div key={iIdx} className="flex justify-between items-center text-xs border-b border-border pb-1 hover:bg-muted/30 p-1 -mx-1 px-1 rounded">
-                                              <span className="truncate max-w-[120px]">{lead.name}</span>
-                                              <span className="font-mono">{lead.phone}</span>
+                                      <PopoverContent className="w-[350px] max-h-96 overflow-y-auto p-3 space-y-4 z-50">
+                                        {campaign.status === "running" && idx === 0 ? (
+                                          <div className="space-y-4">
+                                            <div className="flex items-center gap-1 border-b border-border pb-2">
+                                              <button onClick={() => setActiveTab("pending")} className={cn("px-3 py-1 text-xs font-medium rounded-full transition-colors", activeTab === "pending" ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/50")}>
+                                                Pending ({pendingLeads.length})
+                                              </button>
+                                              <button onClick={() => setActiveTab("successful")} className={cn("px-3 py-1 text-xs font-medium rounded-full transition-colors", activeTab === "successful" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground hover:bg-muted/50")}>
+                                                Success ({successLeads.length})
+                                              </button>
+                                              <button onClick={() => setActiveTab("failed")} className={cn("px-3 py-1 text-xs font-medium rounded-full transition-colors", activeTab === "failed" ? "bg-rose-500/20 text-rose-600" : "text-muted-foreground hover:bg-muted/50")}>
+                                                Failed ({failedLeads.length})
+                                              </button>
                                             </div>
-                                          ))}
-                                        </div>
+                                            
+                                            {activeTab === "pending" && pendingLeads.length > 0 && (
+                                              <div className="space-y-2">
+                                                {pendingLeads.map((lead: any) => (
+                                                  <LeadRow key={`${lead.phone}-${lead.originalIdx}`} lead={lead} idx={lead.originalIdx} onSave={() => {}} campaignStatus={campaign.status} />
+                                                ))}
+                                              </div>
+                                            )}
+                                            {activeTab === "pending" && pendingLeads.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No pending leads</p>}
+                                            {activeTab === "successful" && successLeads.length > 0 && (
+                                              <div className="space-y-2">
+                                                {successLeads.map((lead: any) => (
+                                                  <LeadRow key={`${lead.phone}-${lead.originalIdx}`} lead={lead} idx={lead.originalIdx} onSave={() => {}} campaignStatus={campaign.status} />
+                                                ))}
+                                              </div>
+                                            )}
+                                            {activeTab === "successful" && successLeads.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No successful calls yet</p>}
+                                            {activeTab === "failed" && failedLeads.length > 0 && (
+                                              <div className="space-y-2">
+                                                {failedLeads.map((lead: any) => (
+                                                  <LeadRow key={`${lead.phone}-${lead.originalIdx}`} lead={lead} idx={lead.originalIdx} onSave={() => {}} campaignStatus={campaign.status} />
+                                                ))}
+                                              </div>
+                                            )}
+                                            {activeTab === "failed" && failedLeads.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No failed calls yet</p>}
+                                          </div>
+                                        ) : (
+                                          <>
+                                            <p className="font-semibold text-sm">Leads</p>
+                                            <div className="space-y-1">
+                                              {schedule.leads?.map((lead: any, iIdx: number) => (
+                                                <div key={iIdx} className="flex justify-between items-center text-xs border-b border-border pb-1 hover:bg-muted/30 p-1 -mx-1 px-1 rounded">
+                                                  <span className="truncate max-w-[120px]">{lead.name}</span>
+                                                  <span className="font-mono">{lead.phone}</span>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </>
+                                        )}
                                       </PopoverContent>
                                     </Popover>
-                                  )}
+                                  ) : null}
                                 </div>
                               </div>
                               
@@ -514,7 +557,7 @@ export function CampaignCard({
                                     </Tooltip>
                                   </TooltipProvider>
                                 )}
-                                {onDeleteSchedule && !isPending && (
+                                {onDeleteSchedule && !isPending && !(campaign.status === "running" && idx === 0) && (
                                   <TooltipProvider>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
@@ -573,7 +616,7 @@ export function CampaignCard({
             </div>
           )}
 
-          {campaign.status === "running" && (
+          {campaign.status === "running" && !isReactivationCard && (
             <div className="flex gap-2">
               <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onForceStop}>
                 <StopCircle className="size-4" />
@@ -595,7 +638,7 @@ export function CampaignCard({
             </div>
           )}
 
-          {campaign.status === "paused" && (
+          {campaign.status === "paused" && !isReactivationCard && (
             <div className="flex gap-2">
               <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onForceStop}>
                 <StopCircle className="size-4" />
