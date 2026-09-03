@@ -489,7 +489,7 @@ export function CampaignCard({
                                 {/* Failed calls with Info Popover */}
                                 <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                                   <span>{schedule.leadsCount || (schedule.leads?.length || 0)} Leads</span>
-                                  {(schedule.leads && schedule.leads.length > 0) || (campaign.status === "running" && idx === 0 && campaign.leads?.length > 0) ? (
+                                  {(schedule.leads && schedule.leads.length > 0) || (campaign.status === "running" && idx === 0 && (campaign.leads?.length ?? 0) > 0) ? (
                                     <Popover>
                                       <PopoverTrigger asChild>
                                         <div className={cn("flex size-5 cursor-pointer items-center justify-center rounded-full transition-colors", (campaign.status === "running" && idx === 0) ? "bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary),0.8)]" : "bg-muted hover:bg-muted-foreground/20")} title="View Leads">

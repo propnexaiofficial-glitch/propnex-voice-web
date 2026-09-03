@@ -234,7 +234,7 @@ export function OutboundPageContent() {
       
       const scheduledAt = new Date(`${rescheduleDate}T${rescheduleTime}`).toISOString();
       const didNumber = rescheduleDid || persistentFailedLeadsInfo?.selectedDid || outboundCampaign.selectedDid || user?.assignedNumbersDetailed?.[0]?.number;
-      const channels = persistentFailedLeadsInfo?.channels || outboundCampaign.channels || user?.assignedNumbersDetailed?.[0]?.channels ?? 1;
+      const channels = persistentFailedLeadsInfo?.channels || outboundCampaign.channels || (user?.assignedNumbersDetailed?.[0]?.channels ?? 1);
       const uploadedFileName = persistentFailedLeadsInfo?.uploadedFileName || outboundCampaign.uploadedFileName || "Lead Reactivation";
 
       if (!didNumber) throw new Error("Please select an outbound number to use for reactivation.");
