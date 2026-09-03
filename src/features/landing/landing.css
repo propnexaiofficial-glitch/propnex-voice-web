@@ -129,7 +129,6 @@
 
 .landing-root .card-interactive {
   cursor: pointer;
-  will-change: transform;
   transition: border-color 0.35s ease, box-shadow 0.35s ease;
 }
 

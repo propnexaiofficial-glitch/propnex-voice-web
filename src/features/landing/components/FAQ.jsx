@@ -30,7 +30,7 @@ export default function FAQ() {
   const [open, setOpen] = useState(0)
 
   useReveal(ref, '.faq-side')
-  useStaggerReveal(ref, '.faq-item', { stagger: 0.08 })
+  useStaggerReveal(ref, '.gsap-card', { stagger: 0.08 })
 
   return (
     <section ref={ref} className="section-edge relative py-16 md:py-28">

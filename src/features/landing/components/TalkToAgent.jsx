@@ -7,6 +7,7 @@ export default function TalkToAgent() {
     <Link
       to="/live-demo"
       className="group fixed bottom-6 right-6 z-[60] flex items-center gap-3 rounded-full border border-white/15 bg-[#0a0a0c] py-2 pl-2 pr-5 shadow-[0_0_40px_rgba(34,211,238,0.3)] transition hover:border-cyan-400/50 hover:shadow-[0_0_50px_rgba(34,211,238,0.4)] md:bottom-8 md:right-8 md:bg-black/80 md:backdrop-blur-xl"
+      style={{ transform: 'translateZ(0)' }}
     >
       <span className="relative h-12 w-12 overflow-hidden rounded-full">
         <AuraOrb className="h-12 w-12" variant="icon" />
