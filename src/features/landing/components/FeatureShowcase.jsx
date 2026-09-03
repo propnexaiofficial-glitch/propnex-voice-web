@@ -15,7 +15,7 @@ export default function FeatureShowcase() {
   const speaking = useSimulatedSpeaking(3600)
 
   useReveal(ref, '.reveal-head')
-  useStaggerReveal(ref, '.show-item', { stagger: 0.12 })
+  useStaggerReveal(ref, '.gsap-card', { stagger: 0.12 })
 
   return (
     <section ref={ref} className="section-edge relative py-20 md:py-28">
@@ -31,7 +31,7 @@ export default function FeatureShowcase() {
           </p>
           <ul className="mt-10 space-y-5">
             {features.map((f) => (
-              <li key={f.title} className="show-item">
+              <li key={f.title}>
                 <InteractiveCard className="flex gap-4 !rounded-xl p-3" tilt={false}>
                   <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-cyan-300">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
