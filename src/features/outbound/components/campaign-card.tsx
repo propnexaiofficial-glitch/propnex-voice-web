@@ -186,10 +186,6 @@ export function CampaignCard({
     const key = companyId ? `last_outbound_number_request_${companyId}` : "last_outbound_number_request";
     
     if (hasOutboundNumber) {
-      // If they already have a number, clear the lock and don't show the error
-      localStorage.removeItem(key);
-      setIsLocked(false);
-      setRemindMessage(null);
       return;
     }
 
