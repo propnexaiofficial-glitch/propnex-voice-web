@@ -27,7 +27,17 @@ export default function AuraOrb({ className = '', variant = 'small' }) {
   // Compute container scale
   let containerScale = 'scale(1.5)';
   if (isLarge) containerScale = 'scale(2.25)';
-  if (isIcon) containerScale = 'scale(0.35)';
+  if (isIcon) {
+    return (
+      <div className={`flex items-center justify-center ${className}`}>
+        <div className="relative h-full w-full">
+          <div className="absolute inset-0 animate-pulse rounded-full bg-cyan-400/30 blur-md" />
+          <div className="absolute inset-1 rounded-full border border-cyan-400/40 shadow-[inset_0_0_10px_rgba(34,211,238,0.5)]" />
+          <div className="absolute inset-2 rounded-full bg-cyan-300/20" />
+        </div>
+      </div>
+    );
+  }
 
   const { edges } = useMemo(() => {
     const t = (1.0 + Math.sqrt(5.0)) / 2.0;
