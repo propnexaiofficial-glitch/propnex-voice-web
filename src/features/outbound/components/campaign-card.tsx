@@ -467,6 +467,25 @@ export function CampaignCard({
                                 </span>
                                 <span className="text-muted-foreground">•</span>
                                 
+                                {schedule.did && (
+                                  <>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <span className="font-mono text-xs cursor-help hover:text-foreground transition-colors border-b border-dashed border-muted-foreground/50 pb-0.5">
+                                            ...{schedule.did.replace(/\D/g, '').slice(-3)}
+                                          </span>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="text-xs space-y-1">
+                                          <p><span className="text-muted-foreground">Number:</span> {schedule.did}</p>
+                                          {schedule.channels && <p><span className="text-muted-foreground">Channels:</span> {schedule.channels}</p>}
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                    <span className="text-muted-foreground">•</span>
+                                  </>
+                                )}
+                                
                                 {/* Failed calls with Info Popover */}
                                 <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                                   <span>{schedule.leadsCount || (schedule.leads?.length || 0)} Leads</span>

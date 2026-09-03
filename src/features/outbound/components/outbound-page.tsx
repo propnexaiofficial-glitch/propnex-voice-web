@@ -79,6 +79,7 @@ export function OutboundPageContent() {
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleDid, setRescheduleDid] = useState("");
   const [persistentFailedLeads, setPersistentFailedLeads] = useState<any[]>([]);
+  const [persistentFailedLeadsInfo, setPersistentFailedLeadsInfo] = useState<any>({});
 
   useEffect(() => {
     const saved = localStorage.getItem("pnx_persistent_failed_leads");
@@ -95,6 +96,12 @@ export function OutboundPageContent() {
         });
         localStorage.setItem("pnx_persistent_failed_leads", JSON.stringify(deduped));
         setPersistentFailedLeads(deduped);
+      } catch (e) {}
+    }
+    const savedInfoStr = localStorage.getItem("pnx_persistent_failed_leads_info");
+    if (savedInfoStr) {
+      try {
+        setPersistentFailedLeadsInfo(JSON.parse(savedInfoStr));
       } catch (e) {}
     }
     // Load schedule history
@@ -187,12 +194,21 @@ export function OutboundPageContent() {
                 return true;
               });
               localStorage.setItem("pnx_persistent_failed_leads", JSON.stringify(deduped));
+              const info = {
+                selectedDid: outboundCampaign.selectedDid,
+                channels: outboundCampaign.channels,
+                uploadedFileName: outboundCampaign.uploadedFileName
+              };
+              localStorage.setItem("pnx_persistent_failed_leads_info", JSON.stringify(info));
+              setPersistentFailedLeadsInfo(info);
               return deduped;
             });
           }
         } else if (outboundCampaign.isReactivation && (alertData.title === "Campaign Completed" || alertData.title === "Campaign Force Stopped")) {
           setPersistentFailedLeads([]);
+          setPersistentFailedLeadsInfo({});
           localStorage.removeItem("pnx_persistent_failed_leads");
+          localStorage.removeItem("pnx_persistent_failed_leads_info");
           // NOTE: We only remove the schedule history for the one that just completed!
           // But actually, we don't clear the entire array anymore, we'll handle that differently.
         }
@@ -217,8 +233,9 @@ export function OutboundPageContent() {
       const failedLeads = persistentFailedLeads.length > 0 ? persistentFailedLeads : fallbackLeads;
       
       const scheduledAt = new Date(`${rescheduleDate}T${rescheduleTime}`).toISOString();
-      const didNumber = rescheduleDid || user?.assignedNumbersDetailed?.[0]?.number;
-      const channels = user?.assignedNumbersDetailed?.[0]?.channels ?? 1;
+      const didNumber = rescheduleDid || persistentFailedLeadsInfo?.selectedDid || outboundCampaign.selectedDid || user?.assignedNumbersDetailed?.[0]?.number;
+      const channels = persistentFailedLeadsInfo?.channels || outboundCampaign.channels || user?.assignedNumbersDetailed?.[0]?.channels ?? 1;
+      const uploadedFileName = persistentFailedLeadsInfo?.uploadedFileName || outboundCampaign.uploadedFileName || "Lead Reactivation";
 
       if (!didNumber) throw new Error("Please select an outbound number to use for reactivation.");
       if (failedLeads.length === 0) throw new Error("No failed leads to reschedule.");
@@ -232,7 +249,7 @@ export function OutboundPageContent() {
           scheduledAt,
           didNumber,
           channels,
-          uploadedFileName: outboundCampaign.uploadedFileName || "Lead Reactivation",
+          uploadedFileName,
         })
       });
 
@@ -242,9 +259,10 @@ export function OutboundPageContent() {
       const historyEntry = { 
         scheduledAt, 
         did: didNumber,
+        channels: channels,
         createdAt: Date.now(),
         leadsCount: failedLeads.length,
-        csvName: outboundCampaign.uploadedFileName || "Lead Reactivation",
+        csvName: uploadedFileName,
         leads: failedLeads
       };
       const updatedList = [...scheduleHistoryList, historyEntry];
@@ -259,7 +277,9 @@ export function OutboundPageContent() {
       setRescheduleOpen(false);
       clearFailedCalls();
       setPersistentFailedLeads([]); // clear it out since it is now scheduled
+      setPersistentFailedLeadsInfo({});
       localStorage.removeItem("pnx_persistent_failed_leads");
+      localStorage.removeItem("pnx_persistent_failed_leads_info");
       
       // Clear inputs to prevent accidental past scheduling next time
       setRescheduleDate("");
@@ -416,7 +436,9 @@ export function OutboundPageContent() {
                       onResume={() => {}}
                       onClear={() => {
                          setPersistentFailedLeads([]);
+                         setPersistentFailedLeadsInfo({});
                          localStorage.removeItem("pnx_persistent_failed_leads");
+                         localStorage.removeItem("pnx_persistent_failed_leads_info");
                       }}
                       onEditLead={() => {}}
                       onDeleteLead={() => {}}
@@ -554,7 +576,7 @@ export function OutboundPageContent() {
                 onChange={(e) => setRescheduleDid(e.target.value)}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono"
               >
-                <option value="">— Select number —</option>
+                <option value="">— Default: {persistentFailedLeadsInfo?.selectedDid || outboundCampaign.selectedDid || "Auto-select"} —</option>
                 {(user?.assignedNumbersDetailed || [])
                   .filter((n: any) => !n.direction || n.direction === "OUTBOUND" || n.direction === "BOTH")
                   .map((n: any) => (
