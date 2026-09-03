@@ -56,15 +56,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     return 0;
   });
   const [isLoading, setIsLoading] = useState(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("user");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed && parsed.email) return false;
-        }
-      } catch {}
-    }
+    // Always start with loading = true to prevent UI flickering 
+    // while we wait for the very first fresh fetch to complete.
     return true;
   });
 
