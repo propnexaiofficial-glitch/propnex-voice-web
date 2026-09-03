@@ -631,7 +631,7 @@ export function OutboundPageContent() {
               )}
               {alertData?.title}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="break-words whitespace-pre-wrap">
               {alertData?.description}
             </DialogDescription>
           </DialogHeader>
