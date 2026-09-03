@@ -167,8 +167,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
     const handleStateUpdate = (data: any) => {
       if (!data) return;
       setCampaign(prev => {
-        // Only alert if we transition to completed newly
-        if (prev.status === "running" && data.status === "completed") {
+        // Alert if we transition to completed, even if loading fresh from backend
+        if (prev.status !== "completed" && data.status === "completed") {
           setAlertData({
             title: "Campaign Completed",
             description: `All ${data.leads?.length || 0} leads have been processed.`,
