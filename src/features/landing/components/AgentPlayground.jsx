@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { useInView } from 'framer-motion'
 import WaveRingVisualizer from './3d/WaveRingVisualizer'
 import { useSimulatedSpeaking } from './3d/Visualizers'
 import InteractiveCard from './InteractiveCard'
 import { useStaggerReveal } from '../hooks/useReveal'
+import { useVisibility } from '../hooks/useVisibility'
 
 const codeTabs = [
   {
@@ -143,9 +143,8 @@ function TypewriterCode({ code, active }) {
 }
 
 export default function AgentPlayground() {
-  const ref = useRef(null)
   const [tab, setTab] = useState('py')
-  const inView = useInView(ref, { once: true, amount: 0.3 })
+  const { ref, isVisible } = useVisibility('100px')
   const speaking = useSimulatedSpeaking(3200)
   const active = codeTabs.find((t) => t.id === tab) || codeTabs[0]
 
@@ -180,7 +179,7 @@ export default function AgentPlayground() {
                   </button>
                 ))}
               </div>
-              <TypewriterCode key={tab} code={active.code} active={inView} />
+              <TypewriterCode key={tab} code={active.code} active={isVisible} />
             </div>
 
             {/* Compact elegant 3D preview */}

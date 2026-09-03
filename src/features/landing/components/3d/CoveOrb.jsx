@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { useIsMobile } from '../../../hooks/useIsMobile'
 
 const vertex = /* glsl */ `
   varying vec2 vUv;
@@ -108,12 +109,13 @@ export default function CoveOrb({
   className = '',
   colors = ['#7eb8ff', '#3b82f6', '#e8f3ff'],
 }) {
+  const isMobile = useIsMobile()
   return (
     <div className={`overflow-hidden rounded-full ${className}`}>
       <Canvas
-        dpr={[1, 1.75]}
+        dpr={isMobile ? 1 : [1, 1.75]}
         camera={{ position: [0, 0, 2.6], fov: 40 }}
-        gl={{ antialias: true, alpha: true }}
+        gl={{ antialias: true, alpha: true, powerPreference: 'low-power' }}
         onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
       >
         <CoveCloud colors={colors} />

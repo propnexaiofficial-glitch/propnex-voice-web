@@ -1,6 +1,7 @@
 import { Suspense, useMemo, useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { useIsMobile } from '../../../hooks/useIsMobile'
 
 const vertex = /* glsl */ `
   uniform float uTime;
@@ -118,6 +119,8 @@ export default function WaveRingVisualizer({
   active = true,
   compact = false,
 }) {
+  const isMobile = useIsMobile()
+  
   return (
     <div className={`relative ${className}`}>
       <div
@@ -128,12 +131,12 @@ export default function WaveRingVisualizer({
         }`}
       />
       <Canvas
-        dpr={[1, 1.6]}
+        dpr={isMobile ? 1 : [1, 1.6]}
         camera={{
           position: [0, 0.1, compact ? 5.1 : 3.6],
           fov: compact ? 32 : 40,
         }}
-        gl={{ antialias: true, alpha: true }}
+        gl={{ antialias: true, alpha: true, powerPreference: 'low-power' }}
         onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
       >
         <ambientLight intensity={0.3} />

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { useIsMobile } from '../../../hooks/useIsMobile'
 import '../../css-animations.css'
 
 function Bars({ count = 32, active = true }) {
@@ -118,12 +119,13 @@ function WaveRibbon({ active = true }) {
 }
 
 export function BarVisualizer3D({ className = '', active = true }) {
+  const isMobile = useIsMobile()
   return (
     <div className={className}>
       <Canvas
-        dpr={[1, 1.5]}
+        dpr={isMobile ? 1 : [1, 1.5]}
         camera={{ position: [0, 0.2, 3.2], fov: 40 }}
-        gl={{ alpha: true, antialias: true }}
+        gl={{ alpha: true, antialias: true, powerPreference: 'low-power' }}
         onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
       >
         <ambientLight intensity={0.5} />
@@ -135,12 +137,13 @@ export function BarVisualizer3D({ className = '', active = true }) {
 }
 
 export function RadialVisualizer3D({ className = '', active = true }) {
+  const isMobile = useIsMobile()
   return (
     <div className={className}>
       <Canvas
-        dpr={[1, 1.5]}
+        dpr={isMobile ? 1 : [1, 1.5]}
         camera={{ position: [0, 0, 3.4], fov: 40 }}
-        gl={{ alpha: true, antialias: true }}
+        gl={{ alpha: true, antialias: true, powerPreference: 'low-power' }}
         onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
       >
         <ambientLight intensity={0.5} />
@@ -152,12 +155,13 @@ export function RadialVisualizer3D({ className = '', active = true }) {
 }
 
 export function WaveVisualizer3D({ className = '', active = true }) {
+  const isMobile = useIsMobile()
   return (
     <div className={className}>
       <Canvas
-        dpr={[1, 1.5]}
+        dpr={isMobile ? 1 : [1, 1.5]}
         camera={{ position: [0, 0.4, 3.5], fov: 40 }}
-        gl={{ alpha: true, antialias: true }}
+        gl={{ alpha: true, antialias: true, powerPreference: 'low-power' }}
         onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
       >
         <ambientLight intensity={0.4} />
