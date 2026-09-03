@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { useIsMobile } from '../../../hooks/useIsMobile'
+import { useIsMobile } from '../../../../hooks/useIsMobile'
 
 const vertex = /* glsl */ `
   varying vec2 vUv;

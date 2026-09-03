@@ -3,7 +3,7 @@ import WaveRingVisualizer from './3d/WaveRingVisualizer'
 import { useSimulatedSpeaking } from './3d/Visualizers'
 import InteractiveCard from './InteractiveCard'
 import { useStaggerReveal } from '../hooks/useReveal'
-import { useVisibility } from '../hooks/useVisibility'
+import { useVisibility } from '../../../hooks/useVisibility'
 
 const codeTabs = [
   {
