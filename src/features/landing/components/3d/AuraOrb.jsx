@@ -27,17 +27,7 @@ export default function AuraOrb({ className = '', variant = 'small' }) {
   // Compute container scale
   let containerScale = 'scale(1.5)';
   if (isLarge) containerScale = 'scale(2.25)';
-  if (isIcon) {
-    return (
-      <div className={`flex items-center justify-center ${className}`}>
-        <div className="relative h-full w-full">
-          <div className="absolute inset-0 animate-pulse rounded-full bg-cyan-400/30 blur-md" />
-          <div className="absolute inset-1 rounded-full border border-cyan-400/40 shadow-[inset_0_0_10px_rgba(34,211,238,0.5)]" />
-          <div className="absolute inset-2 rounded-full bg-cyan-300/20" />
-        </div>
-      </div>
-    );
-  }
+  if (isIcon) containerScale = 'scale(0.35)';
 
   const { edges } = useMemo(() => {
     const t = (1.0 + Math.sqrt(5.0)) / 2.0;
@@ -55,28 +45,33 @@ export default function AuraOrb({ className = '', variant = 'small' }) {
       [4,9,5], [2,4,11], [6,2,10], [8,6,7], [9,8,1]
     ];
 
-    const subdividedFaces = [];
-    const getMidpoint = (v1, v2) => v1.add(v2).multiplyScalar(0.5).normalize();
-    
-    faces.forEach(face => {
-      const v0 = vertices[face[0]], v1 = vertices[face[1]], v2 = vertices[face[2]];
-      const m01 = getMidpoint(v0, v1);
-      const m12 = getMidpoint(v1, v2);
-      const m20 = getMidpoint(v2, v0);
+    let finalFaces = faces;
+
+    if (!isIcon) {
+      const subdividedFaces = [];
+      const getMidpoint = (v1, v2) => v1.add(v2).multiplyScalar(0.5).normalize();
       
-      const v01_idx = vertices.length; vertices.push(m01);
-      const v12_idx = vertices.length; vertices.push(m12);
-      const v20_idx = vertices.length; vertices.push(m20);
-      
-      subdividedFaces.push([face[0], v01_idx, v20_idx]);
-      subdividedFaces.push([face[1], v12_idx, v01_idx]);
-      subdividedFaces.push([face[2], v20_idx, v12_idx]);
-      subdividedFaces.push([v01_idx, v12_idx, v20_idx]);
-    });
+      faces.forEach(face => {
+        const v0 = vertices[face[0]], v1 = vertices[face[1]], v2 = vertices[face[2]];
+        const m01 = getMidpoint(v0, v1);
+        const m12 = getMidpoint(v1, v2);
+        const m20 = getMidpoint(v2, v0);
+        
+        const v01_idx = vertices.length; vertices.push(m01);
+        const v12_idx = vertices.length; vertices.push(m12);
+        const v20_idx = vertices.length; vertices.push(m20);
+        
+        subdividedFaces.push([face[0], v01_idx, v20_idx]);
+        subdividedFaces.push([face[1], v12_idx, v01_idx]);
+        subdividedFaces.push([face[2], v20_idx, v12_idx]);
+        subdividedFaces.push([v01_idx, v12_idx, v20_idx]);
+      });
+      finalFaces = subdividedFaces;
+    }
 
     const edgeSet = new Set();
     const uniqueEdges = [];
-    subdividedFaces.forEach(f => {
+    finalFaces.forEach(f => {
       const addE = (i, j) => {
         const key = i < j ? `${i}_${j}` : `${j}_${i}`;
         if (!edgeSet.has(key)) {

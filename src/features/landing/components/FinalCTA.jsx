@@ -11,7 +11,10 @@ export default function FinalCTA() {
   return (
     <section ref={ref} className="section-edge relative py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
-        <div className="cta-inner relative overflow-hidden rounded-3xl border border-white/10 bg-[#08080c] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_30px_80px_rgba(0,0,0,0.5)]">
+        <div 
+          className="cta-inner relative overflow-hidden rounded-3xl border border-white/10 bg-[#08080c] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_30px_80px_rgba(0,0,0,0.5)]"
+          style={{ transform: 'translateZ(0)', WebkitMaskImage: '-webkit-radial-gradient(white, black)' }}
+        >
           <div className="absolute inset-0 bg-black/55" />
           
           <div className="absolute inset-0 opacity-[0.35] pointer-events-none z-[1]">
