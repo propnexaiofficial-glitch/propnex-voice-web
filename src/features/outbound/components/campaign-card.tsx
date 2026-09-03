@@ -484,11 +484,9 @@ export function CampaignCard({
                                     </span>
                                   )}
                                   
-                                  {schedule.channels && (
-                                    <span className="flex items-center gap-1">
-                                      Channel - <span className="font-medium text-foreground">{schedule.channels}</span>,
-                                    </span>
-                                  )}
+                                  <span className="flex items-center gap-1">
+                                    Channel - <span className="font-medium text-foreground">{schedule.channels || 1}</span>,
+                                  </span>
                                   
                                   {/* Failed calls with Info Popover */}
                                   <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
