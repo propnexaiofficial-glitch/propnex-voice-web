@@ -47,7 +47,7 @@ export default function AuraOrb({ className = '', variant = 'small' }) {
 
     let finalFaces = faces;
 
-    if (!isIcon) {
+    if (!isIcon && !isLarge) {
       const subdividedFaces = [];
       const getMidpoint = (v1, v2) => v1.add(v2).multiplyScalar(0.5).normalize();
       
@@ -142,7 +142,6 @@ export default function AuraOrb({ className = '', variant = 'small' }) {
             </div>
           </div>
         </div>
-        <div className="aura-noise-overlay" />
       </div>
     </div>
   );
