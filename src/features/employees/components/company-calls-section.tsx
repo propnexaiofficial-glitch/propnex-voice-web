@@ -70,13 +70,12 @@ export function CompanyCallsSection({
   const isLocked = company?.status === "SUSPENDED" || company?.status === "DELETED";
 
   const hasAssignedNumber = useMemo(() => {
-    if (isContextLoading) return true;
     if (!company?.assignedNumbers) return false;
     if (direction === "outbound") {
       return company.assignedNumbers.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH");
     }
     return company.assignedNumbers.some((n: any) => n.direction === "INBOUND" || n.direction === "BOTH");
-  }, [company, isContextLoading, direction]);
+  }, [company, direction]);
 
   const {
     campaign: outboundCampaign,
@@ -319,6 +318,7 @@ export function CompanyCallsSection({
   const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);
 
   useEffect(() => {
+    if (isContextLoading) return;
     const key = `last_${direction}_number_request_${companyId}`;
     
     if (hasAssignedNumber) {
@@ -424,6 +424,15 @@ export function CompanyCallsSection({
     handleCampaignUpload(fileName, leads, selectedDid, channels ?? 1);
     setUploadOpen(false);
   };
+
+  if (isContextLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="h-32 w-full animate-pulse rounded-xl bg-muted" />
+        <div className="h-32 w-full animate-pulse rounded-xl bg-muted" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
