@@ -178,7 +178,11 @@ export function CampaignCard({
   const pendingSchedules = (displaySchedules || []).filter((s: any) => new Date(s.scheduledAt).getTime() > Date.now());
   const isPendingSchedule = pendingSchedules.length > 0;
 
+  const isReactivationCard = campaign.id === "camp-001" || campaign.isReactivation || campaign.name?.includes("Lead Reactivation");
+
   useEffect(() => {
+    if (isReactivationCard) return;
+
     const key = companyId ? `last_outbound_number_request_${companyId}` : "last_outbound_number_request";
     
     if (hasOutboundNumber) {
@@ -398,9 +402,9 @@ export function CampaignCard({
             </div>
           )}
 
-          {(campaign.status === "idle" || campaign.status === "completed" || campaign.id === "camp-001" || campaign.isReactivation || campaign.name?.includes("Lead Reactivation")) && (
+          {(campaign.status === "idle" || campaign.status === "completed" || isReactivationCard) && (
             <p className="text-sm text-muted-foreground">
-              {(campaign.id === "camp-001" || campaign.isReactivation || campaign.name?.includes("Lead Reactivation"))
+              {isReactivationCard
                 ? "Failed calls from past campaigns can be scheduled for reactivation here."
                 : !hasOutboundNumber 
                   ? "Please request an outbound number from the admin to launch campaigns." 
@@ -546,12 +550,12 @@ export function CampaignCard({
 
         <div className="flex flex-col gap-2 items-end">
           <div className="flex flex-wrap gap-2 items-center">
-            {!hasOutboundNumber && campaign.id !== "camp-001" && !campaign.isReactivation && campaign.name !== "Lead Reactivation" ? (
+            {!hasOutboundNumber && !isReactivationCard ? (
               <Button onClick={handleRemindAdmin} disabled={reminding || isLocked} className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white">
                 <PhoneOutgoing className="size-4" />
                 {reminding ? "Sending..." : (isLocked ? "Request Sent" : "Request Outbound Number")}
               </Button>
-            ) : (campaign.status === "idle" || campaign.status === "completed") && campaign.id !== "camp-001" && !campaign.isReactivation && campaign.name !== "Lead Reactivation" ? (
+            ) : (campaign.status === "idle" || campaign.status === "completed") && !isReactivationCard ? (
               <Button variant="outline" className="gap-2" onClick={onUploadClick}>
                 <Upload className="size-4" />
                 Upload CSV
@@ -617,7 +621,7 @@ export function CampaignCard({
             </div>
           )}
 
-          {(campaign.id === "camp-001" || campaign.isReactivation || campaign.name === "Lead Reactivation") && (campaign.status === "idle" || campaign.status === "completed" || campaign.status === "scheduled") && (
+          {isReactivationCard && (campaign.status === "idle" || campaign.status === "completed" || campaign.status === "scheduled") && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -642,7 +646,7 @@ export function CampaignCard({
             </TooltipProvider>
           )}
           </div>
-          {remindMessage && (
+          {remindMessage && !isReactivationCard && (
             <p className={`text-xs ${remindMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
               {remindMessage.text}
             </p>
