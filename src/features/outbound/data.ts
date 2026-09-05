@@ -157,7 +157,7 @@ export const outboundCalls: CallRecord[] = [
 
 export const leadReactivationCampaign: Campaign = {
   id: "camp-001",
-  name: "Lead Reactivation Q3",
+  name: "Lead Reactivation",
   status: "idle",
   totalContacts: 0,
   completedCalls: 0,

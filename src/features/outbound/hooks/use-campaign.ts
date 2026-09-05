@@ -183,7 +183,10 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
         // Adopt backend state if we are currently idle and backend has an active or recent campaign
         if (data.campaignId !== prev.id) {
           const cleared = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('cleared_campaigns') || '[]') : [];
-          if (prev.status === "idle" && data.status !== "idle" && data.status !== "force_stopped" && !cleared.includes(data.campaignId)) {
+          // Always adopt scheduled reactivations (system-generated Priority Engine jobs),
+          // even if a previous campaign ID was in cleared_campaigns — they have fresh IDs.
+          const isScheduledReactivation = !!data.isReactivation && data.status === "scheduled";
+          if (prev.status === "idle" && data.status !== "idle" && data.status !== "force_stopped" && (isScheduledReactivation || !cleared.includes(data.campaignId))) {
             return {
               ...prev,
               id: data.campaignId,
