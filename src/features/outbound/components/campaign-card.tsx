@@ -295,7 +295,7 @@ export function CampaignCard({
                 ? `${pendingSchedules.length} Scheduled` 
                 : campaign.status !== "idle" && (pendingSchedules[0]?.csvName || campaign.uploadedFileName) && !campaign.isReactivation && campaign.id !== "camp-001" && !campaign.name?.includes("Lead Reactivation")
                   ? `${status.label} • ${campaign.uploadedFileName || pendingSchedules[0]?.csvName}`
-                  : status.label}
+                  : (isReactivationCard && campaign.status === "idle" ? "No Lead" : status.label)}
             </Badge>
             {isReactivationCard && campaign.qStage && (
                <div className="flex gap-2 ml-2">
@@ -416,9 +416,7 @@ export function CampaignCard({
                 {isReactivationCard && campaign.qStage
                   ? `Auto-reactivation ${campaign.qStage} • ${campaign.leads?.length || 0} lead${(campaign.leads?.length || 0) !== 1 ? 's' : ''} scheduled for retry`
                   : isReactivationCard
-                    ? failedCallsCount > 0
-                      ? `${failedCallsCount} lead${failedCallsCount !== 1 ? 's' : ''} available for reactivation`
-                      : "No Lead"
+                    ? "Automatically re-engage failed leads across 3 follow-up waves."
                     : !hasOutboundNumber 
                       ? "Please request an outbound number from the admin to launch campaigns." 
                       : "Upload a CSV contact list to prepare your next outbound campaign."}
@@ -748,13 +746,13 @@ export function CampaignCard({
             // Show call history
             <div className="max-h-96 overflow-y-auto space-y-1 pr-1">
               {callHistory.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">No call history available.</p>
+                <p className="text-sm text-muted-foreground text-center py-8">No history.</p>
               ) : (
                 callHistory.map((call: any, i: number) => (
                   <div key={call.id || i} className="flex items-center justify-between text-xs border-b border-border pb-2 last:border-0 py-2 hover:bg-muted/30 px-2 rounded gap-2">
                     <div className="flex flex-col min-w-0">
-                      <span className="font-medium text-foreground truncate">{call.contactName || call.name || "—"}</span>
-                      <span className="text-muted-foreground font-mono">{call.toNumber || call.phone || "—"}</span>
+                      <span className="font-medium text-foreground truncate">{call.contactName || call.name || "Unknown"}</span>
+                      <span className="text-muted-foreground font-mono">{call.customerNumber || call.toNumber || call.phone || "—"}</span>
                     </div>
                     <div className="flex flex-col items-end gap-0.5 shrink-0">
                       <span className={cn(
@@ -764,7 +762,7 @@ export function CampaignCard({
                         "text-muted-foreground"
                       )}>{call.status || "—"}</span>
                       <span className="text-muted-foreground">
-                        {call.createdAt ? new Date(call.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ""}
+                        {(call.callDateTime || call.createdAt) ? new Date(call.callDateTime || call.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ""}
                       </span>
                     </div>
                   </div>
