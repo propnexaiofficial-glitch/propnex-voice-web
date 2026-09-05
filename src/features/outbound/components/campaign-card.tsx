@@ -409,16 +409,37 @@ export function CampaignCard({
           )}
 
           {(campaign.status === "idle" || campaign.status === "completed" || isReactivationCard) && (
-            <p className="text-sm text-muted-foreground">
-              {isReactivationCard && campaign.qStage
-                ? `Auto-reactivation ${campaign.qStage} • ${campaign.leads?.length || 0} lead${(campaign.leads?.length || 0) !== 1 ? 's' : ''} scheduled for retry`
-                : isReactivationCard
-                  ? "Failed calls from past campaigns can be scheduled for reactivation here."
-                  : !hasOutboundNumber 
-                    ? "Please request an outbound number from the admin to launch campaigns." 
-                    : "Upload a CSV contact list to prepare your next outbound campaign."}
-            </p>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                {isReactivationCard && campaign.qStage
+                  ? `Auto-reactivation ${campaign.qStage} • ${campaign.leads?.length || 0} lead${(campaign.leads?.length || 0) !== 1 ? 's' : ''} scheduled for retry`
+                  : isReactivationCard
+                    ? "Automatically re-engage failed leads across 3 follow-up waves."
+                    : !hasOutboundNumber 
+                      ? "Please request an outbound number from the admin to launch campaigns." 
+                      : "Upload a CSV contact list to prepare your next outbound campaign."}
+              </p>
+              {/* Q1/Q2/Q3 process overview — shown on idle reactivation card */}
+              {isReactivationCard && !campaign.qStage && (
+                <div className="flex items-center gap-2 mt-1">
+                  {[
+                    { stage: "Q1", label: "1st retry", color: "text-emerald-500 border-emerald-500/40 bg-emerald-500/10" },
+                    { stage: "Q2", label: "2nd retry", color: "text-amber-500 border-amber-500/40 bg-amber-500/10" },
+                    { stage: "Q3", label: "Final retry", color: "text-primary border-primary/40 bg-primary/10" },
+                  ].map(({ stage, label, color }, i) => (
+                    <div key={stage} className="flex items-center gap-2">
+                      <div className={`flex flex-col items-center px-2.5 py-1 rounded-md border text-xs font-semibold ${color}`}>
+                        <span>{stage}</span>
+                        <span className="text-[10px] font-normal opacity-70">{label}</span>
+                      </div>
+                      {i < 2 && <span className="text-muted-foreground text-xs">→</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
+
 
           {/* Schedule badges — unified for local history and backend scheduled state */}
           {(() => {
@@ -707,28 +728,14 @@ export function CampaignCard({
           )}
 
           {isReactivationCard && !campaign.qStage && (campaign.status === "idle" || campaign.status === "completed" || campaign.status === "scheduled") && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>
-                    <Button
-                      variant="outline"
-                      className="border-primary text-primary hover:bg-primary/10 gap-2 h-9 text-sm"
-                      onClick={onSchedule}
-                      disabled={!hasOutboundNumber || disableSchedule || failedCallsCount === 0}
-                    >
-                      <CalendarClock className="size-4" />
-                      Schedule Reactivation
-                    </Button>
-                  </div>
-                </TooltipTrigger>
-                {(!hasOutboundNumber || disableSchedule || failedCallsCount === 0) && (
-                  <TooltipContent>
-                    <p>{!hasOutboundNumber ? "Request an outbound number first" : (scheduleDisabledReason || "Available when there are failed calls")}</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
+            <Button
+              variant="outline"
+              className="border-primary/50 text-primary hover:bg-primary/10 gap-2 h-9 text-sm"
+              onClick={() => setLeadsModalOpen(true)}
+            >
+              <ListChecks className="size-4" />
+              Lead Info{failedCallsCount > 0 ? ` (${failedCallsCount})` : ""}
+            </Button>
           )}
           </div>
           {remindMessage && !isReactivationCard && (
@@ -739,32 +746,72 @@ export function CampaignCard({
         </div>
       </div>
 
-      {/* Lead Info Modal for auto-Q-stage reactivation cards */}
+      {/* Lead Info Modal — shows leads for qStage campaigns, or process overview for idle */}
       <Dialog open={leadsModalOpen} onOpenChange={setLeadsModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ListChecks className="size-5 text-primary" />
-              Lead Reactivation {campaign.qStage} — Leads ({campaign.leads?.length || 0})
+              {campaign.qStage
+                ? `Lead Reactivation ${campaign.qStage} — Leads (${campaign.leads?.length || 0})`
+                : "Lead Reactivation — Process Overview"}
             </DialogTitle>
           </DialogHeader>
-          <div className="max-h-80 overflow-y-auto space-y-1 pr-1">
-            {(campaign.leads || []).length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">No leads available.</p>
-            ) : (
-              (campaign.leads || []).map((lead: any, i: number) => (
-                <div key={i} className="flex justify-between items-center text-xs border-b border-border pb-1.5 last:border-0 py-1.5 hover:bg-muted/30 px-1 rounded">
-                  <span className={cn("truncate max-w-[150px] font-medium", lead.isFailed && "text-red-400")}>{lead.name || "—"}</span>
-                  <span className={cn("font-mono text-muted-foreground", lead.isFailed && "text-red-400")}>{lead.phone}</span>
+
+          {!campaign.qStage ? (
+            // Show process overview when no active qStage
+            <div className="space-y-3 py-2">
+              <p className="text-sm text-muted-foreground">Failed leads are automatically re-engaged in 3 sequential waves:</p>
+              {[
+                { stage: "Q1", label: "1st Follow-up", desc: "Initial retry — re-dials all failed leads from the original campaign.", color: "border-emerald-500/30 bg-emerald-500/5 text-emerald-500" },
+                { stage: "Q2", label: "2nd Follow-up", desc: "Re-dials leads that still didn't answer after Q1.", color: "border-amber-500/30 bg-amber-500/5 text-amber-500" },
+                { stage: "Q3", label: "Final Follow-up", desc: "Last attempt — re-dials any remaining unanswered leads after Q2.", color: "border-primary/30 bg-primary/5 text-primary" },
+              ].map(({ stage, label, desc, color }) => (
+                <div key={stage} className={`flex gap-3 p-3 rounded-lg border ${color}`}>
+                  <span className={`font-bold text-sm mt-0.5 min-w-[28px] ${color.split(' ')[2]}`}>{stage}</span>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{label}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+                  </div>
                 </div>
-              ))
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground text-center">
-            {campaign.scheduledAt
-              ? `Scheduled for ${new Date(campaign.scheduledAt).toLocaleString(undefined, { weekday: 'long', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
-              : `Status: ${campaign.status}`}
-          </p>
+              ))}
+              {failedCallsCount > 0 && (
+                <div className="mt-3 pt-3 border-t border-border">
+                  <p className="text-sm font-medium text-foreground mb-2">{failedCallsCount} lead{failedCallsCount !== 1 ? 's' : ''} available for reactivation</p>
+                  <Button
+                    size="sm"
+                    className="w-full gap-2"
+                    onClick={() => { setLeadsModalOpen(false); onSchedule?.(); }}
+                    disabled={!hasOutboundNumber}
+                  >
+                    <CalendarClock className="size-4" />
+                    Schedule Reactivation
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : (
+            // Show leads list for active qStage
+            <>
+              <div className="max-h-80 overflow-y-auto space-y-1 pr-1">
+                {(campaign.leads || []).length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">No leads available.</p>
+                ) : (
+                  (campaign.leads || []).map((lead: any, i: number) => (
+                    <div key={i} className="flex justify-between items-center text-xs border-b border-border pb-1.5 last:border-0 py-1.5 hover:bg-muted/30 px-1 rounded">
+                      <span className={cn("truncate max-w-[150px] font-medium", lead.isFailed && "text-red-400")}>{lead.name || "—"}</span>
+                      <span className={cn("font-mono text-muted-foreground", lead.isFailed && "text-red-400")}>{lead.phone}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                {campaign.scheduledAt
+                  ? `Scheduled for ${new Date(campaign.scheduledAt).toLocaleString(undefined, { weekday: 'long', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
+                  : `Status: ${campaign.status}`}
+              </p>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 
