@@ -68,6 +68,7 @@ type CampaignCardProps = {
   hasOutboundNumber?: boolean;
   className?: string;
   companyId?: string;
+  callHistory?: any[];
 };
 
 function LeadRow({ lead, idx, onSave, onDelete, campaignStatus }: { lead: any; idx: number; onSave: (newLead: any) => void; onDelete?: () => void, campaignStatus?: string }) {
@@ -157,6 +158,7 @@ export function CampaignCard({
   hasOutboundNumber = true,
   className,
   companyId,
+  callHistory = [],
 }: CampaignCardProps) {
   const status = statusConfig[campaign.status];
   const isComingSoon = campaign.comingSoon === true;
@@ -409,34 +411,18 @@ export function CampaignCard({
           )}
 
           {(campaign.status === "idle" || campaign.status === "completed" || isReactivationCard) && (
-            <div className="space-y-2">
+            <div className="space-y-1">
               <p className="text-sm text-muted-foreground">
                 {isReactivationCard && campaign.qStage
                   ? `Auto-reactivation ${campaign.qStage} • ${campaign.leads?.length || 0} lead${(campaign.leads?.length || 0) !== 1 ? 's' : ''} scheduled for retry`
                   : isReactivationCard
-                    ? "Automatically re-engage failed leads across 3 follow-up waves."
+                    ? failedCallsCount > 0
+                      ? `${failedCallsCount} lead${failedCallsCount !== 1 ? 's' : ''} available for reactivation`
+                      : "No Lead"
                     : !hasOutboundNumber 
                       ? "Please request an outbound number from the admin to launch campaigns." 
                       : "Upload a CSV contact list to prepare your next outbound campaign."}
               </p>
-              {/* Q1/Q2/Q3 process overview — shown on idle reactivation card */}
-              {isReactivationCard && !campaign.qStage && (
-                <div className="flex items-center gap-2 mt-1">
-                  {[
-                    { stage: "Q1", label: "1st retry", color: "text-emerald-500 border-emerald-500/40 bg-emerald-500/10" },
-                    { stage: "Q2", label: "2nd retry", color: "text-amber-500 border-amber-500/40 bg-amber-500/10" },
-                    { stage: "Q3", label: "Final retry", color: "text-primary border-primary/40 bg-primary/10" },
-                  ].map(({ stage, label, color }, i) => (
-                    <div key={stage} className="flex items-center gap-2">
-                      <div className={`flex flex-col items-center px-2.5 py-1 rounded-md border text-xs font-semibold ${color}`}>
-                        <span>{stage}</span>
-                        <span className="text-[10px] font-normal opacity-70">{label}</span>
-                      </div>
-                      {i < 2 && <span className="text-muted-foreground text-xs">→</span>}
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           )}
 
@@ -746,48 +732,43 @@ export function CampaignCard({
         </div>
       </div>
 
-      {/* Lead Info Modal — shows leads for qStage campaigns, or process overview for idle */}
+      {/* Lead Info Modal — shows call history for idle, leads list for qStage */}
       <Dialog open={leadsModalOpen} onOpenChange={setLeadsModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ListChecks className="size-5 text-primary" />
               {campaign.qStage
                 ? `Lead Reactivation ${campaign.qStage} — Leads (${campaign.leads?.length || 0})`
-                : "Lead Reactivation — Process Overview"}
+                : `Lead Reactivation — Call History (${callHistory.length})`}
             </DialogTitle>
           </DialogHeader>
 
           {!campaign.qStage ? (
-            // Show process overview when no active qStage
-            <div className="space-y-3 py-2">
-              <p className="text-sm text-muted-foreground">Failed leads are automatically re-engaged in 3 sequential waves:</p>
-              {[
-                { stage: "Q1", label: "1st Follow-up", desc: "Initial retry — re-dials all failed leads from the original campaign.", color: "border-emerald-500/30 bg-emerald-500/5 text-emerald-500" },
-                { stage: "Q2", label: "2nd Follow-up", desc: "Re-dials leads that still didn't answer after Q1.", color: "border-amber-500/30 bg-amber-500/5 text-amber-500" },
-                { stage: "Q3", label: "Final Follow-up", desc: "Last attempt — re-dials any remaining unanswered leads after Q2.", color: "border-primary/30 bg-primary/5 text-primary" },
-              ].map(({ stage, label, desc, color }) => (
-                <div key={stage} className={`flex gap-3 p-3 rounded-lg border ${color}`}>
-                  <span className={`font-bold text-sm mt-0.5 min-w-[28px] ${color.split(' ')[2]}`}>{stage}</span>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{label}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+            // Show call history
+            <div className="max-h-96 overflow-y-auto space-y-1 pr-1">
+              {callHistory.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">No call history available.</p>
+              ) : (
+                callHistory.map((call: any, i: number) => (
+                  <div key={call.id || i} className="flex items-center justify-between text-xs border-b border-border pb-2 last:border-0 py-2 hover:bg-muted/30 px-2 rounded gap-2">
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-medium text-foreground truncate">{call.contactName || call.name || "—"}</span>
+                      <span className="text-muted-foreground font-mono">{call.toNumber || call.phone || "—"}</span>
+                    </div>
+                    <div className="flex flex-col items-end gap-0.5 shrink-0">
+                      <span className={cn(
+                        "font-medium capitalize",
+                        call.status === "completed" ? "text-emerald-500" :
+                        call.status === "failed" || call.status === "busy" || call.status === "no-answer" ? "text-red-400" :
+                        "text-muted-foreground"
+                      )}>{call.status || "—"}</span>
+                      <span className="text-muted-foreground">
+                        {call.createdAt ? new Date(call.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ""}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
-              {failedCallsCount > 0 && (
-                <div className="mt-3 pt-3 border-t border-border">
-                  <p className="text-sm font-medium text-foreground mb-2">{failedCallsCount} lead{failedCallsCount !== 1 ? 's' : ''} available for reactivation</p>
-                  <Button
-                    size="sm"
-                    className="w-full gap-2"
-                    onClick={() => { setLeadsModalOpen(false); onSchedule?.(); }}
-                    disabled={!hasOutboundNumber}
-                  >
-                    <CalendarClock className="size-4" />
-                    Schedule Reactivation
-                  </Button>
-                </div>
+                ))
               )}
             </div>
           ) : (

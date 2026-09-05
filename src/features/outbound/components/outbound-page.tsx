@@ -397,7 +397,9 @@ export function OutboundPageContent() {
                     onDeleteSchedule={scheduleHistoryList.length > 0 ? handleDeleteSchedule : undefined}
                     displaySchedules={scheduleHistoryList}
                     failedCallsCount={outboundCampaign.failedCalls}
+                    callHistory={calls}
                   />
+
                 </motion.div>
                 <CampaignCard
                   campaign={{ id: "main-idle", name: "Outbound", status: "idle", leads: [], failedCalls: 0, completedCalls: 0, successfulCalls: 0, totalContacts: 0, isReactivation: false }}
@@ -454,6 +456,7 @@ export function OutboundPageContent() {
                       failedCallsCount={persistentFailedLeads.length || (scheduleHistoryList[0]?.leadsCount || 0)}
                       disableSchedule={persistentFailedLeads.length === 0}
                       scheduleDisabledReason="No unscheduled failed calls available."
+                      callHistory={calls}
                     />
                   </motion.div>
 
