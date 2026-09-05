@@ -292,16 +292,23 @@ export function CampaignCard({
                   ? `${status.label} • ${campaign.uploadedFileName || pendingSchedules[0]?.csvName}`
                   : status.label}
             </Badge>
+            {isReactivationCard && campaign.qStage && (
+               <div className="flex gap-2 ml-2">
+                 <Badge variant={campaign.qStage === "Q1" ? "default" : "outline"} className={cn("text-xs font-semibold px-2 py-0.5", campaign.qStage === "Q1" && campaign.qStatus === "Running" && "animate-pulse")}>Q1: {campaign.qStage === "Q1" ? campaign.qStatus : (campaign.qStage === "Q2" || campaign.qStage === "Q3" ? "Completed" : "Scheduled")}</Badge>
+                 <Badge variant={campaign.qStage === "Q2" ? "default" : "outline"} className={cn("text-xs font-semibold px-2 py-0.5", campaign.qStage === "Q2" && campaign.qStatus === "Running" && "animate-pulse")}>Q2: {campaign.qStage === "Q2" ? campaign.qStatus : (campaign.qStage === "Q3" ? "Completed" : "Pending")}</Badge>
+                 <Badge variant={campaign.qStage === "Q3" ? "default" : "outline"} className={cn("text-xs font-semibold px-2 py-0.5", campaign.qStage === "Q3" && campaign.qStatus === "Running" && "animate-pulse")}>Q3: {campaign.qStage === "Q3" ? campaign.qStatus : "Pending"}</Badge>
+               </div>
+            )}
             
-            {(campaign.status !== "idle" && campaign.leads && campaign.leads.length > 0 && !campaign.isReactivation && campaign.name !== "Lead Reactivation") && (
+            {(campaign.status !== "idle" && campaign.leads && campaign.leads.length > 0) && (
               <div className="flex items-center gap-2 ml-2">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <div className="flex size-7 cursor-pointer items-center justify-center rounded-full bg-muted/50 hover:bg-muted transition-colors" title="View/Edit Leads">
-                      <Info className="size-4 text-muted-foreground" />
+                    <div className={cn("flex size-7 cursor-pointer items-center justify-center rounded-full transition-colors", isReactivationCard ? "bg-primary/20 hover:bg-primary/30 shadow-[0_0_10px_rgba(var(--primary),0.3)] border border-primary/30" : "bg-muted/50 hover:bg-muted")} title="View/Edit Leads">
+                      <Info className={cn("size-4", isReactivationCard ? "text-primary" : "text-muted-foreground")} />
                     </div>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[350px] max-h-96 overflow-y-auto p-4 space-y-4 z-50">
+                  <PopoverContent className={cn("w-[350px] max-h-96 overflow-y-auto p-4 space-y-4 z-50", isReactivationCard && "backdrop-blur-md bg-background/90 border-primary/30 shadow-2xl")}>
                     
                     {(campaign.status === "ready" || campaign.status === "scheduled") && (
                       <div className="space-y-2">
@@ -578,7 +585,7 @@ export function CampaignCard({
                                     </Tooltip>
                                   </TooltipProvider>
                                 )}
-                                {onDeleteSchedule && !isPending && !(campaign.status === "running" && idx === 0) && (
+                                {onDeleteSchedule && !isPending && !(campaign.status === "running" && idx === 0) && (!isReactivationCard || (campaign.qStage === "Q3" && campaign.qStatus === "Completed")) && (
                                   <TooltipProvider>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
@@ -625,10 +632,12 @@ export function CampaignCard({
           {campaign.status === "ready" && (
             <div className="flex flex-col gap-2 items-end">
               <div className="flex gap-2">
-                <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onClear}>
-                  <Trash2 className="size-4" />
-                  Clear File
-                </Button>
+                {(!isReactivationCard || (campaign.qStage === "Q3" && campaign.qStatus === "Completed")) && (
+                  <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onClear}>
+                    <Trash2 className="size-4" />
+                    Clear File
+                  </Button>
+                )}
                 <Button className="gap-2" onClick={onStart} disabled={(campaign.leads || []).some((l: any) => !isValidPhoneNumber(l.phone))}>
                   <Play className="size-4" />
                   Start Campaign

@@ -592,6 +592,7 @@ model PendingApproval {
   id          String                @id @default(auto()) @map("_id") @db.ObjectId
   email       String                @unique
   status      PendingApprovalStatus @default(PENDING)
+  remindedAt  DateTime?
   createdAt   DateTime              @default(now())
   updatedAt   DateTime              @updatedAt
 
@@ -1633,6 +1634,11 @@ model Campaign {
   direction      CampaignDirection @default(OUTBOUND)
   stage          CampaignStage     @default(MAIN)
   parentCampaignId String?         @db.ObjectId
+  currentQStage      String?
+  q1ScheduledAt      DateTime?
+  q2ScheduledAt      DateTime?
+  q3ScheduledAt      DateTime?
+  qStatus            String?
   parentCampaign   Campaign?       @relation("CampaignRetries", fields: [parentCampaignId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   childCampaigns   Campaign[]      @relation("CampaignRetries")
   address        String?

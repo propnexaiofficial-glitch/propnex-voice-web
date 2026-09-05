@@ -171,6 +171,11 @@ function DashboardShellInner({
             needsRefresh = true;
           } else if (user.approvalStatus === "REJECTED") {
             setIsRejected(true);
+            if (user.rejectedAt) {
+               const rejectDate = new Date(user.rejectedAt);
+               rejectDate.setMonth(rejectDate.getMonth() + 6);
+               setBlockedUntilDate(rejectDate.toISOString());
+            }
             needsRefresh = true;
           } else if (!user.companyId && !user.contractId) {
             setIsWaiting(true);
@@ -219,6 +224,11 @@ function DashboardShellInner({
                 setIsBlocked(false);
                 setIsWaiting(false);
                 setIsWaitingNumber(false);
+                if (data.user.rejectedAt) {
+                  const rejectDate = new Date(data.user.rejectedAt);
+                  rejectDate.setMonth(rejectDate.getMonth() + 6);
+                  setBlockedUntilDate(rejectDate.toISOString());
+                }
               } else if (!data.user.companyId && !data.user.contractId) {
                 setIsWaiting(true);
                 setIsRejected(false);
@@ -287,6 +297,11 @@ function DashboardShellInner({
               setIsBlocked(false);
               setIsWaiting(false);
               setIsWaitingNumber(false);
+              if (data.user.rejectedAt) {
+                 const rejectDate = new Date(data.user.rejectedAt);
+                 rejectDate.setMonth(rejectDate.getMonth() + 6);
+                 setBlockedUntilDate(rejectDate.toISOString());
+              }
             } else if (!data.user.companyId && !data.user.contractId) {
               setIsWaiting(true);
               setIsRejected(false);
@@ -426,15 +441,16 @@ function DashboardShellInner({
               strokeLinejoin="round"
               viewBox="0 0 24 24"
             >
-              <path d="M18 6L6 18M6 6l12 12" />
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
             </svg>
           </div>
           <div className="space-y-2">
             <h2 className="text-2xl font-bold tracking-tight text-white">
-              Application Not Accepted
+              Application Declined
             </h2>
-            <p className="text-sm text-muted-foreground">
-              Please try again after 6 months. For any problem contact us: support@propnexai.com
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Your account is blocked for 6 months. For any query contact in this email - <a href="mailto:support@propnexai.com" className="text-red-400 hover:underline">support@propnexai.com</a>
             </p>
           </div>
           <button onClick={() => {
@@ -442,7 +458,7 @@ function DashboardShellInner({
             localStorage.removeItem("accessToken");
             localStorage.removeItem("access_token");
             window.location.href = "/auth/sign-in";
-          }} className="text-sm text-red-400 hover:text-red-300">
+          }} className="text-sm text-red-400 hover:text-red-300 mt-4 font-medium transition-colors">
             Sign out
           </button>
         </div>

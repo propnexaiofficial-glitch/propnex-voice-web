@@ -193,9 +193,14 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
               failedCalls: data.failedCalls || 0,
               leads: data.leads || [],
               totalContacts: data.totalContacts || 0,
-              isReactivation: !!data.isReactivation,
-              scheduledAt: data.scheduledAt || prev.scheduledAt,
-              uploadedFileName: data.uploadedFileName || prev.uploadedFileName,
+                  isReactivation: data.isReactivation !== undefined ? !!data.isReactivation : prev.isReactivation,
+                  qStage: data.qStage || prev.qStage,
+                  qStatus: data.qStatus || prev.qStatus,
+                  q1ScheduledAt: data.q1ScheduledAt || prev.q1ScheduledAt,
+                  q2ScheduledAt: data.q2ScheduledAt || prev.q2ScheduledAt,
+                  q3ScheduledAt: data.q3ScheduledAt || prev.q3ScheduledAt,
+                  scheduledAt: data.scheduledAt || prev.scheduledAt,
+                  uploadedFileName: data.uploadedFileName || prev.uploadedFileName,
             };
           }
           // Otherwise ignore stale backend state from previous campaigns
@@ -275,6 +280,11 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
                   leads: data.leads || prev.leads,
                   totalContacts: data.totalContacts || prev.totalContacts,
                   isReactivation: data.isReactivation !== undefined ? !!data.isReactivation : prev.isReactivation,
+                  qStage: data.qStage || prev.qStage,
+                  qStatus: data.qStatus || prev.qStatus,
+                  q1ScheduledAt: data.q1ScheduledAt || prev.q1ScheduledAt,
+                  q2ScheduledAt: data.q2ScheduledAt || prev.q2ScheduledAt,
+                  q3ScheduledAt: data.q3ScheduledAt || prev.q3ScheduledAt,
                   scheduledAt: data.scheduledAt || prev.scheduledAt,
                   uploadedFileName: data.uploadedFileName || prev.uploadedFileName,
                 };

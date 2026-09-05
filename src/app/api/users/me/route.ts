@@ -96,6 +96,26 @@ export async function GET(req: NextRequest) {
       console.warn("Could not fetch company details for user:", e);
     }
 
+    let approvalStatus: string | null = null;
+    let remindedAt: string | null = null;
+    let rejectedAt: string | null = null;
+    try {
+      // Find the latest pending approval for this user
+      const pending = await prisma.pendingApproval.findFirst({
+        where: { email: user.email },
+        orderBy: { createdAt: 'desc' }
+      });
+      if (pending) {
+        approvalStatus = pending.status;
+        remindedAt = (pending as any).remindedAt?.toISOString() || null;
+        if (pending.status === "REJECTED") {
+           rejectedAt = pending.updatedAt?.toISOString() || null;
+        }
+      }
+    } catch (e) {
+      console.warn("Could not fetch pending approval:", e);
+    }
+
     return NextResponse.json({
       user: {
         id: user.id,
@@ -110,6 +130,11 @@ export async function GET(req: NextRequest) {
         creditBalance,
         assignedNumber,
         assignedNumbersDetailed,
+        approvalStatus,
+        remindedAt,
+        rejectedAt,
+        status: (user as any).status || null,
+        blockedUntil: (user as any).blockedUntil || null
       },
     });
   } catch (err: any) {

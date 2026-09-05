@@ -18,6 +18,11 @@ export type Campaign = {
   selectedDid?: string;
   channels?: number;
   isReactivation?: boolean;
+  qStage?: "Q1" | "Q2" | "Q3";
+  qStatus?: "Pending" | "Running" | "Completed";
+  q1ScheduledAt?: string;
+  q2ScheduledAt?: string;
+  q3ScheduledAt?: string;
 };
 
 export type UploadCsvState = {
