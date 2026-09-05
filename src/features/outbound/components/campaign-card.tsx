@@ -137,6 +137,70 @@ function LeadRow({ lead, idx, onSave, onDelete, campaignStatus }: { lead: any; i
   );
 }
 
+const MOCK_HISTORICAL_CAMPAIGNS = [
+  {
+    id: "hist-1",
+    csvName: "Summer_Leads_Batch_1.csv",
+    didNumber: "+1234567890",
+    channels: 2,
+    q1: {
+      status: "Completed",
+      failedLeads: [
+        { name: "John Doe", phone: "+111222333" },
+        { name: "Jane Smith", phone: "+444555666" }
+      ]
+    },
+    q2: {
+      status: "Completed",
+      failedLeads: [
+        { name: "Jane Smith", phone: "+444555666" }
+      ]
+    },
+    q3: {
+      status: "Running",
+      failedLeads: [
+        { name: "Jane Smith", phone: "+444555666" }
+      ]
+    }
+  },
+  {
+    id: "hist-2",
+    csvName: "Fall_Followups_Final.csv",
+    didNumber: "+0987654321",
+    channels: 1,
+    q1: {
+      status: "Completed",
+      failedLeads: [
+        { name: "Mike Johnson", phone: "+123123123" }
+      ]
+    },
+    q2: {
+      status: "Pending",
+      failedLeads: []
+    },
+    q3: {
+      status: "Pending",
+      failedLeads: []
+    }
+  },
+  {
+    id: "hist-3",
+    csvName: "Winter_Promos.csv",
+    didNumber: "+1122334455",
+    channels: 3,
+    q1: {
+      status: "Pending",
+      failedLeads: [
+        { name: "Alice Brown", phone: "+999888777" },
+        { name: "Bob White", phone: "+777666555" },
+        { name: "Charlie Green", phone: "+555444333" }
+      ]
+    },
+    q2: { status: "Pending", failedLeads: [] },
+    q3: { status: "Pending", failedLeads: [] }
+  }
+];
+
 export function CampaignCard({
   campaign,
   progressPercent,
@@ -172,6 +236,13 @@ export function CampaignCard({
   const [activeTab, setActiveTab] = useState<"pending" | "successful" | "failed">("pending");
   const [expandedScheduleIdx, setExpandedScheduleIdx] = useState<number | null>(null);
   const [leadsModalOpen, setLeadsModalOpen] = useState(false);
+  const [selectedHistId, setSelectedHistId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (leadsModalOpen) {
+      setSelectedHistId(MOCK_HISTORICAL_CAMPAIGNS[0]?.id || null);
+    }
+  }, [leadsModalOpen]);
 
   const pendingLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => !l.called);
   const successLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => l.called && !l.isFailed);
@@ -730,68 +801,187 @@ export function CampaignCard({
         </div>
       </div>
 
-      {/* Lead Info Modal — shows call history for idle, leads list for qStage */}
+      {/* Lead Info Modal */}
       <Dialog open={leadsModalOpen} onOpenChange={setLeadsModalOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <ListChecks className="size-5 text-primary" />
-              {campaign.qStage
-                ? `Lead Reactivation ${campaign.qStage} — Leads (${campaign.leads?.length || 0})`
-                : `Lead Reactivation — Call History (${callHistory.length})`}
-            </DialogTitle>
-          </DialogHeader>
+        {isReactivationCard ? (
+          <DialogContent className="max-w-6xl w-[95vw] h-[85vh] p-0 flex flex-col overflow-hidden bg-background/95 backdrop-blur-xl border-primary/20">
+            <DialogHeader className="p-6 pb-4 border-b border-border/50 bg-muted/20 shrink-0">
+              <DialogTitle className="flex items-center gap-2 text-xl">
+                <ListChecks className="size-6 text-primary" />
+                Lead Reactivation Dashboard
+              </DialogTitle>
+              <p className="text-sm text-muted-foreground">Manage and track failed leads across all historical outbound campaigns in Q1, Q2, and Q3 retry stages.</p>
+            </DialogHeader>
 
-          {!campaign.qStage ? (
-            // Show call history
-            <div className="max-h-96 overflow-y-auto space-y-1 pr-1">
-              {callHistory.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">No history.</p>
-              ) : (
-                callHistory.map((call: any, i: number) => (
-                  <div key={call.id || i} className="flex items-center justify-between text-xs border-b border-border pb-2 last:border-0 py-2 hover:bg-muted/30 px-2 rounded gap-2">
-                    <div className="flex flex-col min-w-0">
-                      <span className="font-medium text-foreground truncate">{call.contactName || call.name || "Unknown"}</span>
-                      <span className="text-muted-foreground font-mono">{call.customerNumber || call.toNumber || call.phone || "—"}</span>
+            <div className="flex-1 flex overflow-hidden">
+              {/* Left Panel: Campaigns List */}
+              <div className="w-80 border-r border-border/50 flex flex-col bg-muted/10 shrink-0">
+                <div className="p-4 text-xs font-semibold text-muted-foreground tracking-wider uppercase border-b border-border/50">Historical Campaigns</div>
+                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                  {MOCK_HISTORICAL_CAMPAIGNS.map(hist => {
+                    const isSelected = selectedHistId === hist.id;
+                    const totalFailed = (hist.q1.failedLeads?.length || 0) + (hist.q2.failedLeads?.length || 0) + (hist.q3.failedLeads?.length || 0);
+                    return (
+                      <div 
+                        key={hist.id}
+                        onClick={() => setSelectedHistId(hist.id)}
+                        className={cn(
+                          "p-3 rounded-xl cursor-pointer transition-all border text-sm flex flex-col gap-1.5",
+                          isSelected 
+                            ? "bg-primary/10 border-primary/40 shadow-[0_0_15px_rgba(var(--primary),0.15)]" 
+                            : "bg-background border-border hover:border-primary/30 hover:bg-muted/50"
+                        )}
+                      >
+                        <div className="font-semibold truncate text-foreground" title={hist.csvName}>{hist.csvName}</div>
+                        <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1.5"><PhoneOutgoing className="size-3" /> {hist.didNumber}</span>
+                          <Badge variant="outline" className="h-5 px-1.5 text-[10px] bg-background">CH: {hist.channels}</Badge>
+                        </div>
+                        <div className="text-xs font-medium text-red-400 flex items-center gap-1 mt-0.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                          {totalFailed} Failed Leads Total
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Right Panel: Q1, Q2, Q3 Tracking */}
+              <div className="flex-1 bg-background/50 flex flex-col min-w-0">
+                <div className="p-4 text-xs font-semibold text-muted-foreground tracking-wider uppercase border-b border-border/50 shrink-0">
+                  Reactivation Lifecycle (3 Waves)
+                </div>
+                
+                {(() => {
+                  const activeHist = MOCK_HISTORICAL_CAMPAIGNS.find(c => c.id === selectedHistId);
+                  if (!activeHist) return <div className="flex-1 flex items-center justify-center text-muted-foreground">Select a campaign to view details</div>;
+
+                  return (
+                    <div className="flex-1 overflow-x-auto p-6">
+                      <div className="flex gap-6 h-full min-w-[700px]">
+                        {[
+                          { stage: "Q1", label: "Wave 1 (24 Hrs)", data: activeHist.q1 },
+                          { stage: "Q2", label: "Wave 2 (48 Hrs)", data: activeHist.q2 },
+                          { stage: "Q3", label: "Wave 3 (72 Hrs)", data: activeHist.q3 }
+                        ].map((wave, idx) => (
+                          <div key={wave.stage} className="flex-1 flex flex-col border border-border/60 rounded-2xl bg-card overflow-hidden shadow-sm relative">
+                            {/* Wave Header */}
+                            <div className="p-4 border-b border-border/50 bg-muted/20 flex flex-col gap-3 shrink-0">
+                              <div className="flex items-center justify-between">
+                                <div className="flex flex-col">
+                                  <span className="font-bold text-foreground">{wave.stage} Phase</span>
+                                  <span className="text-xs text-muted-foreground">{wave.label}</span>
+                                </div>
+                                <Badge 
+                                  variant={wave.data.status === "Running" ? "default" : wave.data.status === "Completed" ? "secondary" : "outline"}
+                                  className={cn(
+                                    "px-2.5 py-1 text-xs",
+                                    wave.data.status === "Running" && "animate-pulse bg-primary text-primary-foreground",
+                                    wave.data.status === "Completed" && "bg-emerald-500/15 text-emerald-500 border-emerald-500/20",
+                                    wave.data.status === "Pending" && "text-muted-foreground border-border"
+                                  )}
+                                >
+                                  {wave.data.status}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center justify-between text-xs font-medium">
+                                <span className="text-muted-foreground">Failed Leads:</span>
+                                <span className="text-foreground bg-muted px-2 py-0.5 rounded-full">{wave.data.failedLeads.length}</span>
+                              </div>
+                            </div>
+                            
+                            {/* Wave Leads List */}
+                            <div className="flex-1 overflow-y-auto p-2">
+                              {wave.data.failedLeads.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-muted-foreground opacity-50 p-6 text-center">
+                                  <ListChecks className="size-8 mb-2 opacity-20" />
+                                  <span className="text-sm">No failed leads mapped to this stage yet.</span>
+                                </div>
+                              ) : (
+                                <div className="space-y-1">
+                                  {wave.data.failedLeads.map((lead: any, i: number) => (
+                                    <div key={i} className="flex flex-col gap-1 text-xs border border-border/30 pb-2 pt-2 px-3 hover:bg-muted/30 rounded-lg bg-background/50">
+                                      <span className="truncate font-semibold text-foreground">{lead.name || "Unknown"}</span>
+                                      <span className="font-mono text-muted-foreground flex items-center gap-1">
+                                        <PhoneOutgoing className="size-3 opacity-50"/> {lead.phone}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex flex-col items-end gap-0.5 shrink-0">
-                      <span className={cn(
-                        "font-medium capitalize",
-                        call.status === "completed" ? "text-emerald-500" :
-                        call.status === "failed" || call.status === "busy" || call.status === "no-answer" ? "text-red-400" :
-                        "text-muted-foreground"
-                      )}>{call.status || "—"}</span>
-                      <span className="text-muted-foreground">
-                        {(call.callDateTime || call.createdAt) ? new Date(call.callDateTime || call.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ""}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
+                  );
+                })()}
+              </div>
             </div>
-          ) : (
-            // Show leads list for active qStage
-            <>
-              <div className="max-h-80 overflow-y-auto space-y-1 pr-1">
-                {(campaign.leads || []).length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-6">No leads available.</p>
+          </DialogContent>
+        ) : (
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <ListChecks className="size-5 text-primary" />
+                {campaign.qStage
+                  ? `Lead Reactivation ${campaign.qStage} — Leads (${campaign.leads?.length || 0})`
+                  : `${campaign.name} — Call History (${callHistory.length})`}
+              </DialogTitle>
+            </DialogHeader>
+
+            {!campaign.qStage ? (
+              // Show call history
+              <div className="max-h-96 overflow-y-auto space-y-1 pr-1">
+                {callHistory.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">No history.</p>
                 ) : (
-                  (campaign.leads || []).map((lead: any, i: number) => (
-                    <div key={i} className="flex justify-between items-center text-xs border-b border-border pb-1.5 last:border-0 py-1.5 hover:bg-muted/30 px-1 rounded">
-                      <span className={cn("truncate max-w-[150px] font-medium", lead.isFailed && "text-red-400")}>{lead.name || "—"}</span>
-                      <span className={cn("font-mono text-muted-foreground", lead.isFailed && "text-red-400")}>{lead.phone}</span>
+                  callHistory.map((call: any, i: number) => (
+                    <div key={call.id || i} className="flex items-center justify-between text-xs border-b border-border pb-2 last:border-0 py-2 hover:bg-muted/30 px-2 rounded gap-2">
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-medium text-foreground truncate">{call.contactName || call.name || "Unknown"}</span>
+                        <span className="text-muted-foreground font-mono">{call.customerNumber || call.toNumber || call.phone || "—"}</span>
+                      </div>
+                      <div className="flex flex-col items-end gap-0.5 shrink-0">
+                        <span className={cn(
+                          "font-medium capitalize",
+                          call.status === "completed" ? "text-emerald-500" :
+                          call.status === "failed" || call.status === "busy" || call.status === "no-answer" ? "text-red-400" :
+                          "text-muted-foreground"
+                        )}>{call.status || "—"}</span>
+                        <span className="text-muted-foreground">
+                          {(call.callDateTime || call.createdAt) ? new Date(call.callDateTime || call.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ""}
+                        </span>
+                      </div>
                     </div>
                   ))
                 )}
               </div>
-              <p className="text-xs text-muted-foreground text-center">
-                {campaign.scheduledAt
-                  ? `Scheduled for ${new Date(campaign.scheduledAt).toLocaleString(undefined, { weekday: 'long', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
-                  : `Status: ${campaign.status}`}
-              </p>
-            </>
-          )}
-        </DialogContent>
+            ) : (
+              // Show leads list for active qStage
+              <>
+                <div className="max-h-80 overflow-y-auto space-y-1 pr-1">
+                  {(campaign.leads || []).length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-6">No leads available.</p>
+                  ) : (
+                    (campaign.leads || []).map((lead: any, i: number) => (
+                      <div key={i} className="flex justify-between items-center text-xs border-b border-border pb-1.5 last:border-0 py-1.5 hover:bg-muted/30 px-1 rounded">
+                        <span className={cn("truncate max-w-[150px] font-medium", lead.isFailed && "text-red-400")}>{lead.name || "—"}</span>
+                        <span className={cn("font-mono text-muted-foreground", lead.isFailed && "text-red-400")}>{lead.phone}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  {campaign.scheduledAt
+                    ? `Scheduled for ${new Date(campaign.scheduledAt).toLocaleString(undefined, { weekday: 'long', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
+                    : `Status: ${campaign.status}`}
+                </p>
+              </>
+            )}
+          </DialogContent>
+        )}
       </Dialog>
 
     </motion.div>
