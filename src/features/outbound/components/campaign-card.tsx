@@ -300,7 +300,7 @@ export function CampaignCard({
                </div>
             )}
             
-            {(campaign.status !== "idle" && campaign.leads && campaign.leads.length > 0) && (
+            {((campaign.status !== "idle" || isReactivationCard) && campaign.leads && campaign.leads.length > 0) && (
               <div className="flex items-center gap-2 ml-2">
                 <Popover>
                   <PopoverTrigger asChild>
@@ -690,7 +690,7 @@ export function CampaignCard({
             </div>
           )}
 
-          {isReactivationCard && (campaign.status === "idle" || campaign.status === "completed" || campaign.status === "scheduled") && (
+          {isReactivationCard && !campaign.qStage && (campaign.status === "idle" || campaign.status === "completed" || campaign.status === "scheduled") && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
