@@ -363,7 +363,7 @@ export function OutboundPageContent() {
       </motion.div>
 
       <div className="space-y-4">
-        {isInitializing || isLoading ? (
+        {(isInitializing || isLoading) && outboundCampaign.status === "idle" ? (
           <div className="space-y-4">
             <div className="h-32 w-full animate-pulse rounded-xl bg-muted" />
             <div className="h-32 w-full animate-pulse rounded-xl bg-muted" />

@@ -19,6 +19,7 @@ import {
   ChevronDown,
   ChevronUp,
   StopCircle,
+  ListChecks,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -26,6 +27,7 @@ import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { isValidPhoneNumber } from "react-phone-number-input";
@@ -167,6 +169,7 @@ export function CampaignCard({
   const [isLocked, setIsLocked] = useState(false);
   const [activeTab, setActiveTab] = useState<"pending" | "successful" | "failed">("pending");
   const [expandedScheduleIdx, setExpandedScheduleIdx] = useState<number | null>(null);
+  const [leadsModalOpen, setLeadsModalOpen] = useState(false);
 
   const pendingLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => !l.called);
   const successLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => l.called && !l.isFailed);
@@ -407,11 +410,13 @@ export function CampaignCard({
 
           {(campaign.status === "idle" || campaign.status === "completed" || isReactivationCard) && (
             <p className="text-sm text-muted-foreground">
-              {isReactivationCard
-                ? "Failed calls from past campaigns can be scheduled for reactivation here."
-                : !hasOutboundNumber 
-                  ? "Please request an outbound number from the admin to launch campaigns." 
-                  : "Upload a CSV contact list to prepare your next outbound campaign."}
+              {isReactivationCard && campaign.qStage
+                ? `Auto-reactivation ${campaign.qStage} • ${campaign.leads?.length || 0} lead${(campaign.leads?.length || 0) !== 1 ? 's' : ''} scheduled for retry`
+                : isReactivationCard
+                  ? "Failed calls from past campaigns can be scheduled for reactivation here."
+                  : !hasOutboundNumber 
+                    ? "Please request an outbound number from the admin to launch campaigns." 
+                    : "Upload a CSV contact list to prepare your next outbound campaign."}
             </p>
           )}
 
@@ -690,6 +695,17 @@ export function CampaignCard({
             </div>
           )}
 
+          {isReactivationCard && campaign.qStage && (
+            <Button
+              variant="outline"
+              className="border-primary/50 text-primary hover:bg-primary/10 gap-2 h-9 text-sm"
+              onClick={() => setLeadsModalOpen(true)}
+            >
+              <ListChecks className="size-4" />
+              Lead Info ({campaign.leads?.length || 0})
+            </Button>
+          )}
+
           {isReactivationCard && !campaign.qStage && (campaign.status === "idle" || campaign.status === "completed" || campaign.status === "scheduled") && (
             <TooltipProvider>
               <Tooltip>
@@ -723,6 +739,34 @@ export function CampaignCard({
         </div>
       </div>
 
+      {/* Lead Info Modal for auto-Q-stage reactivation cards */}
+      <Dialog open={leadsModalOpen} onOpenChange={setLeadsModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ListChecks className="size-5 text-primary" />
+              Lead Reactivation {campaign.qStage} — Leads ({campaign.leads?.length || 0})
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-80 overflow-y-auto space-y-1 pr-1">
+            {(campaign.leads || []).length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">No leads available.</p>
+            ) : (
+              (campaign.leads || []).map((lead: any, i: number) => (
+                <div key={i} className="flex justify-between items-center text-xs border-b border-border pb-1.5 last:border-0 py-1.5 hover:bg-muted/30 px-1 rounded">
+                  <span className={cn("truncate max-w-[150px] font-medium", lead.isFailed && "text-red-400")}>{lead.name || "—"}</span>
+                  <span className={cn("font-mono text-muted-foreground", lead.isFailed && "text-red-400")}>{lead.phone}</span>
+                </div>
+              ))
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground text-center">
+            {campaign.scheduledAt
+              ? `Scheduled for ${new Date(campaign.scheduledAt).toLocaleString(undefined, { weekday: 'long', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
+              : `Status: ${campaign.status}`}
+          </p>
+        </DialogContent>
+      </Dialog>
 
     </motion.div>
   );
