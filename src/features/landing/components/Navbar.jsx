@@ -5,6 +5,7 @@ import Logo from './Logo'
 const primaryLinks = [
   { label: 'Home', to: '/' },
   { label: 'Features', to: '/features' },
+  { label: 'Product', to: '/product' },
   { label: 'Pricing', to: '/pricing' },
   { label: 'Partners', to: '/partners' },
   { label: 'Docs', to: '/docs' },
