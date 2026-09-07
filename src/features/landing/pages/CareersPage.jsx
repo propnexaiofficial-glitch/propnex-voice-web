@@ -100,6 +100,9 @@ export default function CareersPage() {
                         <div className="flex items-center gap-3">
                           <h3 className="font-semibold text-white">{job.title}</h3>
                           <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-xs font-medium text-white/80 border border-white/20">
+                              ID: {job.jobId}
+                            </span>
                             {job.jobType && (
                               <span className="inline-flex items-center rounded-full bg-cyan-400/10 px-2 py-0.5 text-xs font-medium text-cyan-400 border border-cyan-400/20">
                                 {job.jobType}
