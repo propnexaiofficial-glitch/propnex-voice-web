@@ -27,6 +27,7 @@ jobs:
             echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env.local
 
             npm install
+            npx prisma generate
             npx tsc --noEmit
             npm run build
             pm2 restart propnexai-frontend --update-env

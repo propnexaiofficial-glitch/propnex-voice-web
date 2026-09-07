@@ -11,12 +11,19 @@ export async function POST(req: Request) {
       firstName,
       lastName,
       email,
+      countryCode,
       phone,
       experience,
       expectedPayout,
+      currentPayout,
+      sponsor,
+      legalStatus,
+      citizenship,
+      gender,
+      agreedToTerms,
     } = data;
 
-    if (!jobId || !firstName || !email) {
+    if (!jobId || !firstName || !email || !agreedToTerms) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
         { status: 400 }
@@ -38,9 +45,16 @@ export async function POST(req: Request) {
       firstName,
       lastName,
       email,
+      countryCode,
       phone,
       experience,
       expectedPayout,
+      currentPayout,
+      sponsor,
+      legalStatus,
+      citizenship,
+      gender,
+      agreedToTerms,
       fileBase64: data.fileData,
       fileName: data.fileName,
       mimeType: data.mimeType
@@ -68,9 +82,16 @@ export async function POST(req: Request) {
         firstName,
         lastName,
         email,
+        countryCode: countryCode || "",
         phone: phone || "",
         experience: experience || "",
         expectedPayout: expectedPayout || "",
+        currentPayout: currentPayout || "",
+        sponsor: sponsor || "",
+        legalStatus: legalStatus || "",
+        citizenship: citizenship || "",
+        gender: gender || "",
+        agreedToTerms: agreedToTerms || false,
         resumeUrl,
       },
     });

@@ -9,7 +9,7 @@ export default function PrivacyPage() {
         title="Privacy Policy"
         subtitle="How we collect, use, and protect your data."
         eyebrow=""
-        image=""
+        image="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=2000&q=80"
       >
         {null}
       </PageHero>

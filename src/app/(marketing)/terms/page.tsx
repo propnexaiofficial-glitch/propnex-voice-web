@@ -9,7 +9,7 @@ export default function TermsPage() {
         title="Terms of Service"
         subtitle="The rules that govern our relationship with you."
         eyebrow=""
-        image=""
+        image="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=2000&q=80"
       >
         {null}
       </PageHero>
