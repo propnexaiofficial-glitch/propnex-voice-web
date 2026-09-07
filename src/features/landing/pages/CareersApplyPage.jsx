@@ -311,25 +311,35 @@ export default function CareersApplyPage({ jobId }) {
             </div>
 
             <div className="space-y-2 pt-4 border-t border-white/10">
-              <label className="text-sm font-medium text-white/80 flex items-center justify-between">
+              <label className="text-sm font-medium text-white/80 flex items-center justify-between mb-2">
                 <span>Security Check</span>
-                <span className="text-cyan-400 font-mono bg-black/40 px-3 py-1 rounded">
-                  {captchaNum1} + {captchaNum2} = ?
-                </span>
               </label>
-              <input
-                type="text"
-                value={userCaptcha}
-                onChange={(e) => {
-                  setUserCaptcha(e.target.value)
-                  if (errors.captcha) {
-                    setErrors(prev => ({ ...prev, captcha: '' }))
-                  }
-                }}
-                placeholder="Enter the answer"
-                className={`w-full rounded-md border bg-black/40 px-4 py-2.5 text-white transition focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 ${errors.captcha ? 'border-red-500' : 'border-white/10'}`}
-              />
-              {errors.captcha && <p className="text-xs text-red-400 animate-in fade-in slide-in-from-top-1">{errors.captcha}</p>}
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                <div className="relative overflow-hidden rounded bg-black/60 border border-white/10 flex-shrink-0 h-[50px] w-[140px] flex items-center justify-center">
+                  <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '4px 4px' }}></div>
+                  <span className="relative z-10 text-cyan-400 font-mono text-xl tracking-widest font-bold select-none drop-shadow-md" style={{ transform: 'rotate(-2deg)' }}>
+                    {captchaNum1} + {captchaNum2}
+                  </span>
+                  {/* Decorative noise lines */}
+                  <div className="absolute top-1/4 left-0 w-full h-[1px] bg-cyan-400/30 transform rotate-12"></div>
+                  <div className="absolute top-3/4 left-0 w-full h-[1px] bg-cyan-400/30 transform -rotate-6"></div>
+                </div>
+                <div className="flex-1 w-full">
+                  <input
+                    type="text"
+                    value={userCaptcha}
+                    onChange={(e) => {
+                      setUserCaptcha(e.target.value)
+                      if (errors.captcha) {
+                        setErrors(prev => ({ ...prev, captcha: '' }))
+                      }
+                    }}
+                    placeholder="Enter the answer"
+                    className={`w-full rounded-md border bg-black/40 px-4 py-2.5 text-white transition focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 ${errors.captcha ? 'border-red-500' : 'border-white/10'}`}
+                  />
+                  {errors.captcha && <p className="text-xs text-red-400 mt-1 animate-in fade-in slide-in-from-top-1">{errors.captcha}</p>}
+                </div>
+              </div>
             </div>
 
             <div className="pt-2">

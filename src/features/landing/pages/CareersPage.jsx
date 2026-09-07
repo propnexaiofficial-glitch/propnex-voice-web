@@ -132,11 +132,19 @@ export default function CareersPage() {
                         </div>
                         <div>
                           <h4 className="text-sm font-semibold text-white/80">Responsibilities</h4>
-                          <p className="mt-2 text-sm text-white/60 whitespace-pre-wrap">{job.responsibilities}</p>
+                          <ul className="mt-2 text-sm text-white/60 list-disc pl-5 space-y-1">
+                            {job.responsibilities?.split('\n').filter(line => line.trim()).map((line, i) => (
+                              <li key={i}>{line.replace(/^-\s*/, '')}</li>
+                            ))}
+                          </ul>
                         </div>
                         <div>
                           <h4 className="text-sm font-semibold text-white/80">Knowledge & Skills</h4>
-                          <p className="mt-2 text-sm text-white/60 whitespace-pre-wrap">{job.knowledge}</p>
+                          <ul className="mt-2 text-sm text-white/60 list-disc pl-5 space-y-1">
+                            {job.knowledge?.split('\n').filter(line => line.trim()).map((line, i) => (
+                              <li key={i}>{line.replace(/^-\s*/, '')}</li>
+                            ))}
+                          </ul>
                         </div>
                         <div className="pt-2 flex justify-end">
                           <Link
