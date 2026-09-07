@@ -15,7 +15,7 @@ export default function TermsPage() {
       </PageHero>
       <div className="mx-auto max-w-4xl px-5 py-12 md:px-8">
         <div className="prose prose-invert max-w-none text-slate-300">
-          <p className="mb-8"><strong>Last updated:</strong> {new Date().toLocaleDateString()}</p>
+          <p className="mb-8"><strong>Last updated:</strong> {new Intl.DateTimeFormat('en-US', { month: 'long', day: '2-digit', year: 'numeric' }).format(new Date())}</p>
 
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">1. Agreement to Terms</h2>
           <p className="mb-4">
@@ -53,7 +53,7 @@ export default function TermsPage() {
           
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">7. Contact Us</h2>
           <p className="mb-4">
-            If you have any questions about these Terms, please contact us at support@propnex-technology.com.
+            If you have any questions about these Terms, please contact us at support@propnexai.com.
           </p>
         </div>
       </div>

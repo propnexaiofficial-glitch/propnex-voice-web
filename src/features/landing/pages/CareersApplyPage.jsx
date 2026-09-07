@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import PageShell, { PageHero, SectionCard } from '../components/PageShell'
 import { UploadCloud, CheckCircle, Loader2 } from 'lucide-react'
@@ -13,6 +13,35 @@ const toBase64 = (file) =>
     reader.onload = () => resolve(reader.result.split(',')[1]);
     reader.onerror = (error) => reject(error);
   });
+
+// Auto-resizing Textarea component
+const AutoResizeTextarea = ({ className, ...props }) => {
+  const textareaRef = useRef(null);
+
+  const resize = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    }
+  };
+
+  useEffect(() => {
+    resize();
+  }, [props.value]);
+
+  return (
+    <textarea
+      ref={textareaRef}
+      rows={1}
+      onChange={(e) => {
+        resize();
+        if (props.onChange) props.onChange(e);
+      }}
+      className={`resize-none overflow-hidden ${className}`}
+      {...props}
+    />
+  );
+};
 
 export default function CareersApplyPage({ jobId }) {
   const router = useRouter()
@@ -52,6 +81,9 @@ export default function CareersApplyPage({ jobId }) {
       case 'experience':
         if (!value.trim()) error = 'Experience is required'
         break
+      case 'expectedPayout':
+        if (!value.trim()) error = 'Expected payout is required'
+        break
       case 'resume':
         if (!value) error = 'Please upload your resume (PDF)'
         else if (value.type !== 'application/pdf') error = 'Only PDF files are allowed'
@@ -89,13 +121,14 @@ export default function CareersApplyPage({ jobId }) {
       if (error) newErrors[key] = error
     })
     
+    if (!userCaptcha) {
+      newErrors.captcha = 'Security check is required'
+    } else if (parseInt(userCaptcha) !== captchaNum1 + captchaNum2) {
+      newErrors.captcha = 'Incorrect answer'
+    }
+    
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
-      return
-    }
-
-    if (parseInt(userCaptcha) !== captchaNum1 + captchaNum2) {
-      setErrors({ ...newErrors, captcha: 'Incorrect CAPTCHA answer' })
       return
     }
 
@@ -174,7 +207,7 @@ export default function CareersApplyPage({ jobId }) {
       <PageHero
         eyebrow="Careers"
         title="Apply Now"
-        subtitle="Fill out the form below to submit your application."
+        subtitle={`Fill out the form below to submit your application.`}
       />
 
       <section className="relative mx-auto max-w-2xl px-5 pb-16 md:px-8 md:pb-20">
@@ -183,8 +216,7 @@ export default function CareersApplyPage({ jobId }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-white/80">First Name</label>
-                <input
-                  type="text"
+                <AutoResizeTextarea
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleChange}
@@ -194,8 +226,7 @@ export default function CareersApplyPage({ jobId }) {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-white/80">Last Name</label>
-                <input
-                  type="text"
+                <AutoResizeTextarea
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleChange}
@@ -208,8 +239,7 @@ export default function CareersApplyPage({ jobId }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-white/80">Email</label>
-                <input
-                  type="email"
+                <AutoResizeTextarea
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
@@ -219,8 +249,7 @@ export default function CareersApplyPage({ jobId }) {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-white/80">Phone</label>
-                <input
-                  type="tel"
+                <AutoResizeTextarea
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
@@ -232,8 +261,7 @@ export default function CareersApplyPage({ jobId }) {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-white/80">Total Experience</label>
-              <input
-                type="text"
+              <AutoResizeTextarea
                 name="experience"
                 placeholder="e.g. 5 Years in React & Node.js"
                 value={formData.experience}
@@ -244,15 +272,15 @@ export default function CareersApplyPage({ jobId }) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-white/80">Expected Payout <span className="text-white/40 font-normal">(Optional)</span></label>
-              <input
-                type="text"
+              <label className="text-sm font-medium text-white/80">Expected Payout</label>
+              <AutoResizeTextarea
                 name="expectedPayout"
                 placeholder="e.g. ₹20,00,000 / year"
                 value={formData.expectedPayout}
                 onChange={handleChange}
-                className="w-full rounded-md border border-white/10 bg-black/40 px-4 py-2.5 text-white transition focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                className={`w-full rounded-md border bg-black/40 px-4 py-2.5 text-white transition focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 ${errors.expectedPayout ? 'border-red-500' : 'border-white/10'}`}
               />
+              {errors.expectedPayout && <p className="text-xs text-red-400 animate-in fade-in slide-in-from-top-1">{errors.expectedPayout}</p>}
             </div>
 
             <div className="space-y-2 pt-2">

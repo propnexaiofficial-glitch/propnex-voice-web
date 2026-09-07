@@ -97,23 +97,23 @@ export default function CareersPage() {
                       onClick={() => setExpandedJobId(isExpanded ? null : job.id)}
                     >
                       <div>
-                        <div className="flex items-center gap-3">
-                          <h3 className="font-semibold text-white">{job.title}</h3>
-                          <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3 mb-1">
+                          <h3 className="text-lg font-bold text-white">{job.title}</h3>
+                          <span className="inline-flex items-center rounded-md bg-cyan-500/10 px-2.5 py-0.5 text-xs font-semibold text-cyan-400 border border-cyan-500/20">
+                            #{job.jobId}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {job.jobType && (
                             <span className="inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-xs font-medium text-white/80 border border-white/20">
-                              ID: {job.jobId}
+                              {job.jobType}
                             </span>
-                            {job.jobType && (
-                              <span className="inline-flex items-center rounded-full bg-cyan-400/10 px-2 py-0.5 text-xs font-medium text-cyan-400 border border-cyan-400/20">
-                                {job.jobType}
-                              </span>
-                            )}
-                            {job.location && (
-                              <span className="inline-flex items-center rounded-full bg-white/5 px-2 py-0.5 text-xs font-medium text-white/70 border border-white/10">
-                                {job.location}
-                              </span>
-                            )}
-                          </div>
+                          )}
+                          {job.location && (
+                            <span className="inline-flex items-center rounded-full bg-white/5 px-2 py-0.5 text-xs font-medium text-white/70 border border-white/10">
+                              {job.location}
+                            </span>
+                          )}
                         </div>
                         <p className="mt-1 text-sm text-white/45">
                           {job.experience} · {job.education}
