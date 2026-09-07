@@ -7,8 +7,12 @@ export default function TermsPage() {
     <PageShell>
       <PageHero
         title="Terms of Service"
-        subtitle="The rules and guidelines for using PropNex AI services."
-      />
+        subtitle="The rules that govern our relationship with you."
+        eyebrow=""
+        image=""
+      >
+        {null}
+      </PageHero>
       <div className="mx-auto max-w-4xl px-5 py-12 md:px-8">
         <div className="prose prose-invert max-w-none text-slate-300">
           <p className="mb-8"><strong>Last updated:</strong> {new Date().toLocaleDateString()}</p>

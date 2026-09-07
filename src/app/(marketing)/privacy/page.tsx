@@ -8,7 +8,11 @@ export default function PrivacyPage() {
       <PageHero
         title="Privacy Policy"
         subtitle="How we collect, use, and protect your data."
-      />
+        eyebrow=""
+        image=""
+      >
+        {null}
+      </PageHero>
       <div className="mx-auto max-w-4xl px-5 py-12 md:px-8">
         <div className="prose prose-invert max-w-none text-slate-300">
           <p className="mb-8"><strong>Last updated:</strong> {new Date().toLocaleDateString()}</p>

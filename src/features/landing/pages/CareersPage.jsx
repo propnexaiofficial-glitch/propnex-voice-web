@@ -1,5 +1,9 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import { Link } from '@/features/landing/lib/router'
 import PageShell, { PageHero, SectionCard } from '../components/PageShell'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 
 const why = [
   {
@@ -16,36 +20,28 @@ const why = [
   },
 ]
 
-/** Empty = show fallback. Add roles when open. */
-const roles = [
-  {
-    title: 'GTM — Sales',
-    department: 'Go-to-Market',
-    location: 'Gurgaon · Hybrid',
-  },
-  {
-    title: 'GTM — Marketing',
-    department: 'Go-to-Market',
-    location: 'Gurgaon · Hybrid',
-  },
-  {
-    title: 'Senior Frontend Engineer',
-    department: 'Engineering',
-    location: 'Remote · India',
-  },
-  {
-    title: 'Voice AI Research Engineer',
-    department: 'AI',
-    location: 'Bengaluru / Hybrid',
-  },
-  {
-    title: 'Customer Success Manager',
-    department: 'Success',
-    location: 'Remote · India',
-  },
-]
-
 export default function CareersPage() {
+  const [jobs, setJobs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [expandedJobId, setExpandedJobId] = useState(null)
+
+  useEffect(() => {
+    async function fetchJobs() {
+      try {
+        const res = await fetch('/api/jobs')
+        const json = await res.json()
+        if (json.success) {
+          setJobs(json.data)
+        }
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchJobs()
+  }, [])
+
   return (
     <PageShell>
       <PageHero
@@ -68,7 +64,12 @@ export default function CareersPage() {
 
         <div className="mt-14">
           <h2 className="text-2xl font-bold text-white">Open roles</h2>
-          {roles.length === 0 ? (
+          
+          {loading ? (
+            <SectionCard className="mt-6 p-8 text-center">
+              <p className="text-white/70">Loading open roles...</p>
+            </SectionCard>
+          ) : jobs.length === 0 ? (
             <SectionCard className="mt-6 p-8 text-center">
               <p className="text-white/70">
                 No open roles right now — check back soon, or send your profile
@@ -84,25 +85,55 @@ export default function CareersPage() {
             </SectionCard>
           ) : (
             <div className="mt-6 space-y-3">
-              {roles.map((r) => (
-                <SectionCard
-                  key={r.title}
-                  className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div>
-                    <h3 className="font-semibold text-white">{r.title}</h3>
-                    <p className="mt-1 text-sm text-white/45">
-                      {r.department} · {r.location}
-                    </p>
-                  </div>
-                  <a
-                    href={`mailto:careers@propnex.ai?subject=Application: ${encodeURIComponent(r.title)}`}
-                    className="inline-flex rounded-full bg-cyan-400 px-5 py-2.5 text-center text-sm font-semibold text-black transition hover:bg-cyan-300"
+              {jobs.map((job) => {
+                const isExpanded = expandedJobId === job.id
+                return (
+                  <SectionCard
+                    key={job.id}
+                    className="flex flex-col p-5 transition-colors overflow-hidden"
                   >
-                    Apply
-                  </a>
-                </SectionCard>
-              ))}
+                    <div 
+                      className="flex cursor-pointer items-center justify-between"
+                      onClick={() => setExpandedJobId(isExpanded ? null : job.id)}
+                    >
+                      <div>
+                        <h3 className="font-semibold text-white">{job.title}</h3>
+                        <p className="mt-1 text-sm text-white/45">
+                          {job.experience} · {job.education}
+                        </p>
+                      </div>
+                      <button className="text-white/40 hover:text-white transition">
+                        {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                      </button>
+                    </div>
+                    
+                    {isExpanded && (
+                      <div className="mt-5 border-t border-white/10 pt-5 space-y-6">
+                        <div>
+                          <h4 className="text-sm font-semibold text-white/80">About the Role</h4>
+                          <p className="mt-2 text-sm text-white/60 whitespace-pre-wrap">{job.description}</p>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold text-white/80">Responsibilities</h4>
+                          <p className="mt-2 text-sm text-white/60 whitespace-pre-wrap">{job.responsibilities}</p>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold text-white/80">Knowledge & Skills</h4>
+                          <p className="mt-2 text-sm text-white/60 whitespace-pre-wrap">{job.knowledge}</p>
+                        </div>
+                        <div className="pt-2 flex justify-end">
+                          <Link
+                            to={`/careers/apply/${job.id}`}
+                            className="inline-flex rounded-full bg-cyan-400 px-6 py-2.5 text-center text-sm font-semibold text-black transition hover:bg-cyan-300"
+                          >
+                            Apply Now
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+                  </SectionCard>
+                )
+              })}
             </div>
           )}
         </div>
