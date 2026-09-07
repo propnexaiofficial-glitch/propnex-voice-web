@@ -1,15 +1,20 @@
 "use client";
 
+import { useEffect } from 'react';
 import PageShell, { PageHero } from "@/features/landing/components/PageShell";
 
 export default function TermsPage() {
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
+
   return (
     <PageShell>
       <PageHero
         title="Terms of Service"
         subtitle="The rules that govern our relationship with you."
         eyebrow=""
-        image="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=2000&q=80"
+        image="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=2000&q=80"
       >
         {null}
       </PageHero>

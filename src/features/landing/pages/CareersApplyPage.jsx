@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import PageShell, { PageHero, SectionCard } from '../components/PageShell'
 import { UploadCloud, CheckCircle, Loader2, X } from 'lucide-react'
 import { countryCodes, allCountries } from '../data/countries'
+import { parsePhoneNumberFromString } from 'libphonenumber-js'
 
 // Convert file to Base64
 const toBase64 = (file) =>
@@ -74,7 +75,12 @@ export default function CareersApplyPage({ jobId }) {
   // Modal State
   const [modalType, setModalType] = useState(null) // 'terms' or 'privacy'
 
-  const validateField = (name, value) => {
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
+
+  const validateField = (name, value, currentFormData = formData) => {
     let error = ''
     switch (name) {
       case 'firstName':
@@ -86,8 +92,15 @@ export default function CareersApplyPage({ jobId }) {
         else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) error = 'Invalid email address'
         break
       case 'phone':
-        if (!value.trim()) error = 'Phone number is required'
-        else if (value.replace(/\D/g, '').length < 5) error = 'Invalid phone number'
+        if (!value.trim()) {
+          error = 'Phone number is required'
+        } else {
+          const fullNumber = currentFormData.countryCode + value;
+          const phoneNumber = parsePhoneNumberFromString(fullNumber)
+          if (!phoneNumber || !phoneNumber.isValid()) {
+            error = 'Invalid phone number for the selected country'
+          }
+        }
         break
       case 'experience':
         if (!value.trim()) error = 'Experience is required'
@@ -118,15 +131,26 @@ export default function CareersApplyPage({ jobId }) {
     const { name, value, type, checked, files } = e.target
     const val = type === 'checkbox' ? checked : files ? files[0] : value
     
-    setFormData(prev => ({ ...prev, [name]: val }))
-    
-    // Real-time validation
-    const error = validateField(name, val)
-    setErrors(prev => {
-      const newErrors = { ...prev }
-      if (error) newErrors[name] = error
-      else delete newErrors[name]
-      return newErrors
+    setFormData(prev => {
+      const updated = { ...prev, [name]: val }
+      // Real-time validation
+      const error = validateField(name, val, updated)
+      
+      setErrors(errs => {
+        const newErrors = { ...errs }
+        if (error) newErrors[name] = error
+        else delete newErrors[name]
+        
+        // If countryCode changes, revalidate phone
+        if (name === 'countryCode' && updated.phone) {
+          const phoneError = validateField('phone', updated.phone, updated)
+          if (phoneError) newErrors.phone = phoneError
+          else delete newErrors.phone
+        }
+        return newErrors
+      })
+      
+      return updated
     })
   }
 
@@ -136,7 +160,7 @@ export default function CareersApplyPage({ jobId }) {
     // Validate all fields before submission
     const newErrors = {}
     Object.keys(formData).forEach(key => {
-      const error = validateField(key, formData[key])
+      const error = validateField(key, formData[key], formData)
       if (error) newErrors[key] = error
     })
     
@@ -224,15 +248,15 @@ export default function CareersApplyPage({ jobId }) {
         eyebrow="Careers"
         title="Apply Now"
         subtitle={`Fill out the form below to submit your application.`}
-        image="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=2000&q=80"
+        image="https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=2000&q=80"
       />
 
-      <section className="relative mx-auto max-w-2xl px-5 pb-16 md:px-8 md:pb-20">
+      <section className="relative mx-auto max-w-4xl px-5 pb-16 md:px-8 md:pb-20">
         <SectionCard className="p-6 md:p-10">
           <form onSubmit={handleSubmit} className="space-y-6">
             
-            {/* NAME */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* ROW 1: NAME & EMAIL */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-white/80">First Name</label>
                 <AutoResizeTextarea
@@ -253,10 +277,6 @@ export default function CareersApplyPage({ jobId }) {
                 />
                 {errors.lastName && <p className="text-xs text-red-400 animate-in fade-in slide-in-from-top-1">{errors.lastName}</p>}
               </div>
-            </div>
-
-            {/* EMAIL & PHONE */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-white/80">Email</label>
                 <AutoResizeTextarea
@@ -267,6 +287,10 @@ export default function CareersApplyPage({ jobId }) {
                 />
                 {errors.email && <p className="text-xs text-red-400 animate-in fade-in slide-in-from-top-1">{errors.email}</p>}
               </div>
+            </div>
+
+            {/* ROW 2: PHONE, CITIZENSHIP & GENDER */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-white/80">Phone Number</label>
                 <div className="flex gap-2">
@@ -274,7 +298,7 @@ export default function CareersApplyPage({ jobId }) {
                     name="countryCode"
                     value={formData.countryCode}
                     onChange={handleChange}
-                    className={`w-1/3 rounded-md border bg-black/40 px-2 py-2.5 text-white transition focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 border-white/10`}
+                    className={`w-[85px] shrink-0 rounded-md border bg-black/40 px-1 py-2.5 text-sm text-white transition focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 border-white/10`}
                   >
                     {countryCodes.map((item, idx) => (
                       <option key={idx} value={item.code}>{item.code} {item.country}</option>
@@ -284,15 +308,11 @@ export default function CareersApplyPage({ jobId }) {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className={`w-2/3 rounded-md border bg-black/40 px-4 py-2.5 text-white transition focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 ${errors.phone ? 'border-red-500' : 'border-white/10'}`}
+                    className={`w-full rounded-md border bg-black/40 px-4 py-2.5 text-white transition focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 ${errors.phone ? 'border-red-500' : 'border-white/10'}`}
                   />
                 </div>
                 {errors.phone && <p className="text-xs text-red-400 animate-in fade-in slide-in-from-top-1">{errors.phone}</p>}
               </div>
-            </div>
-
-            {/* CITIZENSHIP & GENDER */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-white/80">Citizenship</label>
                 <input
@@ -329,20 +349,19 @@ export default function CareersApplyPage({ jobId }) {
               </div>
             </div>
 
-            {/* EXPERIENCE & PAYOUT */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-white/80">Total Experience</label>
-              <AutoResizeTextarea
-                name="experience"
-                placeholder="e.g. 5 Years in React & Node.js"
-                value={formData.experience}
-                onChange={handleChange}
-                className={`w-full rounded-md border bg-black/40 px-4 py-2.5 text-white transition focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 ${errors.experience ? 'border-red-500' : 'border-white/10'}`}
-              />
-              {errors.experience && <p className="text-xs text-red-400 animate-in fade-in slide-in-from-top-1">{errors.experience}</p>}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* ROW 3: EXPERIENCE, CURRENT PAYOUT, EXPECTED PAYOUT */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white/80">Total Experience</label>
+                <AutoResizeTextarea
+                  name="experience"
+                  placeholder="e.g. 5 Years in React & Node.js"
+                  value={formData.experience}
+                  onChange={handleChange}
+                  className={`w-full rounded-md border bg-black/40 px-4 py-2.5 text-white transition focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 ${errors.experience ? 'border-red-500' : 'border-white/10'}`}
+                />
+                {errors.experience && <p className="text-xs text-red-400 animate-in fade-in slide-in-from-top-1">{errors.experience}</p>}
+              </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-white/80">Current Payout</label>
                 <AutoResizeTextarea

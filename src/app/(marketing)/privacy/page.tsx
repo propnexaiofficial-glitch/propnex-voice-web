@@ -1,15 +1,20 @@
 "use client";
 
+import { useEffect } from 'react';
 import PageShell, { PageHero } from "@/features/landing/components/PageShell";
 
 export default function PrivacyPage() {
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
+
   return (
     <PageShell>
       <PageHero
         title="Privacy Policy"
         subtitle="How we collect, use, and protect your data."
         eyebrow=""
-        image="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=2000&q=80"
+        image="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=2000&q=80"
       >
         {null}
       </PageHero>
