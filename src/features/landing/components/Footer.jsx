@@ -33,9 +33,9 @@ const cols = [
   {
     title: 'Legal',
     links: [
-      { label: 'Privacy', to: '/features#privacy' },
-      { label: 'Terms', to: '/' },
-      { label: 'Security', to: '/features#privacy' },
+      { label: 'Privacy', to: '/privacy' },
+      { label: 'Terms', to: '/terms' },
+      { label: 'Security', to: '/privacy' },
     ],
   },
 ]
@@ -77,15 +77,8 @@ export default function Footer() {
             © {new Date().getFullYear()} PropNex AI. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
-            {['Twitter', 'LinkedIn', 'GitHub'].map((s) => (
-              <a
-                key={s}
-                href="#"
-                className="text-xs font-medium text-slate-500 transition hover:text-white"
-              >
-                {s}
-              </a>
-            ))}
+            <a href="#" className="text-xs font-medium text-slate-500 transition hover:text-white">Instagram</a>
+            <a href="https://www.linkedin.com/company/propnex-technology/" target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-slate-500 transition hover:text-white">LinkedIn</a>
           </div>
         </div>
       </div>
