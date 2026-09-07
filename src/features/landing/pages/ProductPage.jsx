@@ -1,3 +1,5 @@
+"use client";
+
 import { useRef, useEffect } from 'react'
 import { Link } from '@/features/landing/lib/router'
 import { useGSAP } from '@gsap/react'
