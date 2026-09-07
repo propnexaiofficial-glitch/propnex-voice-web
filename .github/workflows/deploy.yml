@@ -12,9 +12,9 @@ jobs:
       - name: Deploy to Hostinger via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.HOST_IP }}
+          host: ${{ secrets.HOSTINGER_HOST }}
           username: root
-          password: ${{ secrets.HOST_PASSWORD }}
+          password: ${{ secrets.HOSTINGER_PASSWORD }}
           script: |
             cd /root/propnex-voice-web
             git pull origin main
