@@ -15,7 +15,21 @@ const products = [
   {
     id: 'ai-voice',
     title: 'AI Voice & Conversational AI',
-    desc: 'Inbound & Outbound AI, Customer Support, Follow-ups, Appointment Booking, AI Receptionist, Multi-lingual AI, Voice Cloning, and Call Analytics.',
+    features: [
+      'Inbound voice AI',
+      'Outbound voice AI',
+      'AI customer support',
+      'AI follow Up agent',
+      'Appointment booking agent',
+      'AI receptionist',
+      'Multi-lingual Voice AI',
+      'Voice Cloning',
+      'Human to AI, AI to Human Call Transfer',
+      'AI Call analytics & Quality Monitoring',
+      'Lead Reactivation',
+      'White labelling',
+      'APIs'
+    ],
     tag: 'Voice',
     img: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1600&q=80',
     accent: 'from-cyan-500/40 to-blue-600/20',
@@ -23,7 +37,11 @@ const products = [
   {
     id: 'ai-chatbot',
     title: 'AI Chatbot',
-    desc: 'Intelligent, highly responsive conversational agents to manage instant customer interactions on web and mobile.',
+    features: [
+      'Intelligent conversational agents',
+      'Instant customer interactions',
+      'Web and mobile integration'
+    ],
     tag: 'Chat',
     img: 'https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&w=1600&q=80',
     accent: 'from-violet-500/40 to-fuchsia-600/20',
@@ -31,7 +49,15 @@ const products = [
   {
     id: 'ai-crm',
     title: 'AI Powered CRMs',
-    desc: 'Automated lead assignment, AI lead scoring, follow-up management, sales pipeline tracking, and an AI Sales Assistant.',
+    features: [
+      'Lead Management',
+      'Automated lead assignment',
+      'AI lead scoring',
+      'AI follow up management',
+      'Sales pipeline management',
+      'Customer analytics',
+      'AI sales assistant'
+    ],
     tag: 'Sales',
     img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1600&q=80',
     accent: 'from-blue-500/40 to-cyan-500/20',
@@ -39,7 +65,12 @@ const products = [
   {
     id: 'bpa',
     title: 'Business Process Automation',
-    desc: 'Workflow automation, document processing automation, intelligent approval workflows, and AI-powered business operations.',
+    features: [
+      'Workflow automation',
+      'Document processing automation',
+      'Approval workflows',
+      'AI powered business operations'
+    ],
     tag: 'Ops',
     img: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1600&q=80',
     accent: 'from-fuchsia-500/40 to-violet-600/20',
@@ -47,7 +78,17 @@ const products = [
   {
     id: 'custom-dev',
     title: 'Custom AI Software Development',
-    desc: 'Custom AI applications, Enterprise AI platforms, SaaS products, Dashboards, Custom CRM/ERP solutions, and Customer Portals.',
+    features: [
+      'Custom AI applications',
+      'Enterprise AI platforms',
+      'SaaS products',
+      'AI dashboards',
+      'Custom CRM development',
+      'Custom ERP solutions',
+      'Customer Portals',
+      'Admin & operations Platform',
+      'AI powered web & mobile applications'
+    ],
     tag: 'Dev',
     img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1600&q=80',
     accent: 'from-cyan-400/40 to-teal-600/20',
@@ -55,7 +96,11 @@ const products = [
   {
     id: 'gen-ai',
     title: 'Generative AI Solutions',
-    desc: 'Leverage the latest in LLMs to create tailored generative models for content, code, and insights.',
+    features: [
+      'Custom generative models',
+      'Content and code generation',
+      'Tailored AI insights'
+    ],
     tag: 'GenAI',
     img: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=1600&q=80',
     accent: 'from-violet-400/40 to-indigo-600/20',
@@ -63,7 +108,13 @@ const products = [
   {
     id: 'ai-agents',
     title: 'AI Agents & Agentic Automation',
-    desc: 'Autonomous AI agents and Multi-agent systems for Sales, Support, Research, HR, Finance, Marketing, Data, and Recruitment.',
+    features: [
+      'AI sales, support, research, HR',
+      'Finance, marketing, data, recruitment',
+      'Workflows',
+      'Multi-agent AI systems',
+      'Autonomous AI agents'
+    ],
     tag: 'Agents',
     img: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=1600&q=80',
     accent: 'from-emerald-500/30 to-cyan-600/20',
@@ -219,14 +270,14 @@ export default function ProductPage() {
             <div className="prod-grid grid gap-4 sm:grid-cols-2 lg:grid-cols-3 [perspective:1200px]">
               {products.map((p, index) => (
                 <a key={p.id} href={`#${p.id}`} className={`block ${index === 6 ? 'lg:col-span-3 sm:col-span-2' : ''}`}>
-                  <InteractiveCard className="prod-card group relative h-[340px] !overflow-hidden !rounded-2xl p-0">
+                  <InteractiveCard className="prod-card group relative min-h-[480px] h-full !overflow-hidden !rounded-2xl p-0">
                     <img
                       src={p.img}
                       alt={p.title}
                       className="prod-ken absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
                       loading="lazy"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/30" />
                     <div
                       className={`absolute inset-0 bg-gradient-to-br ${p.accent} opacity-40 mix-blend-screen transition group-hover:opacity-70`}
                     />
@@ -242,9 +293,14 @@ export default function ProductPage() {
                       <h3 className="text-xl font-semibold leading-snug text-white">
                         {p.title}
                       </h3>
-                      <p className="mt-3 line-clamp-3 text-sm text-white/60">
-                        {p.desc}
-                      </p>
+                      <ul className="mt-4 space-y-1.5">
+                        {p.features.map(f => (
+                          <li key={f} className="flex items-start text-[13px] text-white/70">
+                            <span className="mr-2 mt-[3px] text-cyan-400 text-[10px]">▹</span>
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
 
                     <div className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-inset ring-white/10" />

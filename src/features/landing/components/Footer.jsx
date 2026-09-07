@@ -5,6 +5,7 @@ const cols = [
   {
     title: 'Product',
     links: [
+      { label: 'Products & Services', to: '/product' },
       { label: 'Features', to: '/features' },
       { label: 'AI Interview', to: '/#ai-interview' },
       { label: 'Live Demo', to: '/live-demo' },
