@@ -14,7 +14,9 @@ import axios from "axios";
 import type { AddCompanyForm, CallPreview, SubCompany } from "@/features/employees/types";
 import { callPreviews } from "@/features/employees/data";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL?.startsWith('http') 
+  ? "/api" // Force local route for endpoints that exist in Next.js
+  : (process.env.NEXT_PUBLIC_API_URL || "/api");
 
 type EmployeesContextValue = {
   companies: SubCompany[];
