@@ -30,6 +30,9 @@ export default function CareersApplyPage({ jobId }) {
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [captchaNum1, setCaptchaNum1] = useState(Math.floor(Math.random() * 10) + 1)
+  const [captchaNum2, setCaptchaNum2] = useState(Math.floor(Math.random() * 10) + 1)
+  const [userCaptcha, setUserCaptcha] = useState('')
 
   const validateField = (name, value) => {
     let error = ''
@@ -91,6 +94,11 @@ export default function CareersApplyPage({ jobId }) {
       return
     }
 
+    if (parseInt(userCaptcha) !== captchaNum1 + captchaNum2) {
+      setErrors({ ...newErrors, captcha: 'Incorrect CAPTCHA answer' })
+      return
+    }
+
     setSubmitting(true)
     
     try {
@@ -105,34 +113,7 @@ export default function CareersApplyPage({ jobId }) {
         mimeType = formData.resume.type
       }
 
-      // 2. Submit to Apps Script
-      const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyi8J3eJz2-O_4-pM0aZ8g-0a3j8UuS4fK77G2kR0e2C1g9fF4619iK2840tF_XjH0y/exec"
-      
-      const scriptPayload = {
-        type: "job_application",
-        jobId,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
-        experience: formData.experience,
-        expectedPayout: formData.expectedPayout,
-        fileData,
-        fileName,
-        mimeType
-      }
-
-      const scriptRes = await fetch(APPS_SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify(scriptPayload)
-      })
-      const scriptData = await scriptRes.json()
-      
-      if (!scriptData.success) {
-        throw new Error(scriptData.message || "Failed to upload resume")
-      }
-      
-      // 3. Submit to Next.js API to save in MongoDB
+      // 2. Submit to Next.js API
       const apiRes = await fetch('/api/jobs/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -144,14 +125,16 @@ export default function CareersApplyPage({ jobId }) {
           phone: formData.phone,
           experience: formData.experience,
           expectedPayout: formData.expectedPayout,
-          resumeUrl: scriptData.data?.resumeUrl || ""
-        })
+          fileData,
+          fileName,
+          mimeType,
+        }),
       })
 
       const apiData = await apiRes.json()
       
       if (!apiData.success) {
-        throw new Error("Failed to save application to database")
+        throw new Error(apiData.error || "Failed to submit application")
       }
 
       setSuccess(true)
@@ -299,7 +282,29 @@ export default function CareersApplyPage({ jobId }) {
               {errors.resume && <p className="text-xs text-red-400 animate-in fade-in slide-in-from-top-1">{errors.resume}</p>}
             </div>
 
-            <div className="pt-6">
+            <div className="space-y-2 pt-4 border-t border-white/10">
+              <label className="text-sm font-medium text-white/80 flex items-center justify-between">
+                <span>Security Check</span>
+                <span className="text-cyan-400 font-mono bg-black/40 px-3 py-1 rounded">
+                  {captchaNum1} + {captchaNum2} = ?
+                </span>
+              </label>
+              <input
+                type="text"
+                value={userCaptcha}
+                onChange={(e) => {
+                  setUserCaptcha(e.target.value)
+                  if (errors.captcha) {
+                    setErrors(prev => ({ ...prev, captcha: '' }))
+                  }
+                }}
+                placeholder="Enter the answer"
+                className={`w-full rounded-md border bg-black/40 px-4 py-2.5 text-white transition focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 ${errors.captcha ? 'border-red-500' : 'border-white/10'}`}
+              />
+              {errors.captcha && <p className="text-xs text-red-400 animate-in fade-in slide-in-from-top-1">{errors.captcha}</p>}
+            </div>
+
+            <div className="pt-2">
               <button
                 type="submit"
                 disabled={submitting}

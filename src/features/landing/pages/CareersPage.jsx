@@ -97,7 +97,21 @@ export default function CareersPage() {
                       onClick={() => setExpandedJobId(isExpanded ? null : job.id)}
                     >
                       <div>
-                        <h3 className="font-semibold text-white">{job.title}</h3>
+                        <div className="flex items-center gap-3">
+                          <h3 className="font-semibold text-white">{job.title}</h3>
+                          <div className="flex items-center gap-2">
+                            {job.jobType && (
+                              <span className="inline-flex items-center rounded-full bg-cyan-400/10 px-2 py-0.5 text-xs font-medium text-cyan-400 border border-cyan-400/20">
+                                {job.jobType}
+                              </span>
+                            )}
+                            {job.location && (
+                              <span className="inline-flex items-center rounded-full bg-white/5 px-2 py-0.5 text-xs font-medium text-white/70 border border-white/10">
+                                {job.location}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                         <p className="mt-1 text-sm text-white/45">
                           {job.experience} · {job.education}
                         </p>

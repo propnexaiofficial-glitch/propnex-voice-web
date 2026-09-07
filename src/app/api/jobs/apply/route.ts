@@ -14,7 +14,6 @@ export async function POST(req: Request) {
       phone,
       experience,
       expectedPayout,
-      resumeUrl,
     } = data;
 
     if (!jobId || !firstName || !email) {
@@ -24,6 +23,45 @@ export async function POST(req: Request) {
       );
     }
 
+    const jobPosting = await prisma.jobPosting.findUnique({
+      where: { id: jobId }
+    });
+
+    const jobTitle = jobPosting ? jobPosting.title : "Role";
+
+    // 1. Submit to Apps Script
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyi8J3eJz2-O_4-pM0aZ8g-0a3j8UuS4fK77G2kR0e2C1g9fF4619iK2840tF_XjH0y/exec";
+    const scriptPayload = {
+      type: "job_application",
+      jobId,
+      jobTitle,
+      firstName,
+      lastName,
+      email,
+      phone,
+      experience,
+      expectedPayout,
+      fileBase64: data.fileData,
+      fileName: data.fileName,
+      mimeType: data.mimeType
+    };
+
+    const scriptRes = await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(scriptPayload)
+    });
+    
+    let resumeUrl = "";
+    try {
+      const scriptData = await scriptRes.json();
+      if (scriptData.success) {
+        resumeUrl = scriptData.fileUrl || "";
+      }
+    } catch (e) {
+      console.error("Apps script error", e);
+    }
+
+    // 2. Save to Database
     const application = await prisma.jobApplication.create({
       data: {
         jobId,
@@ -33,7 +71,7 @@ export async function POST(req: Request) {
         phone: phone || "",
         experience: experience || "",
         expectedPayout: expectedPayout || "",
-        resumeUrl: resumeUrl || "",
+        resumeUrl,
       },
     });
 
