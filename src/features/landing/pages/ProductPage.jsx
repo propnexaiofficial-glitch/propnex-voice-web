@@ -221,11 +221,11 @@ export default function ProductPage() {
             <img
               src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=2000&q=80"
               alt=""
-              className="absolute inset-0 h-full w-full object-cover opacity-30"
+              className="absolute inset-0 h-full w-full object-cover opacity-50 mix-blend-screen"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_45%,rgba(34,211,238,0.14),transparent_50%)]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-[#010915]/50 to-black" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/30 to-transparent" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_45%,rgba(34,211,238,0.25),transparent_70%)]" />
           </div>
 
           <div className="prod-hero relative mx-auto flex min-h-[calc(100vh-5rem)] max-w-7xl flex-col justify-end px-5 pb-16 md:px-8 md:pb-24">
