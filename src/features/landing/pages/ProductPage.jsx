@@ -72,7 +72,7 @@ const products = [
       'AI powered business operations'
     ],
     tag: 'Ops',
-    img: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1600&q=80',
+    img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1600&q=80',
     accent: 'from-fuchsia-500/40 to-violet-600/20',
   },
   {
