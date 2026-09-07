@@ -6,6 +6,7 @@ import PageShell, { PageHero, SectionCard } from '../components/PageShell'
 import { UploadCloud, CheckCircle, Loader2, X } from 'lucide-react'
 import { countryCodes, allCountries } from '../data/countries'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
+import ReCAPTCHA from 'react-google-recaptcha'
 
 // Convert file to Base64
 const toBase64 = (file) =>
@@ -68,9 +69,7 @@ export default function CareersApplyPage({ jobId }) {
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [captchaNum1, setCaptchaNum1] = useState(Math.floor(Math.random() * 10) + 1)
-  const [captchaNum2, setCaptchaNum2] = useState(Math.floor(Math.random() * 10) + 1)
-  const [userCaptcha, setUserCaptcha] = useState('')
+  const [captchaToken, setCaptchaToken] = useState(null)
   
   // Modal State
   const [modalType, setModalType] = useState(null) // 'terms' or 'privacy'
@@ -79,6 +78,18 @@ export default function CareersApplyPage({ jobId }) {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (modalType) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [modalType])
 
   const validateField = (name, value, currentFormData = formData) => {
     let error = ''
@@ -164,10 +175,8 @@ export default function CareersApplyPage({ jobId }) {
       if (error) newErrors[key] = error
     })
     
-    if (!userCaptcha) {
-      newErrors.captcha = 'Security check is required'
-    } else if (parseInt(userCaptcha) !== captchaNum1 + captchaNum2) {
-      newErrors.captcha = 'Incorrect answer'
+    if (!captchaToken) {
+      newErrors.captcha = 'Please verify that you are not a robot'
     }
     
     if (Object.keys(newErrors).length > 0) {
@@ -460,34 +469,23 @@ export default function CareersApplyPage({ jobId }) {
 
             {/* CAPTCHA */}
             <div className="space-y-2 pt-4 border-t border-white/10">
-              <label className="text-sm font-medium text-white/80 flex items-center justify-between mb-2">
-                <span>Security Check</span>
+              <label className="text-sm font-medium text-white/80 block mb-2">
+                Security Check
               </label>
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                <div className="relative overflow-hidden rounded bg-black/60 border border-white/10 flex-shrink-0 h-[50px] w-[140px] flex items-center justify-center">
-                  <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '4px 4px' }}></div>
-                  <span className="relative z-10 text-cyan-400 font-mono text-xl tracking-widest font-bold select-none drop-shadow-md" style={{ transform: 'rotate(-2deg)' }}>
-                    {captchaNum1} + {captchaNum2}
-                  </span>
-                  {/* Decorative noise lines */}
-                  <div className="absolute top-1/4 left-0 w-full h-[1px] bg-cyan-400/30 transform rotate-12"></div>
-                  <div className="absolute top-3/4 left-0 w-full h-[1px] bg-cyan-400/30 transform -rotate-6"></div>
-                </div>
-                <div className="flex-1 w-full">
-                  <input
-                    type="text"
-                    value={userCaptcha}
-                    onChange={(e) => {
-                      setUserCaptcha(e.target.value)
+              <div className="flex flex-col items-start">
+                <div className="rounded overflow-hidden">
+                  <ReCAPTCHA
+                    sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+                    theme="dark"
+                    onChange={(token) => {
+                      setCaptchaToken(token)
                       if (errors.captcha) {
                         setErrors(prev => ({ ...prev, captcha: '' }))
                       }
                     }}
-                    placeholder="Enter the answer"
-                    className={`w-full rounded-md border bg-black/40 px-4 py-2.5 text-white transition focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 ${errors.captcha ? 'border-red-500' : 'border-white/10'}`}
                   />
-                  {errors.captcha && <p className="text-xs text-red-400 mt-1 animate-in fade-in slide-in-from-top-1">{errors.captcha}</p>}
                 </div>
+                {errors.captcha && <p className="text-xs text-red-400 mt-2 animate-in fade-in slide-in-from-top-1">{errors.captcha}</p>}
               </div>
             </div>
 
