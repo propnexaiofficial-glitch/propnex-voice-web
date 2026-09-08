@@ -26,7 +26,7 @@ const toMinSec = (secs: number) => {
 
 export async function POST(req: Request) {
   try {
-    const { messages, companyId, firstName } = await req.json();
+    const { messages, companyId, firstName, user } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json({ error: "Invalid messages array" }, { status: 400 });
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
       if (cached) {
         realTimeContext = `${systemRules}\n\n${cached}`;
       } else {
-        const [company, callLogs, subcompanies] = await Promise.all([
+        const [company, callLogs, subcompanies, billingQuotes] = await Promise.all([
           prisma.company.findUnique({
             where: { id: companyId },
             include: {
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
               cost: true,
               creditsUsed: true,
               startedAt: true,
-              lead: { select: { phone: true, name: true } },
+              lead: { select: { phone: true, firstName: true, lastName: true } },
               phoneNumber: { select: { number: true } }
             }
           }),
@@ -79,12 +79,27 @@ export async function POST(req: Request) {
             where: { parentCompanyId: companyId },
             include: { creditBalance: true, phoneNumbers: true }
           }) as any,
+          prisma.billingQuote.findMany({
+            where: { companyId, status: "PURCHASED" },
+            orderBy: { purchasedAt: 'desc' },
+            take: 5
+          }) as any,
         ]);
 
         if (company) {
           const inboundCalls  = callLogs.filter((c: any) => c.direction === "INBOUND");
           const outboundCalls = callLogs.filter((c: any) => c.direction === "OUTBOUND");
           const failedCalls   = callLogs.filter((c: any) => c.status   === "FAILED");
+          
+          const inboundCreditSum = inboundCalls.reduce((acc: number, c: any) => acc + (c.creditsUsed || 0), 0);
+          const outboundCreditSum = outboundCalls.reduce((acc: number, c: any) => acc + (c.creditsUsed || 0), 0);
+          
+          const sortedByCost = [...callLogs].sort((a: any, b: any) => (b.creditsUsed || 0) - (a.creditsUsed || 0));
+          const top10Calls = sortedByCost.slice(0, 10);
+          const top10CreditSum = top10Calls.reduce((acc: number, c: any) => acc + (c.creditsUsed || 0), 0);
+          
+          const sortedByDate = [...callLogs].sort((a: any, b: any) => new Date(b.startedAt || 0).getTime() - new Date(a.startedAt || 0).getTime());
+          const recent10Calls = sortedByDate.slice(0, 10);
 
           const maxInbound  = inboundCalls.length  > 0 ? Math.max(...inboundCalls.map((c: any)  => c.durationSeconds || 0)) : 0;
           const maxOutbound = outboundCalls.length > 0 ? Math.max(...outboundCalls.map((c: any) => c.durationSeconds || 0)) : 0;
@@ -93,7 +108,8 @@ export async function POST(req: Request) {
           const longestInboundCall = inboundCalls.find((c: any) => c.durationSeconds === maxInbound && c.durationSeconds > 0);
           const longestOutboundCall = outboundCalls.find((c: any) => c.durationSeconds === maxOutbound && c.durationSeconds > 0);
           
-          const formatCall = (c: any) => c ? `Customer Number: ${c.lead?.phone || 'Unknown'}, Customer Name: ${c.lead?.name || 'Unknown'}, Duration: ${toMinSec(c.durationSeconds)}, Credits Used: ${c.creditsUsed || 0}, Cost: $${c.cost || 0}` : "None";
+          const formatCall = (c: any) => c ? `Customer Number: ${c.lead?.phone || 'Unknown'}, Customer Name: ${c.lead?.firstName || ''} ${c.lead?.lastName || ''}, Duration: ${toMinSec(c.durationSeconds)}, Credits Used: ${c.creditsUsed || 0}, Cost: $${c.cost || 0}` : "None";
+          const formatCallVerbose = (c: any) => c ? `- Num: ${c.lead?.phone || 'Unknown'}, Dir: ${c.direction}, Dur: ${toMinSec(c.durationSeconds)}, Credits: ${c.creditsUsed || 0}, Date: ${new Date(c.startedAt).toLocaleDateString()}` : "";
 
           const avgSec      = callLogs.length      > 0
             ? Math.round(callLogs.reduce((sum: number, c: any) => sum + (c.durationSeconds || 0), 0) / callLogs.length) : 0;
@@ -121,25 +137,42 @@ export async function POST(req: Request) {
               }).join("\n\n")
             : "None";
 
+          const billingHistory = billingQuotes && billingQuotes.length > 0 
+            ? billingQuotes.map((q: any) => `- Date: ${q.purchasedAt ? new Date(q.purchasedAt).toLocaleDateString() : 'Unknown'}, Total: $${q.grandTotal}, Call Cost Portion: $${q.callCost}`).join("\n")
+            : "No recent billing purchases found.";
+
           const freshContext = `LIVE DATA — ${company.name}:
 
-CREDITS:
+PERSONAL DETAILS:
+Email: ${user?.email || "Not provided"}
+Name: ${user?.firstName || ""} ${user?.lastName || ""}
+Signup Phone: ${user?.phone || "Not provided"}
+
+CREDITS & BILLING:
 Credits Remaining: ${company.creditBalance?.creditsRemaining?.toFixed(2) ?? 0}
-Credits Used: ${company.creditBalance?.creditsUsed?.toFixed(2) ?? 0}
+Credits Used Total: ${company.creditBalance?.creditsUsed?.toFixed(2) ?? 0}
+Credits Used (Inbound): ${inboundCreditSum.toFixed(2)}
+Credits Used (Outbound): ${outboundCreditSum.toFixed(2)}
 Total Channels: ${company.setupConfig?.totalChannels ?? 0}
 Service Number: ${company.setupConfig?.serviceNumber ?? "Not configured"}
+
+BILLING HISTORY:
+${billingHistory}
 
 CALL STATS:
 Total Inbound Calls: ${inboundCalls.length}
 Total Outbound Calls: ${outboundCalls.length}
-Failed Inbound Calls: ${callLogs.filter((c: any) => c.direction === "INBOUND" && c.status === "FAILED").length}
-Failed Outbound Calls: ${callLogs.filter((c: any) => c.direction === "OUTBOUND" && c.status === "FAILED").length}
-Total Failed Calls: ${failedCalls.length}
 Average Duration: ${toMinSec(avgSec)}
 
 NOTABLE CALLS:
 Longest Inbound Call: ${formatCall(longestInboundCall)}
 Longest Outbound Call: ${formatCall(longestOutboundCall)}
+
+TOP 10 MOST EXPENSIVE CALLS (Total Credits: ${top10CreditSum.toFixed(2)}):
+${top10Calls.map(formatCallVerbose).join("\n")}
+
+10 MOST RECENT CALLS:
+${recent10Calls.map(formatCallVerbose).join("\n")}
 
 PHONE NUMBERS (${company.phoneNumbers.length}):
 ${numbersInfo}

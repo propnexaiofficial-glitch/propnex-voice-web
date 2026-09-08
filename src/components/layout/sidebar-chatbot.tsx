@@ -116,7 +116,8 @@ export function SidebarChatbot() {
         body: JSON.stringify({
           messages: newMessages.map(m => ({ role: m.type === "usr" ? "user" : "model", content: m.text })),
           companyId,
-          firstName
+          firstName,
+          user
         })
       });
 
