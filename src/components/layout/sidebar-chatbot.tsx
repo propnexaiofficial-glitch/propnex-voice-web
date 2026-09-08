@@ -313,11 +313,11 @@ export function SidebarChatbot() {
         .ch-av-wrap{position:relative;flex-shrink:0}
         .ch-av{
           width:52px;height:52px;border-radius:50%;
-          background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
-          border:1.5px solid rgba(255,255,255,.18);
+          background:#ffffff;
+          border:2px solid rgba(99,102,241,.35);
           display:flex;align-items:center;justify-content:center;
           overflow:hidden;
-          box-shadow:0 0 0 3px rgba(255,255,255,.04),0 8px 24px rgba(0,0,0,.5);
+          box-shadow:0 0 0 3px rgba(99,102,241,.08),0 8px 24px rgba(0,0,0,.5);
           animation:ch-av-float 5s ease-in-out infinite;
         }
         @keyframes ch-av-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
@@ -344,7 +344,7 @@ export function SidebarChatbot() {
         .mrow{display:flex;gap:9px;animation:min .4s cubic-bezier(.16,1,.3,1) both}
         @keyframes min{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
         .mrow.usr{flex-direction:row-reverse}
-        .mav{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);border:1.5px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+        .mav{width:28px;height:28px;border-radius:50%;background:#ffffff;border:1.5px solid rgba(99,102,241,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.35)}
         .mbub{max-width:80%;padding:10px 14px;font-size:.855rem;line-height:1.55;white-space:pre-wrap;}
         .mbub.bot{background:#18181b;border:1px solid rgba(255,255,255,.07);border-radius:16px;border-top-left-radius:4px;color:#f4f4f5}
         .mbub.usr{background:#f4f4f5;color:#09090b;font-weight:500;border-radius:16px;border-top-right-radius:4px}
@@ -380,7 +380,7 @@ export function SidebarChatbot() {
             <div className="fab-glow"></div>
             <div className="fab-glow-mask"></div>
             <div className="fab-scan"></div>
-            <img src="/Logo-Chatbot.png" alt="Logo" className="fab-icon w-8 h-8 object-contain" />
+            <img src="/Logo.png" alt="Logo" className="fab-icon w-8 h-8 object-contain" />
           </div>
           <span className="fab-hand">👋</span>
         </div>
@@ -409,7 +409,7 @@ export function SidebarChatbot() {
                 <div className="ch-av-wrap">
                   <div className="ch-av-ring2"></div>
                   <div className="ch-av-ring"></div>
-                  <div className="ch-av"><img src="/Logo-Chatbot.png" alt="Logo" style={{width:'34px',height:'34px',objectFit:'contain',objectPosition:'center',display:'block'}} /></div>
+                  <div className="ch-av"><img src="/Logo.png" alt="Logo" style={{width:'34px',height:'34px',objectFit:'contain',objectPosition:'center',display:'block'}} /></div>
                 </div>
                 <div className="ch-info">
                   <h3>Personal Assistant</h3>
@@ -428,13 +428,13 @@ export function SidebarChatbot() {
             <div className="ch-msgs">
               {messages.map((msg) => (
                 <div key={msg.id} className={cn("mrow", msg.type)}>
-                  {msg.type === "bot" && <div className="mav"><img src="/Logo-Chatbot.png" alt="Logo" style={{width:'18px',height:'18px',objectFit:'cover',borderRadius:'50%',display:'block'}} /></div>}
+                  {msg.type === "bot" && <div className="mav"><img src="/Logo.png" alt="Logo" style={{width:'18px',height:'18px',objectFit:'cover',borderRadius:'50%',display:'block'}} /></div>}
                   <div className={cn("mbub", msg.type)}>{msg.text.replace(/\*\*/g, '')}</div>
                 </div>
               ))}
               
               <div className="type-row">
-                <div className="mav" style={{ flexShrink: 0, opacity: isTyping ? 1 : 0, transition: 'opacity 0.2s' }}><img src="/Logo-Chatbot.png" alt="Logo" style={{width:'18px',height:'18px',objectFit:'cover',borderRadius:'50%',display:'block'}} /></div>
+                <div className="mav" style={{ flexShrink: 0, opacity: isTyping ? 1 : 0, transition: 'opacity 0.2s' }}><img src="/Logo.png" alt="Logo" style={{width:'18px',height:'18px',objectFit:'cover',borderRadius:'50%',display:'block'}} /></div>
                 <div className={cn("type-bub", isTyping && "show")}>
                   <div className="td"></div><div className="td"></div><div className="td"></div>
                 </div>

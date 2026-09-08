@@ -61,11 +61,22 @@ SYSTEM RULES (apply to every single response without exception):
           ? Math.round(callLogs.reduce((sum, c) => sum + (c.durationSeconds || 0), 0) / callLogs.length)
           : 0;
 
+        // Helper: convert seconds to "X min Y sec"
+        const toMinSec = (secs: number) => {
+          const m = Math.floor(secs / 60);
+          const s = secs % 60;
+          return m > 0 ? `${m} min ${s} sec` : `${s} sec`;
+        };
+
+        const maxInboundSec = inboundCalls.length > 0 ? Math.max(...inboundCalls.map(c => c.durationSeconds || 0)) : 0;
+        const maxOutboundSec = outboundCalls.length > 0 ? Math.max(...outboundCalls.map(c => c.durationSeconds || 0)) : 0;
+        const maxOverallSec = callLogs.length > 0 ? Math.max(...callLogs.map(c => c.durationSeconds || 0)) : 0;
+
         const phoneNumbersInfo = company.phoneNumbers.length > 0
           ? company.phoneNumbers.map((p: any) =>
-              `  - ${p.number} (${p.label || "Unlabeled"}) | Direction: ${p.direction || "N/A"} | Channels: ${p.channels ?? "N/A"} | Provider: ${p.provider}`
+              `Inbound/Outbound Number: ${p.number} | Label: ${p.label || "Unlabeled"} | Direction: ${p.direction || "Both"} | Channels: ${p.channels ?? "N/A"} | Provider: ${p.provider}`
             ).join("\n")
-          : "  None";
+          : "None configured";
 
         const campaignInfo = company.outboundCampaigns.length > 0
           ? company.outboundCampaigns.map((c: any) =>
@@ -90,17 +101,21 @@ ${systemRules}
 LIVE ACCOUNT DATA for ${userName} at ${company.name}:
 
 [CREDITS & BILLING]
-- Credits Remaining: ${company.creditBalance?.creditsRemaining?.toFixed(2) ?? 0}
-- Credits Used: ${company.creditBalance?.creditsUsed?.toFixed(2) ?? 0}
-- Total Channels: ${company.setupConfig?.totalChannels ?? 0}
-- Service Number: ${company.setupConfig?.serviceNumber ?? "Not configured"}
-- Cost Per Credit: ${(company as any).billingRates?.costPerCredit ?? "N/A"}
+Credits Remaining: ${company.creditBalance?.creditsRemaining?.toFixed(2) ?? 0}
+Credits Used: ${company.creditBalance?.creditsUsed?.toFixed(2) ?? 0}
+Total Channels: ${company.setupConfig?.totalChannels ?? 0}
+Service Number: ${company.setupConfig?.serviceNumber ?? "Not configured"}
 
 [CALL STATISTICS]
-- Total Inbound Calls: ${inboundCalls.length}
-- Total Outbound Calls: ${outboundCalls.length}
-- Total Failed Calls: ${failedCalls.length} (Inbound Failed: ${inboundFailed} | Outbound Failed: ${outboundFailed})
-- Average Call Duration: ${avgDuration} seconds
+Total Inbound Calls: ${inboundCalls.length}
+Total Outbound Calls: ${outboundCalls.length}
+Failed Inbound Calls: ${inboundFailed}
+Failed Outbound Calls: ${outboundFailed}
+Total Failed Calls: ${failedCalls.length}
+Average Call Duration: ${toMinSec(avgDuration)}
+Highest Inbound Call Duration: ${toMinSec(maxInboundSec)}
+Highest Outbound Call Duration: ${toMinSec(maxOutboundSec)}
+Highest Overall Call Duration: ${toMinSec(maxOverallSec)}
 
 [PHONE NUMBERS (${company.phoneNumbers.length} total)]
 ${phoneNumbersInfo}
@@ -150,8 +165,8 @@ ${subcompanyInfo}
       },
       contents: mergedMessages,
       generationConfig: {
-        temperature: 0.3,
-        maxOutputTokens: 400,
+        temperature: 0.25,
+        maxOutputTokens: 1200,
       }
     };
 
