@@ -43,7 +43,9 @@ export async function POST(req: Request) {
 6. For phone numbers always show: Number: +XXXXXXXXXXX, Direction: Inbound/Outbound, Channels: N.
 7. For durations always use "X min Y sec" format.
 8. If asked about missing inbound/outbound numbers for a subcompany, explicitly tell the user to click the "Request" button in the dashboard to request a new number.
-9. If asked about Lead Reactivation or retries, explain that the system automatically runs 3 times (in 3 waves/stages: Q1, Q2, and Q3) to follow up with dormant or failed leads.`;
+9. If asked about Lead Reactivation or retries, explain that the system automatically runs 3 times (in 3 waves/stages: Q1, Q2, and Q3) to follow up with dormant or failed leads.
+10. If asked about the Force Stop button on a campaign, explain that it immediately halts the campaign execution, stopping any further outbound calls from being made.
+11. If asked how to search in Inbound, Outbound, or Subcompanies pages, explain that the user can use the search bar at the top of the respective page to filter by name, phone number, or status.`;
 
     // ── Try cache first, then DB ──
     let realTimeContext = `${systemRules}\n\nUser: ${userName}\nCompany: Not connected.`;
@@ -139,7 +141,8 @@ Unassigned Agents (${unassignedAgents.length}): ${unassignedAgents.map((a: any) 
                 const completed = exec?.statsCompleted || 0;
                 const failed = exec?.statsFailed || 0;
                 const left = Math.max(0, total - processed);
-                return `- Campaign: ${camp.name}, CSV: ${csvName}, Total Leads: ${total}, Completed: ${completed}, Failed: ${failed}, Left: ${left}`;
+                const qInfo = camp.currentQStage ? `, Q Stage: ${camp.currentQStage}, Q Status: ${camp.qStatus || 'Pending'}` : '';
+                return `- Campaign: ${camp.name}, CSV: ${csvName}, Total Leads: ${total}, Completed: ${completed}, Failed: ${failed}, Left: ${left}${qInfo}`;
               }).join("\n")
             : "No campaigns found.";
           
