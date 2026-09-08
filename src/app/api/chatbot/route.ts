@@ -54,7 +54,7 @@ export async function POST(req: Request) {
       if (cached) {
         realTimeContext = `${systemRules}\n\n${cached}`;
       } else {
-        const [company, callLogs, subcompanies, billingQuotes, creditUsages, agents] = await Promise.all([
+        const [company, callLogs, subcompanies, billingQuotes, creditUsages, agents, campaigns, campaignExecutions] = await Promise.all([
           prisma.company.findUnique({
             where: { id: companyId },
             include: {
@@ -94,6 +94,12 @@ export async function POST(req: Request) {
           prisma.aiAgent.findMany({
             where: { companyId }
           }) as any,
+          prisma.campaign.findMany({
+            where: { companyId }
+          }) as any,
+          prisma.campaignExecution.findMany({
+            where: { companyId }
+          }) as any,
         ]);
 
         if (company) {
@@ -123,6 +129,19 @@ export async function POST(req: Request) {
           const agentInfo = `Total Agents: ${agents.length}
 Assigned Agents (${assignedAgents.length}): ${assignedAgents.map((a: any) => a.name).join(', ') || 'None'}
 Unassigned Agents (${unassignedAgents.length}): ${unassignedAgents.map((a: any) => a.name).join(', ') || 'None'}`;
+          
+          const campaignsInfo = campaigns.length > 0 
+            ? campaigns.map((camp: any) => {
+                const exec = campaignExecutions.find((e: any) => e.campaignId === camp.id);
+                const csvName = camp.uploadedFileName || "No CSV File";
+                const total = exec?.totalContacts || 0;
+                const processed = exec?.processedCount || 0;
+                const completed = exec?.statsCompleted || 0;
+                const failed = exec?.statsFailed || 0;
+                const left = Math.max(0, total - processed);
+                return `- Campaign: ${camp.name}, CSV: ${csvName}, Total Leads: ${total}, Completed: ${completed}, Failed: ${failed}, Left: ${left}`;
+              }).join("\n")
+            : "No campaigns found.";
           
           const longestInboundCall = inboundCalls.find((c: any) => c.durationSeconds === maxInbound && c.durationSeconds > 0);
           const longestOutboundCall = outboundCalls.find((c: any) => c.durationSeconds === maxOutbound && c.durationSeconds > 0);
@@ -196,6 +215,9 @@ Total Recording / Call Duration: ${toMinSec(totalDurationSeconds)}
 
 AI AGENTS:
 ${agentInfo}
+
+CAMPAIGNS & CSVs:
+${campaignsInfo}
 
 NOTABLE CALLS:
 Longest Inbound Call: ${formatCall(longestInboundCall)}
