@@ -181,23 +181,23 @@ export function SidebarChatbot() {
 
   const getTags = () => {
     if (pathname.includes('/billing')) {
-      return ["ðŸ’³ How do I add credits?", "ðŸ“Š What is my balance?", "ðŸ“‹ View billing history", "ðŸ¦ Minimum recharge?"];
+      return ["💳 How do I add credits?", "📊 What is my balance?", "📋 View billing history", "🏦 Minimum recharge?"];
     }
     if (pathname.includes('/companies')) {
-      return ["ðŸ¢ Create a subcompany", "ðŸ’° Transfer credits", "ðŸ“Š View subcompany stats", "ðŸ‘¥ Subcompany limits"];
+      return ["🏢 Create a subcompany", "💰 Transfer credits", "📊 View subcompany stats", "👥 Subcompany limits"];
     }
-    if (pathname.includes('/campaigns')) {
-      return ["ðŸš€ Setup a new campaign", "ðŸ“Š View campaign analytics", "â¸ï¸ How to pause a campaign", "ðŸ“ž What is lead reactivation?"];
+    if (pathname.includes('/campaign')) {
+      return ["🚀 Setup a new campaign", "📊 View campaign analytics", "⏸️ How to pause a campaign", "📞 What is lead reactivation?"];
     }
     if (pathname.includes('/agents')) {
-      return ["ðŸ¤– What agents are available?", "ðŸ› ï¸ How do I assign an agent?", "ðŸ“ž Can I listen to recordings?", "ðŸŽ™ï¸ Create custom agent"];
+      return ["🤖 What agents are available?", "🛠️ How do I assign an agent?", "📞 Can I listen to recordings?", "🎙️ Create custom agent"];
     }
     if (pathname.includes('/settings')) {
-      return ["âš™ï¸ How to change password?", "ðŸ”‘ API Keys setup", "ðŸ”” Notification preferences"];
+      return ["⚙️ How to change password?", "🔑 API Keys setup", "🔔 Notification preferences"];
     }
     
     // Default dashboard tags
-    return ["ðŸš€ Setup campaign", "ðŸ¤– Agent library", "ðŸ“Š Analytics", "ðŸ’³ Billing"];
+    return ["🚀 Setup campaign", "🤖 Agent library", "📊 Analytics", "💳 Billing"];
   };
 
   return (
@@ -381,7 +381,7 @@ export function SidebarChatbot() {
             <div className="fab-glow"></div>
             <div className="fab-glow-mask"></div>
             <div className="fab-scan"></div>
-            <img src="/Logo.png" alt="Logo" className="fab-icon" />
+            <span className="fab-icon" style={{fontSize: "1.35rem"}}>🤖</span>
           </div>
           <span className="fab-hand">👋</span>
         </div>
@@ -410,7 +410,7 @@ export function SidebarChatbot() {
                 <div className="ch-av-wrap">
                   <div className="ch-av-ring2"></div>
                   <div className="ch-av-ring"></div>
-                  <div className="ch-av"><img src="/Logo.png" alt="Logo" style={{width:'34px',height:'34px',objectFit:'contain',objectPosition:'center',display:'block'}} /></div>
+                  <div className="ch-av" style={{fontSize: "1.5rem"}}>🤖</div>
                 </div>
                 <div className="ch-info">
                   <h3>Task Desk</h3>
@@ -429,13 +429,13 @@ export function SidebarChatbot() {
             <div className="ch-msgs">
               {messages.map((msg) => (
                 <div key={msg.id} className={cn("mrow", msg.type)}>
-                  {msg.type === "bot" && <div className="mav"><img src="/Logo.png" alt="Logo" style={{width:'18px',height:'18px',objectFit:'cover',borderRadius:'50%',display:'block'}} /></div>}
+                  {msg.type === "bot" && <div className="mav" style={{fontSize: "0.8rem"}}>🤖</div>}
                   <div className={cn("mbub", msg.type)}>{msg.text.replace(/\*\*/g, '')}</div>
                 </div>
               ))}
               
               <div className="type-row">
-                <div className="mav" style={{ flexShrink: 0, opacity: isTyping ? 1 : 0, transition: 'opacity 0.2s' }}><img src="/Logo.png" alt="Logo" style={{width:'18px',height:'18px',objectFit:'cover',borderRadius:'50%',display:'block'}} /></div>
+                <div className="mav" style={{ flexShrink: 0, opacity: isTyping ? 1 : 0, transition: 'opacity 0.2s', fontSize: "0.8rem" }}>🤖</div>
                 <div className={cn("type-bub", isTyping && "show")}>
                   <div className="td"></div><div className="td"></div><div className="td"></div>
                 </div>
