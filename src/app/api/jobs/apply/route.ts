@@ -34,7 +34,29 @@ export async function POST(req: Request) {
       where: { id: jobId }
     });
 
-    const jobTitle = jobPosting ? jobPosting.title : "Role";
+    if (!jobPosting) {
+      return NextResponse.json(
+        { success: false, error: "Job posting not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check for duplicate application
+    const existingApplication = await prisma.jobApplication.findFirst({
+      where: {
+        jobId,
+        email: email.toLowerCase()
+      }
+    });
+
+    if (existingApplication) {
+      return NextResponse.json(
+        { success: false, error: "You have already applied for this job with this email address." },
+        { status: 409 }
+      );
+    }
+
+    const jobTitle = jobPosting.title;
 
     // 1. Submit to Apps Script
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyi8J3eJz2-O_4-pM0aZ8g-0a3j8UuS4fK77G2kR0e2C1g9fF4619iK2840tF_XjH0y/exec";
@@ -81,7 +103,7 @@ export async function POST(req: Request) {
         jobId,
         firstName,
         lastName,
-        email,
+        email: email.toLowerCase(),
         countryCode: countryCode || "",
         phone: phone || "",
         experience: experience || "",
