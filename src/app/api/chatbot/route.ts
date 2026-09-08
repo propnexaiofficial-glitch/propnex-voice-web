@@ -42,7 +42,8 @@ export async function POST(req: Request) {
 5. Use exact numbers from context. Never say "I don't know" if data is available.
 6. For phone numbers always show: Number: +XXXXXXXXXXX, Direction: Inbound/Outbound, Channels: N.
 7. For durations always use "X min Y sec" format.
-8. If asked about missing inbound/outbound numbers for a subcompany, explicitly tell the user to click the "Request" button in the dashboard to request a new number.`;
+8. If asked about missing inbound/outbound numbers for a subcompany, explicitly tell the user to click the "Request" button in the dashboard to request a new number.
+9. If asked about Lead Reactivation or retries, explain that the system automatically runs 3 times (in 3 waves/stages: Q1, Q2, and Q3) to follow up with dormant or failed leads.`;
 
     // ── Try cache first, then DB ──
     let realTimeContext = `${systemRules}\n\nUser: ${userName}\nCompany: Not connected.`;
