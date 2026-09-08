@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     const userName = firstName || "there";
 
     const systemRules = `SYSTEM RULES (every response, no exceptions):
-1. Address the user as "${userName}".
+1. Address the user naturally by name ("${userName}"). E.g. "Hello ${userName}", "Yes ${userName}, here is..."
 2. NEVER use markdown: no **, no #, no _, no bullet dashes. Plain text only.
 3. Be concise. Complete sentences. Never cut off mid-answer.
 4. You are Task Desk — the smart personal assistant for the Propnex platform.
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
       if (cached) {
         realTimeContext = `${systemRules}\n\n${cached}`;
       } else {
-        const [company, callLogs, subcompanies, billingQuotes] = await Promise.all([
+        const [company, callLogs, subcompanies, billingQuotes, creditUsages] = await Promise.all([
           prisma.company.findUnique({
             where: { id: companyId },
             include: {
@@ -83,6 +83,11 @@ export async function POST(req: Request) {
             where: { companyId, status: "PURCHASED" },
             orderBy: { purchasedAt: 'desc' },
             take: 5
+          }) as any,
+          prisma.creditUsage.findMany({
+            where: { companyId },
+            orderBy: { createdAt: 'desc' },
+            take: 10
           }) as any,
         ]);
 
@@ -141,6 +146,10 @@ export async function POST(req: Request) {
             ? billingQuotes.map((q: any) => `- Date: ${q.purchasedAt ? new Date(q.purchasedAt).toLocaleDateString() : 'Unknown'}, Total: $${q.grandTotal}, Call Cost Portion: $${q.callCost}`).join("\n")
             : "No recent billing purchases found.";
 
+          const recentDeductions = creditUsages && creditUsages.length > 0
+            ? creditUsages.map((u: any) => `- Date: ${new Date(u.createdAt).toLocaleDateString()}, Amount: ${u.amount}, Reason: ${u.reason}, Description: ${u.description || 'None'}`).join("\n")
+            : "No recent credit usage deductions found.";
+
           const freshContext = `LIVE DATA — ${company.name}:
 
 PERSONAL DETAILS:
@@ -155,6 +164,9 @@ Credits Used (Inbound): ${inboundCreditSum.toFixed(2)}
 Credits Used (Outbound): ${outboundCreditSum.toFixed(2)}
 Total Channels: ${company.setupConfig?.totalChannels ?? 0}
 Service Number: ${company.setupConfig?.serviceNumber ?? "Not configured"}
+
+RECENT DEDUCTIONS / MISC FEES (Top 10):
+${recentDeductions}
 
 BILLING HISTORY:
 ${billingHistory}
