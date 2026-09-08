@@ -7,13 +7,13 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { messages, companyId } = await req.json();
+    const { messages, companyId, firstName } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json({ error: "Invalid messages array" }, { status: 400 });
     }
 
-    let realTimeContext = "Real-time User Context: Unknown Company.";
+    let realTimeContext = `User Identity Context: The user's name is ${firstName || "Unknown"}.\n\nIMPORTANT SYSTEM RULES:\n1. Personalize your answers using the user's name if appropriate.\n2. Do NOT use markdown bolding (asterisks **) or any markdown formatting in your responses. Keep responses in plain text. Keep your responses extremely concise and to the point.\n\nReal-time User Context: Unknown Company.`;
 
     // 1. Retrieve Real-Time Context from MongoDB via Prisma
     if (companyId) {
@@ -42,6 +42,12 @@ export async function POST(req: Request) {
         const maxDuration = callLogs.length > 0 ? Math.max(...callLogs.map(c => c.durationSeconds || 0)) : 0;
 
         realTimeContext = `
+        User Identity Context: The user's name is ${firstName || "Unknown"}.
+        
+        IMPORTANT SYSTEM RULES:
+        1. Personalize your answers using the user's name.
+        2. Do NOT use markdown bolding (asterisks **) or any markdown formatting in your responses. Keep responses in plain text. Keep your responses extremely concise and to the point.
+
         Real-time User Context:
         - Company Name: ${company.name}
         - Total Inbound Calls: ${inboundCalls}

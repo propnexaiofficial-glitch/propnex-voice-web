@@ -13,13 +13,7 @@ type Message = {
   type: "bot" | "usr";
 };
 
-const INITIAL_MESSAGES: Message[] = [
-  {
-    id: "1",
-    type: "bot",
-    text: "Hey there! 👋 I'm your Propnex AI assistant.\n\nAsk me anything about campaigns, agents, analytics, or your dashboard."
-  }
-];
+const INITIAL_MESSAGES: Message[] = [];
 
 const BUBBLE_MESSAGES = [
   '👋 Need any help?',
@@ -30,17 +24,30 @@ const BUBBLE_MESSAGES = [
 
 export function SidebarChatbot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
   
   const pathname = usePathname();
   const { user } = useUserContext();
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (user?.firstName && messages.length === 0) {
+      setMessages([{
+        id: "1",
+        type: "bot",
+        text: `Hey there, ${user.firstName}! 👋 I'm your Propnex AI assistant.\n\nAsk me anything about campaigns, agents, analytics, or your dashboard.`
+      }]);
+    } else if (!user?.firstName && messages.length === 0) {
+      setMessages([{
+        id: "1",
+        type: "bot",
+        text: `Hey there! 👋 I'm your Propnex AI assistant.\n\nAsk me anything about campaigns, agents, analytics, or your dashboard.`
+      }]);
+    }
+  }, [user, messages.length]);
   
   const [bubbleText, setBubbleText] = useState("");
   const [showBubble, setShowBubble] = useState(false);
@@ -94,26 +101,29 @@ export function SidebarChatbot() {
     setInputValue("");
     setIsTyping(true);
     
-    // Add a placeholder bot message
-    const botMsgId = (Date.now() + 1).toString();
-    setMessages((prev) => [...prev, { id: botMsgId, text: "", type: "bot" }]);
-
     try {
       const companyId = user?.companyId || null;
+      const firstName = user?.firstName || "User";
       
       const response = await fetch("/api/chatbot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: newMessages.map(m => ({ role: m.type === "usr" ? "user" : "model", content: m.text })),
-          companyId
+          companyId,
+          firstName
         })
       });
 
+      // Stop typing animation as soon as we start processing the response stream
       setIsTyping(false);
 
       if (!response.ok) throw new Error("Failed to fetch response");
       if (!response.body) throw new Error("No response body");
+
+      // Add a placeholder bot message AFTER typing indicator hides
+      const botMsgId = (Date.now() + 1).toString();
+      setMessages((prev) => [...prev, { id: botMsgId, text: "", type: "bot" }]);
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -315,7 +325,7 @@ export function SidebarChatbot() {
         .ch-tag{padding:5px 12px;border:1px solid rgba(255,255,255,.07);border-radius:20px;font-size:.7rem;font-weight:500;color:#a1a1aa;cursor:pointer;background:rgba(255,255,255,.03);transition:.2s;white-space:nowrap}
         .ch-tag:hover{background:rgba(255,255,255,.09);color:#f4f4f5;border-color:rgba(255,255,255,.13)}
         
-        .ch-msgs{flex:1;overflow-y:auto;padding:20px 20px 8px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.06) transparent}
+        .ch-msgs{flex:1;overflow-y:auto;padding:20px 20px 8px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.06) transparent;overscroll-behavior:contain}
         .ch-msgs::-webkit-scrollbar{width:3px}
         .ch-msgs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.07);border-radius:3px}
         
@@ -407,7 +417,7 @@ export function SidebarChatbot() {
               {messages.map((msg) => (
                 <div key={msg.id} className={cn("mrow", msg.type)}>
                   {msg.type === "bot" && <div className="mav"><img src="/Logo.png" alt="Logo" className="w-4 h-4 object-contain" /></div>}
-                  <div className={cn("mbub", msg.type)}>{msg.text}</div>
+                  <div className={cn("mbub", msg.type)}>{msg.text.replace(/\*\*/g, '')}</div>
                 </div>
               ))}
               
