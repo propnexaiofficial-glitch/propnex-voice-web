@@ -16,10 +16,10 @@ type Message = {
 const INITIAL_MESSAGES: Message[] = [];
 
 const BUBBLE_MESSAGES = [
-  'ðŸ‘‹ Need any help?',
-  'ðŸš€ Start a campaign',
-  'ðŸ¤– Explore agents',
-  'ðŸ¤– I\'m here!'
+  '👋 Need any help?',
+  '🚀 Start a campaign',
+  '🤖 Explore agents',
+  '🤖 I\'m here!'
 ];
 
 export function SidebarChatbot() {
