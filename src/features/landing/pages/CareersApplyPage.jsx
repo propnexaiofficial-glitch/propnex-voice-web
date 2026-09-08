@@ -53,7 +53,7 @@ export default function CareersApplyPage({ jobId }) {
     firstName: '',
     lastName: '',
     email: '',
-    countryCode: '+1',
+    countryCode: '+91',
     phone: '',
     experience: '',
     expectedPayout: '',
