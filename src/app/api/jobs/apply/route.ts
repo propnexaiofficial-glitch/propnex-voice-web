@@ -67,7 +67,7 @@ export async function POST(req: Request) {
     const jobTitle = jobPosting.title;
 
     // 1. Submit to Apps Script
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyi8J3eJz2-O_4-pM0aZ8g-0a3j8UuS4fK77G2kR0e2C1g9fF4619iK2840tF_XjH0y/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2zj_l7vcmiPZKuYqEVdso0apyW3aDJZZWTVTJ1jRrQr8PLGZIH_TzRpTLFskphIwgDQ/exec";
     const scriptPayload = {
       type: "job_application",
       jobId,
