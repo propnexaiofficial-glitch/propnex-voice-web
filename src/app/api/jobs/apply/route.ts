@@ -77,7 +77,7 @@ export async function POST(req: Request) {
       citizenship,
       gender,
       agreedToTerms,
-      fileBase64: data.fileData,
+      fileData: data.fileData,
       fileName: data.fileName,
       mimeType: data.mimeType
     };
@@ -90,8 +90,8 @@ export async function POST(req: Request) {
     let resumeUrl = "";
     try {
       const scriptData = await scriptRes.json();
-      if (scriptData.success) {
-        resumeUrl = scriptData.fileUrl || "";
+      if (scriptData.status === "success") {
+        resumeUrl = scriptData.message?.resumeUrl || "";
       }
     } catch (e) {
       console.error("Apps script error", e);
