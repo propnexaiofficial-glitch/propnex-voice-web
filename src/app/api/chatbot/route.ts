@@ -41,7 +41,8 @@ export async function POST(req: Request) {
 4. You are Task Desk — the smart personal assistant for the Propnex platform.
 5. Use exact numbers from context. Never say "I don't know" if data is available.
 6. For phone numbers always show: Number: +XXXXXXXXXXX, Direction: Inbound/Outbound, Channels: N.
-7. For durations always use "X min Y sec" format.`;
+7. For durations always use "X min Y sec" format.
+8. If asked about missing inbound/outbound numbers for a subcompany, explicitly tell the user to click the "Request" button in the dashboard to request a new number.`;
 
     // ── Try cache first, then DB ──
     let realTimeContext = `${systemRules}\n\nUser: ${userName}\nCompany: Not connected.`;
@@ -52,7 +53,7 @@ export async function POST(req: Request) {
       if (cached) {
         realTimeContext = `${systemRules}\n\n${cached}`;
       } else {
-        const [company, callLogs, subcompanies, billingQuotes, creditUsages] = await Promise.all([
+        const [company, callLogs, subcompanies, billingQuotes, creditUsages, agents] = await Promise.all([
           prisma.company.findUnique({
             where: { id: companyId },
             include: {
@@ -89,6 +90,9 @@ export async function POST(req: Request) {
             orderBy: { createdAt: 'desc' },
             take: 10
           }) as any,
+          prisma.aiAgent.findMany({
+            where: { companyId }
+          }) as any,
         ]);
 
         if (company) {
@@ -109,6 +113,15 @@ export async function POST(req: Request) {
           const maxInbound  = inboundCalls.length  > 0 ? Math.max(...inboundCalls.map((c: any)  => c.durationSeconds || 0)) : 0;
           const maxOutbound = outboundCalls.length > 0 ? Math.max(...outboundCalls.map((c: any) => c.durationSeconds || 0)) : 0;
           const maxOverall  = callLogs.length      > 0 ? Math.max(...callLogs.map((c: any)      => c.durationSeconds || 0)) : 0;
+          
+          const totalDurationSeconds = callLogs.reduce((acc: number, c: any) => acc + (c.durationSeconds || 0), 0);
+          
+          const assignedAgents = agents.filter((a: any) => company.phoneNumbers.some((p: any) => p.inboundAgentId === a.id || p.outboundAgentId === a.id));
+          const unassignedAgents = agents.filter((a: any) => !company.phoneNumbers.some((p: any) => p.inboundAgentId === a.id || p.outboundAgentId === a.id));
+          
+          const agentInfo = `Total Agents: ${agents.length}
+Assigned Agents (${assignedAgents.length}): ${assignedAgents.map((a: any) => a.name).join(', ') || 'None'}
+Unassigned Agents (${unassignedAgents.length}): ${unassignedAgents.map((a: any) => a.name).join(', ') || 'None'}`;
           
           const longestInboundCall = inboundCalls.find((c: any) => c.durationSeconds === maxInbound && c.durationSeconds > 0);
           const longestOutboundCall = outboundCalls.find((c: any) => c.durationSeconds === maxOutbound && c.durationSeconds > 0);
@@ -178,6 +191,10 @@ Failed Inbound Calls: ${callLogs.filter((c: any) => c.direction === "INBOUND" &&
 Failed Outbound Calls: ${callLogs.filter((c: any) => c.direction === "OUTBOUND" && c.status === "FAILED").length}
 Total Failed Calls: ${failedCalls.length}
 Average Duration: ${toMinSec(avgSec)}
+Total Recording / Call Duration: ${toMinSec(totalDurationSeconds)}
+
+AI AGENTS:
+${agentInfo}
 
 NOTABLE CALLS:
 Longest Inbound Call: ${formatCall(longestInboundCall)}
