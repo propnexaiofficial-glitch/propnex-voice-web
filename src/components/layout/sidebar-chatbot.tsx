@@ -252,7 +252,7 @@ export function SidebarChatbot() {
         @keyframes conic-spin{to{--a:360deg}}
         .fab-glow-mask{position:absolute;inset:2px;border-radius:50%;background:#18181b;z-index:1}
         
-        .fab-icon{font-size:1.35rem;z-index:3;position:relative;animation:icon-pulse 3s ease-in-out infinite;transition:transform 0.2s;display:flex;align-items:center;justify-content:center;}
+        .fab-icon{font-size:1.35rem;z-index:3;position:relative;animation:icon-pulse 3s ease-in-out infinite;}
         .fab-wrap:hover .fab-icon{animation:icon-wiggle .6s ease-in-out infinite}
         @keyframes icon-pulse{0%,100%{transform:scale(1) rotate(0deg)}25%{transform:scale(1.1) rotate(-3deg)}75%{transform:scale(1.05) rotate(3deg)}}
         @keyframes icon-wiggle{0%,100%{transform:scale(1.15) rotate(0deg)}25%{transform:scale(1.25) rotate(-15deg)}75%{transform:scale(1.25) rotate(15deg)}}
@@ -346,7 +346,7 @@ export function SidebarChatbot() {
         .mrow{display:flex;gap:9px;animation:min .4s cubic-bezier(.16,1,.3,1) both}
         @keyframes min{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
         .mrow.usr{flex-direction:row-reverse}
-        .mav{width:28px;height:28px;border-radius:50%;background:#18181b;border:1.5px solid rgba(255,255,255,.13);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+        .mav{width:26px;height:26px;border-radius:8px;background:#18181b;border:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;margin-top:2px;}
         .mbub{max-width:80%;padding:10px 14px;font-size:.855rem;line-height:1.55;white-space:pre-wrap;}
         .mbub.bot{background:#18181b;border:1px solid rgba(255,255,255,.07);border-radius:16px;border-top-left-radius:4px;color:#f4f4f5}
         .mbub.usr{background:#f4f4f5;color:#09090b;font-weight:500;border-radius:16px;border-top-right-radius:4px}
@@ -382,7 +382,7 @@ export function SidebarChatbot() {
             <div className="fab-glow"></div>
             <div className="fab-glow-mask"></div>
             <div className="fab-scan"></div>
-            <span className="fab-icon" style={{fontSize: "1.35rem"}}>🤖</span>
+            <span className="fab-icon">🤖</span>
           </div>
           <span className="fab-hand">👋</span>
         </div>
@@ -411,7 +411,7 @@ export function SidebarChatbot() {
                 <div className="ch-av-wrap">
                   <div className="ch-av-ring2"></div>
                   <div className="ch-av-ring"></div>
-                  <div className="ch-av" style={{fontSize: "1.5rem"}}>🤖</div>
+                  <div className="ch-av">🤖</div>
                 </div>
                 <div className="ch-info">
                   <h3>Task Desk</h3>
@@ -430,13 +430,13 @@ export function SidebarChatbot() {
             <div className="ch-msgs">
               {messages.map((msg) => (
                 <div key={msg.id} className={cn("mrow", msg.type)}>
-                  {msg.type === "bot" && <div className="mav" style={{fontSize: "0.8rem"}}>🤖</div>}
+                  {msg.type === "bot" && <div className="mav">🤖</div>}
                   <div className={cn("mbub", msg.type)}>{msg.text.replace(/\*\*/g, '')}</div>
                 </div>
               ))}
               
               <div className="type-row">
-                <div className="mav" style={{ flexShrink: 0, opacity: isTyping ? 1 : 0, transition: 'opacity 0.2s', fontSize: "0.8rem" }}>🤖</div>
+                <div className="mav" style={{ opacity: isTyping ? 1 : 0, transition: 'opacity 0.2s' }}>🤖</div>
                 <div className={cn("type-bub", isTyping && "show")}>
                   <div className="td"></div><div className="td"></div><div className="td"></div>
                 </div>
