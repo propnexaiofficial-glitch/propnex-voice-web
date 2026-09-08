@@ -32,22 +32,27 @@ export function SidebarChatbot() {
   const pathname = usePathname();
   const { user } = useUserContext();
 
+  const greetingSet = useRef(false);
+
   useEffect(() => {
     setMounted(true);
-    if (user?.firstName && messages.length === 0) {
+  }, []);
+
+  // Set personalized greeting once when user context loads
+  useEffect(() => {
+    if (greetingSet.current) return;
+    if (messages.length === 0) {
+      const name = user?.firstName || "";
+      greetingSet.current = true;
       setMessages([{
         id: "1",
         type: "bot",
-        text: `Hey there, ${user.firstName}! 👋 I'm your Propnex AI assistant.\n\nAsk me anything about campaigns, agents, analytics, or your dashboard.`
-      }]);
-    } else if (!user?.firstName && messages.length === 0) {
-      setMessages([{
-        id: "1",
-        type: "bot",
-        text: `Hey there! 👋 I'm your Propnex AI assistant.\n\nAsk me anything about campaigns, agents, analytics, or your dashboard.`
+        text: name
+          ? `Hello ${name}! 👋 I'm your personal Propnex AI assistant.\n\nAsk me anything about your campaigns, agents, analytics, credits, or phone numbers.`
+          : `Hey there! 👋 I'm your Propnex AI assistant.\n\nAsk me anything about campaigns, agents, analytics, or your dashboard.`
       }]);
     }
-  }, [user, messages.length]);
+  }, [user]);
   
   const [bubbleText, setBubbleText] = useState("");
   const [showBubble, setShowBubble] = useState(false);
@@ -103,7 +108,7 @@ export function SidebarChatbot() {
     
     try {
       const companyId = user?.companyId || null;
-      const firstName = user?.firstName || "User";
+      const firstName = user?.firstName || "";
       
       const response = await fetch("/api/chatbot", {
         method: "POST",
@@ -144,12 +149,17 @@ export function SidebarChatbot() {
     } catch (error) {
       console.error("Chat error:", error);
       setIsTyping(false);
-      setMessages(prev => prev.map(msg => {
-        if (msg.id === botMsgId) {
-          return { ...msg, text: "Sorry, I encountered an error connecting to the server. Please try again." };
+      setMessages(prev => {
+        const last = prev[prev.length - 1];
+        if (last && last.type === "bot" && last.text === "") {
+          return prev.map(msg =>
+            msg.id === last.id
+              ? { ...msg, text: "Sorry, I encountered an error. Please try again." }
+              : msg
+          );
         }
-        return msg;
-      }));
+        return [...prev, { id: Date.now().toString(), type: "bot", text: "Sorry, I encountered an error. Please try again." }];
+      });
     }
   };
 
@@ -368,7 +378,7 @@ export function SidebarChatbot() {
             <div className="fab-glow"></div>
             <div className="fab-glow-mask"></div>
             <div className="fab-scan"></div>
-            <img src="/Logo.png" alt="Logo" className="fab-icon w-8 h-8 object-contain" />
+            <img src="/Logo-Chatbot.png" alt="Logo" className="fab-icon w-8 h-8 object-contain" />
           </div>
           <span className="fab-hand">👋</span>
         </div>
@@ -397,7 +407,7 @@ export function SidebarChatbot() {
                 <div className="ch-av-wrap">
                   <div className="ch-av-ring2"></div>
                   <div className="ch-av-ring"></div>
-                  <div className="ch-av"><img src="/Logo.png" alt="Logo" className="w-8 h-8 object-contain" /></div>
+                  <div className="ch-av"><img src="/Logo-Chatbot.png" alt="Logo" className="w-8 h-8 object-contain" /></div>
                 </div>
                 <div className="ch-info">
                   <h3>Propnex AI</h3>
@@ -416,13 +426,13 @@ export function SidebarChatbot() {
             <div className="ch-msgs">
               {messages.map((msg) => (
                 <div key={msg.id} className={cn("mrow", msg.type)}>
-                  {msg.type === "bot" && <div className="mav"><img src="/Logo.png" alt="Logo" className="w-4 h-4 object-contain" /></div>}
+                  {msg.type === "bot" && <div className="mav"><img src="/Logo-Chatbot.png" alt="Logo" className="w-4 h-4 object-contain" /></div>}
                   <div className={cn("mbub", msg.type)}>{msg.text.replace(/\*\*/g, '')}</div>
                 </div>
               ))}
               
               <div className="type-row">
-                <div className="mav" style={{ flexShrink: 0, opacity: isTyping ? 1 : 0, transition: 'opacity 0.2s' }}><img src="/Logo.png" alt="Logo" className="w-4 h-4 object-contain" /></div>
+                <div className="mav" style={{ flexShrink: 0, opacity: isTyping ? 1 : 0, transition: 'opacity 0.2s' }}><img src="/Logo-Chatbot.png" alt="Logo" className="w-4 h-4 object-contain" /></div>
                 <div className={cn("type-bub", isTyping && "show")}>
                   <div className="td"></div><div className="td"></div><div className="td"></div>
                 </div>
