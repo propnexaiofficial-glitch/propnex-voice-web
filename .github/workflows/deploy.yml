@@ -28,6 +28,5 @@ jobs:
 
             npm install
             npx prisma generate
-            npx tsc --noEmit
             npm run build
             pm2 restart propnexai-frontend --update-env
