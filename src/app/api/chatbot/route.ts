@@ -94,14 +94,14 @@ export async function POST(req: Request) {
         const callLogs = await prisma.callLog.findMany({
           where: { companyId },
           select: { 
+            id: true,
             direction: true, 
             status: true, 
             durationSeconds: true,
             cost: true,
             creditsUsed: true,
             startedAt: true,
-            phoneNumberId: true,
-            lead: { select: { phone: true, firstName: true, lastName: true } }
+            phoneNumberId: true
           }
         });
 
@@ -125,10 +125,6 @@ export async function POST(req: Request) {
           
           const sortedByDate = [...callLogs].sort((a: any, b: any) => new Date(b.startedAt || 0).getTime() - new Date(a.startedAt || 0).getTime());
           const recent10Calls = sortedByDate.slice(0, 10);
-
-          const maxInbound  = inboundCalls.length  > 0 ? Math.max(...inboundCalls.map((c: any)  => c.durationSeconds || 0)) : 0;
-          const maxOutbound = outboundCalls.length > 0 ? Math.max(...outboundCalls.map((c: any) => c.durationSeconds || 0)) : 0;
-          const maxOverall  = callLogs.length      > 0 ? Math.max(...callLogs.map((c: any)      => c.durationSeconds || 0)) : 0;
           
           const totalDurationSeconds = callLogs.reduce((acc: number, c: any) => acc + (c.durationSeconds || 0), 0);
           
@@ -152,10 +148,27 @@ Unassigned Agents (${unassignedAgents.length}): ${unassignedAgents.map((a: any) 
                 return `- Campaign: ${camp.name}, CSV: ${csvName}, Total Leads: ${total}, Completed: ${completed}, Failed: ${failed}, Left: ${left}${qInfo}`;
               }).join("\n")
             : "No campaigns found.";
+
+          const maxInbound  = inboundCalls.length  > 0 ? Math.max(...inboundCalls.map((c: any)  => c.durationSeconds || 0)) : 0;
+          const maxOutbound = outboundCalls.length > 0 ? Math.max(...outboundCalls.map((c: any) => c.durationSeconds || 0)) : 0;
           
-          const longestInboundCall = inboundCalls.find((c: any) => c.durationSeconds === maxInbound && c.durationSeconds > 0);
-          const longestOutboundCall = outboundCalls.find((c: any) => c.durationSeconds === maxOutbound && c.durationSeconds > 0);
+          let longestInboundCall = inboundCalls.find((c: any) => c.durationSeconds === maxInbound && c.durationSeconds > 0);
+          let longestOutboundCall = outboundCalls.find((c: any) => c.durationSeconds === maxOutbound && c.durationSeconds > 0);
           
+          // Fetch leads ONLY for the notable calls to avoid massive join on all call logs
+          const notableIds = [longestInboundCall?.id, longestOutboundCall?.id, ...top10Calls.map((c:any)=>c.id), ...recent10Calls.map((c:any)=>c.id)].filter(Boolean);
+          if (notableIds.length > 0) {
+            const notableLeads = await prisma.callLog.findMany({
+              where: { id: { in: notableIds } },
+              select: { id: true, lead: { select: { phone: true, firstName: true, lastName: true } } }
+            });
+            const leadMap = new Map(notableLeads.map((c: any) => [c.id, c.lead]));
+            if (longestInboundCall) (longestInboundCall as any).lead = leadMap.get(longestInboundCall.id);
+            if (longestOutboundCall) (longestOutboundCall as any).lead = leadMap.get(longestOutboundCall.id);
+            top10Calls.forEach((c: any) => c.lead = leadMap.get(c.id));
+            recent10Calls.forEach((c: any) => c.lead = leadMap.get(c.id));
+          }
+
           const formatCall = (c: any) => c ? `Customer Number: ${c.lead?.phone || 'Unknown'}, Customer Name: ${c.lead?.firstName || ''} ${c.lead?.lastName || ''}, Duration: ${toMinSec(c.durationSeconds)}, Credits Used: ${c.creditsUsed || 0}, Cost: $${c.cost || 0}` : "None";
           const formatCallVerbose = (c: any) => c ? `- Num: ${c.lead?.phone || 'Unknown'}, Dir: ${c.direction}, Dur: ${toMinSec(c.durationSeconds)}, Credits: ${c.creditsUsed || 0}, Date: ${new Date(c.startedAt).toLocaleDateString()}` : "";
 
