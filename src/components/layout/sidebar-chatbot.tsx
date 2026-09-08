@@ -225,14 +225,14 @@ export function SidebarChatbot() {
         
         .fab-circle{
           width:56px;height:56px;border-radius:50%;
-          background:linear-gradient(135deg,#0f0f1a 0%,#1a1040 50%,#200840 100%);
-          border:1px solid rgba(139,92,246,.3);
+          background:#18181b;
+          border:1px solid rgba(255,255,255,.13);
           display:flex;align-items:center;justify-content:center;
           position:relative;z-index:2;
           overflow:hidden;
           animation:fab-float 4s ease-in-out infinite;
           transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s,border-color .3s;
-          box-shadow:0 4px 20px rgba(0,0,0,.5),0 0 16px rgba(139,92,246,.2);
+          box-shadow:0 4px 20px rgba(0,0,0,.5);
         }
         .fab-wrap:hover .fab-circle{
           transform:scale(1.15) translateY(-4px);
@@ -249,9 +249,9 @@ export function SidebarChatbot() {
         }
         @property --a{syntax:'<angle>';initial-value:0deg;inherits:false}
         @keyframes conic-spin{to{--a:360deg}}
-        .fab-glow-mask{position:absolute;inset:2px;border-radius:50%;background:linear-gradient(135deg,#0f0f1a 0%,#1a1040 60%,#200840 100%);z-index:1}
+        .fab-glow-mask{position:absolute;inset:2px;border-radius:50%;background:#18181b;z-index:1}
         
-        .fab-icon{z-index:3;position:relative;width:38px;height:38px;object-fit:contain;display:block;animation:icon-pulse 3s ease-in-out infinite;transition:transform 0.2s}
+        .fab-icon{font-size:1.35rem;z-index:3;position:relative;animation:icon-pulse 3s ease-in-out infinite;transition:transform 0.2s;display:flex;align-items:center;justify-content:center;}
         .fab-wrap:hover .fab-icon{animation:icon-wiggle .6s ease-in-out infinite}
         @keyframes icon-pulse{0%,100%{transform:scale(1) rotate(0deg)}25%{transform:scale(1.1) rotate(-3deg)}75%{transform:scale(1.05) rotate(3deg)}}
         @keyframes icon-wiggle{0%,100%{transform:scale(1.15) rotate(0deg)}25%{transform:scale(1.25) rotate(-15deg)}75%{transform:scale(1.25) rotate(15deg)}}
@@ -314,11 +314,11 @@ export function SidebarChatbot() {
         .ch-av-wrap{position:relative;flex-shrink:0}
         .ch-av{
           width:52px;height:52px;border-radius:50%;
-          background:linear-gradient(135deg,#0f0f1a 0%,#1a1040 50%,#200840 100%);
-          border:1.5px solid rgba(139,92,246,.4);
+          background:#18181b;
+          border:1.5px solid rgba(255,255,255,.13);
           display:flex;align-items:center;justify-content:center;
           overflow:hidden;
-          box-shadow:0 0 0 3px rgba(139,92,246,.08),0 8px 24px rgba(0,0,0,.6);
+          box-shadow:0 0 0 3px rgba(255,255,255,.05),0 8px 24px rgba(0,0,0,.6);
           animation:ch-av-float 5s ease-in-out infinite;
         }
         @keyframes ch-av-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
@@ -345,7 +345,7 @@ export function SidebarChatbot() {
         .mrow{display:flex;gap:9px;animation:min .4s cubic-bezier(.16,1,.3,1) both}
         @keyframes min{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
         .mrow.usr{flex-direction:row-reverse}
-        .mav{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#0f0f1a 0%,#1a1040 50%,#200840 100%);border:1.5px solid rgba(139,92,246,.35);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+        .mav{width:28px;height:28px;border-radius:50%;background:#18181b;border:1.5px solid rgba(255,255,255,.13);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.4)}
         .mbub{max-width:80%;padding:10px 14px;font-size:.855rem;line-height:1.55;white-space:pre-wrap;}
         .mbub.bot{background:#18181b;border:1px solid rgba(255,255,255,.07);border-radius:16px;border-top-left-radius:4px;color:#f4f4f5}
         .mbub.usr{background:#f4f4f5;color:#09090b;font-weight:500;border-radius:16px;border-top-right-radius:4px}
