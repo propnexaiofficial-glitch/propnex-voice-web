@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     const systemPrompt = `${CHATBOT_RULEBOOK}\n\n${realTimeContext}`;
 
     // 3. Format messages for Gemini API
-    const geminiMessages = [];
+    let geminiMessages = [];
     for (const msg of messages) {
       geminiMessages.push({
         role: msg.role === "user" ? "user" : "model",
@@ -68,13 +68,31 @@ export async function POST(req: Request) {
       });
     }
 
+    // Gemini API STRICTLY requires the first message to be from the 'user'
+    // If the frontend sends the initial bot greeting first, we must strip it out.
+    while (geminiMessages.length > 0 && geminiMessages[0].role === "model") {
+      geminiMessages.shift();
+    }
+
+    // Gemini API STRICTLY requires alternating roles (user -> model -> user -> model)
+    // We must merge consecutive messages from the same role.
+    const mergedMessages = [];
+    for (const msg of geminiMessages) {
+      const lastMsg = mergedMessages[mergedMessages.length - 1];
+      if (lastMsg && lastMsg.role === msg.role) {
+        lastMsg.parts[0].text += "\n\n" + msg.parts[0].text;
+      } else {
+        mergedMessages.push(msg);
+      }
+    }
+    
     // Insert System Prompt into the payload for Gemini 1.5/2.5 API
     const payload = {
       systemInstruction: {
         role: "user",
         parts: [{ text: systemPrompt }]
       },
-      contents: geminiMessages,
+      contents: mergedMessages,
       generationConfig: {
         temperature: 0.7,
         maxOutputTokens: 1000,
@@ -83,7 +101,7 @@ export async function POST(req: Request) {
 
     // 4. Rotate Gemini API Key
     const apiKey = getNextGeminiKey();
-    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`;
+    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse&key=${apiKey}`;
 
     // 5. Call Gemini API
     const response = await fetch(GEMINI_API_URL, {
