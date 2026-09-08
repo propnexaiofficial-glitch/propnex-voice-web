@@ -91,9 +91,8 @@ export async function POST(req: Request) {
           }) as any,
         ]);
 
-        const allCompanyIds = [companyId, ...subcompanies.map((s: any) => s.id)];
-        const allCallLogs = await prisma.callLog.findMany({
-          where: { companyId: { in: allCompanyIds } },
+        const callLogs = await prisma.callLog.findMany({
+          where: { companyId },
           select: { 
             direction: true, 
             status: true, 
@@ -101,14 +100,16 @@ export async function POST(req: Request) {
             cost: true,
             creditsUsed: true,
             startedAt: true,
-            companyId: true,
-            lead: { select: { phone: true, firstName: true, lastName: true } },
-            phoneNumber: { select: { number: true } }
+            phoneNumberId: true,
+            lead: { select: { phone: true, firstName: true, lastName: true } }
           }
         });
 
-        // The "main" callLogs for the parent company context
-        const callLogs = allCallLogs.filter((c: any) => c.companyId === companyId);
+        const subCompanyIds = subcompanies.map((s: any) => s.id);
+        const subCallLogs = subCompanyIds.length > 0 ? await prisma.callLog.findMany({
+          where: { companyId: { in: subCompanyIds } },
+          select: { companyId: true, direction: true, phoneNumberId: true }
+        }) : [];
 
         if (company) {
           const inboundCalls  = callLogs.filter((c: any) => c.direction === "INBOUND");
@@ -163,7 +164,7 @@ Unassigned Agents (${unassignedAgents.length}): ${unassignedAgents.map((a: any) 
 
           const numbersInfo = company.phoneNumbers.length > 0
             ? company.phoneNumbers.map((p: any) => {
-                const pCalls = callLogs.filter((c: any) => c.phoneNumber?.number === p.number);
+                const pCalls = callLogs.filter((c: any) => c.phoneNumberId === p.id);
                 const pIn = pCalls.filter((c: any) => c.direction === "INBOUND").length;
                 const pOut = pCalls.filter((c: any) => c.direction === "OUTBOUND").length;
                 return `Number: ${p.number} | Label: ${p.label || "Unlabeled"} | Direction: ${p.direction || "Both"} | Channels: ${p.channels ?? "N/A"} | Provider: ${p.provider} | Total Inbound Calls: ${pIn} | Total Outbound Calls: ${pOut}`;
@@ -178,12 +179,12 @@ Unassigned Agents (${unassignedAgents.length}): ${unassignedAgents.map((a: any) 
 
           const subInfo = subcompanies.length > 0
             ? subcompanies.map((s: any) => {
-                const sLogs = allCallLogs.filter((c: any) => c.companyId === s.id);
+                const sLogs = subCallLogs.filter((c: any) => c.companyId === s.id);
                 const sInbound = sLogs.filter((c: any) => c.direction === "INBOUND").length;
                 const sOutbound = sLogs.filter((c: any) => c.direction === "OUTBOUND").length;
                 const phones = s.phoneNumbers?.length > 0
                   ? s.phoneNumbers.map((p: any) => {
-                      const pCalls = sLogs.filter((c: any) => c.phoneNumber?.number === p.number);
+                      const pCalls = sLogs.filter((c: any) => c.phoneNumberId === p.id);
                       const pIn = pCalls.filter((c: any) => c.direction === "INBOUND").length;
                       const pOut = pCalls.filter((c: any) => c.direction === "OUTBOUND").length;
                       return `  Number: ${p.number} | Direction: ${p.direction || "Both"} | Channels: ${p.channels ?? "N/A"} | Total Inbound Calls: ${pIn} | Total Outbound Calls: ${pOut}`;
