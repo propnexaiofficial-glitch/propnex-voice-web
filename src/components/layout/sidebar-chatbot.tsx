@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Send, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePathname } from "next/navigation";
+import { useUserContext } from "@/features/auth/context/user-context";
 
 type Message = {
   id: string;
@@ -32,6 +34,9 @@ export function SidebarChatbot() {
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [mounted, setMounted] = useState(false);
+  
+  const pathname = usePathname();
+  const { user } = useUserContext();
 
   useEffect(() => {
     setMounted(true);
@@ -78,26 +83,64 @@ export function SidebarChatbot() {
     }
   }, [messages, isTyping, isOpen]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const text = inputValue.trim();
-    if (!text) return;
+    if (!text || isTyping) return;
     
     // Add user message
     const userMsg: Message = { id: Date.now().toString(), text, type: "usr" };
-    setMessages((prev) => [...prev, userMsg]);
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
     setInputValue("");
     setIsTyping(true);
     
-    // Simulate bot response
-    setTimeout(() => {
+    // Add a placeholder bot message
+    const botMsgId = (Date.now() + 1).toString();
+    setMessages((prev) => [...prev, { id: botMsgId, text: "", type: "bot" }]);
+
+    try {
+      const companyId = user?.companyId || null;
+      
+      const response = await fetch("/api/chatbot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: newMessages.map(m => ({ role: m.type === "usr" ? "user" : "model", content: m.text })),
+          companyId
+        })
+      });
+
       setIsTyping(false);
-      const botMsg: Message = { 
-        id: (Date.now() + 1).toString(), 
-        text: "Coming soon 🤖 — Full AI responses are being integrated. Stay tuned!", 
-        type: "bot" 
-      };
-      setMessages((prev) => [...prev, botMsg]);
-    }, 1400 + Math.random() * 500);
+
+      if (!response.ok) throw new Error("Failed to fetch response");
+      if (!response.body) throw new Error("No response body");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value, { stream: true });
+        
+        setMessages(prev => prev.map(msg => {
+          if (msg.id === botMsgId) {
+            return { ...msg, text: msg.text + chunk };
+          }
+          return msg;
+        }));
+      }
+    } catch (error) {
+      console.error("Chat error:", error);
+      setIsTyping(false);
+      setMessages(prev => prev.map(msg => {
+        if (msg.id === botMsgId) {
+          return { ...msg, text: "Sorry, I encountered an error connecting to the server. Please try again." };
+        }
+        return msg;
+      }));
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -108,9 +151,33 @@ export function SidebarChatbot() {
   };
 
   const handleTagClick = (tag: string) => {
-    setInputValue(tag.replace(/^[^\w]*/, ''));
-    // Need a tiny delay to let state update before sending
-    setTimeout(() => handleSend(), 50);
+    setInputValue(tag);
+    // Focus the input to let the user see it or just send it immediately
+    setTimeout(() => {
+        const sendBtn = document.getElementById("chat-send-btn");
+        if (sendBtn) sendBtn.click();
+    }, 50);
+  };
+
+  const getTags = () => {
+    if (pathname.includes('/billing')) {
+      return ["💳 How do I add credits?", "📊 What is my balance?", "📋 View billing history", "🏦 Minimum recharge?"];
+    }
+    if (pathname.includes('/companies')) {
+      return ["🏢 Create a subcompany", "💰 Transfer credits", "📊 View subcompany stats", "👥 Subcompany limits"];
+    }
+    if (pathname.includes('/campaigns')) {
+      return ["🚀 Setup a new campaign", "📊 View campaign analytics", "⏸️ How to pause a campaign", "📞 What is lead reactivation?"];
+    }
+    if (pathname.includes('/agents')) {
+      return ["🤖 What agents are available?", "🛠️ How do I assign an agent?", "📞 Can I listen to recordings?", "🎙️ Create custom agent"];
+    }
+    if (pathname.includes('/settings')) {
+      return ["⚙️ How to change password?", "🔑 API Keys setup", "🔔 Notification preferences"];
+    }
+    
+    // Default dashboard tags
+    return ["🚀 Setup campaign", "🤖 Agent library", "📊 Analytics", "💳 Billing"];
   };
 
   return (
@@ -291,7 +358,7 @@ export function SidebarChatbot() {
             <div className="fab-glow"></div>
             <div className="fab-glow-mask"></div>
             <div className="fab-scan"></div>
-            <span className="fab-icon">🤖</span>
+            <img src="/Logo.png" alt="Logo" className="fab-icon w-8 h-8 object-contain" />
           </div>
           <span className="fab-hand">👋</span>
         </div>
@@ -320,7 +387,7 @@ export function SidebarChatbot() {
                 <div className="ch-av-wrap">
                   <div className="ch-av-ring2"></div>
                   <div className="ch-av-ring"></div>
-                  <div className="ch-av">🤖</div>
+                  <div className="ch-av"><img src="/Logo.png" alt="Logo" className="w-8 h-8 object-contain" /></div>
                 </div>
                 <div className="ch-info">
                   <h3>Propnex AI</h3>
@@ -329,10 +396,9 @@ export function SidebarChatbot() {
               </div>
               {messages.length <= 1 && (
                 <div className="ch-tags">
-                  <div className="ch-tag" onClick={() => handleTagClick("🚀 Setup campaign")}>🚀 Setup campaign</div>
-                  <div className="ch-tag" onClick={() => handleTagClick("🤖 Agent library")}>🤖 Agent library</div>
-                  <div className="ch-tag" onClick={() => handleTagClick("📊 Analytics")}>📊 Analytics</div>
-                  <div className="ch-tag" onClick={() => handleTagClick("💳 Billing")}>💳 Billing</div>
+                  {getTags().map(tag => (
+                    <div key={tag} className="ch-tag" onClick={() => handleTagClick(tag)}>{tag}</div>
+                  ))}
                 </div>
               )}
             </div>
@@ -340,13 +406,13 @@ export function SidebarChatbot() {
             <div className="ch-msgs">
               {messages.map((msg) => (
                 <div key={msg.id} className={cn("mrow", msg.type)}>
-                  {msg.type === "bot" && <div className="mav">🤖</div>}
+                  {msg.type === "bot" && <div className="mav"><img src="/Logo.png" alt="Logo" className="w-4 h-4 object-contain" /></div>}
                   <div className={cn("mbub", msg.type)}>{msg.text}</div>
                 </div>
               ))}
               
               <div className="type-row">
-                <div className="mav" style={{ flexShrink: 0, opacity: isTyping ? 1 : 0, transition: 'opacity 0.2s' }}>🤖</div>
+                <div className="mav" style={{ flexShrink: 0, opacity: isTyping ? 1 : 0, transition: 'opacity 0.2s' }}><img src="/Logo.png" alt="Logo" className="w-4 h-4 object-contain" /></div>
                 <div className={cn("type-bub", isTyping && "show")}>
                   <div className="td"></div><div className="td"></div><div className="td"></div>
                 </div>
@@ -368,7 +434,7 @@ export function SidebarChatbot() {
                   }}
                   onKeyDown={handleKeyDown}
                 />
-                <button className="ch-send" onClick={handleSend} disabled={isTyping || !inputValue.trim()}>
+                <button id="chat-send-btn" className="ch-send" onClick={handleSend} disabled={isTyping || !inputValue.trim()}>
                   <Send className="size-3.5 text-zinc-900" />
                 </button>
               </div>
