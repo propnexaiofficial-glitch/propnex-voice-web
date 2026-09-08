@@ -260,7 +260,7 @@ export default function CareersApplyPage({ jobId }) {
         image="https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=2000&q=80"
       />
 
-      <section className="relative mx-auto max-w-4xl px-5 pb-16 md:px-8 md:pb-20">
+      <section className="relative mx-auto max-w-6xl px-5 pb-16 md:px-8 md:pb-20">
         <SectionCard className="p-6 md:p-10">
           <form onSubmit={handleSubmit} className="space-y-6">
             
