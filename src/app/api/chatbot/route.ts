@@ -165,7 +165,7 @@ ${subInfo}`;
     }
 
     const apiKey = getNextGeminiKey();
-    const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:streamGenerateContent?alt=sse&key=${apiKey}`;
+    const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`;
 
     const payload = {
       systemInstruction: { role: "user", parts: [{ text: systemPrompt }] },
