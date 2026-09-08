@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -48,8 +48,8 @@ export function SidebarChatbot() {
         id: "1",
         type: "bot",
         text: name
-          ? `Hello ${name}! ðŸ‘‹ I'm your personal Propnex AI assistant.\n\nAsk me anything about your campaigns, agents, analytics, credits, or phone numbers.`
-          : `Hey there! ðŸ‘‹ I'm your Propnex AI assistant.\n\nAsk me anything about campaigns, agents, analytics, or your dashboard.`
+          ? `Hello ${name}! 👋 I'm Task Desk, your smart assistant for the Propnex platform.\n\nAsk me anything about your campaigns, agents, analytics, credits, or phone numbers.`
+          : `Hey there! 👋 I'm Task Desk, your smart assistant for the Propnex platform.\n\nAsk me anything about campaigns, agents, analytics, or your dashboard.`
       }]);
     }
   }, [user]);
@@ -448,7 +448,7 @@ export function SidebarChatbot() {
                 <textarea 
                   className="ch-ta" 
                   rows={1} 
-                  placeholder="Message your assistantâ€¦" 
+                  placeholder="Message Task Desk..." 
                   value={inputValue}
                   onChange={(e) => {
                     setInputValue(e.target.value);
