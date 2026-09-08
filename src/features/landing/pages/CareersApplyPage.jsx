@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import PageShell, { PageHero, SectionCard } from '../components/PageShell'
-import { UploadCloud, CheckCircle, Loader2, X } from 'lucide-react'
+import { UploadCloud, CheckCircle, Loader2, X, AlertCircle } from 'lucide-react'
 import { countryCodes, allCountries } from '../data/countries'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import ReCAPTCHA from 'react-google-recaptcha'
@@ -70,6 +70,7 @@ export default function CareersApplyPage({ jobId }) {
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [captchaToken, setCaptchaToken] = useState(null)
+  const [errorModal, setErrorModal] = useState(null)
   
   // Modal State
   const [modalType, setModalType] = useState(null) // 'terms' or 'privacy'
@@ -81,7 +82,7 @@ export default function CareersApplyPage({ jobId }) {
 
   // Lock body scroll when modal is open
   useEffect(() => {
-    if (modalType) {
+    if (modalType || errorModal) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = 'unset'
@@ -89,7 +90,7 @@ export default function CareersApplyPage({ jobId }) {
     return () => {
       document.body.style.overflow = 'unset'
     }
-  }, [modalType])
+  }, [modalType, errorModal])
 
   const validateField = (name, value, currentFormData = formData) => {
     let error = ''
@@ -223,7 +224,7 @@ export default function CareersApplyPage({ jobId }) {
       
     } catch (err) {
       console.error(err)
-      alert(err.message || "An unexpected error occurred. Please try again.")
+      setErrorModal(err.message || "An unexpected error occurred. Please try again.")
     } finally {
       setSubmitting(false)
     }
@@ -538,6 +539,26 @@ export default function CareersApplyPage({ jobId }) {
           </form>
         </SectionCard>
       </section>
+
+      {/* ERROR MODAL */}
+      {errorModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-sm rounded-2xl bg-[#0f0f13] border border-red-500/20 p-6 shadow-2xl animate-in zoom-in-95 duration-200 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10 mb-4">
+              <AlertCircle className="h-6 w-6 text-red-500" />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">Submission Failed</h3>
+            <p className="text-white/70 mb-6">{errorModal}</p>
+            <button 
+              onClick={() => setErrorModal(null)} 
+              type="button"
+              className="w-full rounded-full bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* MODAL OVERLAY */}
       {modalType && (
