@@ -16,10 +16,10 @@ type Message = {
 const INITIAL_MESSAGES: Message[] = [];
 
 const BUBBLE_MESSAGES = [
-  '👋 Need any help?',
-  '🚀 Start a campaign',
-  '🤖 Explore agents',
-  '🤖 I\'m here!'
+  'ðŸ‘‹ Need any help?',
+  'ðŸš€ Start a campaign',
+  'ðŸ¤– Explore agents',
+  'ðŸ¤– I\'m here!'
 ];
 
 export function SidebarChatbot() {
@@ -48,8 +48,8 @@ export function SidebarChatbot() {
         id: "1",
         type: "bot",
         text: name
-          ? `Hello ${name}! 👋 I'm your personal Propnex AI assistant.\n\nAsk me anything about your campaigns, agents, analytics, credits, or phone numbers.`
-          : `Hey there! 👋 I'm your Propnex AI assistant.\n\nAsk me anything about campaigns, agents, analytics, or your dashboard.`
+          ? `Hello ${name}! ðŸ‘‹ I'm your personal Propnex AI assistant.\n\nAsk me anything about your campaigns, agents, analytics, credits, or phone numbers.`
+          : `Hey there! ðŸ‘‹ I'm your Propnex AI assistant.\n\nAsk me anything about campaigns, agents, analytics, or your dashboard.`
       }]);
     }
   }, [user]);
@@ -181,29 +181,29 @@ export function SidebarChatbot() {
 
   const getTags = () => {
     if (pathname.includes('/billing')) {
-      return ["💳 How do I add credits?", "📊 What is my balance?", "📋 View billing history", "🏦 Minimum recharge?"];
+      return ["ðŸ’³ How do I add credits?", "ðŸ“Š What is my balance?", "ðŸ“‹ View billing history", "ðŸ¦ Minimum recharge?"];
     }
     if (pathname.includes('/companies')) {
-      return ["🏢 Create a subcompany", "💰 Transfer credits", "📊 View subcompany stats", "👥 Subcompany limits"];
+      return ["ðŸ¢ Create a subcompany", "ðŸ’° Transfer credits", "ðŸ“Š View subcompany stats", "ðŸ‘¥ Subcompany limits"];
     }
     if (pathname.includes('/campaigns')) {
-      return ["🚀 Setup a new campaign", "📊 View campaign analytics", "⏸️ How to pause a campaign", "📞 What is lead reactivation?"];
+      return ["ðŸš€ Setup a new campaign", "ðŸ“Š View campaign analytics", "â¸ï¸ How to pause a campaign", "ðŸ“ž What is lead reactivation?"];
     }
     if (pathname.includes('/agents')) {
-      return ["🤖 What agents are available?", "🛠️ How do I assign an agent?", "📞 Can I listen to recordings?", "🎙️ Create custom agent"];
+      return ["ðŸ¤– What agents are available?", "ðŸ› ï¸ How do I assign an agent?", "ðŸ“ž Can I listen to recordings?", "ðŸŽ™ï¸ Create custom agent"];
     }
     if (pathname.includes('/settings')) {
-      return ["⚙️ How to change password?", "🔑 API Keys setup", "🔔 Notification preferences"];
+      return ["âš™ï¸ How to change password?", "ðŸ”‘ API Keys setup", "ðŸ”” Notification preferences"];
     }
     
     // Default dashboard tags
-    return ["🚀 Setup campaign", "🤖 Agent library", "📊 Analytics", "💳 Billing"];
+    return ["ðŸš€ Setup campaign", "ðŸ¤– Agent library", "ðŸ“Š Analytics", "ðŸ’³ Billing"];
   };
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
-        /* ═══ ROUND FAB WIDGET ═══ */
+        /* â•â•â• ROUND FAB WIDGET â•â•â• */
         .fab-wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:0;margin-bottom:24px;margin-top:12px}
         .fab-bubble{
           position:absolute;bottom:calc(100% + 16px);left:50%;transform:translateX(-50%) translateY(6px) scale(.92);
@@ -265,11 +265,11 @@ export function SidebarChatbot() {
         .fab-dot{width:5px;height:5px;background:#4ade80;border-radius:50%;animation:dot-blink 2s ease-in-out infinite}
         @keyframes dot-blink{0%,100%{opacity:1}50%{opacity:.3}}
         
-        /* ═══ BACKDROP ═══ */
+        /* â•â•â• BACKDROP â•â•â• */
         .chat-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);z-index:99998;opacity:0;pointer-events:none;transition:opacity .4s}
         .chat-backdrop.show{opacity:1;pointer-events:all}
         
-        /* ═══ CHAT PANEL ═══ */
+        /* â•â•â• CHAT PANEL â•â•â• */
         .chat-window{
           position:fixed;
           bottom:32px;left:var(--sidebar-width, 280px);
@@ -313,11 +313,11 @@ export function SidebarChatbot() {
         .ch-av-wrap{position:relative;flex-shrink:0}
         .ch-av{
           width:52px;height:52px;border-radius:50%;
-          background:#ffffff;
-          border:2px solid rgba(99,102,241,.35);
+          background:linear-gradient(135deg,#0f0f1a 0%,#1a1040 50%,#200840 100%);
+          border:1.5px solid rgba(139,92,246,.4);
           display:flex;align-items:center;justify-content:center;
           overflow:hidden;
-          box-shadow:0 0 0 3px rgba(99,102,241,.08),0 8px 24px rgba(0,0,0,.5);
+          box-shadow:0 0 0 3px rgba(139,92,246,.08),0 8px 24px rgba(0,0,0,.6);
           animation:ch-av-float 5s ease-in-out infinite;
         }
         @keyframes ch-av-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
@@ -344,7 +344,7 @@ export function SidebarChatbot() {
         .mrow{display:flex;gap:9px;animation:min .4s cubic-bezier(.16,1,.3,1) both}
         @keyframes min{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
         .mrow.usr{flex-direction:row-reverse}
-        .mav{width:28px;height:28px;border-radius:50%;background:#ffffff;border:1.5px solid rgba(99,102,241,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+        .mav{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#0f0f1a 0%,#1a1040 50%,#200840 100%);border:1.5px solid rgba(139,92,246,.35);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.4)}
         .mbub{max-width:80%;padding:10px 14px;font-size:.855rem;line-height:1.55;white-space:pre-wrap;}
         .mbub.bot{background:#18181b;border:1px solid rgba(255,255,255,.07);border-radius:16px;border-top-left-radius:4px;color:#f4f4f5}
         .mbub.usr{background:#f4f4f5;color:#09090b;font-weight:500;border-radius:16px;border-top-right-radius:4px}
@@ -380,11 +380,11 @@ export function SidebarChatbot() {
             <div className="fab-glow"></div>
             <div className="fab-glow-mask"></div>
             <div className="fab-scan"></div>
-            <img src="/Logo.png" alt="Logo" className="fab-icon w-8 h-8 object-contain" />
+            <img src="/Logo-Chatbot.png" alt="Logo" className="fab-icon w-8 h-8 object-contain" />
           </div>
-          <span className="fab-hand">👋</span>
+          <span className="fab-hand">ðŸ‘‹</span>
         </div>
-        <div className="fab-label"><div className="fab-dot"></div>Personal Assistant</div>
+        <div className="fab-label"><div className="fab-dot"></div>Task Desk</div>
       </div>
 
       {mounted && createPortal(
@@ -409,10 +409,10 @@ export function SidebarChatbot() {
                 <div className="ch-av-wrap">
                   <div className="ch-av-ring2"></div>
                   <div className="ch-av-ring"></div>
-                  <div className="ch-av"><img src="/Logo.png" alt="Logo" style={{width:'34px',height:'34px',objectFit:'contain',objectPosition:'center',display:'block'}} /></div>
+                  <div className="ch-av"><img src="/Logo-Chatbot.png" alt="Logo" style={{width:'34px',height:'34px',objectFit:'contain',objectPosition:'center',display:'block'}} /></div>
                 </div>
                 <div className="ch-info">
-                  <h3>Personal Assistant</h3>
+                  <h3>Task Desk</h3>
                   <div className="ch-status"><div className="ch-dot"></div>Online & active</div>
                 </div>
               </div>
@@ -428,13 +428,13 @@ export function SidebarChatbot() {
             <div className="ch-msgs">
               {messages.map((msg) => (
                 <div key={msg.id} className={cn("mrow", msg.type)}>
-                  {msg.type === "bot" && <div className="mav"><img src="/Logo.png" alt="Logo" style={{width:'18px',height:'18px',objectFit:'cover',borderRadius:'50%',display:'block'}} /></div>}
+                  {msg.type === "bot" && <div className="mav"><img src="/Logo-Chatbot.png" alt="Logo" style={{width:'18px',height:'18px',objectFit:'cover',borderRadius:'50%',display:'block'}} /></div>}
                   <div className={cn("mbub", msg.type)}>{msg.text.replace(/\*\*/g, '')}</div>
                 </div>
               ))}
               
               <div className="type-row">
-                <div className="mav" style={{ flexShrink: 0, opacity: isTyping ? 1 : 0, transition: 'opacity 0.2s' }}><img src="/Logo.png" alt="Logo" style={{width:'18px',height:'18px',objectFit:'cover',borderRadius:'50%',display:'block'}} /></div>
+                <div className="mav" style={{ flexShrink: 0, opacity: isTyping ? 1 : 0, transition: 'opacity 0.2s' }}><img src="/Logo-Chatbot.png" alt="Logo" style={{width:'18px',height:'18px',objectFit:'cover',borderRadius:'50%',display:'block'}} /></div>
                 <div className={cn("type-bub", isTyping && "show")}>
                   <div className="td"></div><div className="td"></div><div className="td"></div>
                 </div>
@@ -447,7 +447,7 @@ export function SidebarChatbot() {
                 <textarea 
                   className="ch-ta" 
                   rows={1} 
-                  placeholder="Message your assistant…" 
+                  placeholder="Message your assistantâ€¦" 
                   value={inputValue}
                   onChange={(e) => {
                     setInputValue(e.target.value);
@@ -460,7 +460,7 @@ export function SidebarChatbot() {
                   <Send className="size-3.5 text-zinc-900" />
                 </button>
               </div>
-              <div className="ch-hint">Personal Assistant · Online & active</div>
+              <div className="ch-hint">Task Desk · Online &amp; active</div>
             </div>
           </div>
         </>,

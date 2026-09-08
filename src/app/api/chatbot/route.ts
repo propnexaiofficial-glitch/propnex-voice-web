@@ -5,6 +5,25 @@ import { CHATBOT_RULEBOOK } from "@/lib/rulebook";
 
 export const dynamic = "force-dynamic";
 
+// ── In-memory cache for company context (avoids DB hit on every message) ──
+const contextCache = new Map<string, { context: string; ts: number }>();
+const CACHE_TTL_MS = 30_000; // 30 seconds
+
+function getCachedContext(companyId: string): string | null {
+  const hit = contextCache.get(companyId);
+  if (hit && Date.now() - hit.ts < CACHE_TTL_MS) return hit.context;
+  return null;
+}
+function setCachedContext(companyId: string, context: string) {
+  contextCache.set(companyId, { context, ts: Date.now() });
+}
+
+const toMinSec = (secs: number) => {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return m > 0 ? `${m} min ${s} sec` : `${s} sec`;
+};
+
 export async function POST(req: Request) {
   try {
     const { messages, companyId, firstName } = await req.json();
@@ -15,200 +34,194 @@ export async function POST(req: Request) {
 
     const userName = firstName || "there";
 
-    const systemRules = `
-SYSTEM RULES (apply to every single response without exception):
-1. Always address the user by their first name "${userName}" naturally in responses.
-2. NEVER use markdown formatting. No asterisks (**), no hashes (#), no underscores (_). Plain text only.
-3. Keep answers short and to the point. 2-5 sentences max unless listing data.
-4. You are the user's Personal Assistant for the Propnex platform — smart, concise, and always helpful.
-5. When user asks about data available in the context, provide exact numbers. Never say "I don't know" if context has the answer.
-`;
+    const systemRules = `SYSTEM RULES (every response, no exceptions):
+1. Address the user as "${userName}".
+2. NEVER use markdown: no **, no #, no _, no bullet dashes. Plain text only.
+3. Be concise. Complete sentences. Never cut off mid-answer.
+4. You are Task Desk — the smart personal assistant for the Propnex platform.
+5. Use exact numbers from context. Never say "I don't know" if data is available.
+6. For phone numbers always show: Number: +XXXXXXXXXXX, Direction: Inbound/Outbound, Channels: N.
+7. For durations always use "X min Y sec" format.`;
 
-    let realTimeContext = `${systemRules}\n\nUser: ${userName}\nCompany Data: Not connected.`;
+    // ── Try cache first, then DB ──
+    let realTimeContext = `${systemRules}\n\nUser: ${userName}\nCompany: Not connected.`;
 
     if (companyId) {
-      // Run all queries in parallel for maximum speed
-      const [company, callLogs, subcompanies] = await Promise.all([
-        prisma.company.findUnique({
-          where: { id: companyId },
-          include: {
-            creditBalance: true,
-            phoneNumbers: true,
-            outboundCampaigns: true,
-            setupConfig: true,
-          }
-        }) as any,
-        prisma.callLog.findMany({
-          where: { companyId },
-          select: { direction: true, status: true, durationSeconds: true }
-        }),
-        prisma.company.findMany({
-          where: { parentCompanyId: companyId },
-          include: {
-            creditBalance: true,
-            phoneNumbers: true,
-          }
-        }) as any,
-      ]);
+      const cached = getCachedContext(companyId);
 
-      if (company) {
-        const inboundCalls = callLogs.filter(c => c.direction === "INBOUND");
-        const outboundCalls = callLogs.filter(c => c.direction === "OUTBOUND");
-        const failedCalls = callLogs.filter(c => c.status === "FAILED");
-        const inboundFailed = inboundCalls.filter(c => c.status === "FAILED").length;
-        const outboundFailed = outboundCalls.filter(c => c.status === "FAILED").length;
-        const avgDuration = callLogs.length > 0
-          ? Math.round(callLogs.reduce((sum, c) => sum + (c.durationSeconds || 0), 0) / callLogs.length)
-          : 0;
+      if (cached) {
+        realTimeContext = `${systemRules}\n\n${cached}`;
+      } else {
+        const [company, callLogs, subcompanies] = await Promise.all([
+          prisma.company.findUnique({
+            where: { id: companyId },
+            include: {
+              creditBalance: true,
+              phoneNumbers: true,
+              outboundCampaigns: true,
+              setupConfig: true,
+            }
+          }) as any,
+          prisma.callLog.findMany({
+            where: { companyId },
+            select: { direction: true, status: true, durationSeconds: true }
+          }),
+          prisma.company.findMany({
+            where: { parentCompanyId: companyId },
+            include: { creditBalance: true, phoneNumbers: true }
+          }) as any,
+        ]);
 
-        // Helper: convert seconds to "X min Y sec"
-        const toMinSec = (secs: number) => {
-          const m = Math.floor(secs / 60);
-          const s = secs % 60;
-          return m > 0 ? `${m} min ${s} sec` : `${s} sec`;
-        };
+        if (company) {
+          const inboundCalls  = callLogs.filter((c: any) => c.direction === "INBOUND");
+          const outboundCalls = callLogs.filter((c: any) => c.direction === "OUTBOUND");
+          const failedCalls   = callLogs.filter((c: any) => c.status   === "FAILED");
 
-        const maxInboundSec = inboundCalls.length > 0 ? Math.max(...inboundCalls.map(c => c.durationSeconds || 0)) : 0;
-        const maxOutboundSec = outboundCalls.length > 0 ? Math.max(...outboundCalls.map(c => c.durationSeconds || 0)) : 0;
-        const maxOverallSec = callLogs.length > 0 ? Math.max(...callLogs.map(c => c.durationSeconds || 0)) : 0;
+          const maxInbound  = inboundCalls.length  > 0 ? Math.max(...inboundCalls.map((c: any)  => c.durationSeconds || 0)) : 0;
+          const maxOutbound = outboundCalls.length > 0 ? Math.max(...outboundCalls.map((c: any) => c.durationSeconds || 0)) : 0;
+          const maxOverall  = callLogs.length      > 0 ? Math.max(...callLogs.map((c: any)      => c.durationSeconds || 0)) : 0;
+          const avgSec      = callLogs.length      > 0
+            ? Math.round(callLogs.reduce((sum: number, c: any) => sum + (c.durationSeconds || 0), 0) / callLogs.length) : 0;
 
-        const phoneNumbersInfo = company.phoneNumbers.length > 0
-          ? company.phoneNumbers.map((p: any) =>
-              `Inbound/Outbound Number: ${p.number} | Label: ${p.label || "Unlabeled"} | Direction: ${p.direction || "Both"} | Channels: ${p.channels ?? "N/A"} | Provider: ${p.provider}`
-            ).join("\n")
-          : "None configured";
+          const numbersInfo = company.phoneNumbers.length > 0
+            ? company.phoneNumbers.map((p: any) =>
+                `Number: ${p.number} | Label: ${p.label || "Unlabeled"} | Direction: ${p.direction || "Both"} | Channels: ${p.channels ?? "N/A"} | Provider: ${p.provider}`
+              ).join("\n")
+            : "None configured";
 
-        const campaignInfo = company.outboundCampaigns.length > 0
-          ? company.outboundCampaigns.map((c: any) =>
-              `  - ${c.name} [${c.status}] | Total Calls: ${c.totalCalls} | Connected: ${c.connectedCalls} | Conversion: ${(c.conversionRate * 100).toFixed(1)}%`
-            ).join("\n")
-          : "  None";
+          const campaignInfo = company.outboundCampaigns.length > 0
+            ? company.outboundCampaigns.map((c: any) =>
+                `Campaign: ${c.name} | Status: ${c.status} | Total Calls: ${c.totalCalls} | Connected: ${c.connectedCalls} | Conversion: ${(c.conversionRate * 100).toFixed(1)}%`
+              ).join("\n")
+            : "None";
 
-        const subcompanyInfo = subcompanies.length > 0
-          ? subcompanies.map((s: any) => {
-              const subPhones = s.phoneNumbers && s.phoneNumbers.length > 0
-                ? s.phoneNumbers.map((p: any) =>
-                    `    * ${p.number} (${p.label || "Unlabeled"}) [${p.direction || "N/A"}] Channels: ${p.channels ?? "N/A"}`
-                  ).join("\n")
-                : "    * No phone numbers";
-              return `  - ${s.name} [${s.status}] | Credits Remaining: ${(s.creditBalance as any)?.creditsRemaining?.toFixed(2) ?? 0} | Credits Used: ${(s.creditBalance as any)?.creditsUsed?.toFixed(2) ?? 0}\n${subPhones}`;
-            }).join("\n")
-          : "  None";
+          const subInfo = subcompanies.length > 0
+            ? subcompanies.map((s: any) => {
+                const phones = s.phoneNumbers?.length > 0
+                  ? s.phoneNumbers.map((p: any) =>
+                      `  Number: ${p.number} | Direction: ${p.direction || "Both"} | Channels: ${p.channels ?? "N/A"}`
+                    ).join("\n")
+                  : "  No phone numbers";
+                return `Subcompany: ${s.name} | Status: ${s.status} | Credits Remaining: ${s.creditBalance?.creditsRemaining?.toFixed(2) ?? 0} | Credits Used: ${s.creditBalance?.creditsUsed?.toFixed(2) ?? 0}\n${phones}`;
+              }).join("\n\n")
+            : "None";
 
-        realTimeContext = `
-${systemRules}
+          const freshContext = `LIVE DATA — ${company.name}:
 
-LIVE ACCOUNT DATA for ${userName} at ${company.name}:
-
-[CREDITS & BILLING]
+CREDITS:
 Credits Remaining: ${company.creditBalance?.creditsRemaining?.toFixed(2) ?? 0}
 Credits Used: ${company.creditBalance?.creditsUsed?.toFixed(2) ?? 0}
 Total Channels: ${company.setupConfig?.totalChannels ?? 0}
 Service Number: ${company.setupConfig?.serviceNumber ?? "Not configured"}
 
-[CALL STATISTICS]
+CALL STATS:
 Total Inbound Calls: ${inboundCalls.length}
 Total Outbound Calls: ${outboundCalls.length}
-Failed Inbound Calls: ${inboundFailed}
-Failed Outbound Calls: ${outboundFailed}
+Failed Inbound Calls: ${callLogs.filter((c: any) => c.direction === "INBOUND" && c.status === "FAILED").length}
+Failed Outbound Calls: ${callLogs.filter((c: any) => c.direction === "OUTBOUND" && c.status === "FAILED").length}
 Total Failed Calls: ${failedCalls.length}
-Average Call Duration: ${toMinSec(avgDuration)}
-Highest Inbound Call Duration: ${toMinSec(maxInboundSec)}
-Highest Outbound Call Duration: ${toMinSec(maxOutboundSec)}
-Highest Overall Call Duration: ${toMinSec(maxOverallSec)}
+Average Duration: ${toMinSec(avgSec)}
+Highest Inbound Duration: ${toMinSec(maxInbound)}
+Highest Outbound Duration: ${toMinSec(maxOutbound)}
+Highest Overall Duration: ${toMinSec(maxOverall)}
 
-[PHONE NUMBERS (${company.phoneNumbers.length} total)]
-${phoneNumbersInfo}
+PHONE NUMBERS (${company.phoneNumbers.length}):
+${numbersInfo}
 
-[OUTBOUND CAMPAIGNS (${company.outboundCampaigns.length} total)]
+CAMPAIGNS (${company.outboundCampaigns.length}):
 ${campaignInfo}
 
-[SUBCOMPANIES (${subcompanies.length} total)]
-${subcompanyInfo}
-`;
+SUBCOMPANIES (${subcompanies.length}):
+${subInfo}`;
+
+          setCachedContext(companyId, freshContext);
+          realTimeContext = `${systemRules}\n\n${freshContext}`;
+        }
       }
     }
 
+    // ── Build Gemini payload ──
     const systemPrompt = `${CHATBOT_RULEBOOK}\n\n${realTimeContext}`;
 
-    let geminiMessages: { role: string; parts: { text: string }[] }[] = [];
-    for (const msg of messages) {
-      geminiMessages.push({
-        role: msg.role === "user" ? "user" : "model",
-        parts: [{ text: msg.content }]
-      });
-    }
+    let geminiMessages: { role: string; parts: { text: string }[] }[] = messages.map((m: any) => ({
+      role: m.role === "user" ? "user" : "model",
+      parts: [{ text: m.content }]
+    }));
 
-    // Gemini requires first message from 'user'
+    // Strip leading model messages (Gemini requires first = user)
     while (geminiMessages.length > 0 && geminiMessages[0].role === "model") {
       geminiMessages.shift();
     }
 
     // Merge consecutive same-role messages
-    const mergedMessages: { role: string; parts: { text: string }[] }[] = [];
+    const merged: { role: string; parts: { text: string }[] }[] = [];
     for (const msg of geminiMessages) {
-      const lastMsg = mergedMessages[mergedMessages.length - 1];
-      if (lastMsg && lastMsg.role === msg.role) {
-        lastMsg.parts[0].text += "\n\n" + msg.parts[0].text;
+      const last = merged[merged.length - 1];
+      if (last && last.role === msg.role) {
+        last.parts[0].text += "\n" + msg.parts[0].text;
       } else {
-        mergedMessages.push({ ...msg });
+        merged.push({ ...msg, parts: [{ text: msg.parts[0].text }] });
       }
     }
 
     const apiKey = getNextGeminiKey();
-    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse&key=${apiKey}`;
+    const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${apiKey}`;
 
     const payload = {
-      systemInstruction: {
-        role: "user",
-        parts: [{ text: systemPrompt }]
-      },
-      contents: mergedMessages,
+      systemInstruction: { role: "user", parts: [{ text: systemPrompt }] },
+      contents: merged,
       generationConfig: {
-        temperature: 0.25,
-        maxOutputTokens: 1200,
+        temperature: 0.2,       // Lower = faster + more factual
+        maxOutputTokens: 1024,  // Enough for full answers, not wasteful
+        candidateCount: 1,
       }
     };
 
-    const response = await fetch(GEMINI_API_URL, {
+    const geminiRes = await fetch(GEMINI_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Gemini API Error:", errorText);
-      return NextResponse.json({ error: "Failed to generate response from AI" }, { status: 500 });
+    if (!geminiRes.ok) {
+      const err = await geminiRes.text();
+      console.error("Gemini API Error:", err);
+      return NextResponse.json({ error: "AI service unavailable" }, { status: 500 });
     }
 
+    // ── Stream response directly, stripping markdown on-the-fly ──
     const stream = new ReadableStream({
       async start(controller) {
-        const reader = response.body?.getReader();
+        const reader = geminiRes.body?.getReader();
         if (!reader) { controller.close(); return; }
 
-        const decoder = new TextDecoder();
+        const dec = new TextDecoder();
+        let buf = "";
+
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split("\n");
+          buf += dec.decode(value, { stream: true });
+          const lines = buf.split("\n");
+          buf = lines.pop() ?? ""; // Keep incomplete line in buffer
 
           for (const line of lines) {
-            if (line.startsWith("data: ")) {
-              const dataStr = line.slice(6).trim();
-              if (dataStr === "[DONE]") { controller.close(); return; }
-              try {
-                const data = JSON.parse(dataStr);
-                const textChunk = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (textChunk) {
-                  // Strip any markdown the model might still produce
-                  const clean = textChunk.replace(/\*\*/g, "").replace(/^#+\s/gm, "").replace(/\*([^*]+)\*/g, "$1");
-                  controller.enqueue(new TextEncoder().encode(clean));
-                }
-              } catch (_) { /* ignore partial chunks */ }
-            }
+            if (!line.startsWith("data: ")) continue;
+            const raw = line.slice(6).trim();
+            if (raw === "[DONE]") { controller.close(); return; }
+            try {
+              const parsed = JSON.parse(raw);
+              const chunk = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (chunk) {
+                const clean = chunk
+                  .replace(/\*\*/g, "")
+                  .replace(/^#+\s*/gm, "")
+                  .replace(/\*([^*]+)\*/g, "$1")
+                  .replace(/_{2}([^_]+)_{2}/g, "$1");
+                controller.enqueue(new TextEncoder().encode(clean));
+              }
+            } catch (_) { /* partial JSON — skip */ }
           }
         }
         controller.close();
@@ -219,6 +232,8 @@ ${subcompanyInfo}
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
         "Transfer-Encoding": "chunked",
+        "Cache-Control": "no-store",
+        "X-Accel-Buffering": "no",  // Disable nginx buffering for instant streaming
       },
     });
 
