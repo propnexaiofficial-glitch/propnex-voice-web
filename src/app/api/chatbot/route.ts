@@ -35,9 +35,9 @@ export async function POST(req: Request) {
     const userName = firstName || "there";
 
     const systemRules = `SYSTEM RULES (every response, no exceptions):
-1. Address the user by name ("${userName}") in a natural, conversational way. Do NOT mechanically start every single response with "Hello ${userName}". Vary your greetings and tone to sound more human-like.
+1. Address the user naturally like "Yes ${userName}", "Of course ${userName}", or "Here is the information, ${userName}". Do NOT use "Hello ${userName}" or "Hey ${userName}".
 2. NEVER use markdown: no **, no #, no _, no bullet dashes. Plain text only.
-3. Be concise. Complete sentences. Never cut off mid-answer.
+3. Be HIGHLY CONCISE. ONLY answer the exact question asked. Do not add unsolicited extra information.
 4. You are Task Desk — the smart personal assistant for the Propnex platform.
 5. Use exact numbers from context. Never say "I don't know" if data is available.
 6. For phone numbers always show: Number: +XXXXXXXXXXX, Direction: Inbound/Outbound, Channels: N.
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
       if (cached) {
         realTimeContext = `${systemRules}\n\n${cached}`;
       } else {
-        const [company, callLogs, subcompanies, billingQuotes, creditUsages, agents, campaigns, campaignExecutions] = await Promise.all([
+        const [company, subcompanies, billingQuotes, creditUsages, agents, campaigns, campaignExecutions] = await Promise.all([
           prisma.company.findUnique({
             where: { id: companyId },
             include: {
@@ -66,19 +66,6 @@ export async function POST(req: Request) {
               setupConfig: true,
             }
           }) as any,
-          prisma.callLog.findMany({
-            where: { companyId },
-            select: { 
-              direction: true, 
-              status: true, 
-              durationSeconds: true,
-              cost: true,
-              creditsUsed: true,
-              startedAt: true,
-              lead: { select: { phone: true, firstName: true, lastName: true } },
-              phoneNumber: { select: { number: true } }
-            }
-          }),
           prisma.company.findMany({
             where: { parentCompanyId: companyId },
             include: { creditBalance: true, phoneNumbers: true }
@@ -103,6 +90,25 @@ export async function POST(req: Request) {
             where: { companyId }
           }) as any,
         ]);
+
+        const allCompanyIds = [companyId, ...subcompanies.map((s: any) => s.id)];
+        const allCallLogs = await prisma.callLog.findMany({
+          where: { companyId: { in: allCompanyIds } },
+          select: { 
+            direction: true, 
+            status: true, 
+            durationSeconds: true,
+            cost: true,
+            creditsUsed: true,
+            startedAt: true,
+            companyId: true,
+            lead: { select: { phone: true, firstName: true, lastName: true } },
+            phoneNumber: { select: { number: true } }
+          }
+        });
+
+        // The "main" callLogs for the parent company context
+        const callLogs = allCallLogs.filter((c: any) => c.companyId === companyId);
 
         if (company) {
           const inboundCalls  = callLogs.filter((c: any) => c.direction === "INBOUND");
@@ -134,7 +140,7 @@ Unassigned Agents (${unassignedAgents.length}): ${unassignedAgents.map((a: any) 
           
           const campaignsInfo = campaigns.length > 0 
             ? campaigns.map((camp: any) => {
-                const exec = campaignExecutions.find((e: any) => e.campaignId === camp.id);
+                const exec = (campaignExecutions || []).find((e: any) => e.campaignId === camp.id);
                 const csvName = camp.uploadedFileName || "No CSV File";
                 const total = exec?.totalContacts || 0;
                 const processed = exec?.processedCount || 0;
@@ -156,9 +162,12 @@ Unassigned Agents (${unassignedAgents.length}): ${unassignedAgents.map((a: any) 
             ? Math.round(callLogs.reduce((sum: number, c: any) => sum + (c.durationSeconds || 0), 0) / callLogs.length) : 0;
 
           const numbersInfo = company.phoneNumbers.length > 0
-            ? company.phoneNumbers.map((p: any) =>
-                `Number: ${p.number} | Label: ${p.label || "Unlabeled"} | Direction: ${p.direction || "Both"} | Channels: ${p.channels ?? "N/A"} | Provider: ${p.provider}`
-              ).join("\n")
+            ? company.phoneNumbers.map((p: any) => {
+                const pCalls = callLogs.filter((c: any) => c.phoneNumber?.number === p.number);
+                const pIn = pCalls.filter((c: any) => c.direction === "INBOUND").length;
+                const pOut = pCalls.filter((c: any) => c.direction === "OUTBOUND").length;
+                return `Number: ${p.number} | Label: ${p.label || "Unlabeled"} | Direction: ${p.direction || "Both"} | Channels: ${p.channels ?? "N/A"} | Provider: ${p.provider} | Total Inbound Calls: ${pIn} | Total Outbound Calls: ${pOut}`;
+              }).join("\n")
             : "None configured";
 
           const campaignInfo = company.outboundCampaigns.length > 0
@@ -169,12 +178,18 @@ Unassigned Agents (${unassignedAgents.length}): ${unassignedAgents.map((a: any) 
 
           const subInfo = subcompanies.length > 0
             ? subcompanies.map((s: any) => {
+                const sLogs = allCallLogs.filter((c: any) => c.companyId === s.id);
+                const sInbound = sLogs.filter((c: any) => c.direction === "INBOUND").length;
+                const sOutbound = sLogs.filter((c: any) => c.direction === "OUTBOUND").length;
                 const phones = s.phoneNumbers?.length > 0
-                  ? s.phoneNumbers.map((p: any) =>
-                      `  Number: ${p.number} | Direction: ${p.direction || "Both"} | Channels: ${p.channels ?? "N/A"}`
-                    ).join("\n")
+                  ? s.phoneNumbers.map((p: any) => {
+                      const pCalls = sLogs.filter((c: any) => c.phoneNumber?.number === p.number);
+                      const pIn = pCalls.filter((c: any) => c.direction === "INBOUND").length;
+                      const pOut = pCalls.filter((c: any) => c.direction === "OUTBOUND").length;
+                      return `  Number: ${p.number} | Direction: ${p.direction || "Both"} | Channels: ${p.channels ?? "N/A"} | Total Inbound Calls: ${pIn} | Total Outbound Calls: ${pOut}`;
+                    }).join("\n")
                   : "  No phone numbers";
-                return `Subcompany: ${s.name} | Status: ${s.status} | Credits Remaining: ${s.creditBalance?.creditsRemaining?.toFixed(2) ?? 0} | Credits Used: ${s.creditBalance?.creditsUsed?.toFixed(2) ?? 0}\n${phones}`;
+                return `Subcompany: ${s.name} | Status: ${s.status} | Credits Remaining: ${s.creditBalance?.creditsRemaining?.toFixed(2) ?? 0} | Credits Used: ${s.creditBalance?.creditsUsed?.toFixed(2) ?? 0} | Total Inbound Calls: ${sInbound} | Total Outbound Calls: ${sOutbound}\n${phones}`;
               }).join("\n\n")
             : "None";
 
