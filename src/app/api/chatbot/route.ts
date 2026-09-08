@@ -64,7 +64,16 @@ export async function POST(req: Request) {
           }) as any,
           prisma.callLog.findMany({
             where: { companyId },
-            select: { direction: true, status: true, durationSeconds: true }
+            select: { 
+              direction: true, 
+              status: true, 
+              durationSeconds: true,
+              cost: true,
+              creditsUsed: true,
+              startedAt: true,
+              lead: { select: { phone: true, name: true } },
+              phoneNumber: { select: { number: true } }
+            }
           }),
           prisma.company.findMany({
             where: { parentCompanyId: companyId },
@@ -80,6 +89,12 @@ export async function POST(req: Request) {
           const maxInbound  = inboundCalls.length  > 0 ? Math.max(...inboundCalls.map((c: any)  => c.durationSeconds || 0)) : 0;
           const maxOutbound = outboundCalls.length > 0 ? Math.max(...outboundCalls.map((c: any) => c.durationSeconds || 0)) : 0;
           const maxOverall  = callLogs.length      > 0 ? Math.max(...callLogs.map((c: any)      => c.durationSeconds || 0)) : 0;
+          
+          const longestInboundCall = inboundCalls.find((c: any) => c.durationSeconds === maxInbound && c.durationSeconds > 0);
+          const longestOutboundCall = outboundCalls.find((c: any) => c.durationSeconds === maxOutbound && c.durationSeconds > 0);
+          
+          const formatCall = (c: any) => c ? `Customer Number: ${c.lead?.phone || 'Unknown'}, Customer Name: ${c.lead?.name || 'Unknown'}, Duration: ${toMinSec(c.durationSeconds)}, Credits Used: ${c.creditsUsed || 0}, Cost: $${c.cost || 0}` : "None";
+
           const avgSec      = callLogs.length      > 0
             ? Math.round(callLogs.reduce((sum: number, c: any) => sum + (c.durationSeconds || 0), 0) / callLogs.length) : 0;
 
@@ -121,9 +136,10 @@ Failed Inbound Calls: ${callLogs.filter((c: any) => c.direction === "INBOUND" &&
 Failed Outbound Calls: ${callLogs.filter((c: any) => c.direction === "OUTBOUND" && c.status === "FAILED").length}
 Total Failed Calls: ${failedCalls.length}
 Average Duration: ${toMinSec(avgSec)}
-Highest Inbound Duration: ${toMinSec(maxInbound)}
-Highest Outbound Duration: ${toMinSec(maxOutbound)}
-Highest Overall Duration: ${toMinSec(maxOverall)}
+
+NOTABLE CALLS:
+Longest Inbound Call: ${formatCall(longestInboundCall)}
+Longest Outbound Call: ${formatCall(longestOutboundCall)}
 
 PHONE NUMBERS (${company.phoneNumbers.length}):
 ${numbersInfo}
