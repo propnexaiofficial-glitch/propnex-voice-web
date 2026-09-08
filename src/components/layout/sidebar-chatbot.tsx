@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -381,7 +381,7 @@ export function SidebarChatbot() {
             <div className="fab-glow"></div>
             <div className="fab-glow-mask"></div>
             <div className="fab-scan"></div>
-            <img src="/Logo-Chatbot.png" alt="Logo" className="fab-icon" />
+            <img src="/Logo.png" alt="Logo" className="fab-icon" />
           </div>
           <span className="fab-hand">👋</span>
         </div>
@@ -410,7 +410,7 @@ export function SidebarChatbot() {
                 <div className="ch-av-wrap">
                   <div className="ch-av-ring2"></div>
                   <div className="ch-av-ring"></div>
-                  <div className="ch-av"><img src="/Logo-Chatbot.png" alt="Logo" style={{width:'34px',height:'34px',objectFit:'contain',objectPosition:'center',display:'block'}} /></div>
+                  <div className="ch-av"><img src="/Logo.png" alt="Logo" style={{width:'34px',height:'34px',objectFit:'contain',objectPosition:'center',display:'block'}} /></div>
                 </div>
                 <div className="ch-info">
                   <h3>Task Desk</h3>
@@ -429,13 +429,13 @@ export function SidebarChatbot() {
             <div className="ch-msgs">
               {messages.map((msg) => (
                 <div key={msg.id} className={cn("mrow", msg.type)}>
-                  {msg.type === "bot" && <div className="mav"><img src="/Logo-Chatbot.png" alt="Logo" style={{width:'18px',height:'18px',objectFit:'cover',borderRadius:'50%',display:'block'}} /></div>}
+                  {msg.type === "bot" && <div className="mav"><img src="/Logo.png" alt="Logo" style={{width:'18px',height:'18px',objectFit:'cover',borderRadius:'50%',display:'block'}} /></div>}
                   <div className={cn("mbub", msg.type)}>{msg.text.replace(/\*\*/g, '')}</div>
                 </div>
               ))}
               
               <div className="type-row">
-                <div className="mav" style={{ flexShrink: 0, opacity: isTyping ? 1 : 0, transition: 'opacity 0.2s' }}><img src="/Logo-Chatbot.png" alt="Logo" style={{width:'18px',height:'18px',objectFit:'cover',borderRadius:'50%',display:'block'}} /></div>
+                <div className="mav" style={{ flexShrink: 0, opacity: isTyping ? 1 : 0, transition: 'opacity 0.2s' }}><img src="/Logo.png" alt="Logo" style={{width:'18px',height:'18px',objectFit:'cover',borderRadius:'50%',display:'block'}} /></div>
                 <div className={cn("type-bub", isTyping && "show")}>
                   <div className="td"></div><div className="td"></div><div className="td"></div>
                 </div>
