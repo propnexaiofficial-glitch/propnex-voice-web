@@ -49,6 +49,7 @@ const AutoResizeTextarea = ({ className, ...props }) => {
 export default function CareersApplyPage({ jobId }) {
   const router = useRouter()
   
+  const recaptchaRef = useRef(null)
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -483,6 +484,7 @@ export default function CareersApplyPage({ jobId }) {
               <div className="flex flex-col items-start">
                 <div className="rounded overflow-hidden">
                   <ReCAPTCHA
+                    ref={recaptchaRef}
                     sitekey="6LeS4K8tAAAAAFRQDzk_EK9UGQbvdQCHpaY6nJRc"
                     theme="dark"
                     onChange={(token) => {
@@ -490,6 +492,16 @@ export default function CareersApplyPage({ jobId }) {
                       if (errors.captcha) {
                         setErrors(prev => ({ ...prev, captcha: '' }))
                       }
+                    }}
+                    onExpired={() => {
+                      setCaptchaToken(null)
+                      setErrors(prev => ({ ...prev, captcha: 'Verification expired. Please check the box again.' }))
+                      if (recaptchaRef.current) recaptchaRef.current.reset()
+                    }}
+                    onErrored={() => {
+                      setCaptchaToken(null)
+                      setErrors(prev => ({ ...prev, captcha: 'Verification failed. Please try again.' }))
+                      if (recaptchaRef.current) recaptchaRef.current.reset()
                     }}
                   />
                 </div>
