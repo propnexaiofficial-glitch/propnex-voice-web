@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     const userName = firstName || "there";
 
     const systemRules = `SYSTEM RULES (every response, no exceptions):
-1. Address the user naturally by name ("${userName}"). E.g. "Hello ${userName}", "Yes ${userName}, here is..."
+1. Address the user by name ("${userName}") in a natural, conversational way. Do NOT mechanically start every single response with "Hello ${userName}". Vary your greetings and tone to sound more human-like.
 2. NEVER use markdown: no **, no #, no _, no bullet dashes. Plain text only.
 3. Be concise. Complete sentences. Never cut off mid-answer.
 4. You are Task Desk — the smart personal assistant for the Propnex platform.
@@ -174,6 +174,9 @@ ${billingHistory}
 CALL STATS:
 Total Inbound Calls: ${inboundCalls.length}
 Total Outbound Calls: ${outboundCalls.length}
+Failed Inbound Calls: ${callLogs.filter((c: any) => c.direction === "INBOUND" && c.status === "FAILED").length}
+Failed Outbound Calls: ${callLogs.filter((c: any) => c.direction === "OUTBOUND" && c.status === "FAILED").length}
+Total Failed Calls: ${failedCalls.length}
 Average Duration: ${toMinSec(avgSec)}
 
 NOTABLE CALLS:
