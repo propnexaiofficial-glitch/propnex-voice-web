@@ -597,6 +597,7 @@ function DashboardShellInner({
 }
 
 import { UserProvider } from "@/features/auth/context/user-context";
+import { ChatbotWidget } from "@/components/chatbot-widget";
 
 export function DashboardShell({ children, className }: DashboardShellProps) {
   return (
@@ -604,6 +605,7 @@ export function DashboardShell({ children, className }: DashboardShellProps) {
       <TooltipProvider>
         <EmployeesProvider>
           <DashboardShellInner className={className}>{children}</DashboardShellInner>
+          <ChatbotWidget />
         </EmployeesProvider>
       </TooltipProvider>
     </UserProvider>
