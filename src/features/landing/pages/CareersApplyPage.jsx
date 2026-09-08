@@ -475,7 +475,7 @@ export default function CareersApplyPage({ jobId }) {
               <div className="flex flex-col items-start">
                 <div className="rounded overflow-hidden">
                   <ReCAPTCHA
-                    sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+                    sitekey="6LeS4K8tAAAAAFRQDzk_EK9UGQbvdQCHpaY6nJRc"
                     theme="dark"
                     onChange={(token) => {
                       setCaptchaToken(token)
