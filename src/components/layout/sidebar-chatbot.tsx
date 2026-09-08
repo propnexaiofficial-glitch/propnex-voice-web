@@ -225,13 +225,14 @@ export function SidebarChatbot() {
         
         .fab-circle{
           width:56px;height:56px;border-radius:50%;
-          background:#18181b;
-          border:1px solid rgba(255,255,255,.13);
+          background:linear-gradient(135deg,#0f0f1a 0%,#1a1040 50%,#200840 100%);
+          border:1px solid rgba(139,92,246,.3);
           display:flex;align-items:center;justify-content:center;
           position:relative;z-index:2;
+          overflow:hidden;
           animation:fab-float 4s ease-in-out infinite;
           transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s,border-color .3s;
-          box-shadow:0 4px 20px rgba(0,0,0,.5);
+          box-shadow:0 4px 20px rgba(0,0,0,.5),0 0 16px rgba(139,92,246,.2);
         }
         .fab-wrap:hover .fab-circle{
           transform:scale(1.15) translateY(-4px);
@@ -248,9 +249,9 @@ export function SidebarChatbot() {
         }
         @property --a{syntax:'<angle>';initial-value:0deg;inherits:false}
         @keyframes conic-spin{to{--a:360deg}}
-        .fab-glow-mask{position:absolute;inset:2px;border-radius:50%;background:#18181b;z-index:1}
+        .fab-glow-mask{position:absolute;inset:2px;border-radius:50%;background:linear-gradient(135deg,#0f0f1a 0%,#1a1040 60%,#200840 100%);z-index:1}
         
-        .fab-icon{font-size:1.35rem;z-index:3;position:relative;animation:icon-pulse 3s ease-in-out infinite;transition:transform 0.2s}
+        .fab-icon{z-index:3;position:relative;width:38px;height:38px;object-fit:contain;display:block;animation:icon-pulse 3s ease-in-out infinite;transition:transform 0.2s}
         .fab-wrap:hover .fab-icon{animation:icon-wiggle .6s ease-in-out infinite}
         @keyframes icon-pulse{0%,100%{transform:scale(1) rotate(0deg)}25%{transform:scale(1.1) rotate(-3deg)}75%{transform:scale(1.05) rotate(3deg)}}
         @keyframes icon-wiggle{0%,100%{transform:scale(1.15) rotate(0deg)}25%{transform:scale(1.25) rotate(-15deg)}75%{transform:scale(1.25) rotate(15deg)}}
@@ -380,9 +381,9 @@ export function SidebarChatbot() {
             <div className="fab-glow"></div>
             <div className="fab-glow-mask"></div>
             <div className="fab-scan"></div>
-            <img src="/Logo-Chatbot.png" alt="Logo" className="fab-icon w-8 h-8 object-contain" />
+            <img src="/Logo-Chatbot.png" alt="Logo" className="fab-icon" />
           </div>
-          <span className="fab-hand">ðŸ‘‹</span>
+          <span className="fab-hand">👋</span>
         </div>
         <div className="fab-label"><div className="fab-dot"></div>Task Desk</div>
       </div>
