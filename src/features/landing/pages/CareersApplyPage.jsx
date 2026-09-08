@@ -270,6 +270,7 @@ export default function CareersApplyPage({ jobId }) {
                 <label className="text-sm font-medium text-white/80">First Name</label>
                 <AutoResizeTextarea
                   name="firstName"
+                  placeholder="e.g. John"
                   value={formData.firstName}
                   onChange={handleChange}
                   className={`w-full rounded-md border bg-black/40 px-4 py-2.5 text-white transition focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 ${errors.firstName ? 'border-red-500' : 'border-white/10'}`}
@@ -280,6 +281,7 @@ export default function CareersApplyPage({ jobId }) {
                 <label className="text-sm font-medium text-white/80">Last Name</label>
                 <AutoResizeTextarea
                   name="lastName"
+                  placeholder="e.g. Doe"
                   value={formData.lastName}
                   onChange={handleChange}
                   className={`w-full rounded-md border bg-black/40 px-4 py-2.5 text-white transition focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 ${errors.lastName ? 'border-red-500' : 'border-white/10'}`}
@@ -290,6 +292,7 @@ export default function CareersApplyPage({ jobId }) {
                 <label className="text-sm font-medium text-white/80">Email</label>
                 <AutoResizeTextarea
                   name="email"
+                  placeholder="e.g. john@example.com"
                   value={formData.email}
                   onChange={handleChange}
                   className={`w-full rounded-md border bg-black/40 px-4 py-2.5 text-white transition focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 ${errors.email ? 'border-red-500' : 'border-white/10'}`}
@@ -303,18 +306,22 @@ export default function CareersApplyPage({ jobId }) {
               <div className="space-y-2">
                 <label className="text-sm font-medium text-white/80">Phone Number</label>
                 <div className="flex gap-2">
-                  <select
+                  <input
                     name="countryCode"
+                    list="countryCodes"
                     value={formData.countryCode}
                     onChange={handleChange}
-                    className={`w-[85px] shrink-0 rounded-md border bg-black/40 px-1 py-2.5 text-sm text-white transition focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 border-white/10`}
-                  >
+                    placeholder="+1"
+                    className={`w-[140px] shrink-0 rounded-md border bg-black/40 px-3 py-2.5 text-sm text-white transition focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 border-white/10`}
+                  />
+                  <datalist id="countryCodes">
                     {countryCodes.map((item, idx) => (
-                      <option key={idx} value={item.code}>{item.code} {item.country}</option>
+                      <option key={idx} value={item.code}>{item.country}</option>
                     ))}
-                  </select>
+                  </datalist>
                   <AutoResizeTextarea
                     name="phone"
+                    placeholder="e.g. 9876543210"
                     value={formData.phone}
                     onChange={handleChange}
                     className={`w-full rounded-md border bg-black/40 px-4 py-2.5 text-white transition focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 ${errors.phone ? 'border-red-500' : 'border-white/10'}`}
@@ -372,7 +379,7 @@ export default function CareersApplyPage({ jobId }) {
                 {errors.experience && <p className="text-xs text-red-400 animate-in fade-in slide-in-from-top-1">{errors.experience}</p>}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-white/80">Current Payout</label>
+                <label className="text-sm font-medium text-white/80">Current Payout (per year)</label>
                 <AutoResizeTextarea
                   name="currentPayout"
                   placeholder="e.g. ₹15,00,000 / year"
@@ -383,7 +390,7 @@ export default function CareersApplyPage({ jobId }) {
                 {errors.currentPayout && <p className="text-xs text-red-400 animate-in fade-in slide-in-from-top-1">{errors.currentPayout}</p>}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-white/80">Expected Payout</label>
+                <label className="text-sm font-medium text-white/80">Expected Payout (per year)</label>
                 <AutoResizeTextarea
                   name="expectedPayout"
                   placeholder="e.g. ₹20,00,000 / year"
