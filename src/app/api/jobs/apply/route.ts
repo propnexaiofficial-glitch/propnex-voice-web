@@ -46,12 +46,20 @@ export async function POST(req: Request) {
       where: {
         jobId,
         email: email.toLowerCase()
+      },
+      orderBy: {
+        appliedAt: 'desc'
       }
     });
 
-    if (existingApplication) {
+    if (existingApplication && existingApplication.status !== "REJECTED") {
       return NextResponse.json(
-        { success: false, error: "You have already applied for this job with this email address." },
+        { 
+          success: false, 
+          error: existingApplication.status === "ACCEPTED" 
+            ? "You have already been accepted for this position." 
+            : "You have already applied for this job and it is currently under review." 
+        },
         { status: 409 }
       );
     }
