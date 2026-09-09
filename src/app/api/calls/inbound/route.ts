@@ -144,19 +144,43 @@ export async function GET(req: NextRequest) {
 
     console.log("INBOUND_API: whereClause is:", JSON.stringify(whereClause, null, 2));
 
-    const [total, calls] = await Promise.all([
+    // Always also fetch RINGING/ANSWERED live calls for the same companies,
+    // then merge + deduplicate so live calls always appear regardless of status filter.
+    const liveWhereClause: any = {
+      companyId: { in: companyIdsToQuery },
+      direction: "INBOUND",
+      status: { in: ["RINGING", "ANSWERED", "QUEUED"] },
+    };
+
+    const [total, calls, liveCalls] = await Promise.all([
       prisma.callLog.count({ where: whereClause }),
       prisma.callLog.findMany({
         where: whereClause,
         orderBy: { startedAt: "desc" },
         skip,
         take: limit,
-        distinct: ['callLogId'],
         include: { phoneNumber: true, lead: true },
-      })
+      }),
+      // Always fetch live calls so they appear even if filtered out
+      prisma.callLog.findMany({
+        where: liveWhereClause,
+        orderBy: { startedAt: "desc" },
+        take: 10,
+        include: { phoneNumber: true, lead: true },
+      }),
     ]);
 
-    const mappedCalls = calls.map((call: any) => {
+    // Merge live calls at the top, deduplicate by id
+    const seenIds = new Set<string>();
+    const mergedCalls: any[] = [];
+    for (const c of [...liveCalls, ...calls]) {
+      if (!seenIds.has(c.id)) {
+        seenIds.add(c.id);
+        mergedCalls.push(c);
+      }
+    }
+
+    const mappedCalls = mergedCalls.map((call: any) => {
       const minutes = Math.floor((call.durationSeconds || 0) / 60);
       const seconds = (call.durationSeconds || 0) % 60;
       
