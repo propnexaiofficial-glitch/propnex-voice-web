@@ -39,13 +39,19 @@ export async function GET(req: NextRequest) {
     
     let companyIdsToQuery = [member.companyId];
 
+    let freshStartAfter: Date | null = null;
+
     if (targetCompanyId && targetCompanyId !== member.companyId) {
       // Check if targetCompanyId is a sub-company of the user's company
       const subCompany = await prisma.company.findFirst({
-        where: { id: targetCompanyId, parentCompanyId: member.companyId }
+        where: { id: targetCompanyId, parentCompanyId: member.companyId },
+        include: { phoneNumbers: { select: { assignedAt: true }, take: 1, orderBy: { createdAt: "asc" } } }
       });
       if (subCompany) {
         companyIdsToQuery = [targetCompanyId];
+        // Fresh-start: only show calls from when the first number was assigned
+        const earliestAssignment = (subCompany as any).phoneNumbers?.[0]?.assignedAt;
+        if (earliestAssignment) freshStartAfter = new Date(earliestAssignment);
       }
     } else {
       // Fetch parent + all child companies' calls
@@ -85,8 +91,10 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      if (dateFrom || dateTo) {
+      if (dateFrom || dateTo || freshStartAfter) {
         whereClause.startedAt = {};
+        // Fresh-start: only show calls from when the phone number was assigned
+        if (freshStartAfter) whereClause.startedAt.gte = freshStartAfter;
         if (dateFrom) whereClause.startedAt.gte = new Date(dateFrom);
         if (dateTo) {
           const toDate = new Date(dateTo);
