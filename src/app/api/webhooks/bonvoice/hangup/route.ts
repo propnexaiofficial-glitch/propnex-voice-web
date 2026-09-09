@@ -4,70 +4,108 @@ import prisma from "@/lib/prisma";
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    console.log("Received Bonvoice Hangup Webhook:", data);
+    console.log("Received Bonvoice Hangup Webhook:", JSON.stringify(data, null, 2));
 
-    // Bonvoice Hangup JSON Payload usually contains:
-    // SourceNumber, DestinationNumber, StartTime, DataSource, callType, callDuration,
-    // recordDuration, billableDuration, cost, resource_url, etc.
+    // Bonvoice sends callType 2 on hangup
+    // Fields: SourceNumber, DestinationNumber, DisplayNumber, callDuration,
+    //         cost, ResourceURL (or resource_url), callID, Direction, Status, EndTime, StartTime
 
     const {
       SourceNumber,
       DestinationNumber,
-      StartTime,
+      DisplayNumber,
       callDuration,
       cost,
-      resource_url,
-      reference_id // If we passed this in the outbound request
+      ResourceURL,
+      resource_url,       // some payloads use lowercase
+      callID,
+      Direction,
+      StartTime,
+      EndTime,
     } = data;
 
-    // Find the corresponding CallLog
-    let callLog;
-    
-    if (reference_id) {
-      callLog = await prisma.callLog.findUnique({ where: { id: reference_id } });
+    const recordingUrl = ResourceURL || resource_url || null;
+    const durationSec   = callDuration ? parseInt(String(callDuration)) : 0;
+    const callCost      = cost         ? parseFloat(String(cost))       : 0;
+
+    // The DID number that was dialled (inbound) or our sending number (outbound)
+    const didNumber = DisplayNumber || DestinationNumber;
+
+    // 1️⃣ Try to find an existing RINGING / ANSWERED call log by correlationId (callID)
+    let callLog = null;
+
+    if (callID) {
+      callLog = await prisma.callLog.findFirst({
+        where: { providerCallId: String(callID) },
+      });
     }
 
-    // If no reference_id (like in inbound calls), find by DestinationNumber (DID) or SourceNumber
-    if (!callLog && SourceNumber) {
-      // Find the active inbound phone number matching the DID
+    // 2️⃣ If none found, try to find an active call log for this DID / phone
+    if (!callLog && didNumber) {
+      callLog = await prisma.callLog.findFirst({
+        where: {
+          status: { in: ["RINGING", "ANSWERED", "QUEUED"] },
+          phoneNumber: { number: didNumber },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    }
+
+    // 3️⃣ If still none, create a new completed call log (inbound call that we missed tracking)
+    if (!callLog) {
+      // Resolve the phone number record
       const phoneNumber = await prisma.phoneNumber.findFirst({
-        where: { number: DestinationNumber, direction: "INBOUND" }
+        where: { number: didNumber || DestinationNumber },
       });
 
       if (phoneNumber) {
-        // Create a new inbound call log
+        const isInbound =
+          !Direction || String(Direction).toUpperCase() === "INBOUND";
+
         callLog = await prisma.callLog.create({
           data: {
-            resourceKey: `CL${Date.now()}`,
-            publicId: `public-CL${Date.now()}`,
-            direction: "INBOUND",
-            status: "COMPLETED",
-            companyId: phoneNumber.companyId,
-            phoneNumberId: phoneNumber.id,
-            agentId: phoneNumber.inboundAgentId,
-            // Additional details can be mapped as needed
-          } as any,
+            callLogId:      `CL${Date.now()}`,
+            publicId:       `bonvoice-${Date.now()}`,
+            direction:      isInbound ? "INBOUND" : "OUTBOUND",
+            status:         "COMPLETED",
+            companyId:      phoneNumber.companyId ?? undefined,
+            phoneNumberId:  phoneNumber.id,
+            aiAgentId:      isInbound
+                              ? (phoneNumber.inboundAgentId  ?? undefined)
+                              : (phoneNumber.outboundAgentId ?? undefined),
+            providerCallId: callID ? String(callID) : undefined,
+            startedAt:      StartTime ? new Date(StartTime) : new Date(),
+            endedAt:        EndTime   ? new Date(EndTime)   : new Date(),
+            durationSeconds: durationSec,
+            cost:            callCost,
+            recordingUrl,
+            provider:       "BONVOICE",
+            providerStatus: "COMPLETED",
+          },
         });
       }
-    }
-
-    if (callLog) {
-      // Update call log with hangup details
+    } else {
+      // 4️⃣ Update the existing call log to COMPLETED
       await prisma.callLog.update({
         where: { id: callLog.id },
         data: {
-          status: "COMPLETED",
-          duration: callDuration ? parseInt(callDuration) : 0,
-          cost: cost ? parseFloat(cost) : 0,
-          recordingUrl: resource_url || null,
-          endedAt: new Date(),
-        } as any,
+          status:          "COMPLETED",
+          durationSeconds: durationSec,
+          cost:            callCost,
+          recordingUrl,
+          endedAt:         EndTime ? new Date(EndTime) : new Date(),
+          providerStatus:  "COMPLETED",
+          providerWebhook: data,
+        },
       });
     }
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error("Bonvoice Hangup Webhook Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("Bonvoice Hangup Webhook Error:", error?.message ?? error);
+    return NextResponse.json(
+      { error: "Internal Server Error", detail: error?.message },
+      { status: 500 }
+    );
   }
 }
