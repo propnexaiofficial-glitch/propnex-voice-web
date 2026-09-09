@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-const CREDITS_PER_SECOND = 0.07; // Modify this as per pricing model
-
-// Helper to sanitize phone numbers
+// 1.75 credits per 30 seconds block
 function corePhone(number: any) {
   if (!number) return null;
   return String(number)
@@ -49,7 +47,13 @@ export async function POST(req: Request) {
     const recordingUrl  = ResourceURL || resource_url || "";
     const durationSec   = parseInt(String(actualDuration));
     const callCost      = cost ? parseFloat(String(cost)) : 0;
-    const creditsUsed   = parseFloat((durationSec * CREDITS_PER_SECOND).toFixed(2));
+    
+    // Credit Logic: 1.75 credits for every 30 seconds (or fraction thereof)
+    let creditsUsed = 0;
+    if (durationSec > 0) {
+      const blocks = Math.ceil(durationSec / 30);
+      creditsUsed = blocks * 1.75;
+    }
 
     const didCore       = corePhone(didNumber);
     const callerCore    = corePhone(callerNumber);
