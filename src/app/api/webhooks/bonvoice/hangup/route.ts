@@ -52,11 +52,12 @@ export async function POST(req: Request) {
     const durationSec   = parseInt(String(actualDuration));
     const callCost      = cost ? parseFloat(String(cost)) : 0;
     
-    // Credit Logic: 1.75 credits for every 30 seconds (or fraction thereof)
+    // Credit Logic: 1.75 credits for inbound, 3.5 credits for outbound (per 30 seconds block)
     let creditsUsed = 0;
     if (durationSec > 0) {
       const blocks = Math.ceil(durationSec / 30);
-      creditsUsed = blocks * 1.75;
+      const rate = isInbound ? 1.75 : 3.5;
+      creditsUsed = blocks * rate;
     }
 
     const didCore       = corePhone(didNumber);
@@ -75,10 +76,11 @@ export async function POST(req: Request) {
 
     // ── 2. Try to find active call log by DID phone number ───────────────────
     if (!callLog && didCore) {
+      const possibleNumbers = [didNumber, `0${didCore}`, `91${didCore}`, `+91${didCore}`, didCore];
       callLog = await prisma.callLog.findFirst({
         where: {
           status:      { in: ["RINGING", "ANSWERED", "QUEUED"] },
-          phoneNumber: { number: { contains: didCore } },
+          phoneNumber: { number: { in: possibleNumbers as string[] } },
         },
         orderBy: { createdAt: "desc" },
       });
@@ -86,8 +88,9 @@ export async function POST(req: Request) {
 
     // ── 3. Find Phone Number to link the call if not linked ──────────────────
     if (didCore && (!callLog || !callLog.phoneNumberId)) {
+      const possibleNumbers = [didNumber, `0${didCore}`, `91${didCore}`, `+91${didCore}`, didCore];
       phoneNumber = await prisma.phoneNumber.findFirst({
-        where: { number: { contains: didCore } },
+        where: { number: { in: possibleNumbers as string[] } },
       });
     }
 

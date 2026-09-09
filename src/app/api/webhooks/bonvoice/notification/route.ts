@@ -46,6 +46,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true });
     }
 
+    const didCore = String(didNumber).replace(/\D/g, "").replace(/^0+/, "").replace(/^91/, "");
+
     // 1️⃣ Try to find existing call log by callID
     let callLog = null;
     if (callID) {
@@ -65,8 +67,9 @@ export async function POST(req: Request) {
       });
     } else {
       // 2️⃣ Create a new RINGING call log so we can track it
+      const possibleNumbers = [didNumber, `0${didCore}`, `91${didCore}`, `+91${didCore}`, didCore];
       const phoneNumber = await prisma.phoneNumber.findFirst({
-        where: { number: { contains: didNumber?.replace(/^0/, "") || "" } },
+        where: { number: { in: possibleNumbers as string[] } },
       });
 
       if (phoneNumber) {
