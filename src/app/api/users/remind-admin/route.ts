@@ -35,13 +35,16 @@ export async function POST(req: NextRequest) {
     }
 
     // Find the latest pending approval for this user
-    const pending = await prisma.pendingApproval.findFirst({
+    let pending = await prisma.pendingApproval.findFirst({
       where: { email: user.email },
       orderBy: { createdAt: 'desc' }
     });
 
     if (!pending) {
-       return NextResponse.json({ message: "No pending approval found" }, { status: 404 });
+       // Create it if it doesn't exist so we can track remindedAt
+       pending = await prisma.pendingApproval.create({
+         data: { email: user.email }
+       });
     }
 
     // Check 24-hour block perfectly
