@@ -5,6 +5,7 @@ import { Menu } from "lucide-react";
 
 import { Logo } from "@/components/common/logo";
 import { SidebarLogout, SidebarNav } from "@/components/layout/sidebar";
+import { SidebarChatbot } from "@/components/layout/sidebar-chatbot";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
@@ -33,6 +34,7 @@ export function MobileSidebar({ isLockedOut }: { isLockedOut?: boolean }) {
         <div className="min-h-0 flex-1 overflow-y-auto py-4">
           <SidebarNav onNavigate={() => setOpen(false)} isLockedOut={isLockedOut} />
         </div>
+        <SidebarChatbot />
         <SidebarLogout />
       </SheetContent>
     </Sheet>

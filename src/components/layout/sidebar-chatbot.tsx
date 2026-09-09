@@ -205,7 +205,7 @@ export function SidebarChatbot() {
     <>
       <style dangerouslySetInnerHTML={{ __html: `
         /*  ROUND FAB WIDGET  */
-        .fab-wrap{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;align-items:center;gap:0;z-index:99999;}
+        .fab-wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:0;margin:auto auto 16px auto;z-index:90;}
         .fab-bubble{
           position:absolute;bottom:calc(100% + 16px);left:50%;transform:translateX(-50%) translateY(6px) scale(.92);
           background:#18181b;border:1px solid rgba(255,255,255,.13);color:#f4f4f5;
@@ -273,7 +273,8 @@ export function SidebarChatbot() {
         /*  CHAT PANEL  */
         .chat-window{
           position:fixed;
-          bottom:100px;right:24px;
+          bottom:32px;
+          left:24px;
           width:calc(100vw - 48px);
           max-width:400px;
           background:#111113;
@@ -285,10 +286,15 @@ export function SidebarChatbot() {
           box-shadow:0 0 0 1px rgba(255,255,255,.03),0 40px 80px rgba(0,0,0,.8),0 0 60px rgba(255,255,255,.02);
           opacity:0;pointer-events:none;
           transform:translateY(20px) scale(.95);
-          transform-origin:bottom right;
+          transform-origin:bottom left;
           transition:opacity .45s cubic-bezier(.16,1,.3,1),transform .45s cubic-bezier(.16,1,.3,1);
           height:calc(100vh - 140px);
           max-height:560px;
+        }
+        @media (min-width: 1024px) {
+          .chat-window {
+            left: calc(var(--sidebar-width, 280px) + 24px);
+          }
         }
         .chat-window.open{opacity:1;pointer-events:all;transform:translateY(0) scale(1)}
         
