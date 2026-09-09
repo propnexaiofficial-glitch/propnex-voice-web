@@ -104,6 +104,8 @@ export async function POST(req: Request) {
     const endTimeStr = EndTime ? `${String(EndTime).replace(" ", "T")}+05:30` : undefined;
     const endTimeParsed = endTimeStr ? new Date(endTimeStr) : new Date();
 
+    let finalCallLogId = callLog?.id;
+
     if (callLog) {
       // ── 5a. Update existing call log ───────────────────────────────────────
       await prisma.callLog.update({
@@ -123,7 +125,7 @@ export async function POST(req: Request) {
       });
     } else if (phoneNumber) {
       // ── 5b. Create a new COMPLETED call log ──────────────────────────────
-      await prisma.callLog.create({
+      const newLog = await prisma.callLog.create({
         data: {
           callLogId:       `CL${Date.now()}`,
           publicId:        `bonvoice-${Date.now()}`,
@@ -147,8 +149,41 @@ export async function POST(req: Request) {
           providerWebhook: data,
         },
       });
+      finalCallLogId = newLog.id;
     } else {
       console.error("Bonvoice Hangup: Could not match call to any DID or existing log.", data);
+    }
+
+    // ── 6. Deduct Credits from Company Balance ─────────────────────────────
+    if (creditsUsed > 0 && targetCompanyId) {
+      try {
+        await prisma.$transaction(async (tx) => {
+          await tx.creditUsage.create({
+            data: {
+              companyId: targetCompanyId,
+              amount: creditsUsed,
+              reason: "CALL",
+              callLogId: finalCallLogId,
+              description: `Bonvoice inbound/outbound call (${durationSec}s)`,
+            },
+          });
+
+          await tx.creditBalance.upsert({
+            where: { companyId: targetCompanyId },
+            create: {
+              companyId: targetCompanyId,
+              creditsRemaining: Math.max(0, -creditsUsed),
+              creditsUsed: Math.max(0, creditsUsed),
+            },
+            update: {
+              creditsRemaining: { decrement: creditsUsed },
+              creditsUsed: { increment: Math.max(0, creditsUsed) },
+            },
+          });
+        });
+      } catch (err) {
+        console.error("Bonvoice Hangup: Failed to deduct credits", err);
+      }
     }
 
     return NextResponse.json({ success: true });
