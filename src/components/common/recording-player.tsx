@@ -73,8 +73,12 @@ export function RecordingPlayer({
     let isMounted = true;
     setIsValidating(true);
 
-    const buster = (retryCount > 0 || reloadKey > 0) ? (audioUrl.includes('?') ? `&_t=${Date.now()}` : `?_t=${Date.now()}`) : '';
-    const audio = new Audio(audioUrl + buster);
+    const proxyUrl = audioUrl.startsWith('http') && !audioUrl.includes('/api/audio-proxy') 
+      ? `/api/audio-proxy?url=${encodeURIComponent(audioUrl)}`
+      : audioUrl;
+
+    const buster = (retryCount > 0 || reloadKey > 0) ? (proxyUrl.includes('?') ? `&_t=${Date.now()}` : `?_t=${Date.now()}`) : '';
+    const audio = new Audio(proxyUrl + buster);
     audio.preload = "metadata";
     audioRef.current = audio;
 

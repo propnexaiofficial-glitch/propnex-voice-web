@@ -183,10 +183,16 @@ export async function GET(req: NextRequest) {
       // 5. Try the company's default outbound phone number
       const companyDid = (call as any).company?.phoneNumbers?.[0]?.number || "";
 
+      let fallbackCustomerNumber = "";
+      if (call.providerWebhook && typeof call.providerWebhook === 'object') {
+         const wh: any = call.providerWebhook;
+         fallbackCustomerNumber = wh.DestinationNumber || wh.customer_number || wh.customerNumber || "";
+      }
+
       return {
         id: call.id,
         callId: call.callLogId,
-        customerNumber: call.lead?.phone || "",
+        customerNumber: call.lead?.phone || fallbackCustomerNumber || "",
         assignedNumber: call.phoneNumber?.number || fallbackAssignedNumber || campaignDid || companyDid || "+917969007102",
         callDateTime: call.startedAt.toISOString(),
         duration: minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`,

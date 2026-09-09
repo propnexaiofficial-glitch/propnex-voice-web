@@ -152,15 +152,17 @@ export async function GET(req: NextRequest) {
       const seconds = (call.durationSeconds || 0) % 60;
       
       let fallbackAssignedNumber = "";
+      let fallbackCustomerNumber = "";
       if (call.providerWebhook && typeof call.providerWebhook === 'object') {
          const wh: any = call.providerWebhook;
          fallbackAssignedNumber = wh.agentNumber || wh.did_number || wh.didNumber || wh.message?.call?.agent?.number || wh.call?.agent?.number || "";
+         fallbackCustomerNumber = wh.SourceNumber || wh.caller || wh.customer_number || wh.customerNumber || "";
       }
 
       return {
         id: call.id,
         callId: call.callLogId,
-        customerNumber: call.lead?.phone || "",
+        customerNumber: call.lead?.phone || fallbackCustomerNumber || "",
         assignedNumber: call.phoneNumber?.number || fallbackAssignedNumber || "+917969007102",
         callDateTime: call.startedAt.toISOString(),
         duration: minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`,

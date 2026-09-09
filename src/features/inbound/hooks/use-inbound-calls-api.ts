@@ -49,22 +49,43 @@ function mapApiItemToCallRecord(item: any, fallbackAssignedNumber: string): Call
   const mappedStatus = mapStatus(item.status);
   const isLive = mappedStatus === "ringing" || mappedStatus === "answered";
 
-  let fallbackCustomerPhone = item.providerWebhook?.phone || item.providerWebhook?.message?.call?.customer?.number || item.providerWebhook?.message?.call?.phoneNumber;
-  let fallbackAssignedRaw = undefined;
+  // Extract customer number from all possible sources
+  let fallbackCustomerPhone = 
+    item.customerNumber ||                                      // Already extracted by API route
+    item.providerWebhook?.SourceNumber ||                       // Bonvoice inbound caller
+    item.providerWebhook?.phone || 
+    item.providerWebhook?.message?.call?.customer?.number || 
+    item.providerWebhook?.message?.call?.phoneNumber;
+
+  // Extract assigned DID number from all possible sources  
+  let fallbackAssignedRaw = 
+    item.assignedNumber ||                                      // Already extracted by API route
+    pNum;                                                       // Linked PhoneNumber record
+
   if (item.providerWebhook?.call) {
     if (item.direction === "INBOUND" || !item.direction) {
       if (!fallbackCustomerPhone) fallbackCustomerPhone = item.providerWebhook.call.from;
-      fallbackAssignedRaw = item.providerWebhook.call.to;
+      if (!fallbackAssignedRaw) fallbackAssignedRaw = item.providerWebhook.call.to;
     } else if (item.direction === "OUTBOUND") {
       if (!fallbackCustomerPhone) fallbackCustomerPhone = item.providerWebhook.call.to;
-      fallbackAssignedRaw = item.providerWebhook.call.from;
+      if (!fallbackAssignedRaw) fallbackAssignedRaw = item.providerWebhook.call.from;
     }
+  }
+
+  // Bonvoice specific: extract from flat webhook fields
+  if (!fallbackCustomerPhone && item.providerWebhook) {
+    const wh = item.providerWebhook;
+    fallbackCustomerPhone = wh.caller || wh.from_number || wh.customerNumber || wh.customer_number || "";
+  }
+  if (!fallbackAssignedRaw && item.providerWebhook) {
+    const wh = item.providerWebhook;
+    fallbackAssignedRaw = wh.did_number || wh.DisplayNumber || wh.DestinationNumber || wh.agentNumber || "";
   }
 
   return {
     id: item.id || item.publicId,
-    customerNumber: leadPhone || item.customerNumber || fallbackCustomerPhone || "Unknown",
-    assignedNumber: pNum || item.assignedNumber || fallbackAssignedRaw || item.providerWebhook?.callid || item.providerWebhook?.calledno || fallbackAssignedNumber,
+    customerNumber: leadPhone || fallbackCustomerPhone || "Unknown",
+    assignedNumber: fallbackAssignedRaw || fallbackAssignedNumber,
     callDateTime: item.callDateTime || item.startedAt || item.createdAt || item.updatedAt || new Date().toISOString(),
     duration: isLive ? "Live" : formatDuration(item.durationSeconds || 0),
     durationSeconds: item.durationSeconds || 0,
