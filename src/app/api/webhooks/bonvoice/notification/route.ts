@@ -1,45 +1,104 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+// Credits per second rate (adjust as per your billing config)
+const CREDITS_PER_SECOND = 0.1;
+
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    console.log("Received Bonvoice Call Notification Webhook:", data);
+    console.log("Bonvoice Notification Webhook:", JSON.stringify(data, null, 2));
 
-    // Call Notification JSON Payload for Live Statuses
     const {
-      reference_id,
-      callType, // 0: Init, 1: Answered, 2: Ringing, 3: Completed, etc. (Depending on exact API)
+      callType,
+      status,
       SourceNumber,
       DestinationNumber,
-      status // e.g. "RINGING", "ANSWERED", "BUSY", "FAILED"
+      DisplayNumber,
+      callID,
+      Direction,
+      StartTime,
     } = data;
 
-    // We use either the explicit status text or infer from callType
-    let mappedStatus: "RINGING" | "ANSWERED" | "BUSY" | "FAILED" | "QUEUED" | undefined;
-    
+    // Map callType to our status
+    let mappedStatus: string = "RINGING";
     if (status) {
-      mappedStatus = status.toUpperCase() as any;
+      mappedStatus = String(status).toUpperCase();
     } else if (callType !== undefined) {
-      // Map Bonvoice callType integers to Prisma CallStatus if status text is missing
-      switch (parseInt(callType)) {
-        case 0: mappedStatus = "QUEUED"; break;
-        case 1: mappedStatus = "ANSWERED"; break;
-        case 2: mappedStatus = "RINGING"; break;
-      }
+      const ct = parseInt(String(callType));
+      if (ct === 0) mappedStatus = "RINGING";
+      else if (ct === 1) mappedStatus = "ANSWERED";
+      else if (ct === 2) mappedStatus = "COMPLETED";
     }
 
-    if (mappedStatus && reference_id) {
-      // Update existing outbound call log
-      await prisma.callLog.update({
-        where: { id: reference_id },
-        data: { status: mappedStatus } as any,
+    const didNumber = DisplayNumber || DestinationNumber;
+    const isInbound = !Direction || String(Direction).toUpperCase() === "INBOUND";
+    const callerNumber = isInbound ? SourceNumber : DestinationNumber;
+
+    // 1️⃣ Try to find existing call log by callID
+    let callLog = null;
+    if (callID) {
+      callLog = await prisma.callLog.findFirst({
+        where: { providerCallId: String(callID) },
       });
+    }
+
+    if (callLog) {
+      // Update existing call log status
+      await prisma.callLog.update({
+        where: { id: callLog.id },
+        data: {
+          status: mappedStatus as any,
+          answeredAt: mappedStatus === "ANSWERED" ? new Date() : undefined,
+        },
+      });
+    } else {
+      // 2️⃣ Create a new RINGING call log so we can track it
+      const phoneNumber = await prisma.phoneNumber.findFirst({
+        where: { number: { contains: didNumber?.replace(/^0/, "") || "" } },
+      });
+
+      if (phoneNumber) {
+        // Try to find lead by caller number
+        const callerCore = callerNumber
+          ? String(callerNumber).replace(/\D/g, "").replace(/^0+/, "").replace(/^91/, "")
+          : null;
+
+        let lead = null;
+        if (callerCore) {
+          lead = await prisma.lead.findFirst({
+            where: {
+              companyId: phoneNumber.companyId ?? undefined,
+              phone: { contains: callerCore },
+            },
+          });
+        }
+
+        await prisma.callLog.create({
+          data: {
+            callLogId:      `CL${Date.now()}`,
+            publicId:       `bonvoice-${Date.now()}`,
+            direction:      isInbound ? "INBOUND" : "OUTBOUND",
+            status:         mappedStatus as any,
+            companyId:      phoneNumber.companyId ?? undefined,
+            phoneNumberId:  phoneNumber.id,
+            leadId:         lead?.id ?? undefined,
+            aiAgentId:      isInbound
+                              ? (phoneNumber.inboundAgentId  ?? undefined)
+                              : (phoneNumber.outboundAgentId ?? undefined),
+            providerCallId: callID ? String(callID) : undefined,
+            startedAt:      StartTime ? new Date(StartTime) : new Date(),
+            answeredAt:     mappedStatus === "ANSWERED" ? new Date() : undefined,
+            provider:       "BONVOICE",
+            providerStatus: mappedStatus,
+          },
+        });
+      }
     }
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error("Bonvoice Notification Webhook Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("Bonvoice Notification Webhook Error:", error?.message ?? error);
+    return NextResponse.json({ success: true }); // always 200 so Bonvoice doesn't retry
   }
 }
