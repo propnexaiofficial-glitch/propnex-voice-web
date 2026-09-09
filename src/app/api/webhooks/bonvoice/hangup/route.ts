@@ -40,9 +40,13 @@ export async function POST(req: Request) {
       }
     }
 
+    const dest = DestinationNumber && DestinationNumber !== "None" ? DestinationNumber : undefined;
+    const disp = DisplayNumber && DisplayNumber !== "None" ? DisplayNumber : undefined;
+    const src  = SourceNumber && SourceNumber !== "None" ? SourceNumber : undefined;
+
     const isInbound     = !Direction || String(Direction).toUpperCase() === "INBOUND";
-    const didNumber     = isInbound ? (DestinationNumber || DisplayNumber) : SourceNumber;
-    const callerNumber  = isInbound ? SourceNumber : (DestinationNumber || DisplayNumber);
+    const didNumber     = isInbound ? (dest || disp) : (disp || src);
+    const callerNumber  = isInbound ? src : dest;
 
     const recordingUrl  = ResourceURL || resource_url || "";
     const durationSec   = parseInt(String(actualDuration));
