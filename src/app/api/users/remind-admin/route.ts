@@ -58,6 +58,23 @@ export async function POST(req: NextRequest) {
        data: { remindedAt: new Date() }
     });
 
+    // Trigger Google Apps Script Webhook
+    const WEBHOOK_URL = process.env.APPS_SCRIPT_WEBHOOK_URL || "https://script.google.com/macros/s/AKfycbz2zj_l7vcmiPZKuYqEVdso0apyW3aDJZZWTVTJ1jRrQr8PLGZIH_TzRpTLFskphIwgDQ/exec";
+    
+    try {
+      await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "reminder_approval",
+          name: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "User",
+          email: user.email,
+        }),
+      });
+    } catch (webhookErr) {
+      console.error("Webhook failed to send reminder_approval email:", webhookErr);
+    }
+
     // TODO: Ideally we should create a Notification record for the admin, but it requires a companyId.
     // The Admin panel will just show these recently reminded approvals at the top.
 

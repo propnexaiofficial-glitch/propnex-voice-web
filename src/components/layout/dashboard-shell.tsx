@@ -113,8 +113,7 @@ function DashboardShellInner({
         });
       } else {
         // Normal pending approval reminder
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
-        res = await fetch(`${apiBase}/users/remind-admin`, {
+        res = await fetch(`/api/users/remind-admin`, {
           method: "POST",
           headers: { "Authorization": `Bearer ${token}` }
         });
