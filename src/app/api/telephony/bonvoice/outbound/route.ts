@@ -1,0 +1,82 @@
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { getBonvoiceToken } from "@/lib/bonvoice";
+
+export async function POST(req: Request) {
+  try {
+    const { leadId, phoneNumberId, agentId } = await req.json();
+
+    if (!leadId || !phoneNumberId || !agentId) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    const lead = await prisma.lead.findUnique({ where: { id: leadId } });
+    const phoneNumber = await prisma.phoneNumber.findUnique({ where: { id: phoneNumberId } });
+
+    if (!lead || !lead.phone) {
+      return NextResponse.json({ error: "Lead or lead phone not found" }, { status: 404 });
+    }
+
+    if (!phoneNumber) {
+      return NextResponse.json({ error: "Phone number not found" }, { status: 404 });
+    }
+
+    // Authenticate with Bonvoice
+    const token = await getBonvoiceToken();
+
+    // Outbound API logic using Bonvoice Click2Call or Voicebot API
+    const baseUrl = process.env.BONVOICE_BASE_URL || "https://backend.pbx.bonvoice.com";
+    const template_url = process.env.BONVOICE_VOICEBOT_URL || "wss://vineeth-inbound.onrender.com/ws/voice-agent";
+
+    // Create a pending call log record in our DB
+    const callLog = await prisma.callLog.create({
+      data: {
+        resourceKey: `CL${Date.now()}`,
+        publicId: `public-CL${Date.now()}`,
+        direction: "OUTBOUND",
+        status: "PENDING",
+        companyId: lead.companyId,
+        leadId: lead.id,
+        phoneNumberId: phoneNumber.id,
+        agentId: agentId,
+      } as any, // Typecast since some generated types might vary slightly
+    });
+
+    const bonvoiceRes = await fetch(`${baseUrl}/click2call/`, { // Adjust to match exact Bonvoice endpoint for voicebots
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Token ${token}`
+      },
+      body: JSON.stringify({
+        source_number: phoneNumber.number, // The DID we are calling from
+        destination_number: lead.phone, // The customer we are calling
+        template_url: template_url, // Webhook to process the Voicebot stream
+        reference_id: callLog.id // Optional to link back webhook to this DB record
+      }),
+    });
+
+    if (!bonvoiceRes.ok) {
+      const errBody = await bonvoiceRes.text();
+      console.error("Bonvoice outbound call failed:", errBody);
+      
+      await prisma.callLog.update({
+        where: { id: callLog.id },
+        data: { status: "FAILED" }
+      });
+
+      return NextResponse.json({ error: "Bonvoice API error", details: errBody }, { status: bonvoiceRes.status });
+    }
+
+    // Call successfully dispatched to Bonvoice
+    await prisma.callLog.update({
+      where: { id: callLog.id },
+      data: { status: "DISPATCHING" }
+    });
+
+    return NextResponse.json({ success: true, message: "Outbound call initiated", callLog });
+  } catch (error: any) {
+    console.error("Error creating outbound call:", error);
+    return NextResponse.json({ error: "Internal Server Error", message: error.message }, { status: 500 });
+  }
+}
