@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-// ── billing rate ─────────────────────────────────────────────────────────────
-// Adjust this to match your Propnex credit rate per second
-const CREDITS_PER_SECOND = 0.1;
+const CREDITS_PER_SECOND = 0.07; // Modify this as per pricing model
 
-function corePhone(num: string | undefined): string {
-  if (!num) return "";
-  return String(num).replace(/\D/g, "").replace(/^0+/, "").replace(/^91/, "");
+// Helper to sanitize phone numbers
+function corePhone(number: any) {
+  if (!number) return null;
+  return String(number)
+    .replace(/\D/g, "")
+    .replace(/^0+/, "")
+    .replace(/^91/, "");
 }
 
 export async function POST(req: Request) {
@@ -16,32 +18,47 @@ export async function POST(req: Request) {
     console.log("Bonvoice Hangup Webhook:", JSON.stringify(data, null, 2));
 
     const {
-      SourceNumber,
-      DestinationNumber,
-      DisplayNumber,
-      callDuration,
-      cost,
-      ResourceURL,
-      resource_url,
       callID,
       Direction,
       StartTime,
       EndTime,
+      cost,
+      ResourceURL,
+      resource_url,
     } = data;
 
-    const recordingUrl  = ResourceURL || resource_url || null;
-    const durationSec   = callDuration ? parseInt(String(callDuration)) : 0;
+    let { SourceNumber, DestinationNumber, DisplayNumber, callDuration, CallDuration } = data;
+    
+    // Bonvoice sends CallDuration instead of callDuration
+    const actualDuration = CallDuration || callDuration || 0;
+
+    // Bonvoice sometimes doesn't send SourceNumber/DestinationNumber, but embeds it in callID
+    // Format: UUID-DID-CALLER-DATE-TIME (e.g. 1788955197.876345-7946350796-8851860838-20260909-172958)
+    if (callID && typeof callID === "string" && callID.includes("-")) {
+      const parts = callID.split("-");
+      if (parts.length >= 3) {
+        if (!DisplayNumber && !DestinationNumber) DisplayNumber = parts[1];
+        if (!SourceNumber) SourceNumber = parts[2];
+      }
+    }
+
+    const isInbound     = !Direction || String(Direction).toUpperCase() === "INBOUND";
+    const didNumber     = isInbound ? (DestinationNumber || DisplayNumber) : SourceNumber;
+    const callerNumber  = isInbound ? SourceNumber : (DestinationNumber || DisplayNumber);
+
+    const recordingUrl  = ResourceURL || resource_url || "";
+    const durationSec   = parseInt(String(actualDuration));
     const callCost      = cost ? parseFloat(String(cost)) : 0;
     const creditsUsed   = parseFloat((durationSec * CREDITS_PER_SECOND).toFixed(2));
 
-    const isInbound     = !Direction || String(Direction).toUpperCase() === "INBOUND";
-    const didNumber     = DisplayNumber || (isInbound ? DestinationNumber : SourceNumber);
-    const callerNumber  = isInbound ? SourceNumber : DestinationNumber;
-    const callerCore    = corePhone(callerNumber);
     const didCore       = corePhone(didNumber);
+    const callerCore    = corePhone(callerNumber);
 
-    // ── 1. Try to find existing call log by callID ────────────────────────────
-    let callLog: any = null;
+    let callLog = null;
+    let phoneNumber: any = null;
+    let lead: any = null;
+
+    // ── 1. Try to find active call log by Call ID (set by notification webhook) ──
     if (callID) {
       callLog = await prisma.callLog.findFirst({
         where: { providerCallId: String(callID) },
@@ -59,33 +76,40 @@ export async function POST(req: Request) {
       });
     }
 
-    // ── 3. Resolve the DID PhoneNumber record ────────────────────────────────
-    const phoneNumber = await prisma.phoneNumber.findFirst({
-      where: { number: { contains: didCore || didNumber || "" } },
-    });
+    // ── 3. Find Phone Number to link the call if not linked ──────────────────
+    if (didCore && (!callLog || !callLog.phoneNumberId)) {
+      phoneNumber = await prisma.phoneNumber.findFirst({
+        where: { number: { contains: didCore } },
+      });
+    }
 
-    // ── 4. Try to match caller to an existing Lead ───────────────────────────
-    let lead: any = null;
-    if (callerCore && phoneNumber?.companyId) {
+    // ── 4. Link Lead based on caller number ──────────────────────────────────
+    const targetCompanyId = callLog?.companyId || phoneNumber?.companyId;
+    if (callerCore && targetCompanyId) {
       lead = await prisma.lead.findFirst({
         where: {
-          companyId: phoneNumber.companyId,
+          companyId: targetCompanyId,
           phone:     { contains: callerCore },
         },
       });
     }
+    
+    // Attempt to parse StartTime as local server time if needed, but new Date() is usually sufficient
+    // as long as we have the duration and credits correctly calculated.
+    const startTimeParsed = StartTime ? new Date(StartTime) : new Date();
+    const endTimeParsed = EndTime ? new Date(EndTime) : new Date();
 
     if (callLog) {
-      // ── 5a. Update existing call log ─────────────────────────────────────
+      // ── 5a. Update existing call log ───────────────────────────────────────
       await prisma.callLog.update({
         where: { id: callLog.id },
         data: {
           status:          "COMPLETED",
           durationSeconds: durationSec,
           cost:            callCost,
-          creditsUsed,
-          recordingUrl,
-          endedAt:         EndTime ? new Date(EndTime) : new Date(),
+          creditsUsed:     creditsUsed,
+          recordingUrl:    recordingUrl,
+          endedAt:         endTimeParsed,
           providerStatus:  "COMPLETED",
           providerWebhook: data,
           // Link lead if not already linked
@@ -107,17 +131,19 @@ export async function POST(req: Request) {
                              ? (phoneNumber.inboundAgentId  ?? undefined)
                              : (phoneNumber.outboundAgentId ?? undefined),
           providerCallId:  callID ? String(callID) : undefined,
-          startedAt:       StartTime ? new Date(StartTime) : new Date(),
-          endedAt:         EndTime   ? new Date(EndTime)   : new Date(),
+          startedAt:       startTimeParsed,
+          endedAt:         endTimeParsed,
           durationSeconds: durationSec,
           cost:            callCost,
-          creditsUsed,
-          recordingUrl,
+          creditsUsed:     creditsUsed,
+          recordingUrl:    recordingUrl,
           provider:        "BONVOICE",
           providerStatus:  "COMPLETED",
           providerWebhook: data,
         },
       });
+    } else {
+      console.error("Bonvoice Hangup: Could not match call to any DID or existing log.", data);
     }
 
     return NextResponse.json({ success: true });
@@ -128,4 +154,8 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+}
+
+export async function GET(req: Request) {
+  return NextResponse.json({ success: true });
 }

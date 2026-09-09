@@ -1,24 +1,30 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-// Credits per second rate (adjust as per your billing config)
-const CREDITS_PER_SECOND = 0.1;
-
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    console.log("Bonvoice Notification Webhook:", JSON.stringify(data, null, 2));
+    console.log("Received Bonvoice Call Notification Webhook:", data);
 
     const {
       callType,
       status,
-      SourceNumber,
-      DestinationNumber,
-      DisplayNumber,
       callID,
       Direction,
       StartTime,
     } = data;
+
+    let { SourceNumber, DestinationNumber, DisplayNumber } = data;
+
+    // Bonvoice sometimes doesn't send SourceNumber/DestinationNumber, but embeds it in callID
+    // Format: UUID-DID-CALLER-DATE-TIME (e.g. 1788955197.876345-7946350796-8851860838-20260909-172958)
+    if (callID && typeof callID === "string" && callID.includes("-")) {
+      const parts = callID.split("-");
+      if (parts.length >= 3) {
+        if (!DisplayNumber && !DestinationNumber) DisplayNumber = parts[1];
+        if (!SourceNumber) SourceNumber = parts[2];
+      }
+    }
 
     // Map callType to our status
     let mappedStatus: string = "RINGING";
@@ -34,6 +40,11 @@ export async function POST(req: Request) {
     const didNumber = DisplayNumber || DestinationNumber;
     const isInbound = !Direction || String(Direction).toUpperCase() === "INBOUND";
     const callerNumber = isInbound ? SourceNumber : DestinationNumber;
+
+    if (!didNumber || !callerNumber) {
+      console.log("Bonvoice Notification: Missing phone numbers, skipping log creation.");
+      return NextResponse.json({ success: true });
+    }
 
     // 1️⃣ Try to find existing call log by callID
     let callLog = null;
@@ -59,7 +70,6 @@ export async function POST(req: Request) {
       });
 
       if (phoneNumber) {
-        // Try to find lead by caller number
         const callerCore = callerNumber
           ? String(callerNumber).replace(/\D/g, "").replace(/^0+/, "").replace(/^91/, "")
           : null;
@@ -101,4 +111,8 @@ export async function POST(req: Request) {
     console.error("Bonvoice Notification Webhook Error:", error?.message ?? error);
     return NextResponse.json({ success: true }); // always 200 so Bonvoice doesn't retry
   }
+}
+
+export async function GET(req: Request) {
+  return NextResponse.json({ success: true });
 }
