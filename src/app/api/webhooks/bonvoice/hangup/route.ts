@@ -1,13 +1,38 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-// 1.75 credits per 30 seconds block
-function corePhone(number: any) {
+/**
+ * Strip a phone number to its core 10 digits (no country code, no leading 0).
+ * E.g. "07946350796" → "7946350796"
+ *      "917946350796" → "7946350796"
+ *      "+917946350796" → "7946350796"
+ */
+function corePhone(number: any): string | null {
   if (!number) return null;
-  return String(number)
-    .replace(/\D/g, "")
-    .replace(/^0+/, "")
-    .replace(/^91/, "");
+  const digits = String(number).replace(/\D/g, "");
+  // Remove leading 91 (India country code)
+  const no91 = digits.replace(/^91/, "");
+  // Remove leading 0
+  const no0 = no91.replace(/^0+/, "");
+  return no0 || null;
+}
+
+/**
+ * Generate all possible formats for a phone number to use in DB lookup.
+ * E.g. "07946350796" → ["7946350796", "07946350796", "917946350796", "+917946350796"]
+ */
+function phoneVariants(number: any): string[] {
+  if (!number) return [];
+  const raw = String(number);
+  const core = corePhone(raw);
+  if (!core) return [raw];
+  return [
+    core,
+    `0${core}`,
+    `91${core}`,
+    `+91${core}`,
+    raw,
+  ].filter((v, i, a) => a.indexOf(v) === i); // deduplicate
 }
 
 export async function POST(req: Request) {
@@ -26,12 +51,12 @@ export async function POST(req: Request) {
     } = data;
 
     let { SourceNumber, DestinationNumber, DisplayNumber, callDuration, CallDuration } = data;
-    
-    // Bonvoice sends CallDuration instead of callDuration
+
+    // Bonvoice sends CallDuration instead of callDuration in some versions
     const actualDuration = CallDuration || callDuration || 0;
 
-    // Bonvoice sometimes doesn't send SourceNumber/DestinationNumber, but embeds it in callID
-    // Format: UUID-DID-CALLER-DATE-TIME (e.g. 1788955197.876345-7946350796-8851860838-20260909-172958)
+    // ── Parse numbers from callID if missing ────────────────────────────────
+    // Format: UUID.ext-DID-CALLER-DATE-TIME (e.g. 1788955197.876345-7946350796-8851860838-20260909-172958)
     if (callID && typeof callID === "string" && callID.includes("-")) {
       const parts = callID.split("-");
       if (parts.length >= 3) {
@@ -40,61 +65,78 @@ export async function POST(req: Request) {
       }
     }
 
-    const dest = DestinationNumber && DestinationNumber !== "None" ? DestinationNumber : undefined;
-    const disp = DisplayNumber && DisplayNumber !== "None" ? DisplayNumber : undefined;
-    const src  = SourceNumber && SourceNumber !== "None" ? SourceNumber : undefined;
+    // ── Determine direction ─────────────────────────────────────────────────
+    // Bonvoice: Direction = "Inbound" | "OutBound" | "Outbound"
+    const directionRaw = Direction ? String(Direction).toLowerCase() : "";
+    const isInbound = directionRaw === "" || directionRaw === "inbound";
 
-    const isInbound     = !Direction || String(Direction).toUpperCase() === "INBOUND";
-    const didNumber     = isInbound ? (dest || disp) : (disp || src);
-    const callerNumber  = isInbound ? src : dest;
+    // ── Map fields to DID and caller per direction ──────────────────────────
+    // INBOUND:  DID = DestinationNumber (or DisplayNumber), Caller = SourceNumber
+    // OUTBOUND: DID = SourceNumber (or DisplayNumber),     Caller = DestinationNumber
+    let didNumber: string;
+    let callerNumber: string;
 
-    const recordingUrl  = ResourceURL || resource_url || "";
-    const durationSec   = parseInt(String(actualDuration));
-    const callCost      = cost ? parseFloat(String(cost)) : 0;
-    
-    // Credit Logic: 1.75 credits for inbound, 3.5 credits for outbound (per 30 seconds block)
+    if (isInbound) {
+      didNumber    = String(DestinationNumber || DisplayNumber || "");
+      callerNumber = String(SourceNumber || "");
+    } else {
+      didNumber    = String(SourceNumber || DisplayNumber || "");
+      callerNumber = String(DestinationNumber || "");
+    }
+
+    console.log(`Bonvoice Hangup: direction=${isInbound ? "INBOUND" : "OUTBOUND"}, DID=${didNumber}, caller=${callerNumber}`);
+
+    const recordingUrl = ResourceURL || resource_url || "";
+    const durationSec  = parseInt(String(actualDuration)) || 0;
+    const callCost     = cost ? parseFloat(String(cost)) : 0;
+
+    // Credit Logic: 1.75 credits per 30s block for inbound, 3.5 for outbound
     let creditsUsed = 0;
     if (durationSec > 0) {
       const blocks = Math.ceil(durationSec / 30);
-      const rate = isInbound ? 1.75 : 3.5;
-      creditsUsed = blocks * rate;
+      creditsUsed = blocks * (isInbound ? 1.75 : 3.5);
     }
 
-    const didCore       = corePhone(didNumber);
-    const callerCore    = corePhone(callerNumber);
+    const didVariants    = phoneVariants(didNumber);
+    const callerCore     = corePhone(callerNumber);
 
-    let callLog = null;
+    let callLog: any    = null;
     let phoneNumber: any = null;
-    let lead: any = null;
+    let lead: any        = null;
 
-    // ── 1. Try to find active call log by Call ID (set by notification webhook) ──
+    // ── 1. Find active call log by callID ─────────────────────────────────
     if (callID) {
       callLog = await prisma.callLog.findFirst({
         where: { providerCallId: String(callID) },
       });
     }
 
-    // ── 2. Try to find active call log by DID phone number ───────────────────
-    if (!callLog && didCore) {
-      const possibleNumbers = [didNumber, `0${didCore}`, `91${didCore}`, `+91${didCore}`, didCore];
+    // ── 2. Find active call log by DID (ringing/answered) ─────────────────
+    if (!callLog && didVariants.length > 0) {
       callLog = await prisma.callLog.findFirst({
         where: {
           status:      { in: ["RINGING", "ANSWERED", "QUEUED"] },
-          phoneNumber: { number: { in: possibleNumbers as string[] } },
+          phoneNumber: { number: { in: didVariants } },
         },
         orderBy: { createdAt: "desc" },
       });
     }
 
-    // ── 3. Find Phone Number to link the call if not linked ──────────────────
-    if (didCore && (!callLog || !callLog.phoneNumberId)) {
-      const possibleNumbers = [didNumber, `0${didCore}`, `91${didCore}`, `+91${didCore}`, didCore];
-      phoneNumber = await prisma.phoneNumber.findFirst({
-        where: { number: { in: possibleNumbers as string[] } },
+    // ── 3. Find PhoneNumber record by DID variants ─────────────────────────
+    // Prefer sub-company's own PhoneNumber over parent-shared records
+    if (didVariants.length > 0 && (!callLog || !callLog.phoneNumberId)) {
+      const candidates = await prisma.phoneNumber.findMany({
+        where: { number: { in: didVariants } },
+        include: { company: { select: { parentCompanyId: true } } },
       });
+      // Prefer sub-company's own number (company has a parentCompanyId)
+      phoneNumber = candidates.find((p: any) => p.company?.parentCompanyId)
+                 ?? candidates[0]
+                 ?? null;
+      console.log(`Bonvoice Hangup: DID variants [${didVariants.join(", ")}] → found ${candidates.length} candidates, picked: ${phoneNumber ? `${phoneNumber.number} (company: ${phoneNumber.companyId})` : "NONE"}`);
     }
 
-    // ── 4. Link Lead based on caller number ──────────────────────────────────
+    // ── 4. Link lead from caller number ────────────────────────────────────
     const targetCompanyId = callLog?.companyId || phoneNumber?.companyId;
     if (callerCore && targetCompanyId) {
       lead = await prisma.lead.findFirst({
@@ -104,17 +146,16 @@ export async function POST(req: Request) {
         },
       });
     }
-    
-    // Attempt to parse StartTime as local IST server time
-    const startTimeStr = StartTime ? `${String(StartTime).replace(" ", "T")}+05:30` : undefined;
+
+    const startTimeStr   = StartTime ? `${String(StartTime).replace(" ", "T")}+05:30` : undefined;
     const startTimeParsed = startTimeStr ? new Date(startTimeStr) : new Date();
-    const endTimeStr = EndTime ? `${String(EndTime).replace(" ", "T")}+05:30` : undefined;
-    const endTimeParsed = endTimeStr ? new Date(endTimeStr) : new Date();
+    const endTimeStr     = EndTime ? `${String(EndTime).replace(" ", "T")}+05:30` : undefined;
+    const endTimeParsed  = endTimeStr ? new Date(endTimeStr) : new Date();
 
     let finalCallLogId = callLog?.id;
 
     if (callLog) {
-      // ── 5a. Update existing call log ───────────────────────────────────────
+      // ── 5a. Update existing call log ──────────────────────────────────────
       await prisma.callLog.update({
         where: { id: callLog.id },
         data: {
@@ -126,12 +167,12 @@ export async function POST(req: Request) {
           endedAt:         endTimeParsed,
           providerStatus:  "COMPLETED",
           providerWebhook: data,
-          // Link lead if not already linked
           ...(lead && !callLog.leadId ? { leadId: lead.id } : {}),
+          ...(phoneNumber && !callLog.phoneNumberId ? { phoneNumberId: phoneNumber.id } : {}),
         },
       });
     } else if (phoneNumber) {
-      // ── 5b. Create a new COMPLETED call log ──────────────────────────────
+      // ── 5b. Create a new COMPLETED call log ───────────────────────────────
       const newLog = await prisma.callLog.create({
         data: {
           callLogId:       `CL${Date.now()}`,
@@ -157,34 +198,35 @@ export async function POST(req: Request) {
         },
       });
       finalCallLogId = newLog.id;
+      console.log(`Bonvoice Hangup: Created new call log ${newLog.id} for company ${phoneNumber.companyId}, DID=${didNumber}`);
     } else {
-      console.error("Bonvoice Hangup: Could not match call to any DID or existing log.", data);
+      console.error("Bonvoice Hangup: Could not match call to any PhoneNumber. DID variants tried:", didVariants, "Full payload:", data);
     }
 
-    // ── 6. Deduct Credits from Company Balance ─────────────────────────────
+    // ── 6. Deduct Credits ──────────────────────────────────────────────────
     if (creditsUsed > 0 && targetCompanyId) {
       try {
         await prisma.$transaction(async (tx) => {
           await tx.creditUsage.create({
             data: {
-              companyId: targetCompanyId,
-              amount: creditsUsed,
-              reason: "CALL",
-              callLogId: finalCallLogId,
-              description: `Bonvoice inbound/outbound call (${durationSec}s)`,
+              companyId:   targetCompanyId,
+              amount:      creditsUsed,
+              reason:      "CALL",
+              callLogId:   finalCallLogId,
+              description: `Bonvoice ${isInbound ? "inbound" : "outbound"} call (${durationSec}s, ${creditsUsed.toFixed(2)} credits)`,
             },
           });
 
           await tx.creditBalance.upsert({
-            where: { companyId: targetCompanyId },
+            where:  { companyId: targetCompanyId },
             create: {
-              companyId: targetCompanyId,
-              creditsRemaining: Math.max(0, -creditsUsed),
-              creditsUsed: Math.max(0, creditsUsed),
+              companyId:         targetCompanyId,
+              creditsRemaining:  Math.max(0, -creditsUsed),
+              creditsUsed:       creditsUsed,
             },
             update: {
               creditsRemaining: { decrement: creditsUsed },
-              creditsUsed: { increment: Math.max(0, creditsUsed) },
+              creditsUsed:      { increment: creditsUsed },
             },
           });
         });
@@ -203,6 +245,6 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET() {
   return NextResponse.json({ success: true });
 }

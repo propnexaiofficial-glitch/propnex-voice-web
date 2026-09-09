@@ -1,10 +1,38 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+/**
+ * Generate all possible formats for a phone number for DB lookup.
+ * Handles 0-prefix, 91 country code, +91, and raw digits.
+ */
+function phoneVariants(number: any): string[] {
+  if (!number) return [];
+  const raw = String(number).trim();
+  const digits = raw.replace(/\D/g, "");
+  const no91 = digits.replace(/^91/, "");
+  const core = no91.replace(/^0+/, "");
+  if (!core) return [raw];
+  return [
+    core,
+    `0${core}`,
+    `91${core}`,
+    `+91${core}`,
+    raw,
+  ].filter((v, i, a) => v && a.indexOf(v) === i); // deduplicate, remove empty
+}
+
+function corePhone(number: any): string | null {
+  if (!number) return null;
+  const digits = String(number).replace(/\D/g, "");
+  const no91 = digits.replace(/^91/, "");
+  const core = no91.replace(/^0+/, "");
+  return core || null;
+}
+
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    console.log("Received Bonvoice Call Notification Webhook:", data);
+    console.log("Bonvoice Notification Webhook:", JSON.stringify(data, null, 2));
 
     const {
       callType,
@@ -16,8 +44,8 @@ export async function POST(req: Request) {
 
     let { SourceNumber, DestinationNumber, DisplayNumber } = data;
 
-    // Bonvoice sometimes doesn't send SourceNumber/DestinationNumber, but embeds it in callID
-    // Format: UUID-DID-CALLER-DATE-TIME (e.g. 1788955197.876345-7946350796-8851860838-20260909-172958)
+    // ── Parse numbers from callID if missing ─────────────────────────────────
+    // Format: UUID.ext-DID-CALLER-DATE-TIME
     if (callID && typeof callID === "string" && callID.includes("-")) {
       const parts = callID.split("-");
       if (parts.length >= 3) {
@@ -26,8 +54,8 @@ export async function POST(req: Request) {
       }
     }
 
-    // Map callType to our status
-    let mappedStatus: string = "RINGING";
+    // ── Map callType → status ─────────────────────────────────────────────────
+    let mappedStatus = "RINGING";
     if (status) {
       mappedStatus = String(status).toUpperCase();
     } else if (callType !== undefined) {
@@ -37,19 +65,37 @@ export async function POST(req: Request) {
       else if (ct === 2) mappedStatus = "COMPLETED";
     }
 
-    const didNumber = DisplayNumber || DestinationNumber;
-    const isInbound = !Direction || String(Direction).toUpperCase() === "INBOUND";
-    const callerNumber = isInbound ? SourceNumber : DestinationNumber;
+    // ── Determine direction ───────────────────────────────────────────────────
+    // Bonvoice: Direction = "Inbound" | "OutBound" | "Outbound"
+    const directionRaw = Direction ? String(Direction).toLowerCase() : "";
+    const isInbound = directionRaw === "" || directionRaw === "inbound";
 
-    if (!didNumber || !callerNumber) {
-      console.log("Bonvoice Notification: Missing phone numbers, skipping log creation.");
+    // ── Map fields per direction ──────────────────────────────────────────────
+    // INBOUND:  DID = DestinationNumber (or DisplayNumber), Caller = SourceNumber
+    // OUTBOUND: DID = SourceNumber (or DisplayNumber),      Caller = DestinationNumber
+    let didNumber: string;
+    let callerNumber: string;
+
+    if (isInbound) {
+      didNumber    = String(DestinationNumber || DisplayNumber || "");
+      callerNumber = String(SourceNumber || "");
+    } else {
+      didNumber    = String(SourceNumber || DisplayNumber || "");
+      callerNumber = String(DestinationNumber || "");
+    }
+
+    console.log(`Bonvoice Notification: direction=${isInbound ? "INBOUND" : "OUTBOUND"}, status=${mappedStatus}, DID=${didNumber}, caller=${callerNumber}`);
+
+    if (!didNumber) {
+      console.log("Bonvoice Notification: No DID number found, skipping.");
       return NextResponse.json({ success: true });
     }
 
-    const didCore = String(didNumber).replace(/\D/g, "").replace(/^0+/, "").replace(/^91/, "");
+    const didVariants  = phoneVariants(didNumber);
+    const callerCore   = corePhone(callerNumber);
 
-    // 1️⃣ Try to find existing call log by callID
-    let callLog = null;
+    // ── 1. Check for existing call log by callID ──────────────────────────────
+    let callLog: any = null;
     if (callID) {
       callLog = await prisma.callLog.findFirst({
         where: { providerCallId: String(callID) },
@@ -57,37 +103,42 @@ export async function POST(req: Request) {
     }
 
     if (callLog) {
-      // Update existing call log status
+      // Update status only
       await prisma.callLog.update({
         where: { id: callLog.id },
         data: {
-          status: mappedStatus as any,
+          status:     mappedStatus as any,
           answeredAt: mappedStatus === "ANSWERED" ? new Date() : undefined,
         },
       });
+      console.log(`Bonvoice Notification: Updated existing call log ${callLog.id} → ${mappedStatus}`);
     } else {
-      // 2️⃣ Create a new RINGING call log so we can track it
-      const possibleNumbers = [didNumber, `0${didCore}`, `91${didCore}`, `+91${didCore}`, didCore];
-      const phoneNumber = await prisma.phoneNumber.findFirst({
-        where: { number: { in: possibleNumbers as string[] } },
+      // ── 2. Find PhoneNumber by DID variants ───────────────────────────
+      // Prefer sub-company's own number over parent-shared records
+      const candidates = await prisma.phoneNumber.findMany({
+        where: { number: { in: didVariants } },
+        include: { company: { select: { parentCompanyId: true } } },
       });
+      const phoneNumber = candidates.find((p: any) => p.company?.parentCompanyId)
+                       ?? candidates[0]
+                       ?? null;
+
+      console.log(`Bonvoice Notification: DID [${didVariants.join(", ")}] → ${candidates.length} candidates, picked: ${phoneNumber ? `${phoneNumber.number} (company: ${phoneNumber.companyId})` : "NONE"}`);
 
       if (phoneNumber) {
-        const callerCore = callerNumber
-          ? String(callerNumber).replace(/\D/g, "").replace(/^0+/, "").replace(/^91/, "")
-          : null;
-
-        let lead = null;
-        if (callerCore) {
+        // ── 3. Optionally link to a Lead ──────────────────────────────────────
+        let lead: any = null;
+        if (callerCore && phoneNumber.companyId) {
           lead = await prisma.lead.findFirst({
             where: {
-              companyId: phoneNumber.companyId ?? undefined,
-              phone: { contains: callerCore },
+              companyId: phoneNumber.companyId,
+              phone:     { contains: callerCore },
             },
           });
         }
 
-        await prisma.callLog.create({
+        // ── 4. Create new RINGING call log ────────────────────────────────────
+        const newLog = await prisma.callLog.create({
           data: {
             callLogId:      `CL${Date.now()}`,
             publicId:       `bonvoice-${Date.now()}`,
@@ -100,12 +151,18 @@ export async function POST(req: Request) {
                               ? (phoneNumber.inboundAgentId  ?? undefined)
                               : (phoneNumber.outboundAgentId ?? undefined),
             providerCallId: callID ? String(callID) : undefined,
-            startedAt:      StartTime ? new Date(`${String(StartTime).replace(" ", "T")}+05:30`) : new Date(),
+            startedAt:      StartTime
+                              ? new Date(`${String(StartTime).replace(" ", "T")}+05:30`)
+                              : new Date(),
             answeredAt:     mappedStatus === "ANSWERED" ? new Date() : undefined,
             provider:       "BONVOICE",
             providerStatus: mappedStatus,
+            providerWebhook: data,
           },
         });
+        console.log(`Bonvoice Notification: Created call log ${newLog.id} for company ${phoneNumber.companyId}, DID=${didNumber}`);
+      } else {
+        console.error("Bonvoice Notification: No PhoneNumber found for DID variants:", didVariants, "Full payload:", data);
       }
     }
 
@@ -116,6 +173,6 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET() {
   return NextResponse.json({ success: true });
 }
