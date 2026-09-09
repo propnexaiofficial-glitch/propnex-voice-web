@@ -63,7 +63,7 @@ export function UserMenu({ className }: UserMenuProps) {
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"

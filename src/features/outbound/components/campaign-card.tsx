@@ -813,18 +813,25 @@ export function CampaignCard({
               <p className="text-sm text-muted-foreground">Manage and track failed leads across all historical outbound campaigns in Q1, Q2, and Q3 retry stages.</p>
             </DialogHeader>
 
-            <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
               {/* Left Panel: Campaigns List */}
-              <div className="w-80 border-r border-border/50 flex flex-col bg-muted/10 shrink-0">
+              <div className="w-full md:w-80 border-b md:border-b-0 md:border-r border-border/50 flex flex-col bg-muted/10 shrink-0">
                 <div className="p-4 text-xs font-semibold text-muted-foreground tracking-wider uppercase border-b border-border/50">Historical Campaigns</div>
-                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                <div className="flex-none max-h-[40vh] md:max-h-none md:flex-1 overflow-y-auto p-3 space-y-2">
                   {MOCK_HISTORICAL_CAMPAIGNS.map(hist => {
                     const isSelected = selectedHistId === hist.id;
                     const totalFailed = (hist.q1.failedLeads?.length || 0) + (hist.q2.failedLeads?.length || 0) + (hist.q3.failedLeads?.length || 0);
                     return (
                       <div 
                         key={hist.id}
-                        onClick={() => setSelectedHistId(hist.id)}
+                        onClick={() => {
+                          setSelectedHistId(hist.id);
+                          if (window.innerWidth < 768) {
+                            setTimeout(() => {
+                              document.getElementById("reactivation-details")?.scrollIntoView({ behavior: "smooth" });
+                            }, 50);
+                          }
+                        }}
                         className={cn(
                           "p-3 rounded-xl cursor-pointer transition-all border text-sm flex flex-col gap-1.5",
                           isSelected 
@@ -848,24 +855,24 @@ export function CampaignCard({
               </div>
 
               {/* Right Panel: Q1, Q2, Q3 Tracking */}
-              <div className="flex-1 bg-background/50 flex flex-col min-w-0">
+              <div id="reactivation-details" className="flex-1 bg-background/50 flex flex-col min-w-0 overflow-visible md:overflow-hidden">
                 <div className="p-4 text-xs font-semibold text-muted-foreground tracking-wider uppercase border-b border-border/50 shrink-0">
                   Reactivation Lifecycle (3 Waves)
                 </div>
                 
                 {(() => {
                   const activeHist = MOCK_HISTORICAL_CAMPAIGNS.find(c => c.id === selectedHistId);
-                  if (!activeHist) return <div className="flex-1 flex items-center justify-center text-muted-foreground">Select a campaign to view details</div>;
+                  if (!activeHist) return <div className="flex-1 flex items-center justify-center text-muted-foreground p-8">Select a campaign to view details</div>;
 
                   return (
-                    <div className="flex-1 overflow-x-auto p-6">
-                      <div className="flex gap-6 h-full min-w-[700px]">
+                    <div className="flex-1 md:overflow-auto p-4 md:p-6 pb-12 md:pb-6">
+                      <div className="flex flex-col md:flex-row gap-4 md:gap-6 h-auto md:h-full">
                         {[
                           { stage: "Q1", label: "Wave 1 (24 Hrs)", data: activeHist.q1 },
                           { stage: "Q2", label: "Wave 2 (48 Hrs)", data: activeHist.q2 },
                           { stage: "Q3", label: "Wave 3 (72 Hrs)", data: activeHist.q3 }
                         ].map((wave, idx) => (
-                          <div key={wave.stage} className="flex-1 flex flex-col border border-border/60 rounded-2xl bg-card overflow-hidden shadow-sm relative">
+                          <div key={wave.stage} className="flex-1 flex flex-col border border-border/60 rounded-2xl bg-card overflow-hidden shadow-sm relative min-h-[300px] md:min-h-0">
                             {/* Wave Header */}
                             <div className="p-4 border-b border-border/50 bg-muted/20 flex flex-col gap-3 shrink-0">
                               <div className="flex items-center justify-between">

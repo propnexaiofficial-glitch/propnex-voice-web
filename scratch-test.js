@@ -1,48 +1,30 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const fs = require('fs');
 
 async function run() {
-  const companyId = "66f7f3299db321d279cf4bb8"; // Need a real companyId, wait, I can just query one company.
+  let fileContent = fs.readFileSync('src/app/api/chatbot/route.ts', 'utf8');
   
-  const company = await prisma.company.findFirst();
-  if(!company) return console.log("No company");
-  console.log("Testing for company", company.id);
+  fileContent = fileContent.replace(
+    /const mainIn = company\.phoneNumbers\.reduce[\s\S]*const outboundCalls = \{ length: mainOut \+ subOut, filter: \(fn: any\) => allCallsCombined\.filter\(c => c\.direction === "OUTBOUND"\)\.filter\(fn\) \};/g,
+    `const mainIn = company.phoneNumbers.reduce((sum: number, p: any) => sum + callLogs.filter((c: any) => c.phoneNumberId === p.id && c.direction === "INBOUND").length, 0);
+            const mainOut = company.phoneNumbers.reduce((sum: number, p: any) => sum + callLogs.filter((c: any) => c.phoneNumberId === p.id && c.direction === "OUTBOUND").length, 0);
+            const subIn = subcompanies.reduce((sum: number, s: any) => sum + (s.phoneNumbers?.length > 0 ? s.phoneNumbers.reduce((sum2: number, p: any) => sum2 + subCallLogs.filter((c: any) => c.phoneNumberId === p.id && c.direction === "INBOUND").length, 0) : 0), 0);
+            const subOut = subcompanies.reduce((sum: number, s: any) => sum + (s.phoneNumbers?.length > 0 ? s.phoneNumbers.reduce((sum2: number, p: any) => sum2 + subCallLogs.filter((c: any) => c.phoneNumberId === p.id && c.direction === "OUTBOUND").length, 0) : 0), 0);
+            
+            const inboundCalls = allCallsCombined.filter((c: any) => c.direction === "INBOUND");
+            const outboundCalls = allCallsCombined.filter((c: any) => c.direction === "OUTBOUND");
+            const combinedInboundLength = mainIn + subIn;
+            const combinedOutboundLength = mainOut + subOut;`
+  );
 
-  console.time("Raw FindMany");
-  const callLogs = await prisma.callLog.findMany({
-    where: { companyId: company.id },
-    select: { 
-      direction: true, 
-      status: true, 
-      durationSeconds: true,
-      cost: true,
-      creditsUsed: true,
-      startedAt: true,
-      phoneNumberId: true,
-    }
-  });
-  console.timeEnd("Raw FindMany");
-  console.log("Found", callLogs.length, "calls");
+  fileContent = fileContent.replace(
+    /Total Inbound Calls: \$\{inboundCalls\.length\} \(Failed: \$\{failedInbound\.length\}\)\\nTotal Outbound Calls: \$\{outboundCalls\.length\} \(Failed: \$\{failedOutbound\.length\}\)/g,
+    `Total Inbound Calls: \$\{combinedInboundLength\} (Failed: \$\{failedInbound.length\})\\nTotal Outbound Calls: \$\{combinedOutboundLength\} (Failed: \$\{failedOutbound.length\})`
+  );
 
-  console.time("GroupBy Status Direction");
-  const stats = await prisma.callLog.groupBy({
-    by: ['direction', 'status'],
-    where: { companyId: company.id },
-    _count: { _all: true },
-    _sum: { durationSeconds: true, creditsUsed: true },
-    _avg: { durationSeconds: true }
-  });
-  console.timeEnd("GroupBy Status Direction");
-  console.log(stats);
-  
-  console.time("GroupBy Phone Direction");
-  const phoneStats = await prisma.callLog.groupBy({
-    by: ['phoneNumberId', 'direction'],
-    where: { companyId: company.id },
-    _count: { _all: true }
-  });
-  console.timeEnd("GroupBy Phone Direction");
-  console.log(phoneStats);
+  fs.writeFileSync('src/app/api/chatbot/route.ts', fileContent);
+  console.log("Fixed route.ts arrays");
 }
 
 run().catch(console.error).finally(() => prisma.$disconnect());

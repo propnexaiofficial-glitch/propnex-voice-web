@@ -204,8 +204,8 @@ export function SidebarChatbot() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
-        /* â•â•â• ROUND FAB WIDGET â•â•â• */
-        .fab-wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:0;margin-bottom:24px;margin-top:12px}
+        /*  ROUND FAB WIDGET  */
+        .fab-wrap{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;align-items:center;gap:0;z-index:99999;}
         .fab-bubble{
           position:absolute;bottom:calc(100% + 16px);left:50%;transform:translateX(-50%) translateY(6px) scale(.92);
           background:#18181b;border:1px solid rgba(255,255,255,.13);color:#f4f4f5;
@@ -230,7 +230,6 @@ export function SidebarChatbot() {
           border:1px solid rgba(255,255,255,.13);
           display:flex;align-items:center;justify-content:center;
           position:relative;z-index:2;
-          overflow:hidden;
           animation:fab-float 4s ease-in-out infinite;
           transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s,border-color .3s;
           box-shadow:0 4px 20px rgba(0,0,0,.5);
@@ -267,16 +266,16 @@ export function SidebarChatbot() {
         .fab-dot{width:5px;height:5px;background:#4ade80;border-radius:50%;animation:dot-blink 2s ease-in-out infinite}
         @keyframes dot-blink{0%,100%{opacity:1}50%{opacity:.3}}
         
-        /* â•â•â• BACKDROP â•â•â• */
+        /*  BACKDROP  */
         .chat-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);z-index:99998;opacity:0;pointer-events:none;transition:opacity .4s}
         .chat-backdrop.show{opacity:1;pointer-events:all}
         
-        /* â•â•â• CHAT PANEL â•â•â• */
+        /*  CHAT PANEL  */
         .chat-window{
           position:fixed;
-          bottom:32px;left:var(--sidebar-width, 280px);
-          margin-left:24px;
-          width:400px;
+          bottom:100px;right:24px;
+          width:calc(100vw - 48px);
+          max-width:400px;
           background:#111113;
           border:1px solid rgba(255,255,255,.13);
           border-radius:28px;
@@ -286,9 +285,10 @@ export function SidebarChatbot() {
           box-shadow:0 0 0 1px rgba(255,255,255,.03),0 40px 80px rgba(0,0,0,.8),0 0 60px rgba(255,255,255,.02);
           opacity:0;pointer-events:none;
           transform:translateY(20px) scale(.95);
-          transform-origin:bottom left;
+          transform-origin:bottom right;
           transition:opacity .45s cubic-bezier(.16,1,.3,1),transform .45s cubic-bezier(.16,1,.3,1);
-          height:560px;
+          height:calc(100vh - 140px);
+          max-height:560px;
         }
         .chat-window.open{opacity:1;pointer-events:all;transform:translateY(0) scale(1)}
         
@@ -316,10 +316,9 @@ export function SidebarChatbot() {
         .ch-av{
           width:52px;height:52px;border-radius:50%;
           background:#18181b;
-          border:1.5px solid rgba(255,255,255,.13);
+          border:1px solid rgba(255,255,255,.13);
           display:flex;align-items:center;justify-content:center;
-          overflow:hidden;
-          box-shadow:0 0 0 3px rgba(255,255,255,.05),0 8px 24px rgba(0,0,0,.6);
+          font-size:1.5rem;
           animation:ch-av-float 5s ease-in-out infinite;
         }
         @keyframes ch-av-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
