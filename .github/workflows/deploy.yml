@@ -19,12 +19,7 @@ jobs:
             cd /root/propnex-voice-web
             git pull origin main
             
-            # Write the .env file using Secrets from GitHub
-            echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" > .env.local
-            echo "APPS_SCRIPT_WEBHOOK_URL=${{ secrets.APPS_SCRIPT_WEBHOOK_URL }}" >> .env.local
-            echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env.local
-            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env.local
-            echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .env.local
+
 
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
