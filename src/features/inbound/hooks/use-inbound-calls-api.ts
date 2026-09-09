@@ -160,6 +160,7 @@ export function useInboundCallsApi(
 
   useEffect(() => {
     let isCancelled = false;
+    let intervalId: ReturnType<typeof setInterval>;
 
     const load = async (isPolling = false) => {
       if (!isPolling) {
@@ -186,21 +187,36 @@ export function useInboundCallsApi(
 
         if (isCancelled) return;
 
+        const items = res.data || [];
+        const hasLiveCalls = items.some((item: any) => {
+          const s = (item.status || "").toLowerCase();
+          return s === "ringing" || s === "answered" || s === "queued";
+        });
+
         setState({
-          rawItems: res.data || [],
+          rawItems: items,
           rawTotal: res.meta?.total || 0,
           rawTotalPages: res.meta?.totalPages || 1,
           loading: false,
           error: null,
         });
 
-        inboundCache[cacheKey] = {
-          rawItems: res.data || [],
-          rawTotal: res.meta?.total || 0,
-          rawTotalPages: res.meta?.totalPages || 1,
-          timestamp: Date.now()
-        };
-        saveInboundCache();
+        // Only cache non-live responses to avoid stale live data
+        if (!hasLiveCalls) {
+          inboundCache[cacheKey] = {
+            rawItems: items,
+            rawTotal: res.meta?.total || 0,
+            rawTotalPages: res.meta?.totalPages || 1,
+            timestamp: Date.now()
+          };
+          saveInboundCache();
+        }
+
+        // Smart polling: fast when live calls are active
+        if (isPolling) {
+          clearInterval(intervalId);
+          intervalId = setInterval(() => void load(true), hasLiveCalls ? 3000 : 15000);
+        }
       } catch (err) {
         if (isCancelled) return;
         const message =
@@ -215,9 +231,8 @@ export function useInboundCallsApi(
 
     void load();
 
-    const intervalId = setInterval(() => {
-      void load(true);
-    }, 15000); // 15 seconds
+    // Start with fast polling (3s) to catch calls quickly, then settle into smart polling
+    intervalId = setInterval(() => void load(true), 3000);
 
     return () => {
       isCancelled = true;
