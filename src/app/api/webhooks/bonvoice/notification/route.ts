@@ -97,7 +97,7 @@ export async function POST(req: Request) {
                               ? (phoneNumber.inboundAgentId  ?? undefined)
                               : (phoneNumber.outboundAgentId ?? undefined),
             providerCallId: callID ? String(callID) : undefined,
-            startedAt:      StartTime ? new Date(StartTime) : new Date(),
+            startedAt:      StartTime ? new Date(`${String(StartTime).replace(" ", "T")}+05:30`) : new Date(),
             answeredAt:     mappedStatus === "ANSWERED" ? new Date() : undefined,
             provider:       "BONVOICE",
             providerStatus: mappedStatus,

@@ -98,10 +98,11 @@ export async function POST(req: Request) {
       });
     }
     
-    // Attempt to parse StartTime as local server time if needed, but new Date() is usually sufficient
-    // as long as we have the duration and credits correctly calculated.
-    const startTimeParsed = StartTime ? new Date(StartTime) : new Date();
-    const endTimeParsed = EndTime ? new Date(EndTime) : new Date();
+    // Attempt to parse StartTime as local IST server time
+    const startTimeStr = StartTime ? `${String(StartTime).replace(" ", "T")}+05:30` : undefined;
+    const startTimeParsed = startTimeStr ? new Date(startTimeStr) : new Date();
+    const endTimeStr = EndTime ? `${String(EndTime).replace(" ", "T")}+05:30` : undefined;
+    const endTimeParsed = endTimeStr ? new Date(endTimeStr) : new Date();
 
     if (callLog) {
       // ── 5a. Update existing call log ───────────────────────────────────────
