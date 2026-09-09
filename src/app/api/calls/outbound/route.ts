@@ -153,13 +153,19 @@ export async function GET(req: NextRequest) {
       // Aggressively extract assigned/DID number from all available JSON fields
       let fallbackAssignedNumber = "";
       
-      // 1. Try providerWebhook
+      // 1. Try providerWebhook (Bonvoice: DisplayNumber = DID assigned number)
       if (call.providerWebhook && typeof call.providerWebhook === 'object') {
         const wh: any = call.providerWebhook;
         fallbackAssignedNumber = 
+          wh.DisplayNumber || wh.DestinationNumber ||
           wh.agentNumber || wh.did_number || wh.didNumber || wh.assigned_number ||
           wh.from_number || wh.message?.call?.agent?.number || wh.call?.agent?.number ||
           wh.call?.did_number || wh.data?.did_number || wh.data?.agentNumber || "";
+        // Parse from callID: format uuid-DID-CALLER-DATE-TIME
+        if (!fallbackAssignedNumber && wh.callID && typeof wh.callID === 'string') {
+          const parts = wh.callID.split('-');
+          if (parts.length >= 3) fallbackAssignedNumber = parts[1];
+        }
       }
 
       // 2. Try providerRequest (sent payload usually has the DID)
@@ -186,14 +192,19 @@ export async function GET(req: NextRequest) {
       let fallbackCustomerNumber = "";
       if (call.providerWebhook && typeof call.providerWebhook === 'object') {
          const wh: any = call.providerWebhook;
-         fallbackCustomerNumber = wh.DestinationNumber || wh.customer_number || wh.customerNumber || "";
+         // For outbound: DestinationNumber is the customer being called
+         fallbackCustomerNumber = wh.DestinationNumber || wh.SourceNumber || wh.customer_number || wh.customerNumber || "";
+         if (!fallbackCustomerNumber && wh.callID && typeof wh.callID === 'string') {
+           const parts = wh.callID.split('-');
+           if (parts.length >= 3) fallbackCustomerNumber = parts[2];
+         }
       }
 
       return {
         id: call.id,
         callId: call.callLogId,
         customerNumber: call.lead?.phone || fallbackCustomerNumber || "",
-        assignedNumber: call.phoneNumber?.number || fallbackAssignedNumber || campaignDid || companyDid || "+917969007102",
+        assignedNumber: call.phoneNumber?.number || fallbackAssignedNumber || campaignDid || companyDid || "",
         callDateTime: call.startedAt.toISOString(),
         duration: minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`,
         durationSeconds: call.durationSeconds || 0,

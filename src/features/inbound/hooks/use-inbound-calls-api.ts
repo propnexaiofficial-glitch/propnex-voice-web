@@ -79,7 +79,13 @@ function mapApiItemToCallRecord(item: any, fallbackAssignedNumber: string): Call
   }
   if (!fallbackAssignedRaw && item.providerWebhook) {
     const wh = item.providerWebhook;
-    fallbackAssignedRaw = wh.did_number || wh.DisplayNumber || wh.DestinationNumber || wh.agentNumber || "";
+    // Bonvoice: DisplayNumber = assigned DID, SourceNumber = caller
+    fallbackAssignedRaw = wh.DisplayNumber || wh.did_number || wh.DestinationNumber || wh.agentNumber || "";
+    // Parse from callID: format uuid-DID-CALLER-DATE-TIME
+    if (!fallbackAssignedRaw && wh.callID && typeof wh.callID === 'string') {
+      const parts = (wh.callID as string).split('-');
+      if (parts.length >= 3) fallbackAssignedRaw = parts[1];
+    }
   }
 
   return {

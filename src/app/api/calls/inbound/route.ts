@@ -155,15 +155,30 @@ export async function GET(req: NextRequest) {
       let fallbackCustomerNumber = "";
       if (call.providerWebhook && typeof call.providerWebhook === 'object') {
          const wh: any = call.providerWebhook;
-         fallbackAssignedNumber = wh.agentNumber || wh.did_number || wh.didNumber || wh.message?.call?.agent?.number || wh.call?.agent?.number || "";
-         fallbackCustomerNumber = wh.SourceNumber || wh.caller || wh.customer_number || wh.customerNumber || "";
+         // Bonvoice: DisplayNumber = DID (assigned number), SourceNumber = caller
+         fallbackAssignedNumber =
+           wh.DisplayNumber || wh.DestinationNumber ||
+           wh.agentNumber || wh.did_number || wh.didNumber ||
+           wh.message?.call?.agent?.number || wh.call?.agent?.number || "";
+         fallbackCustomerNumber =
+           wh.SourceNumber || wh.caller || wh.from_number ||
+           wh.customer_number || wh.customerNumber || "";
+         // Last resort: parse DID from callID (format: uuid-DID-CALLER-DATE-TIME)
+         if (!fallbackAssignedNumber && wh.callID && typeof wh.callID === 'string') {
+           const parts = wh.callID.split('-');
+           if (parts.length >= 3) fallbackAssignedNumber = parts[1];
+         }
+         if (!fallbackCustomerNumber && wh.callID && typeof wh.callID === 'string') {
+           const parts = wh.callID.split('-');
+           if (parts.length >= 3) fallbackCustomerNumber = parts[2];
+         }
       }
 
       return {
         id: call.id,
         callId: call.callLogId,
         customerNumber: call.lead?.phone || fallbackCustomerNumber || "",
-        assignedNumber: call.phoneNumber?.number || fallbackAssignedNumber || "+917969007102",
+        assignedNumber: call.phoneNumber?.number || fallbackAssignedNumber || "",
         callDateTime: call.startedAt.toISOString(),
         duration: minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`,
         durationSeconds: call.durationSeconds || 0,
