@@ -43,14 +43,14 @@ export async function GET(req: NextRequest) {
 
     if (targetCompanyId && targetCompanyId !== member.companyId) {
       // Check if targetCompanyId is a sub-company of the user's company
-      const subCompany = await prisma.company.findFirst({
+      const subCompany = await (prisma.company.findFirst as any)({
         where: { id: targetCompanyId, parentCompanyId: member.companyId },
-        include: { phoneNumbers: { select: { assignedAt: true }, take: 1, orderBy: { createdAt: "asc" } } }
+        include: { phoneNumbers: { select: { createdAt: true }, take: 1, orderBy: { createdAt: "asc" } } }
       });
       if (subCompany) {
         companyIdsToQuery = [targetCompanyId];
         // Fresh-start: only show calls from when the first number was assigned
-        const earliestAssignment = (subCompany as any).phoneNumbers?.[0]?.assignedAt;
+        const earliestAssignment = (subCompany as any).phoneNumbers?.[0]?.createdAt;
         if (earliestAssignment) freshStartAfter = new Date(earliestAssignment);
       }
     } else {
