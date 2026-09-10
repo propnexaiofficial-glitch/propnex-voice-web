@@ -82,11 +82,20 @@ export function OutboundPageContent() {
   const [persistentFailedLeadsInfo, setPersistentFailedLeadsInfo] = useState<any>({});
 
   useEffect(() => {
+    // FORCE WIPE TO FIX CRASH FOR farhanthehero13
+    try {
+      localStorage.removeItem("pnx_persistent_failed_leads");
+      localStorage.removeItem("pnx_persistent_failed_leads_info");
+      localStorage.removeItem("pnx_reactivation_schedules");
+      localStorage.removeItem("pnx_reactivation_schedule");
+      localStorage.removeItem("outboundCache");
+    } catch (e) {}
+    
+    // Continue with normal execution
     const saved = localStorage.getItem("pnx_persistent_failed_leads");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Deduplicate on load in case stale data has duplicates
         const seen = new Set<string>();
         const deduped = parsed.filter((lead: any) => {
           const key = (lead.phone || "").replace(/\D/g, "").slice(-10);
@@ -104,7 +113,6 @@ export function OutboundPageContent() {
         setPersistentFailedLeadsInfo(JSON.parse(savedInfoStr));
       } catch (e) {}
     }
-    // Load schedule history
   }, []);
 
   useEffect(() => {
