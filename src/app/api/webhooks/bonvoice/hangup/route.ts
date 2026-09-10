@@ -109,8 +109,27 @@ export async function POST(req: Request) {
       existingLogs = existingLogs.filter((log: any) => Date.now() - log.createdAt.getTime() < 3600000);
     }
 
-    const startTimeParsed = StartTime ? new Date(`${String(StartTime).replace(" ", "T")}+05:30`) : new Date();
-    const endTimeParsed = EndTime ? new Date(`${String(EndTime).replace(" ", "T")}+05:30`) : new Date();
+    let startTimeParsed = new Date();
+    if (StartTime) {
+      const stStr = String(StartTime);
+      if (stStr.includes("T")) {
+        startTimeParsed = new Date(stStr);
+      } else {
+        startTimeParsed = new Date(`${stStr.replace(" ", "T")}+05:30`);
+      }
+      if (isNaN(startTimeParsed.getTime())) startTimeParsed = new Date();
+    }
+
+    let endTimeParsed = new Date();
+    if (EndTime) {
+      const etStr = String(EndTime);
+      if (etStr.includes("T")) {
+        endTimeParsed = new Date(etStr);
+      } else {
+        endTimeParsed = new Date(`${etStr.replace(" ", "T")}+05:30`);
+      }
+      if (isNaN(endTimeParsed.getTime())) endTimeParsed = new Date();
+    }
 
     const logsToCharge: { companyId: string; callLogId: string }[] = [];
 

@@ -139,6 +139,17 @@ export async function POST(req: Request) {
 
       if (candidates.length === 0) {
         console.warn("Bonvoice Notification: No PhoneNumber matched in DB. Proceeding without company linkage.");
+        let parsedStartTime = new Date();
+        if (StartTime) {
+          const stStr = String(StartTime);
+          if (stStr.includes("T")) {
+            parsedStartTime = new Date(stStr);
+          } else {
+            parsedStartTime = new Date(`${stStr.replace(" ", "T")}+05:30`);
+          }
+          if (isNaN(parsedStartTime.getTime())) parsedStartTime = new Date();
+        }
+
         await prisma.callLog.create({
           data: {
             callLogId:       `CL${Date.now()}`,
@@ -146,7 +157,7 @@ export async function POST(req: Request) {
             direction:       isInbound ? "INBOUND" : "OUTBOUND",
             status:          mappedStatus as any,
             providerCallId:  callID ? String(callID) : undefined,
-            startedAt:       StartTime ? new Date(`${String(StartTime).replace(" ", "T")}+05:30`) : new Date(),
+            startedAt:       parsedStartTime,
             answeredAt:      mappedStatus === "ANSWERED" ? new Date() : undefined,
             provider:        "BONVOICE",
             providerStatus:  mappedStatus,
@@ -166,6 +177,17 @@ export async function POST(req: Request) {
             });
           }
 
+          let parsedStartTime = new Date();
+          if (StartTime) {
+            const stStr = String(StartTime);
+            if (stStr.includes("T")) {
+              parsedStartTime = new Date(stStr);
+            } else {
+              parsedStartTime = new Date(`${stStr.replace(" ", "T")}+05:30`);
+            }
+            if (isNaN(parsedStartTime.getTime())) parsedStartTime = new Date();
+          }
+
           const newLog = await prisma.callLog.create({
             data: {
               callLogId:       `CL${Date.now()}-${phoneNumber.id.substring(0, 5)}`,
@@ -177,7 +199,7 @@ export async function POST(req: Request) {
               leadId:          lead?.id ?? undefined,
               aiAgentId:       isInbound ? (phoneNumber.inboundAgentId ?? undefined) : (phoneNumber.outboundAgentId ?? undefined),
               providerCallId:  callID ? String(callID) : undefined,
-              startedAt:       StartTime ? new Date(`${String(StartTime).replace(" ", "T")}+05:30`) : new Date(),
+              startedAt:       parsedStartTime,
               answeredAt:      mappedStatus === "ANSWERED" ? new Date() : undefined,
               provider:        "BONVOICE",
               providerStatus:  mappedStatus,
