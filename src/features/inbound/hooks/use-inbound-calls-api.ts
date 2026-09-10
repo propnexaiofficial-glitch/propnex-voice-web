@@ -45,7 +45,17 @@ function mapStatus(raw: string | undefined): CallRecord["status"] {
 
 function mapApiItemToCallRecord(item: any, fallbackAssignedNumber: string): CallRecord {
   const pNum = typeof item.phoneNumber === 'string' ? item.phoneNumber : item.phoneNumber?.number;
-  const leadPhone = item.lead?.phone;
+  
+  // Extract caller phone from lead, or fallback to providerWebhook if it's an unknown caller
+  let leadPhone = item.lead?.phone;
+  if (!leadPhone && item.providerWebhook) {
+    if (item.direction === "INBOUND") {
+      leadPhone = item.providerWebhook.SourceNumber || item.providerWebhook.source_number || item.providerWebhook.caller;
+    } else {
+      leadPhone = item.providerWebhook.DestinationNumber || item.providerWebhook.destination_number || item.providerWebhook.did;
+    }
+  }
+
   const mappedStatus = mapStatus(item.status);
   const isLive = mappedStatus === "ringing" || mappedStatus === "answered";
 
@@ -215,7 +225,7 @@ export function useInboundCallsApi(
         // Smart polling: fast when live calls are active
         if (isPolling) {
           clearInterval(intervalId);
-          intervalId = setInterval(() => void load(true), hasLiveCalls ? 3000 : 15000);
+          intervalId = setInterval(() => void load(true), hasLiveCalls ? 2000 : 5000);
         }
       } catch (err) {
         if (isCancelled) return;
@@ -231,8 +241,8 @@ export function useInboundCallsApi(
 
     void load();
 
-    // Start with fast polling (3s) to catch calls quickly, then settle into smart polling
-    intervalId = setInterval(() => void load(true), 3000);
+    // Start with fast polling to catch calls quickly, then settle into smart polling
+    intervalId = setInterval(() => void load(true), 5000);
 
     return () => {
       isCancelled = true;
