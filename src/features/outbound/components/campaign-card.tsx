@@ -137,69 +137,7 @@ function LeadRow({ lead, idx, onSave, onDelete, campaignStatus }: { lead: any; i
   );
 }
 
-const MOCK_HISTORICAL_CAMPAIGNS = [
-  {
-    id: "hist-1",
-    csvName: "Summer_Leads_Batch_1.csv",
-    didNumber: "+1234567890",
-    channels: 2,
-    q1: {
-      status: "Completed",
-      failedLeads: [
-        { name: "John Doe", phone: "+111222333" },
-        { name: "Jane Smith", phone: "+444555666" }
-      ]
-    },
-    q2: {
-      status: "Completed",
-      failedLeads: [
-        { name: "Jane Smith", phone: "+444555666" }
-      ]
-    },
-    q3: {
-      status: "Running",
-      failedLeads: [
-        { name: "Jane Smith", phone: "+444555666" }
-      ]
-    }
-  },
-  {
-    id: "hist-2",
-    csvName: "Fall_Followups_Final.csv",
-    didNumber: "+0987654321",
-    channels: 1,
-    q1: {
-      status: "Completed",
-      failedLeads: [
-        { name: "Mike Johnson", phone: "+123123123" }
-      ]
-    },
-    q2: {
-      status: "Pending",
-      failedLeads: []
-    },
-    q3: {
-      status: "Pending",
-      failedLeads: []
-    }
-  },
-  {
-    id: "hist-3",
-    csvName: "Winter_Promos.csv",
-    didNumber: "+1122334455",
-    channels: 3,
-    q1: {
-      status: "Pending",
-      failedLeads: [
-        { name: "Alice Brown", phone: "+999888777" },
-        { name: "Bob White", phone: "+777666555" },
-        { name: "Charlie Green", phone: "+555444333" }
-      ]
-    },
-    q2: { status: "Pending", failedLeads: [] },
-    q3: { status: "Pending", failedLeads: [] }
-  }
-];
+const MOCK_HISTORICAL_CAMPAIGNS: any[] = [];
 
 export function CampaignCard({
   campaign,
