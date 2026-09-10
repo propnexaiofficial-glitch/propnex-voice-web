@@ -76,6 +76,12 @@ export async function GET(req: NextRequest) {
       direction: "INBOUND",
     };
 
+    // Status filter
+    const statusParam = searchParams.get("status");
+    if (statusParam && statusParam !== "all") {
+      whereClause.status = statusParam.toUpperCase();
+    }
+
     console.log("INBOUND_API: searchParams received:", {
       assignedNumber,
       callerNumber,

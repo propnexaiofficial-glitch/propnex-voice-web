@@ -114,11 +114,23 @@ function mapApiItemToCallRecord(item: any, fallbackAssignedNumber: string): Call
   };
 }
 
+const CACHE_TTL_MS = 30_000; // 30 seconds
+
 const getInboundCache = () => {
   if (typeof window === "undefined") return {};
   try {
     const stored = sessionStorage.getItem("inboundCache");
-    if (stored) return JSON.parse(stored);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Evict all expired entries on load
+      const now = Date.now();
+      Object.keys(parsed).forEach((k) => {
+        if (!parsed[k].timestamp || now - parsed[k].timestamp > CACHE_TTL_MS) {
+          delete parsed[k];
+        }
+      });
+      return parsed;
+    }
   } catch {}
   return {};
 };
@@ -173,8 +185,12 @@ export function useInboundCallsApi(
     let intervalId: ReturnType<typeof setInterval>;
 
     const load = async (isPolling = false) => {
+      // Check TTL — if cached data is fresh, skip loading state
+      const cached = inboundCache[cacheKey];
+      const isFresh = cached && (Date.now() - (cached.timestamp || 0)) < CACHE_TTL_MS;
+
       if (!isPolling) {
-        if (!inboundCache[cacheKey]) {
+        if (!isFresh) {
           setState((prev) => ({ ...prev, loading: prev.rawItems.length === 0, error: null }));
         }
       }
