@@ -190,19 +190,24 @@ export async function GET(req: NextRequest) {
          const wh: any = call.providerWebhook;
          // Bonvoice: DisplayNumber = DID (assigned number), SourceNumber = caller
          fallbackAssignedNumber =
-           wh.DisplayNumber || wh.DestinationNumber ||
+           wh.DisplayNumber || wh.display_number || wh.displayNumber ||
+           wh.DestinationNumber || wh.destination_number || wh.destinationNumber || wh.did ||
            wh.agentNumber || wh.did_number || wh.didNumber ||
            wh.message?.call?.agent?.number || wh.call?.agent?.number || "";
+         
          fallbackCustomerNumber =
-           wh.SourceNumber || wh.caller || wh.from_number ||
+           wh.SourceNumber || wh.source_number || wh.sourceNumber ||
+           wh.caller || wh.from_number || wh.from ||
            wh.customer_number || wh.customerNumber || "";
+         
          // Last resort: parse DID from callID (format: uuid-DID-CALLER-DATE-TIME)
-         if (!fallbackAssignedNumber && wh.callID && typeof wh.callID === 'string') {
-           const parts = wh.callID.split('-');
+         const callIdRaw = wh.callID || wh.callId || wh.call_id || wh.uuid;
+         if (!fallbackAssignedNumber && callIdRaw && typeof callIdRaw === 'string') {
+           const parts = callIdRaw.split('-');
            if (parts.length >= 3) fallbackAssignedNumber = parts[1];
          }
-         if (!fallbackCustomerNumber && wh.callID && typeof wh.callID === 'string') {
-           const parts = wh.callID.split('-');
+         if (!fallbackCustomerNumber && callIdRaw && typeof callIdRaw === 'string') {
+           const parts = callIdRaw.split('-');
            if (parts.length >= 3) fallbackCustomerNumber = parts[2];
          }
       }

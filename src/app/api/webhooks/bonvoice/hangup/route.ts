@@ -34,11 +34,19 @@ export async function POST(req: Request) {
 
     console.log("Bonvoice Hangup Webhook:", JSON.stringify(data, null, 2));
 
-    const { callID, Direction, StartTime, EndTime, cost, ResourceURL, resource_url } = data;
-    let { SourceNumber, DestinationNumber, DisplayNumber, callDuration, CallDuration } = data;
-
+    const callID = data.callID || data.callId || data.call_id || data.uuid || "";
+    const Direction = data.Direction || data.direction || "";
+    const StartTime = data.StartTime || data.start_time || data.startTime || "";
+    const EndTime = data.EndTime || data.end_time || data.endTime || "";
+    const cost = data.cost || data.Cost || "";
+    const ResourceURL = data.ResourceURL || data.resource_url || data.resourceUrl || "";
+    
+    let SourceNumber = data.SourceNumber || data.source_number || data.sourceNumber || data.caller || "";
+    let DestinationNumber = data.DestinationNumber || data.destination_number || data.destinationNumber || data.did || "";
+    let DisplayNumber = data.DisplayNumber || data.display_number || data.displayNumber || "";
+    
     // Duration: Bonvoice sends CallDuration in seconds
-    const actualDuration = CallDuration ?? callDuration ?? 0;
+    const actualDuration = data.CallDuration ?? data.callDuration ?? data.call_duration ?? data.duration ?? 0;
 
     // Parse numbers from callID if missing
     if (callID && typeof callID === "string" && callID.includes("-")) {

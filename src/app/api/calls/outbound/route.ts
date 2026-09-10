@@ -160,20 +160,33 @@ export async function GET(req: NextRequest) {
       
       // Aggressively extract assigned/DID number from all available JSON fields
       let fallbackAssignedNumber = "";
+      let fallbackCustomerNumber = "";
       
       // 1. Try providerWebhook (Bonvoice: DisplayNumber = DID assigned number)
       if (call.providerWebhook && typeof call.providerWebhook === 'object') {
-        const wh: any = call.providerWebhook;
-        fallbackAssignedNumber = 
-          wh.DisplayNumber || wh.DestinationNumber ||
-          wh.agentNumber || wh.did_number || wh.didNumber || wh.assigned_number ||
-          wh.from_number || wh.message?.call?.agent?.number || wh.call?.agent?.number ||
-          wh.call?.did_number || wh.data?.did_number || wh.data?.agentNumber || "";
-        // Parse from callID: format uuid-DID-CALLER-DATE-TIME
-        if (!fallbackAssignedNumber && wh.callID && typeof wh.callID === 'string') {
-          const parts = wh.callID.split('-');
-          if (parts.length >= 3) fallbackAssignedNumber = parts[1];
-        }
+         const wh: any = call.providerWebhook;
+         // Bonvoice OUTBOUND: DisplayNumber or SourceNumber = DID (assigned number), DestinationNumber = customer
+         fallbackAssignedNumber =
+           wh.SourceNumber || wh.source_number || wh.sourceNumber ||
+           wh.DisplayNumber || wh.display_number || wh.displayNumber || wh.did ||
+           wh.agentNumber || wh.did_number || wh.didNumber ||
+           wh.message?.call?.agent?.number || wh.call?.agent?.number || "";
+         
+         fallbackCustomerNumber =
+           wh.DestinationNumber || wh.destination_number || wh.destinationNumber ||
+           wh.caller || wh.to_number || wh.to ||
+           wh.customer_number || wh.customerNumber || "";
+         
+         // Last resort: parse DID from callID (format: uuid-DID-CALLER-DATE-TIME)
+         const callIdRaw = wh.callID || wh.callId || wh.call_id || wh.uuid;
+         if (!fallbackAssignedNumber && callIdRaw && typeof callIdRaw === 'string') {
+           const parts = callIdRaw.split('-');
+           if (parts.length >= 3) fallbackAssignedNumber = parts[1];
+         }
+         if (!fallbackCustomerNumber && callIdRaw && typeof callIdRaw === 'string') {
+           const parts = callIdRaw.split('-');
+           if (parts.length >= 3) fallbackCustomerNumber = parts[2];
+         }
       }
 
       // 2. Try providerRequest (sent payload usually has the DID)
@@ -197,16 +210,7 @@ export async function GET(req: NextRequest) {
       // 5. Try the company's default outbound phone number
       const companyDid = (call as any).company?.phoneNumbers?.[0]?.number || "";
 
-      let fallbackCustomerNumber = "";
-      if (call.providerWebhook && typeof call.providerWebhook === 'object') {
-         const wh: any = call.providerWebhook;
-         // For outbound: DestinationNumber is the customer being called
-         fallbackCustomerNumber = wh.DestinationNumber || wh.SourceNumber || wh.customer_number || wh.customerNumber || "";
-         if (!fallbackCustomerNumber && wh.callID && typeof wh.callID === 'string') {
-           const parts = wh.callID.split('-');
-           if (parts.length >= 3) fallbackCustomerNumber = parts[2];
-         }
-      }
+      // The fallbackCustomerNumber was already extracted above (lines 175-189)
 
       return {
         id: call.id,
