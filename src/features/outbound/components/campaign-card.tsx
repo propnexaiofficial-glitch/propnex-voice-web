@@ -503,7 +503,7 @@ export function CampaignCard({
                                             </span>
                                           </TooltipTrigger>
                                           <TooltipContent className="text-xs space-y-1">
-                                            <p><span className="text-muted-foreground">Full Number:</span> {schedule.did}</p>
+                                            <p><span className="text-muted-foreground">Full Number:</span> {schedule.did.startsWith('+') ? schedule.did : `+91${schedule.did.replace(/^[0]+/, '')}`}</p>
                                           </TooltipContent>
                                         </Tooltip>
                                       </TooltipProvider>,

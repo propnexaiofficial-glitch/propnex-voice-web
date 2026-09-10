@@ -217,7 +217,7 @@ export function UploadCsvModal({
             {outboundNumbers.length === 1 ? (
               // Single number — show as info badge with channel count
               <div className="flex items-center justify-between rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm">
-                <span className="font-mono font-semibold text-blue-400">{outboundNumbers[0].number}</span>
+                <span className="font-mono font-semibold text-blue-400">{outboundNumbers[0].number.startsWith('+') ? outboundNumbers[0].number : `+91${outboundNumbers[0].number.replace(/^[0]+/, '')}`}</span>
                 <span className="flex items-center gap-1 rounded-full bg-blue-500/20 px-2 py-0.5 text-xs text-blue-300">
                   <Zap className="size-3" />
                   {derivedChannels} {derivedChannels === 1 ? "channel" : "parallel channels"}
@@ -233,7 +233,7 @@ export function UploadCsvModal({
                 >
                   {outboundNumbers.map((n) => (
                     <option key={n.id} value={n.number}>
-                      {n.number} ({n.channels ?? 1} ch)
+                      {n.number.startsWith('+') ? n.number : `+91${n.number.replace(/^[0]+/, '')}`} ({n.channels ?? 1} ch)
                     </option>
                   ))}
                 </select>
