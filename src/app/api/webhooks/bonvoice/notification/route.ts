@@ -107,78 +107,86 @@ export async function POST(req: Request) {
     const didVariants  = phoneVariants(didNumber);
     const callerCore   = corePhone(callerNumber);
 
-    // 1. Check for existing call log by callID (avoid duplicates)
-    let callLog: any = null;
+    // 1. Check for existing call logs by callID
+    let existingLogs: any[] = [];
     if (callID) {
-      callLog = await prisma.callLog.findFirst({
+      existingLogs = await prisma.callLog.findMany({
         where: { providerCallId: String(callID) },
       });
     }
 
-    if (callLog) {
-      // Update status on existing log
-      await prisma.callLog.update({
-        where: { id: callLog.id },
-        data: {
-          status:     mappedStatus as any,
-          answeredAt: mappedStatus === "ANSWERED" ? new Date() : undefined,
-          providerWebhook: data,
-        },
-      });
-      console.log(`Bonvoice Notification: Updated call log ${callLog.id} → ${mappedStatus}`);
+    if (existingLogs.length > 0) {
+      // Update ALL existing logs for this call
+      for (const log of existingLogs) {
+        await prisma.callLog.update({
+          where: { id: log.id },
+          data: {
+            status:     mappedStatus as any,
+            answeredAt: mappedStatus === "ANSWERED" ? new Date() : undefined,
+            providerWebhook: data,
+          },
+        });
+      }
+      console.log(`Bonvoice Notification: Updated ${existingLogs.length} call logs → ${mappedStatus}`);
     } else {
-      // 2. Find PhoneNumber — prefer sub-company's own number
+      // 2. Find ALL PhoneNumbers matching this DID
       const candidates = await prisma.phoneNumber.findMany({
         where: { number: { in: didVariants } },
         include: { company: { select: { parentCompanyId: true } } },
       });
 
-      // Prefer sub-company's own PhoneNumber (where company has a parentCompanyId)
-      const phoneNumber: any = candidates.find((p: any) => p.company?.parentCompanyId)
-                            ?? candidates[0]
-                            ?? null;
+      console.log(`Bonvoice Notification: DID variants [${didVariants.join(", ")}] → ${candidates.length} candidate(s) found.`);
 
-      console.log(`Bonvoice Notification: DID variants [${didVariants.join(", ")}] → ${candidates.length} candidates, picked: ${phoneNumber ? `${phoneNumber.number} (company: ${phoneNumber.companyId})` : "NONE"}`);
-
-      if (!phoneNumber) {
-        console.warn("Bonvoice Notification: No PhoneNumber matched in DB. DID variants:", didVariants, "Proceeding without company linkage.");
-      }
-
-      // 3. Find lead (if we have a companyId)
-      let lead: any = null;
-      if (callerCore && phoneNumber?.companyId) {
-        lead = await prisma.lead.findFirst({
-          where: {
-            companyId: phoneNumber.companyId,
-            phone:     { contains: callerCore },
+      if (candidates.length === 0) {
+        console.warn("Bonvoice Notification: No PhoneNumber matched in DB. Proceeding without company linkage.");
+        await prisma.callLog.create({
+          data: {
+            callLogId:       `CL${Date.now()}`,
+            publicId:        `bonvoice-${Date.now()}`,
+            direction:       isInbound ? "INBOUND" : "OUTBOUND",
+            status:          mappedStatus as any,
+            providerCallId:  callID ? String(callID) : undefined,
+            startedAt:       StartTime ? new Date(`${String(StartTime).replace(" ", "T")}+05:30`) : new Date(),
+            answeredAt:      mappedStatus === "ANSWERED" ? new Date() : undefined,
+            provider:        "BONVOICE",
+            providerStatus:  mappedStatus,
+            providerWebhook: data,
           },
         });
-      }
+      } else {
+        // Create a CallLog for EVERY matched PhoneNumber so it shows up in EVERY sub-company dashboard perfectly
+        for (const phoneNumber of candidates) {
+          let lead: any = null;
+          if (callerCore && phoneNumber.companyId) {
+            lead = await prisma.lead.findFirst({
+              where: {
+                companyId: phoneNumber.companyId,
+                phone:     { contains: callerCore },
+              },
+            });
+          }
 
-      // 4. Create RINGING call log (even if phoneNumber is null, to show in global admin or allow fallback)
-      const newLog = await prisma.callLog.create({
-        data: {
-          callLogId:       `CL${Date.now()}`,
-          publicId:        `bonvoice-${Date.now()}`,
-          direction:       isInbound ? "INBOUND" : "OUTBOUND",
-          status:          mappedStatus as any,
-          companyId:       phoneNumber?.companyId ?? undefined,
-          phoneNumberId:   phoneNumber?.id ?? undefined,
-          leadId:          lead?.id ?? undefined,
-          aiAgentId:       isInbound
-                             ? (phoneNumber?.inboundAgentId  ?? undefined)
-                             : (phoneNumber?.outboundAgentId ?? undefined),
-          providerCallId:  callID ? String(callID) : undefined,
-          startedAt:       StartTime
-                             ? new Date(`${String(StartTime).replace(" ", "T")}+05:30`)
-                             : new Date(),
-          answeredAt:      mappedStatus === "ANSWERED" ? new Date() : undefined,
-          provider:        "BONVOICE",
-          providerStatus:  mappedStatus,
-          providerWebhook: data,
-        },
-      });
-      console.log(`Bonvoice Notification: Created call log ${newLog.id} status=${mappedStatus}`);
+          const newLog = await prisma.callLog.create({
+            data: {
+              callLogId:       `CL${Date.now()}-${phoneNumber.id.substring(0, 5)}`,
+              publicId:        `bonvoice-${Date.now()}-${phoneNumber.id.substring(0, 5)}`,
+              direction:       isInbound ? "INBOUND" : "OUTBOUND",
+              status:          mappedStatus as any,
+              companyId:       phoneNumber.companyId ?? undefined,
+              phoneNumberId:   phoneNumber.id,
+              leadId:          lead?.id ?? undefined,
+              aiAgentId:       isInbound ? (phoneNumber.inboundAgentId ?? undefined) : (phoneNumber.outboundAgentId ?? undefined),
+              providerCallId:  callID ? String(callID) : undefined,
+              startedAt:       StartTime ? new Date(`${String(StartTime).replace(" ", "T")}+05:30`) : new Date(),
+              answeredAt:      mappedStatus === "ANSWERED" ? new Date() : undefined,
+              provider:        "BONVOICE",
+              providerStatus:  mappedStatus,
+              providerWebhook: data,
+            },
+          });
+          console.log(`Bonvoice Notification: Created call log ${newLog.id} status=${mappedStatus} for company=${phoneNumber.companyId}`);
+        }
+      }
     }
 
     return NextResponse.json({ success: true });

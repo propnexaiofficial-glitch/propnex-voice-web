@@ -87,139 +87,160 @@ export async function POST(req: Request) {
     const didVariants = phoneVariants(didNumber);
     const callerCore  = corePhone(callerNumber);
 
-    let callLog: any    = null;
-    let phoneNumber: any = null;
-    let lead: any        = null;
-
-    // 1. Find existing call log by callID
+    // 1. Find existing call logs by callID
+    let existingLogs: any[] = [];
     if (callID) {
-      callLog = await prisma.callLog.findFirst({
+      existingLogs = await prisma.callLog.findMany({
         where: { providerCallId: String(callID) },
       });
     }
 
-    // 2. Find call log by DID (RINGING/ANSWERED status)
-    if (!callLog && didVariants.length > 0) {
-      callLog = await prisma.callLog.findFirst({
+    // 2. Find call logs by DID (RINGING/ANSWERED status) - as fallback if callID missing
+    if (existingLogs.length === 0 && didVariants.length > 0) {
+      existingLogs = await prisma.callLog.findMany({
         where: {
           status:      { in: ["RINGING", "ANSWERED", "QUEUED"] },
           phoneNumber: { number: { in: didVariants } },
         },
         orderBy: { createdAt: "desc" },
+        take: 10,
       });
+      // Filter out old calls (older than 1 hour)
+      existingLogs = existingLogs.filter((log: any) => Date.now() - log.createdAt.getTime() < 3600000);
     }
 
-    // 3. Find PhoneNumber record — prefer sub-company's own number
-    if (didVariants.length > 0 && (!callLog || !callLog.phoneNumberId)) {
+    const startTimeParsed = StartTime ? new Date(`${String(StartTime).replace(" ", "T")}+05:30`) : new Date();
+    const endTimeParsed = EndTime ? new Date(`${String(EndTime).replace(" ", "T")}+05:30`) : new Date();
+
+    const logsToCharge: { companyId: string; callLogId: string }[] = [];
+
+    if (existingLogs.length > 0) {
+      // 3a. Update ALL existing call logs → COMPLETED
+      for (const log of existingLogs) {
+        let lead: any = null;
+        if (!log.leadId && callerCore && log.companyId) {
+          lead = await prisma.lead.findFirst({
+            where: { companyId: log.companyId, phone: { contains: callerCore } }
+          });
+        }
+
+        await prisma.callLog.update({
+          where: { id: log.id },
+          data: {
+            status:          "COMPLETED",
+            durationSeconds: durationSec,
+            cost:            callCost,
+            creditsUsed:     creditsUsed,
+            recordingUrl:    recordingUrl || undefined,
+            endedAt:         endTimeParsed,
+            providerStatus:  "COMPLETED",
+            providerWebhook: data,
+            ...(lead ? { leadId: lead.id } : {}),
+          },
+        });
+        if (log.companyId) {
+          logsToCharge.push({ companyId: log.companyId, callLogId: log.id });
+        }
+      }
+      console.log(`Bonvoice Hangup: Updated ${existingLogs.length} call logs → COMPLETED (${durationSec}s)`);
+    } else {
+      // 3b. Create NEW COMPLETED call logs (if notification webhook was missed)
       const candidates = await prisma.phoneNumber.findMany({
         where: { number: { in: didVariants } },
-        include: { company: { select: { parentCompanyId: true } } },
+        include: { company: true },
       });
-      phoneNumber = candidates.find((p: any) => p.company?.parentCompanyId)
-                 ?? candidates[0]
-                 ?? null;
-      console.log(`Bonvoice Hangup: DID [${didVariants.join(", ")}] → ${candidates.length} candidates, picked: ${phoneNumber ? `${phoneNumber.number} (company: ${phoneNumber.companyId})` : "NONE"}`);
-    }
 
-    // 4. Find lead by caller number
-    const targetCompanyId = callLog?.companyId || phoneNumber?.companyId;
-    if (callerCore && targetCompanyId) {
-      lead = await prisma.lead.findFirst({
-        where: {
-          companyId: targetCompanyId,
-          phone:     { contains: callerCore },
-        },
-      });
-    }
-
-    const startTimeParsed = StartTime
-      ? new Date(`${String(StartTime).replace(" ", "T")}+05:30`)
-      : new Date();
-    const endTimeParsed = EndTime
-      ? new Date(`${String(EndTime).replace(" ", "T")}+05:30`)
-      : new Date();
-
-    let finalCallLogId = callLog?.id;
-
-    if (callLog) {
-      // 5a. Update existing call log → COMPLETED
-      await prisma.callLog.update({
-        where: { id: callLog.id },
-        data: {
-          status:          "COMPLETED",
-          durationSeconds: durationSec,
-          cost:            callCost,
-          creditsUsed:     creditsUsed,
-          recordingUrl:    recordingUrl || undefined,
-          endedAt:         endTimeParsed,
-          providerStatus:  "COMPLETED",
-          providerWebhook: data,
-          ...(lead && !callLog.leadId       ? { leadId: lead.id }           : {}),
-          ...(phoneNumber && !callLog.phoneNumberId ? { phoneNumberId: phoneNumber.id } : {}),
-        },
-      });
-      console.log(`Bonvoice Hangup: Updated call log ${callLog.id} → COMPLETED (${durationSec}s)`);
-    } else if (phoneNumber) {
-      // 5b. Create new COMPLETED call log (notification webhook may have been missed)
-      const newLog = await prisma.callLog.create({
-        data: {
-          callLogId:       `CL${Date.now()}`,
-          publicId:        `bonvoice-${Date.now()}`,
-          direction:       isInbound ? "INBOUND" : "OUTBOUND",
-          status:          "COMPLETED",
-          companyId:       phoneNumber.companyId ?? undefined,
-          phoneNumberId:   phoneNumber.id,
-          leadId:          lead?.id ?? undefined,
-          aiAgentId:       isInbound
-                             ? (phoneNumber.inboundAgentId  ?? undefined)
-                             : (phoneNumber.outboundAgentId ?? undefined),
-          providerCallId:  callID ? String(callID) : undefined,
-          startedAt:       startTimeParsed,
-          endedAt:         endTimeParsed,
-          durationSeconds: durationSec,
-          cost:            callCost,
-          creditsUsed:     creditsUsed,
-          recordingUrl:    recordingUrl || undefined,
-          provider:        "BONVOICE",
-          providerStatus:  "COMPLETED",
-          providerWebhook: data,
-        },
-      });
-      finalCallLogId = newLog.id;
-      console.log(`Bonvoice Hangup: Created new call log ${newLog.id} → COMPLETED (${durationSec}s) company=${phoneNumber.companyId}`);
-    } else {
-      console.error("Bonvoice Hangup: No PhoneNumber matched. DID variants:", didVariants, "Full payload:", data);
-    }
-
-    // 6. Deduct credits
-    if (creditsUsed > 0 && targetCompanyId) {
-      try {
-        await prisma.$transaction(async (tx) => {
-          await tx.creditUsage.create({
-            data: {
-              companyId:   targetCompanyId,
-              amount:      creditsUsed,
-              reason:      "CALL",
-              callLogId:   finalCallLogId,
-              description: `Bonvoice ${isInbound ? "inbound" : "outbound"} call (${durationSec}s, ${creditsUsed.toFixed(2)} credits)`,
-            },
-          });
-
-          await tx.creditBalance.upsert({
-            where:  { companyId: targetCompanyId },
-            create: {
-              companyId:        targetCompanyId,
-              creditsRemaining: Math.max(0, -creditsUsed),
-              creditsUsed:      creditsUsed,
-            },
-            update: {
-              creditsRemaining: { decrement: creditsUsed },
-              creditsUsed:      { increment: creditsUsed },
-            },
-          });
+      if (candidates.length === 0) {
+        console.warn("Bonvoice Hangup: No PhoneNumber matched in DB. Proceeding without company linkage.");
+        await prisma.callLog.create({
+          data: {
+            callLogId:       `CL${Date.now()}`,
+            publicId:        `bonvoice-${Date.now()}`,
+            direction:       isInbound ? "INBOUND" : "OUTBOUND",
+            status:          "COMPLETED",
+            providerCallId:  callID ? String(callID) : undefined,
+            startedAt:       startTimeParsed,
+            endedAt:         endTimeParsed,
+            durationSeconds: durationSec,
+            cost:            callCost,
+            creditsUsed:     creditsUsed,
+            recordingUrl:    recordingUrl || undefined,
+            provider:        "BONVOICE",
+            providerStatus:  "COMPLETED",
+            providerWebhook: data,
+          },
         });
-      } catch (err) {
-        console.error("Bonvoice Hangup: Failed to deduct credits:", err);
+      } else {
+        // Create for EVERY matched PhoneNumber
+        for (const phoneNumber of candidates) {
+          let lead: any = null;
+          if (callerCore && phoneNumber.companyId) {
+            lead = await prisma.lead.findFirst({
+              where: { companyId: phoneNumber.companyId, phone: { contains: callerCore } },
+            });
+          }
+
+          const newLog = await prisma.callLog.create({
+            data: {
+              callLogId:       `CL${Date.now()}-${phoneNumber.id.substring(0, 5)}`,
+              publicId:        `bonvoice-${Date.now()}-${phoneNumber.id.substring(0, 5)}`,
+              direction:       isInbound ? "INBOUND" : "OUTBOUND",
+              status:          "COMPLETED",
+              companyId:       phoneNumber.companyId ?? undefined,
+              phoneNumberId:   phoneNumber.id,
+              leadId:          lead?.id ?? undefined,
+              aiAgentId:       isInbound ? (phoneNumber.inboundAgentId ?? undefined) : (phoneNumber.outboundAgentId ?? undefined),
+              providerCallId:  callID ? String(callID) : undefined,
+              startedAt:       startTimeParsed,
+              endedAt:         endTimeParsed,
+              durationSeconds: durationSec,
+              cost:            callCost,
+              creditsUsed:     creditsUsed,
+              recordingUrl:    recordingUrl || undefined,
+              provider:        "BONVOICE",
+              providerStatus:  "COMPLETED",
+              providerWebhook: data,
+            },
+          });
+          if (phoneNumber.companyId) {
+            logsToCharge.push({ companyId: phoneNumber.companyId, callLogId: newLog.id });
+          }
+          console.log(`Bonvoice Hangup: Created new call log ${newLog.id} → COMPLETED (${durationSec}s) company=${phoneNumber.companyId}`);
+        }
+      }
+    }
+
+    // 4. Deduct credits for ALL companies involved
+    if (creditsUsed > 0 && logsToCharge.length > 0) {
+      for (const charge of logsToCharge) {
+        try {
+          await prisma.$transaction(async (tx) => {
+            await tx.creditUsage.create({
+              data: {
+                companyId:   charge.companyId,
+                amount:      creditsUsed,
+                reason:      "CALL",
+                callLogId:   charge.callLogId,
+                description: `Bonvoice ${isInbound ? "inbound" : "outbound"} call (${durationSec}s, ${creditsUsed.toFixed(2)} credits)`,
+              },
+            });
+
+            await tx.creditBalance.upsert({
+              where:  { companyId: charge.companyId },
+              create: {
+                companyId:        charge.companyId,
+                creditsRemaining: Math.max(0, -creditsUsed),
+                creditsUsed:      creditsUsed,
+              },
+              update: {
+                creditsRemaining: { decrement: creditsUsed },
+                creditsUsed:      { increment: creditsUsed },
+              },
+            });
+          });
+        } catch (err) {
+          console.error("Bonvoice Hangup: Failed to deduct credits for company:", charge.companyId, err);
+        }
       }
     }
 
