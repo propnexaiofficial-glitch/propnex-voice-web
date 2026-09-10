@@ -96,7 +96,7 @@ export function RecordingPlayer({
 
     const handleError = () => {
       if (!isMounted) return;
-      // VoiceLink recordings can take up to 60-90s to process after call ends.
+      // Bonvoice recordings can take up to 60-90s to process after call ends.
       // Retry with exponential backoff: 3s, 6s, 12s, 20s, 30s, 30s = up to ~100s
       const delays = [3000, 6000, 12000, 20000, 30000, 30000];
       if (retryCount < delays.length) {
