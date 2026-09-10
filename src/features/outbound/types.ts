@@ -1,11 +1,11 @@
 import type { CallRecord } from "@/types/call";
 
-export type CampaignStatus = "idle" | "ready" | "running" | "completed" | "paused" | "scheduled";
+export type CampaignStatus = "idle" | "ready" | "running" | "completed" | "paused" | "scheduled" | "failed" | "force_stopped";
 
 export type Campaign = {
   id: string;
   name: string;
-  status: "idle" | "ready" | "running" | "paused" | "completed" | "scheduled" | "force_stopped";
+  status: "idle" | "ready" | "running" | "paused" | "completed" | "scheduled" | "force_stopped" | "failed";
   totalContacts: number;
   uploadedFileName?: string;
   completedCalls: number;

@@ -45,6 +45,7 @@ const statusConfig: Record<
   paused: { label: "Paused", color: "text-amber-500", bgColor: "bg-amber-500/10" },
   completed: { label: "Completed", color: "text-emerald-500", bgColor: "bg-emerald-500/10" },
   force_stopped: { label: "Force Stopped", color: "text-destructive", bgColor: "bg-destructive/10" },
+  failed: { label: "Failed", color: "text-destructive", bgColor: "bg-destructive/10" },
 };
 
 type CampaignCardProps = {
@@ -162,7 +163,7 @@ export function CampaignCard({
   companyId,
   callHistory = [],
 }: CampaignCardProps) {
-  const status = statusConfig[campaign.status];
+  const status = statusConfig[campaign.status] || { label: campaign.status || "Unknown", color: "text-muted-foreground", bgColor: "bg-muted" };
   const isComingSoon = campaign.comingSoon === true;
   const processedCount = campaign.completedCalls !== undefined 
     ? campaign.completedCalls 
@@ -721,14 +722,26 @@ export function CampaignCard({
           )}
 
           {isReactivationCard && !campaign.qStage && (campaign.status === "idle" || campaign.status === "completed" || campaign.status === "scheduled") && (
-            <Button
-              variant="outline"
-              className="border-primary/50 text-primary hover:bg-primary/10 gap-2 h-9 text-sm"
-              onClick={() => setLeadsModalOpen(true)}
-            >
-              <ListChecks className="size-4" />
-              Lead Info{failedCallsCount > 0 ? ` (${failedCallsCount})` : ""}
-            </Button>
+            <div className="flex gap-2">
+              {campaign.status === "idle" && onClear && (
+                <Button
+                  variant="outline"
+                  className="border-destructive/50 text-destructive hover:bg-destructive/10 gap-2 h-9 text-sm"
+                  onClick={onClear}
+                >
+                  <Trash2 className="size-4" />
+                  Clear
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                className="border-primary/50 text-primary hover:bg-primary/10 gap-2 h-9 text-sm"
+                onClick={() => setLeadsModalOpen(true)}
+              >
+                <ListChecks className="size-4" />
+                Lead Info{failedCallsCount > 0 ? ` (${failedCallsCount})` : ""}
+              </Button>
+            </div>
           )}
           </div>
           {remindMessage && !isReactivationCard && (
