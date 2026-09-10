@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { PhoneIncoming, PhoneOutgoing, Upload, AlertCircle, CheckCircle2 } from "lucide-react";
+import { PhoneIncoming, PhoneOutgoing, Upload, AlertCircle, CheckCircle2, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,65 @@ type CompanyCallsSectionProps = {
   companyId: string;
   direction: "inbound" | "outbound";
 };
+
+// ─── Live call elapsed timer ─────────────────────────────────────────────────
+function LiveCallTimer({ startedAt }: { startedAt: string }) {
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    const start = new Date(startedAt).getTime();
+    const tick = () => setElapsed(Math.floor((Date.now() - start) / 1000));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [startedAt]);
+  const m = Math.floor(elapsed / 60);
+  const s = elapsed % 60;
+  return <span className="font-mono font-semibold">{m > 0 ? `${m}m ${String(s).padStart(2, "0")}s` : `${String(s).padStart(2, "0")}s`}</span>;
+}
+
+// ─── Active / Ringing call banner ────────────────────────────────────────────
+function ActiveCallBanner({ calls }: { calls: CallRecord[] }) {
+  const liveCalls = calls.filter(
+    (c) => c.status === "ringing" || c.status === "answered"
+  );
+  if (liveCalls.length === 0) return null;
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3"
+      >
+        {liveCalls.map((call) => (
+          <div key={call.id} className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2.5">
+              <span className="relative flex size-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full size-3 bg-emerald-500" />
+              </span>
+              <Phone className="size-4 text-emerald-400" />
+              <span className="text-sm font-semibold text-emerald-300">
+                {call.status === "ringing" ? "📞 Ringing…" : "🟢 Active Call"}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                from <span className="text-foreground font-mono">{call.customerNumber}</span>
+                {" → "}<span className="text-foreground font-mono">{call.assignedNumber}</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-emerald-400">
+              {call.status === "ringing" ? (
+                <span className="animate-pulse text-yellow-400 font-medium">Ringing…</span>
+              ) : call.liveStartedAt ? (
+                <LiveCallTimer startedAt={call.liveStartedAt} />
+              ) : null}
+            </div>
+          </div>
+        ))}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
 
 function matchesSearch(call: CallRecord, search: string) {
   if (!search.trim()) return true;
@@ -596,6 +655,9 @@ export function CompanyCallsSection({
           )}
         </motion.div>
       )}
+
+      {/* ── Live call banner (inbound only) ── */}
+      {direction === "inbound" && <ActiveCallBanner calls={paginatedCalls} />}
 
       <CallLogFiltersBar
         filters={filters}

@@ -238,10 +238,10 @@ export function useInboundCallsApi(
           saveInboundCache();
         }
 
-        // Smart polling: fast when live calls are active
+        // Smart polling: always 2s for inbound so RINGING shows near-instantly
         if (isPolling) {
           clearInterval(intervalId);
-          intervalId = setInterval(() => void load(true), hasLiveCalls ? 2000 : 5000);
+          intervalId = setInterval(() => void load(true), 2000);
         }
       } catch (err) {
         if (isCancelled) return;
@@ -257,8 +257,8 @@ export function useInboundCallsApi(
 
     void load();
 
-    // Start with fast polling to catch calls quickly, then settle into smart polling
-    intervalId = setInterval(() => void load(true), 5000);
+    // Poll every 2s so RINGING calls appear near-instantly
+    intervalId = setInterval(() => void load(true), 2000);
 
     return () => {
       isCancelled = true;
