@@ -89,6 +89,7 @@ export function OutboundPageContent() {
       localStorage.removeItem("pnx_reactivation_schedules");
       localStorage.removeItem("pnx_reactivation_schedule");
       localStorage.removeItem("outboundCache");
+      localStorage.removeItem("cleared_campaigns");
     } catch (e) {}
     
     // Continue with normal execution

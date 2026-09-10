@@ -13,9 +13,18 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
   const [campaign, setCampaign] = useState<Campaign>(initialState);
   const [upload, setUpload] = useState<UploadCsvState | null>(null);
   const [alertData, setAlertData] = useState<{ title: string; description: string; isError?: boolean } | null>(null);
-  const [isInitializing, setIsInitializing] = useState(true);
+  const isInitializing = useRef(true);
   const ignorePollingUntil = useRef<number>(0);
   const hasClearedFailedCalls = useRef<boolean>(false);
+
+  const getClearedCampaigns = useCallback(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      return JSON.parse(localStorage.getItem('cleared_campaigns') || '[]');
+    } catch (e) {
+      return [];
+    }
+  }, []);
 
   const handleUpload = useCallback((fileName: string, leads: any[] = [], selectedDid?: string, channels: number = 1) => {
     setUpload({ fileName, contactCount: leads.length || MOCK_CSV_CONTACT_COUNT, leads });
@@ -127,7 +136,6 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
         const companyId = overrideCompanyId || user.companyId || null;
 
         if (!companyId) {
-          setIsInitializing(false);
           return;
         }
 
@@ -159,8 +167,6 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
         });
       } catch (err) {
         console.error("Failed to connect to backend campaign socket:", err);
-      } finally {
-        setIsInitializing(false);
       }
     };
 
@@ -182,7 +188,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
 
         // Adopt backend state if we are currently idle and backend has an active or recent campaign
         if (data.campaignId !== prev.id) {
-          const cleared = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('cleared_campaigns') || '[]') : [];
+          const cleared = getClearedCampaigns();
           // Always adopt scheduled reactivations (system-generated Priority Engine jobs),
           // even if a previous campaign ID was in cleared_campaigns — they have fresh IDs.
           const isScheduledReactivation = !!data.isReactivation && data.status === "scheduled";
@@ -216,7 +222,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
           completedCalls: data.completedCalls !== undefined ? Math.max(data.completedCalls, prev.completedCalls) : prev.completedCalls,
           successfulCalls: data.successfulCalls !== undefined ? Math.max(data.successfulCalls, prev.successfulCalls) : prev.successfulCalls,
           // If we explicitly cleared, force it to 0. Otherwise use Math.max to prevent backend load-balancer fluttering!
-          failedCalls: (hasClearedFailedCalls.current || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('cleared_campaigns') || '[]').includes(prev.id))) ? 0 : (data.failedCalls !== undefined ? Math.max(data.failedCalls, prev.failedCalls) : prev.failedCalls),
+          failedCalls: (hasClearedFailedCalls.current || getClearedCampaigns().includes(prev.id)) ? 0 : (data.failedCalls !== undefined ? Math.max(data.failedCalls, prev.failedCalls) : prev.failedCalls),
           leads: data.leads || prev.leads,
           totalContacts: data.totalContacts || prev.totalContacts,
           isReactivation: data.isReactivation !== undefined ? !!data.isReactivation : prev.isReactivation,
@@ -279,7 +285,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
                   status: data.status || prev.status,
                   completedCalls: data.completedCalls !== undefined ? Math.max(data.completedCalls, prev.completedCalls) : prev.completedCalls,
                   successfulCalls: data.successfulCalls !== undefined ? Math.max(data.successfulCalls, prev.successfulCalls) : prev.successfulCalls,
-                  failedCalls: (hasClearedFailedCalls.current || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('cleared_campaigns') || '[]').includes(prev.id))) ? 0 : (data.failedCalls !== undefined ? Math.max(data.failedCalls, prev.failedCalls) : prev.failedCalls),
+                  failedCalls: (hasClearedFailedCalls.current || getClearedCampaigns().includes(prev.id)) ? 0 : (data.failedCalls !== undefined ? Math.max(data.failedCalls, prev.failedCalls) : prev.failedCalls),
                   leads: data.leads || prev.leads,
                   totalContacts: data.totalContacts || prev.totalContacts,
                   isReactivation: data.isReactivation !== undefined ? !!data.isReactivation : prev.isReactivation,
@@ -383,7 +389,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
     // Save to localStorage so it persists across page navigations/remounts
     if (typeof window !== 'undefined') {
       try {
-        const cleared = JSON.parse(localStorage.getItem('cleared_campaigns') || '[]');
+        const cleared = getClearedCampaigns();
         setCampaign(prev => {
           if (!cleared.includes(prev.id)) {
             cleared.push(prev.id);
@@ -432,7 +438,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
     setCampaign(prev => {
       if (prev.id && prev.id !== "main-idle" && typeof window !== "undefined") {
         try {
-          const cleared = JSON.parse(localStorage.getItem('cleared_campaigns') || '[]');
+          const cleared = getClearedCampaigns();
           if (!cleared.includes(prev.id)) {
             cleared.push(prev.id);
             if (cleared.length > 50) cleared.shift();
@@ -525,6 +531,6 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
     forceStopCampaign,
     alertData,
     setAlertData,
-    isInitializing,
+    isInitializing: isInitializing.current,
   };
 }
