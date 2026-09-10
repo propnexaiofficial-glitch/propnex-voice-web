@@ -13,7 +13,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
   const [campaign, setCampaign] = useState<Campaign>(initialState);
   const [upload, setUpload] = useState<UploadCsvState | null>(null);
   const [alertData, setAlertData] = useState<{ title: string; description: string; isError?: boolean } | null>(null);
-  const isInitializing = useRef(true);
+  const [isInitializing, setIsInitializing] = useState(true);
   const ignorePollingUntil = useRef<number>(0);
   const hasClearedFailedCalls = useRef<boolean>(false);
 
@@ -136,6 +136,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
         const companyId = overrideCompanyId || user.companyId || null;
 
         if (!companyId) {
+          setIsInitializing(false);
           return;
         }
 
@@ -167,6 +168,8 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
         });
       } catch (err) {
         console.error("Failed to connect to backend campaign socket:", err);
+      } finally {
+        setIsInitializing(false);
       }
     };
 
@@ -531,6 +534,6 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
     forceStopCampaign,
     alertData,
     setAlertData,
-    isInitializing: isInitializing.current,
+    isInitializing,
   };
 }
