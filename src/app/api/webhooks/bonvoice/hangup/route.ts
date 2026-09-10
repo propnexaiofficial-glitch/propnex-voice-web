@@ -61,15 +61,21 @@ export async function POST(req: Request) {
     const directionRaw = Direction ? String(Direction).toLowerCase() : "";
     const isInbound = directionRaw === "" || directionRaw === "inbound";
 
-    // Map DID and caller per direction
-    // INBOUND:  DID = DestinationNumber or DisplayNumber, Caller = SourceNumber
+    // Clean up "None" strings that Bonvoice sends for missing fields
+    const cleanNum = (v: string) => (v && v.toLowerCase() !== "none" ? v : "");
+    const srcNum = cleanNum(String(SourceNumber || "").trim());
+    const dstNum = cleanNum(String(DestinationNumber || "").trim());
+    const dispNum = cleanNum(String(DisplayNumber || "").trim());
+
+    // Map DID and caller per direction:
+    // INBOUND:  DID = DisplayNumber or DestinationNumber, Caller = SourceNumber
     // OUTBOUND: DID = SourceNumber or DisplayNumber,      Caller = DestinationNumber
     const didNumber    = isInbound
-      ? String(DestinationNumber || DisplayNumber || "").trim()
-      : String(SourceNumber || DisplayNumber || "").trim();
+      ? String(dispNum || dstNum || "").trim()
+      : String(srcNum || dispNum || "").trim();
     const callerNumber = isInbound
-      ? String(SourceNumber || "").trim()
-      : String(DestinationNumber || "").trim();
+      ? String(srcNum || "").trim()
+      : String(dstNum || "").trim();
 
     console.log(`Bonvoice Hangup: dir=${isInbound ? "INBOUND" : "OUTBOUND"} DID=${didNumber} caller=${callerNumber} callID=${callID}`);
 
