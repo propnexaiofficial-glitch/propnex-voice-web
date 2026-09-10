@@ -117,12 +117,12 @@ function LeadRow({ lead, idx, onSave, onDelete, campaignStatus }: { lead: any; i
   }
 
   return (
-    <div className={cn("flex justify-between items-center text-xs border-b border-border pb-1 hover:bg-muted/30 p-1 -mx-1 px-1 rounded transition-colors group", !isValidPhoneNumber(lead.phone) && campaignStatus === "ready" && "bg-red-500/10 border-red-500/20")}>
+    <div className={cn("flex justify-between items-center text-xs border-b border-border pb-1 hover:bg-muted/30 p-1 -mx-1 px-1 rounded transition-colors group", (!lead.phone || !isValidPhoneNumber(lead.phone)) && campaignStatus === "ready" && "bg-red-500/10 border-red-500/20")}>
       <div className="flex items-center gap-2 overflow-hidden">
-        <span className={cn("truncate max-w-[120px]", lead.called && "line-through text-muted-foreground", !isValidPhoneNumber(lead.phone) && campaignStatus === "ready" && "text-red-400 font-medium")}>{lead.name}</span>
+        <span className={cn("truncate max-w-[120px]", lead.called && "line-through text-muted-foreground", (!lead.phone || !isValidPhoneNumber(lead.phone)) && campaignStatus === "ready" && "text-red-400 font-medium")}>{lead.name}</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className={cn("font-mono", lead.called && "line-through text-muted-foreground", !isValidPhoneNumber(lead.phone) && campaignStatus === "ready" && "text-red-400 font-medium")}>{lead.phone}</span>
+        <span className={cn("font-mono", lead.called && "line-through text-muted-foreground", (!lead.phone || !isValidPhoneNumber(lead.phone)) && campaignStatus === "ready" && "text-red-400 font-medium")}>{lead.phone}</span>
         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
           <button onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-foreground">
             <Pencil className="size-3" />
@@ -186,7 +186,7 @@ export function CampaignCard({
   const pendingLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => !l.called);
   const successLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => l.called && !l.isFailed);
   const failedLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => l.called && l.isFailed);
-  const invalidLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => !isValidPhoneNumber(l.phone));
+  const invalidLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => !l.phone || !isValidPhoneNumber(l.phone));
 
 
 
@@ -331,8 +331,8 @@ export function CampaignCard({
                         {(campaign.leads || [])
                           .map((l: any, i: number) => ({ ...l, originalIdx: i }))
                           .sort((a: any, b: any) => {
-                            const aValid = isValidPhoneNumber(a.phone);
-                            const bValid = isValidPhoneNumber(b.phone);
+                            const aValid = a.phone && isValidPhoneNumber(a.phone);
+                            const bValid = b.phone && isValidPhoneNumber(b.phone);
                             if (!aValid && bValid) return -1;
                             if (aValid && !bValid) return 1;
                             return 0;
@@ -389,7 +389,7 @@ export function CampaignCard({
                   </PopoverContent>
                 </Popover>
                 
-                {campaign.status === "ready" && (campaign.leads || []).some((l: any) => !isValidPhoneNumber(l.phone)) && (
+                {campaign.status === "ready" && (campaign.leads || []).some((l: any) => !l.phone || !isValidPhoneNumber(l.phone)) && (
                   <span className="text-xs font-medium text-red-500 bg-red-500/10 px-2 py-1 rounded-md flex items-center animate-in fade-in zoom-in-95 duration-200">
                     &larr; Please correct invalid numbers before starting
                   </span>
@@ -658,7 +658,7 @@ export function CampaignCard({
                     Clear File
                   </Button>
                 )}
-                <Button className="gap-2" onClick={onStart} disabled={(campaign.leads || []).some((l: any) => !isValidPhoneNumber(l.phone))}>
+                <Button className="gap-2" onClick={onStart} disabled={(campaign.leads || []).some((l: any) => !l.phone || !isValidPhoneNumber(l.phone))}>
                   <Play className="size-4" />
                   Start Campaign
                 </Button>
