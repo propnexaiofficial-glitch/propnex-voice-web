@@ -65,7 +65,7 @@ export function OutboundPageContent() {
   const [selectedCall, setSelectedCall] = useState<CallRecord | null>(null);
 
   const { user, isLoading } = useUserContext();
-  const hasOutboundNumber = user?.role === "SYSTEM_ADMIN" || (user?.assignedNumbersDetailed && user.assignedNumbersDetailed.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH"));
+  const hasOutboundNumber = user?.role === "SYSTEM_ADMIN" || (Array.isArray(user?.assignedNumbersDetailed) && user.assignedNumbersDetailed.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH"));
 
   const [editCampaignId, setEditCampaignId] = useState<string | null>(null);
   const [animationState, setAnimationState] = useState<{title: string, subtitle?: string, type?: "campaign" | "schedule" | "force_stopped"} | null>(null);
@@ -145,6 +145,19 @@ export function OutboundPageContent() {
       }
     } else {
       localStorage.removeItem("pnx_reactivation_schedule"); // Clear legacy if invalid/empty
+    }
+  }, []);
+
+  useEffect(() => {
+    // Failsafe wipe if the page is completely corrupted by legacy bugs
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("wipe") === "true") {
+      localStorage.removeItem("pnx_persistent_failed_leads");
+      localStorage.removeItem("pnx_persistent_failed_leads_info");
+      localStorage.removeItem("pnx_reactivation_schedules");
+      localStorage.removeItem("pnx_reactivation_schedule");
+      localStorage.removeItem("outboundCache");
+      window.location.href = "/dashboard/outbound";
     }
   }, []);
 
