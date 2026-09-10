@@ -73,7 +73,7 @@ export async function POST(req: Request) {
 
     console.log(`Bonvoice Hangup: dir=${isInbound ? "INBOUND" : "OUTBOUND"} DID=${didNumber} caller=${callerNumber} callID=${callID}`);
 
-    const recordingUrl = ResourceURL || resource_url || "";
+    const recordingUrl = ResourceURL || "";
     const durationSec  = parseInt(String(actualDuration)) || 0;
     const callCost     = cost ? parseFloat(String(cost)) : 0;
 
