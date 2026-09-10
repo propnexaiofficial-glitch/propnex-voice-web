@@ -642,11 +642,19 @@ export function CampaignCard({
                 <PhoneOutgoing className="size-4" />
                 {reminding ? "Sending..." : (isLocked ? "Request Sent" : "Request Outbound Number")}
               </Button>
-            ) : (campaign.status === "idle" || campaign.status === "completed") && !isReactivationCard ? (
-              <Button variant="outline" className="gap-2" onClick={onUploadClick}>
-                <Upload className="size-4" />
-                Upload CSV
-              </Button>
+            ) : (campaign.status === "idle" || campaign.status === "completed" || campaign.status === "failed" || campaign.status === "force_stopped") && !isReactivationCard ? (
+              <div className="flex gap-2">
+                {(campaign.status === "failed" || campaign.status === "completed" || campaign.status === "force_stopped") && onClear && (
+                  <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onClear}>
+                    <Trash2 className="size-4" />
+                    Clear
+                  </Button>
+                )}
+                <Button variant="outline" className="gap-2" onClick={onUploadClick}>
+                  <Upload className="size-4" />
+                  Upload CSV
+                </Button>
+              </div>
             ) : null}
 
           {campaign.status === "ready" && (
@@ -723,16 +731,6 @@ export function CampaignCard({
 
           {isReactivationCard && !campaign.qStage && (campaign.status === "idle" || campaign.status === "completed" || campaign.status === "scheduled") && (
             <div className="flex gap-2">
-              {campaign.status === "idle" && onClear && (
-                <Button
-                  variant="outline"
-                  className="border-destructive/50 text-destructive hover:bg-destructive/10 gap-2 h-9 text-sm"
-                  onClick={onClear}
-                >
-                  <Trash2 className="size-4" />
-                  Clear
-                </Button>
-              )}
               <Button
                 variant="outline"
                 className="border-primary/50 text-primary hover:bg-primary/10 gap-2 h-9 text-sm"
