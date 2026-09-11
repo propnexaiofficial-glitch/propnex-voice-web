@@ -113,9 +113,7 @@ export function CallLogTable({
                     {formatCallDate(call.callDateTime)}
                   </td>
                   <td className="px-4 py-3 tabular-nums">
-                    {call.status === "ringing" ? (
-                      "0s"
-                    ) : isLive && call.liveStartedAt ? (
+                    {isLive && call.liveStartedAt ? (
                       <LiveDuration startedAt={call.liveStartedAt} />
                     ) : (
                       call.duration
@@ -125,7 +123,7 @@ export function CallLogTable({
                     <StatusBadge status={call.status} />
                   </td>
                   <td className="px-4 py-3">
-                    {call.status === "completed" ? (
+                    {call.status === "completed" || call.recordingUrl ? (
                       <RecordingPlayer
                         durationSeconds={call.durationSeconds}
                         audioUrl={call.recordingUrl}

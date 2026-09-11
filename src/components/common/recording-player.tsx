@@ -31,13 +31,14 @@ export function RecordingPlayer({
   const [progress, setProgress] = useState(0);
   const [hasError, setHasError] = useState(() => {
     if (typeof window !== 'undefined' && audioUrl) {
-      return sessionStorage.getItem(`rec_fail_${audioUrl}`) === 'true';
+      return localStorage.getItem(`rec_fail_${audioUrl}`) === 'true';
     }
     return false;
   });
   const [isValidating, setIsValidating] = useState(() => {
     if (typeof window !== 'undefined' && audioUrl) {
-      return sessionStorage.getItem(`rec_fail_${audioUrl}`) !== 'true';
+      if (localStorage.getItem(`rec_fail_${audioUrl}`) === 'true') return false;
+      if (localStorage.getItem(`rec_ok_${audioUrl}`) === 'true') return false;
     }
     return !!audioUrl;
   });
@@ -79,11 +80,17 @@ export function RecordingPlayer({
 
     const buster = (retryCount > 0 || reloadKey > 0) ? (proxyUrl.includes('?') ? `&_t=${Date.now()}` : `?_t=${Date.now()}`) : '';
     const audio = new Audio(proxyUrl + buster);
-    audio.preload = "metadata";
+    
+    // If we already know this recording exists, don't proactively load it
+    const isAlreadyOk = typeof window !== 'undefined' && localStorage.getItem(`rec_ok_${audioUrl}`) === 'true';
+    if (isAlreadyOk && retryCount === 0 && reloadKey === 0) {
+      audio.preload = "none";
+    } else {
+      audio.preload = "metadata";
+      audio.load();
+    }
+    
     audioRef.current = audio;
-
-    // Force the browser to start fetching the metadata immediately.
-    audio.load();
 
     const updateTime = () => {
       setProgress(audio.currentTime);
@@ -109,7 +116,7 @@ export function RecordingPlayer({
         setIsValidating(false);
         setIsPlaying(false);
         if (typeof window !== 'undefined') {
-          sessionStorage.setItem(`rec_fail_${audioUrl}`, 'true');
+          localStorage.setItem(`rec_fail_${audioUrl}`, 'true');
         }
       }
     };
@@ -119,11 +126,12 @@ export function RecordingPlayer({
       setHasError(false);
       setIsValidating(false);
       if (typeof window !== 'undefined') {
-        sessionStorage.removeItem(`rec_fail_${audioUrl}`);
+        localStorage.removeItem(`rec_fail_${audioUrl}`);
+        localStorage.setItem(`rec_ok_${audioUrl}`, 'true');
       }
     };
 
-    if (audio.readyState >= 1) {
+    if (audio.readyState >= 1 || isAlreadyOk) {
       setIsValidating(false);
     }
 
@@ -193,7 +201,7 @@ export function RecordingPlayer({
               e.stopPropagation();
               // Clear cached failure so retry works fresh
               if (typeof window !== 'undefined' && audioUrl) {
-                sessionStorage.removeItem(`rec_fail_${audioUrl}`);
+                localStorage.removeItem(`rec_fail_${audioUrl}`);
               }
               setHasError(false);
               setIsValidating(true);
