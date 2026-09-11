@@ -9,21 +9,34 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to Hostinger via SSH
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install and Build
+        run: |
+          export NODE_OPTIONS="--max_old_space_size=6144"
+          npm ci
+          npx prisma generate
+          npm run build
+
+      - name: Copy Files to Server
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.HOSTINGER_HOST }}
+          username: root
+          password: ${{ secrets.HOSTINGER_PASSWORD }}
+          source: ".next,public,package.json,package-lock.json,prisma"
+          target: "/root/propnex-voice-web"
+
+      - name: Restart PM2 on Server
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOSTINGER_HOST }}
           username: root
           password: ${{ secrets.HOSTINGER_PASSWORD }}
           script: |
-            cd /root/propnex-voice-web
-            git pull origin main
-            
-
-
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            npm install
-            npx prisma generate
-            npm run build
+            cd /root/propnex-voice-web
+            npm install --production
             pm2 restart propnexai-frontend --update-env || pm2 start npm --name propnexai-frontend -- run start
