@@ -110,7 +110,11 @@ function mapApiItemToCallRecord(item: any, fallbackAssignedNumber: string): Call
     recordingUrl: item.recordingUrl || undefined,
     transcriptUrl: item.transcriptUrl || undefined,
     transcript: [],
-    liveStartedAt: isLive ? (item.liveStartedAt || item.callDateTime || item.startedAt || item.createdAt || item.updatedAt || new Date().toISOString()) : undefined,
+    liveStartedAt: isLive 
+      ? (mappedStatus === "answered" 
+          ? (item.updatedAt || new Date().toISOString()) 
+          : (item.liveStartedAt || item.callDateTime || item.startedAt || item.createdAt || item.updatedAt || new Date().toISOString())) 
+      : undefined,
   };
 }
 
