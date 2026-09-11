@@ -65,7 +65,7 @@ export function OutboundPageContent() {
   const [selectedCall, setSelectedCall] = useState<CallRecord | null>(null);
 
   const { user, isLoading } = useUserContext();
-  const hasOutboundNumber = user?.role === "SYSTEM_ADMIN" || (Array.isArray(user?.assignedNumbersDetailed) && user.assignedNumbersDetailed.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH"));
+  const hasOutboundNumber = isLoading ? true : (user?.role === "SYSTEM_ADMIN" || (Array.isArray(user?.assignedNumbersDetailed) && user.assignedNumbersDetailed.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH")));
 
   const [editCampaignId, setEditCampaignId] = useState<string | null>(null);
   const [animationState, setAnimationState] = useState<{title: string, subtitle?: string, type?: "campaign" | "schedule" | "force_stopped"} | null>(null);

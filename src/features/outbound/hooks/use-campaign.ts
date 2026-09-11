@@ -416,28 +416,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
   }, []);
 
   const clearCampaign = useCallback(async () => {
-    try {
-      const storedUserStr = localStorage.getItem("user");
-      const user = storedUserStr ? JSON.parse(storedUserStr) : {};
-      const companyId = overrideCompanyId || user.companyId || null;
-
-      if (companyId) {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
-        const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
-
-        await fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/clear`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${pnxToken}`
-          },
-          body: JSON.stringify({ companyId })
-        });
-      }
-    } catch (err) {
-      console.error("Failed to clear campaign state on backend", err);
-    }
-
+    // Optimistic UI update - clear immediately in real-time
     setCampaign(prev => {
       if (prev.id && prev.id !== "main-idle" && typeof window !== "undefined") {
         try {
@@ -462,6 +441,28 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
         successfulCalls: 0,
       };
     });
+
+    try {
+      const storedUserStr = localStorage.getItem("user");
+      const user = storedUserStr ? JSON.parse(storedUserStr) : {};
+      const companyId = overrideCompanyId || user.companyId || null;
+
+      if (companyId) {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
+        const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
+
+        fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/clear`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${pnxToken}`
+          },
+          body: JSON.stringify({ companyId })
+        }).catch(e => console.error("Error clearing on backend", e));
+      }
+    } catch (err) {
+      console.error("Failed to clear campaign state on backend", err);
+    }
   }, []);
 
   const forceStopCampaign = useCallback(async () => {

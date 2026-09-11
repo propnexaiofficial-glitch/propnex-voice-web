@@ -644,7 +644,7 @@ export function CampaignCard({
               </Button>
             ) : (campaign.status === "idle" || campaign.status === "completed" || campaign.status === "failed" || campaign.status === "force_stopped") && !isReactivationCard ? (
               <div className="flex gap-2">
-                {(campaign.status === "failed" || campaign.status === "completed" || campaign.status === "force_stopped") && onClear && (
+                {(campaign.status === "failed" || campaign.status === "completed" || campaign.status === "force_stopped") && onClear && !isReactivationCard && (
                   <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onClear}>
                     <Trash2 className="size-4" />
                     Clear
@@ -660,7 +660,7 @@ export function CampaignCard({
           {campaign.status === "ready" && (
             <div className="flex flex-col gap-2 items-end">
               <div className="flex gap-2">
-                {(!isReactivationCard || (campaign.qStage === "Q3" && campaign.qStatus === "Completed")) && (
+                {!isReactivationCard && (
                   <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/10" onClick={onClear}>
                     <Trash2 className="size-4" />
                     Clear File
