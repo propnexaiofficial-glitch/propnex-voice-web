@@ -128,13 +128,21 @@ export function CompanyCallsSection({
   const isOutOfCredits = (company?.creditsRemaining ?? 0) <= 0;
   const isLocked = company?.status === "SUSPENDED" || company?.status === "DELETED";
 
-  const hasAssignedNumber = useMemo(() => {
-    if (!company?.assignedNumbers) return false;
-    if (direction === "outbound") {
-      return company.assignedNumbers.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH");
+  const [hasAssignedNumber, setHasAssignedNumber] = useState(true);
+  
+  useEffect(() => {
+    if (isContextLoading || !company) return;
+    
+    if (company.assignedNumbers) {
+      const hasNum = direction === "outbound" 
+        ? company.assignedNumbers.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH")
+        : company.assignedNumbers.some((n: any) => n.direction === "INBOUND" || n.direction === "BOTH");
+        
+      setHasAssignedNumber(hasNum);
+    } else if (company.assignedNumbers === undefined) {
+      // If we are sure it's loaded but there's no array, assume false
     }
-    return company.assignedNumbers.some((n: any) => n.direction === "INBOUND" || n.direction === "BOTH");
-  }, [company, direction]);
+  }, [company, direction, isContextLoading]);
 
   const {
     campaign: outboundCampaign,

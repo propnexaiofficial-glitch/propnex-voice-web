@@ -65,7 +65,21 @@ export function OutboundPageContent() {
   const [selectedCall, setSelectedCall] = useState<CallRecord | null>(null);
 
   const { user, isLoading } = useUserContext();
-  const hasOutboundNumber = isLoading ? true : (user?.role === "SYSTEM_ADMIN" || (Array.isArray(user?.assignedNumbersDetailed) && user.assignedNumbersDetailed.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH")));
+  
+  // Use state to prevent flickering when user context reloads from stale localstorage
+  const [hasOutboundNumber, setHasOutboundNumber] = useState(true);
+  
+  useEffect(() => {
+    if (isLoading) return;
+    const hasNum = user?.role === "SYSTEM_ADMIN" || (Array.isArray(user?.assignedNumbersDetailed) && user.assignedNumbersDetailed.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH"));
+    
+    if (hasNum) {
+      setHasOutboundNumber(true);
+    } else if (!hasNum && user?.assignedNumbersDetailed !== undefined) {
+      // Only set to false if we're sure they don't have it (API returned empty array)
+      setHasOutboundNumber(false);
+    }
+  }, [user, isLoading]);
 
   const [editCampaignId, setEditCampaignId] = useState<string | null>(null);
   const [animationState, setAnimationState] = useState<{title: string, subtitle?: string, type?: "campaign" | "schedule" | "force_stopped"} | null>(null);
