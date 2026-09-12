@@ -118,8 +118,23 @@ function LeadRow({ lead, idx, onSave, onDelete, campaignStatus }: { lead: any; i
 
   return (
     <div className={cn("flex justify-between items-center text-xs border-b border-border pb-1 hover:bg-muted/30 p-1 -mx-1 px-1 rounded transition-colors group", (!lead.phone || !isValidPhoneNumber(String(lead.phone || ""))) && campaignStatus === "ready" && "bg-red-500/10 border-red-500/20")}>
-      <div className="flex items-center gap-2 overflow-hidden">
-        <span className={cn("truncate max-w-[120px]", lead.called && "line-through text-muted-foreground", (!lead.phone || !isValidPhoneNumber(String(lead.phone || ""))) && campaignStatus === "ready" && "text-red-400 font-medium")}>{lead.name}</span>
+      <div className="flex flex-col gap-0.5 overflow-hidden">
+        <div className="flex items-center gap-2">
+          {lead.isCompleted ? (
+            <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
+          ) : lead.called ? (
+            <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
+          ) : (
+            <Clock className="size-3 text-muted-foreground shrink-0 opacity-50" />
+          )}
+          <span className={cn("truncate max-w-[120px] font-medium", lead.called && "line-through text-muted-foreground", (!lead.phone || !isValidPhoneNumber(String(lead.phone || ""))) && campaignStatus === "ready" && "text-red-400 font-medium")}>{lead.name}</span>
+        </div>
+        {lead.didNumber && (
+          <span className="text-[10px] text-muted-foreground ml-5 flex items-center gap-1">
+            <PhoneOutgoing className="size-2.5 opacity-50" />
+            {lead.didNumber} (Voice)
+          </span>
+        )}
       </div>
       <div className="flex items-center gap-2">
         <span className={cn("font-mono", lead.called && "line-through text-muted-foreground", (!lead.phone || !isValidPhoneNumber(String(lead.phone || ""))) && campaignStatus === "ready" && "text-red-400 font-medium")}>{lead.phone}</span>
@@ -842,16 +857,16 @@ export function CampaignCard({
                     <div className="flex-1 md:overflow-auto p-4 md:p-6 pb-12 md:pb-6">
                       <div className="flex flex-col md:flex-row gap-4 md:gap-6 h-auto md:h-full">
                         {[
-                          { stage: "Q1", label: "Wave 1 (24 Hrs)", data: activeHist.q1 },
-                          { stage: "Q2", label: "Wave 2 (48 Hrs)", data: activeHist.q2 },
-                          { stage: "Q3", label: "Wave 3 (72 Hrs)", data: activeHist.q3 }
+                          { stage: "Q1", label: activeHist.q1?.label || "Wave 1", data: activeHist.q1 },
+                          { stage: "Q2", label: activeHist.q2?.label || "Wave 2", data: activeHist.q2 },
+                          { stage: "Q3", label: activeHist.q3?.label || "Wave 3", data: activeHist.q3 }
                         ].map((wave, idx) => (
                           <div key={wave.stage} className="flex-1 flex flex-col border border-border/60 rounded-2xl bg-card overflow-hidden shadow-sm relative min-h-[300px] md:min-h-0">
                             {/* Wave Header */}
                             <div className="p-4 border-b border-border/50 bg-muted/20 flex flex-col gap-3 shrink-0">
                               <div className="flex items-center justify-between">
                                 <div className="flex flex-col">
-                                  <span className="font-bold text-foreground">{wave.stage} Phase</span>
+                                  <span className="font-bold text-foreground">{wave.label}</span>
                                   <span className="text-xs text-muted-foreground">{wave.data.scheduled}</span>
                                 </div>
                                 <Badge 
@@ -884,12 +899,25 @@ export function CampaignCard({
                                   {wave.data.failedLeads.map((lead: any, i: number) => (
                                     <div key={i} className={cn("flex flex-col gap-1 text-xs border border-border/30 pb-2 pt-2 px-3 rounded-lg bg-background/50", lead.isCompleted ? "border-emerald-500/30 bg-emerald-500/5" : "hover:bg-muted/30")}>
                                       <div className="flex items-center justify-between">
-                                        <span className="truncate font-semibold text-foreground">{lead.name || "Unknown"}</span>
-                                        {lead.isCompleted && <CheckCircle2 className="size-3.5 text-emerald-500" />}
+                                        <div className="flex items-center gap-2">
+                                          {lead.isCompleted ? (
+                                            <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
+                                          ) : (
+                                            <Clock className="size-3 text-muted-foreground shrink-0 opacity-50" />
+                                          )}
+                                          <span className={cn("truncate max-w-[140px] font-semibold text-foreground", lead.isCompleted && "text-emerald-600 dark:text-emerald-400")}>{lead.name || "Unknown"}</span>
+                                        </div>
                                       </div>
-                                      <span className="font-mono text-muted-foreground flex items-center gap-1">
-                                        <PhoneOutgoing className="size-3 opacity-50"/> {lead.phone}
-                                      </span>
+                                      <div className="flex items-center justify-between text-muted-foreground ml-5">
+                                        <span className="font-mono flex items-center gap-1">
+                                          <PhoneOutgoing className="size-3 opacity-50"/> {lead.phone}
+                                        </span>
+                                        {lead.didNumber && (
+                                          <span className="text-[10px] flex items-center gap-1 opacity-70">
+                                            {lead.didNumber} (Voice)
+                                          </span>
+                                        )}
+                                      </div>
                                     </div>
                                   ))}
                                 </div>

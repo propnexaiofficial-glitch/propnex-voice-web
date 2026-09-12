@@ -87,58 +87,54 @@ export async function GET(req: NextRequest) {
         nextDay.setDate(d.getDate() + 1);
         nextDay.setHours(0, 0, 0, 0);
 
-        const shortFmt = new Intl.DateTimeFormat("en-US", { day: "2-digit", month: "short" }).format(d);
-        const longFmt = new Intl.DateTimeFormat("en-US", { day: "2-digit", month: "short", year: "numeric" }).format(d);
+        const shortFmt = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(d); // e.g. "12 Sep"
+        const nextShortFmt = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(nextDay); // e.g. "13 Sep"
         
-        const q1Time = new Date(nextDay);
-        q1Time.setHours(10, 0, 0, 0);
-        const q2Time = new Date(nextDay);
-        q2Time.setHours(14, 0, 0, 0);
-        const q3Time = new Date(nextDay);
-        q3Time.setHours(20, 0, 0, 0);
-
-        const timeFmt = new Intl.DateTimeFormat("en-US", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: true });
+        const q1Time = new Date(nextDay); q1Time.setHours(10, 0, 0, 0);
+        const q2Time = new Date(nextDay); q2Time.setHours(14, 0, 0, 0);
+        const q3Time = new Date(nextDay); q3Time.setHours(20, 0, 0, 0);
 
         buckets[key] = {
           id: key,
           csvName: `${shortFmt} Failed Leads`,
           didNumber: call.phoneNumber?.number || "Unknown",
           channels: call.phoneNumber?.channels || 1,
-          date: longFmt,
-          originalDateMs: d.getTime(), // Used to match correlationIds roughly
-          q1Time, q2Time, q3Time, // Keep Date objects for internal logic
-          q1: { scheduled: timeFmt.format(q1Time), status: "Pending", failedLeads: [] },
-          q2: { scheduled: timeFmt.format(q2Time), status: "Pending", failedLeads: [] },
-          q3: { scheduled: timeFmt.format(q3Time), status: "Pending", failedLeads: [] },
+          date: shortFmt, // E.g. "12 Sep"
+          originalDateMs: d.getTime(),
+          q1Time, q2Time, q3Time,
+          q1: { label: "Wave 1", scheduled: `${nextShortFmt} 10 Am`, status: "Pending", failedLeads: [] },
+          q2: { label: "Wave 2", scheduled: `${nextShortFmt} 2 Pm`, status: "Pending", failedLeads: [] },
+          q3: { label: "Wave 3", scheduled: `${nextShortFmt} 8 Pm`, status: "Pending", failedLeads: [] },
         };
       } else {
-        // Aggregate channels and update DID display if multiple
         if (call.phoneNumber?.number && buckets[key].didNumber !== call.phoneNumber.number) {
            buckets[key].didNumber = "Multiple Numbers";
         }
-        buckets[key].channels += (call.phoneNumber?.channels || 1);
       }
       
-      // Prevent duplicate leads in the base pool
       const leadId = call.leadId;
-      if (!buckets[key].q1.failedLeads.find((l: any) => l.id === leadId)) {
+      const leadPhone = call.lead.phone;
+      if (!buckets[key].q1.failedLeads.find((l: any) => l.phone === leadPhone)) {
         
-        // Format Name properly
         let leadName = "Unknown";
         if (call.lead.firstName || call.lead.lastName) {
            leadName = `${call.lead.firstName || ""} ${call.lead.lastName || ""}`.trim();
         } else if ((call.lead as any).name) {
            leadName = (call.lead as any).name;
+        } else if (call.lead.customFields) {
+           try {
+             const custom = typeof call.lead.customFields === 'string' ? JSON.parse(call.lead.customFields) : call.lead.customFields;
+             if (custom.Name || custom.name) leadName = custom.Name || custom.name;
+           } catch(e) {}
         }
 
-        const formattedLead = {
+        buckets[key].q1.failedLeads.push({
            id: leadId,
            name: leadName,
            phone: call.lead.phone,
+           didNumber: call.phoneNumber?.number || "Unknown",
            isCompleted: false
-        };
-
-        buckets[key].q1.failedLeads.push(formattedLead);
+        });
       }
     }
 
@@ -189,15 +185,17 @@ export async function GET(req: NextRequest) {
       b.q1.failedLeads = q1FinalList;
       b.q2.failedLeads = q2FinalList;
       b.q3.failedLeads = q3FinalList;
+    }
 
-      // Clean up internal dates before sending to client
+    const data = Object.values(buckets).sort((a: any, b: any) => b.originalDateMs - a.originalDateMs);
+
+    // Clean up internal dates before sending to client
+    for (const b of data) {
       delete b.q1Time;
       delete b.q2Time;
       delete b.q3Time;
       delete b.originalDateMs;
     }
-
-    const data = Object.values(buckets).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return NextResponse.json({ data });
   } catch (error) {
