@@ -27,7 +27,8 @@ export async function GET(req: NextRequest) {
 
     const companyId = member.companyId;
 
-    // Fetch all FAILED, MISSED, BUSY, NO-ANSWER, or 0s duration calls
+    // Fetch all initial FAILED/MISSED calls to find the base "Failed Leads" pool
+    // We only want original outbound calls, NOT reactivation calls
     const failedCalls = await prisma.callLog.findMany({
       where: {
         companyId,
@@ -37,6 +38,7 @@ export async function GET(req: NextRequest) {
           { durationSeconds: 0 },
         ],
         leadId: { not: null },
+        correlationId: null, // Reactivation calls now have correlationId set to reactivation-xxx-qX
       },
       include: {
         lead: true,
@@ -47,7 +49,30 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    // Group by Date (YYYY-MM-DD)
+    // Also fetch all reactivation CallLogs to track Q1/Q2/Q3 progress
+    // We need these to know if a lead successfully answered during Q1, Q2, or Q3
+    const reactivationLogs = await prisma.callLog.findMany({
+      where: {
+        companyId,
+        direction: "OUTBOUND",
+        correlationId: { startsWith: "reactivation-" }
+      },
+      select: {
+        leadId: true,
+        status: true,
+        correlationId: true,
+        durationSeconds: true
+      }
+    });
+
+    const activeCampaignIds = new Set<string>();
+    reactivationLogs.forEach(log => {
+      if (log.status === "PENDING" || log.status === "RINGING") {
+        if (log.correlationId) activeCampaignIds.add(log.correlationId);
+      }
+    });
+
+    // Group by Date ONLY (YYYY-MM-DD)
     const buckets: Record<string, any> = {};
 
     for (const call of failedCalls) {
@@ -55,7 +80,7 @@ export async function GET(req: NextRequest) {
       
       const d = new Date(call.startedAt);
       const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      const key = `${dateStr}-${call.phoneNumber?.number || "default"}`;
+      const key = dateStr;
       
       if (!buckets[key]) {
         const nextDay = new Date(d);
@@ -80,34 +105,99 @@ export async function GET(req: NextRequest) {
           didNumber: call.phoneNumber?.number || "Unknown",
           channels: call.phoneNumber?.channels || 1,
           date: longFmt,
-          q1: { 
-            scheduled: timeFmt.format(q1Time), 
-            status: new Date() > q1Time ? "completed" : "pending", 
-            failedLeads: [] 
-          },
-          q2: { 
-            scheduled: timeFmt.format(q2Time), 
-            status: new Date() > q2Time ? "completed" : "pending", 
-            failedLeads: [] 
-          },
-          q3: { 
-            scheduled: timeFmt.format(q3Time), 
-            status: new Date() > q3Time ? "completed" : "pending", 
-            failedLeads: [] 
-          },
+          originalDateMs: d.getTime(), // Used to match correlationIds roughly
+          q1Time, q2Time, q3Time, // Keep Date objects for internal logic
+          q1: { scheduled: timeFmt.format(q1Time), status: "Pending", failedLeads: [] },
+          q2: { scheduled: timeFmt.format(q2Time), status: "Pending", failedLeads: [] },
+          q3: { scheduled: timeFmt.format(q3Time), status: "Pending", failedLeads: [] },
         };
+      } else {
+        // Aggregate channels and update DID display if multiple
+        if (call.phoneNumber?.number && buckets[key].didNumber !== call.phoneNumber.number) {
+           buckets[key].didNumber = "Multiple Numbers";
+        }
+        buckets[key].channels += (call.phoneNumber?.channels || 1);
       }
       
-      // Prevent duplicates in the same bucket
-      if (!buckets[key].q1.failedLeads.find((l: any) => l.id === call.leadId)) {
-        buckets[key].q1.failedLeads.push(call.lead);
-        // Distribute to Q2/Q3 for UI purposes (the backend prunes them if they answered)
-        buckets[key].q2.failedLeads.push(call.lead);
-        buckets[key].q3.failedLeads.push(call.lead);
+      // Prevent duplicate leads in the base pool
+      const leadId = call.leadId;
+      if (!buckets[key].q1.failedLeads.find((l: any) => l.id === leadId)) {
+        
+        // Format Name properly
+        let leadName = "Unknown";
+        if (call.lead.firstName || call.lead.lastName) {
+           leadName = `${call.lead.firstName || ""} ${call.lead.lastName || ""}`.trim();
+        } else if ((call.lead as any).name) {
+           leadName = (call.lead as any).name;
+        }
+
+        const formattedLead = {
+           id: leadId,
+           name: leadName,
+           phone: call.lead.phone,
+           isCompleted: false
+        };
+
+        buckets[key].q1.failedLeads.push(formattedLead);
       }
     }
 
-    const data = Object.values(buckets);
+    // Now refine the lists based on actual Reactivation Q1/Q2/Q3 performance
+    for (const key of Object.keys(buckets)) {
+      const b = buckets[key];
+      const now = new Date();
+
+      // Determine Statuses
+      const q1Running = Array.from(activeCampaignIds).some(id => id.includes("-q1"));
+      const q2Running = Array.from(activeCampaignIds).some(id => id.includes("-q2"));
+      const q3Running = Array.from(activeCampaignIds).some(id => id.includes("-q3"));
+
+      b.q1.status = q1Running ? "Running" : (now > b.q1Time ? "Completed" : "Pending");
+      b.q2.status = q2Running ? "Running" : (now > b.q2Time ? "Completed" : "Pending");
+      b.q3.status = q3Running ? "Running" : (now > b.q3Time ? "Completed" : "Pending");
+
+      // Filter Leads across stages
+      const q1FinalList = [];
+      const q2FinalList = [];
+      const q3FinalList = [];
+
+      for (const lead of b.q1.failedLeads) {
+         const leadLogs = reactivationLogs.filter(l => l.leadId === lead.id);
+         
+         const q1Log = leadLogs.find(l => l.correlationId?.endsWith("-q1"));
+         const q2Log = leadLogs.find(l => l.correlationId?.endsWith("-q2"));
+         const q3Log = leadLogs.find(l => l.correlationId?.endsWith("-q3"));
+
+         let completedInQ1 = q1Log?.status === "COMPLETED" && (q1Log.durationSeconds || 0) > 0;
+         let completedInQ2 = q2Log?.status === "COMPLETED" && (q2Log.durationSeconds || 0) > 0;
+         let completedInQ3 = q3Log?.status === "COMPLETED" && (q3Log.durationSeconds || 0) > 0;
+
+         // Q1 always gets the lead. Show checkmark if it completed.
+         q1FinalList.push({ ...lead, isCompleted: completedInQ1 });
+
+         // If it didn't complete in Q1, it rolls over to Q2 (assuming Q1 has already run, or it's scheduled)
+         if (!completedInQ1) {
+            q2FinalList.push({ ...lead, isCompleted: completedInQ2 });
+            
+            // If it didn't complete in Q2, it rolls over to Q3
+            if (!completedInQ2) {
+               q3FinalList.push({ ...lead, isCompleted: completedInQ3 });
+            }
+         }
+      }
+
+      b.q1.failedLeads = q1FinalList;
+      b.q2.failedLeads = q2FinalList;
+      b.q3.failedLeads = q3FinalList;
+
+      // Clean up internal dates before sending to client
+      delete b.q1Time;
+      delete b.q2Time;
+      delete b.q3Time;
+      delete b.originalDateMs;
+    }
+
+    const data = Object.values(buckets).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return NextResponse.json({ data });
   } catch (error) {

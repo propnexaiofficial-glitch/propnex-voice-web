@@ -852,7 +852,7 @@ export function CampaignCard({
                               <div className="flex items-center justify-between">
                                 <div className="flex flex-col">
                                   <span className="font-bold text-foreground">{wave.stage} Phase</span>
-                                  <span className="text-xs text-muted-foreground">{wave.label}</span>
+                                  <span className="text-xs text-muted-foreground">{wave.data.scheduled}</span>
                                 </div>
                                 <Badge 
                                   variant={wave.data.status === "Running" ? "default" : wave.data.status === "Completed" ? "secondary" : "outline"}
@@ -882,8 +882,11 @@ export function CampaignCard({
                               ) : (
                                 <div className="space-y-1">
                                   {wave.data.failedLeads.map((lead: any, i: number) => (
-                                    <div key={i} className="flex flex-col gap-1 text-xs border border-border/30 pb-2 pt-2 px-3 hover:bg-muted/30 rounded-lg bg-background/50">
-                                      <span className="truncate font-semibold text-foreground">{lead.name || "Unknown"}</span>
+                                    <div key={i} className={cn("flex flex-col gap-1 text-xs border border-border/30 pb-2 pt-2 px-3 rounded-lg bg-background/50", lead.isCompleted ? "border-emerald-500/30 bg-emerald-500/5" : "hover:bg-muted/30")}>
+                                      <div className="flex items-center justify-between">
+                                        <span className="truncate font-semibold text-foreground">{lead.name || "Unknown"}</span>
+                                        {lead.isCompleted && <CheckCircle2 className="size-3.5 text-emerald-500" />}
+                                      </div>
                                       <span className="font-mono text-muted-foreground flex items-center gap-1">
                                         <PhoneOutgoing className="size-3 opacity-50"/> {lead.phone}
                                       </span>
