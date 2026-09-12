@@ -34,11 +34,16 @@ function corePhone(number: any): string | null {
 function mapBonvoiceStatus(data: any): string {
   // Prefer explicit Status field from Bonvoice (most reliable)
   const statusRaw = (data.Status || data.status || "").toString().toUpperCase().trim();
-  if (statusRaw === "ANSWERED") return "ANSWERED";
-  if (statusRaw === "RINGING" || statusRaw === "RING") return "RINGING";
-  if (statusRaw === "NO ANSWER" || statusRaw === "NOANSWER" || statusRaw === "NO_ANSWER") return "MISSED";
-  if (statusRaw === "BUSY") return "MISSED";
-  if (statusRaw === "FAILED" || statusRaw === "CANCEL" || statusRaw === "CANCELLED") return "FAILED";
+  const agentStatusRaw = (data.AgentStatus || data.agent_status || "").toString().toUpperCase().trim();
+  
+  // If Status is None but AgentStatus has a real value, use AgentStatus
+  const effectiveStatus = (statusRaw === "NONE" || !statusRaw) && agentStatusRaw && agentStatusRaw !== "NONE" ? agentStatusRaw : statusRaw;
+
+  if (effectiveStatus === "ANSWERED") return "ANSWERED";
+  if (effectiveStatus === "RINGING" || effectiveStatus === "RING") return "RINGING";
+  if (effectiveStatus === "NO ANSWER" || effectiveStatus === "NOANSWER" || effectiveStatus === "NO_ANSWER") return "MISSED";
+  if (effectiveStatus === "BUSY") return "MISSED";
+  if (effectiveStatus === "FAILED" || effectiveStatus === "CANCEL" || effectiveStatus === "CANCELLED" || effectiveStatus === "CHANUNAVAIL") return "FAILED";
 
   // Fallback: use callType numeric value
   const callType = parseInt(String(data.callType ?? data.CallType ?? ""), 10);
@@ -101,7 +106,20 @@ export async function POST(req: Request) {
       ? String(srcNum || "").trim()
       : String(dstNum || "").trim();
 
-    const mappedStatus = mapBonvoiceStatus(data);
+    const callDurationRaw = data.CallDuration || data.duration;
+    let durationSeconds = 0;
+    if (callDurationRaw !== undefined && callDurationRaw !== null && callDurationRaw !== "") {
+      const parsed = parseInt(String(callDurationRaw).trim(), 10);
+      if (!isNaN(parsed)) durationSeconds = parsed;
+    }
+
+    let mappedStatus = mapBonvoiceStatus(data);
+    const isCallLive = mappedStatus === "RINGING" || mappedStatus === "ANSWERED";
+
+    // If a call is finished but has 0 duration, it should be marked as FAILED or MISSED
+    if (!isCallLive && durationSeconds === 0) {
+      mappedStatus = "FAILED";
+    }
 
     console.log(`Bonvoice Notification: dir=${isInbound ? "INBOUND" : "OUTBOUND"} status=${mappedStatus} DID=${didNumber} caller=${callerNumber} callID=${callID}`);
 
@@ -135,11 +153,19 @@ export async function POST(req: Request) {
     if (existingLogs.length > 0) {
       // Update ALL existing logs for this call
       for (const log of existingLogs) {
+        const terminalStatuses = ["COMPLETED", "FAILED", "MISSED", "CANCELED"];
+        let finalStatusToUpdate = mappedStatus;
+        
+        // State machine validation: don't let a live status overwrite a terminal status (out-of-order webhooks)
+        if (terminalStatuses.includes(log.status) && isCallLive) {
+          finalStatusToUpdate = log.status; // Keep terminal status
+        }
+        
         await prisma.callLog.update({
           where: { id: log.id },
           data: {
-            status:     mappedStatus as any,
-            answeredAt: mappedStatus === "ANSWERED" ? new Date() : undefined,
+            status:     finalStatusToUpdate as any,
+            answeredAt: finalStatusToUpdate === "ANSWERED" ? new Date() : undefined,
             providerCallId: String(callID),
             providerWebhook: data,
           },
