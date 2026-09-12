@@ -27,7 +27,16 @@ export async function GET(req: NextRequest) {
       where: { parentCompanyId: member.companyId },
       include: { 
         creditBalance: true,
-        phoneNumbers: { select: { number: true, direction: true, channels: true, agentUrl: true } }
+        phoneNumbers: { 
+          select: { 
+            number: true, 
+            direction: true, 
+            channels: true,
+            outboundAgentId: true,
+            inboundAgentId: true,
+            outboundAgent: { select: { demoAudioUrl: true } }
+          } 
+        }
       }
     });
 
@@ -48,7 +57,12 @@ export async function GET(req: NextRequest) {
         companyName: c.name,
         companyEmail: "",
         contactPhone: allNumbers[0] || "",       // first number (backward-compat)
-        assignedNumbers: c.phoneNumbers || [], // Return the full objects {number, direction}
+        assignedNumbers: (c.phoneNumbers || []).map((p: any) => ({
+          number: p.number,
+          direction: p.direction,
+          channels: p.channels,
+          agentUrl: p.outboundAgent?.demoAudioUrl || null
+        })),
         channels: c.channels || 0,
         creditsUsed: c.creditBalance?.creditsUsed || 0,
         creditsRemaining: c.creditBalance?.creditsRemaining || 0,
