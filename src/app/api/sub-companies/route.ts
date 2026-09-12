@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
             channels: true,
             outboundAgentId: true,
             inboundAgentId: true,
-            outboundAgent: { select: { demoAudioUrl: true } }
+            agentUrl: true
           } 
         }
       }
@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
           number: p.number,
           direction: p.direction,
           channels: p.channels,
-          agentUrl: p.outboundAgent?.demoAudioUrl || null
+          agentUrl: p.agentUrl || null
         })),
         channels: c.channels || 0,
         creditsUsed: c.creditBalance?.creditsUsed || 0,
