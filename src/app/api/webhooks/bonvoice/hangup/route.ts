@@ -72,7 +72,7 @@ export async function POST(req: Request) {
     // OUTBOUND: DID = SourceNumber or DisplayNumber,      Caller = DestinationNumber
     const didNumber    = isInbound
       ? String(dispNum || dstNum || "").trim()
-      : String(srcNum || dispNum || "").trim();
+      : String(dispNum || srcNum || "").trim();
     const callerNumber = isInbound
       ? String(srcNum || "").trim()
       : String(dstNum || "").trim();
@@ -83,11 +83,11 @@ export async function POST(req: Request) {
     const durationSec  = parseInt(String(actualDuration)) || 0;
     const callCost     = cost ? parseFloat(String(cost)) : 0;
 
-    // Credit calculation: 1.75 credits per 30s block inbound, 3.5 outbound
+    // Credit calculation: 1.75 credits per 30s block for all calls
     let creditsUsed = 0;
     if (durationSec > 0) {
       const blocks = Math.ceil(durationSec / 30);
-      creditsUsed = blocks * (isInbound ? 1.75 : 3.5);
+      creditsUsed = blocks * 1.75;
     }
 
     const didVariants = phoneVariants(didNumber);

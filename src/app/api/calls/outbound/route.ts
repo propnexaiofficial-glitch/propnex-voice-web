@@ -167,8 +167,8 @@ export async function GET(req: NextRequest) {
          const wh: any = call.providerWebhook;
          // Bonvoice OUTBOUND: DisplayNumber or SourceNumber = DID (assigned number), DestinationNumber = customer
          fallbackAssignedNumber =
-           wh.SourceNumber || wh.source_number || wh.sourceNumber ||
-           wh.DisplayNumber || wh.display_number || wh.displayNumber || wh.did ||
+           wh.DisplayNumber || wh.display_number || wh.displayNumber ||
+           wh.SourceNumber || wh.source_number || wh.sourceNumber || wh.did ||
            wh.agentNumber || wh.did_number || wh.didNumber ||
            wh.message?.call?.agent?.number || wh.call?.agent?.number || "";
          

@@ -96,7 +96,7 @@ export async function POST(req: Request) {
     // OUTBOUND: DID = SourceNumber or DisplayNumber,      Caller = DestinationNumber
     const didNumber   = isInbound
       ? String(dispNum || dstNum || "").trim()
-      : String(srcNum || dispNum || "").trim();
+      : String(dispNum || srcNum || "").trim();
     const callerNumber = isInbound
       ? String(srcNum || "").trim()
       : String(dstNum || "").trim();
