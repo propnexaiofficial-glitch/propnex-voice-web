@@ -113,11 +113,22 @@ export async function POST(req: Request) {
     const didVariants  = phoneVariants(didNumber);
     const callerCore   = corePhone(callerNumber);
 
-    // 1. Check for existing call logs by callID
+    // 1. Check for existing call logs by callID or eventId
     let existingLogs: any[] = [];
+    let eventId = "";
+    if (callID && typeof callID === "string" && callID.includes("xx")) {
+      eventId = callID.split("xx")[0];
+    }
+
     if (callID) {
       existingLogs = await prisma.callLog.findMany({
-        where: { providerCallId: String(callID) },
+        where: {
+          OR: [
+            { providerCallId: String(callID) },
+            ...(eventId ? [{ callLogId: eventId }] : []),
+            ...(eventId ? [{ publicId: eventId }] : [])
+          ]
+        },
       });
     }
 
@@ -129,6 +140,7 @@ export async function POST(req: Request) {
           data: {
             status:     mappedStatus as any,
             answeredAt: mappedStatus === "ANSWERED" ? new Date() : undefined,
+            providerCallId: String(callID),
             providerWebhook: data,
           },
         });
