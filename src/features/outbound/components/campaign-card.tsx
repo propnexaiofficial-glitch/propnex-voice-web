@@ -178,6 +178,8 @@ export function CampaignCard({
   const [selectedHistId, setSelectedHistId] = useState<string | null>(null);
   const [historicalCampaigns, setHistoricalCampaigns] = useState<any[]>([]);
 
+  const isReactivationCard = campaign.id === "camp-001" || campaign.isReactivation || campaign.name?.includes("Lead Reactivation");
+
   useEffect(() => {
     if (isReactivationCard && leadsModalOpen) {
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
@@ -215,7 +217,7 @@ export function CampaignCard({
   const pendingSchedules = (displaySchedules || []).filter((s: any) => new Date(s.scheduledAt).getTime() > Date.now());
   const isPendingSchedule = pendingSchedules.length > 0;
 
-  const isReactivationCard = campaign.id === "camp-001" || campaign.isReactivation || campaign.name?.includes("Lead Reactivation");
+
 
   useEffect(() => {
     if (isReactivationCard) return;

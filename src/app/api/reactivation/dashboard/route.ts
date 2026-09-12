@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import prisma from "@/lib/prisma";
-import { format, startOfDay, addDays } from "date-fns";
 
 const JWT_SECRET = process.env.JWT_SECRET || "propnex_secret_jwt_key_2026_key";
 export const dynamic = "force-dynamic";
@@ -54,30 +53,46 @@ export async function GET(req: NextRequest) {
     for (const call of failedCalls) {
       if (!call.lead) continue;
       
-      const dateStr = format(call.startedAt, "yyyy-MM-dd");
+      const d = new Date(call.startedAt);
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       const key = `${dateStr}-${call.phoneNumber?.number || "default"}`;
       
       if (!buckets[key]) {
-        const nextDay = addDays(startOfDay(call.startedAt), 1);
+        const nextDay = new Date(d);
+        nextDay.setDate(d.getDate() + 1);
+        nextDay.setHours(0, 0, 0, 0);
+
+        const shortFmt = new Intl.DateTimeFormat("en-US", { day: "2-digit", month: "short" }).format(d);
+        const longFmt = new Intl.DateTimeFormat("en-US", { day: "2-digit", month: "short", year: "numeric" }).format(d);
+        
+        const q1Time = new Date(nextDay);
+        q1Time.setHours(10, 0, 0, 0);
+        const q2Time = new Date(nextDay);
+        q2Time.setHours(14, 0, 0, 0);
+        const q3Time = new Date(nextDay);
+        q3Time.setHours(20, 0, 0, 0);
+
+        const timeFmt = new Intl.DateTimeFormat("en-US", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: true });
+
         buckets[key] = {
           id: key,
-          csvName: `${format(call.startedAt, "dd MMM")} Failed Leads`,
+          csvName: `${shortFmt} Failed Leads`,
           didNumber: call.phoneNumber?.number || "Unknown",
           channels: call.phoneNumber?.channels || 1,
-          date: format(call.startedAt, "dd MMM yyyy"),
+          date: longFmt,
           q1: { 
-            scheduled: format(new Date(nextDay.setHours(10, 0, 0, 0)), "dd MMM hh:mm a"), 
-            status: new Date() > new Date(nextDay.setHours(10, 0, 0, 0)) ? "completed" : "pending", 
+            scheduled: timeFmt.format(q1Time), 
+            status: new Date() > q1Time ? "completed" : "pending", 
             failedLeads: [] 
           },
           q2: { 
-            scheduled: format(new Date(nextDay.setHours(14, 0, 0, 0)), "dd MMM hh:mm a"), 
-            status: new Date() > new Date(nextDay.setHours(14, 0, 0, 0)) ? "completed" : "pending", 
+            scheduled: timeFmt.format(q2Time), 
+            status: new Date() > q2Time ? "completed" : "pending", 
             failedLeads: [] 
           },
           q3: { 
-            scheduled: format(new Date(nextDay.setHours(20, 0, 0, 0)), "dd MMM hh:mm a"), 
-            status: new Date() > new Date(nextDay.setHours(20, 0, 0, 0)) ? "completed" : "pending", 
+            scheduled: timeFmt.format(q3Time), 
+            status: new Date() > q3Time ? "completed" : "pending", 
             failedLeads: [] 
           },
         };
