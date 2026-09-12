@@ -248,6 +248,12 @@ export function UploadCsvModal({
                 ? "Calls will be made sequentially (1 at a time)."
                 : `Up to ${derivedChannels} calls will be made in parallel, as allocated by your admin.`}
             </p>
+            {(!selectedDidInfo?.agentUrl) && (
+              <p className="text-xs font-medium text-red-500 animate-in fade-in mt-1 flex items-center gap-1">
+                <AlertCircle className="size-3" />
+                Agent URL is not assigned for this number. Please tell the admin to assign it before starting.
+              </p>
+            )}
           </div>
         )}
 
@@ -320,7 +326,7 @@ export function UploadCsvModal({
           <Button variant="outline" onClick={() => handleClose(false)}>
             Cancel
           </Button>
-          <Button disabled={!selectedFile || validLeadsCount === 0} onClick={handleConfirm}>
+          <Button disabled={!selectedFile || validLeadsCount === 0 || (outboundNumbers.length > 0 && !selectedDidInfo?.agentUrl)} onClick={handleConfirm}>
             Upload &amp; Extract Leads
           </Button>
         </DialogFooter>

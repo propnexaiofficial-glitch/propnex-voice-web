@@ -87,6 +87,7 @@ export async function GET(req: NextRequest) {
              number: r.number,
              direction: r.direction || null,
              channels: r.channels ?? null,
+             agentUrl: r.agentUrl || null,
           }));
         } else {
           assignedNumber = "Not Assigned";

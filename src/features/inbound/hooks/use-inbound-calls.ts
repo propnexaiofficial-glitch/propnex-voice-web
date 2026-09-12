@@ -35,7 +35,7 @@ export function useInboundCalls() {
     
     setError(null);
     try {
-      const query = new URLSearchParams();
+      const query = new URLSearchParams();3
       query.set("page", page.toString());
       query.set("limit", INBOUND_PAGE_SIZE.toString());
       query.set("companyId", user.companyId);
