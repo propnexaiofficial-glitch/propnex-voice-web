@@ -344,7 +344,7 @@ export function CampaignCard({
                 ? `${pendingSchedules.length} Scheduled` 
                 : campaign.status !== "idle" && (pendingSchedules[0]?.csvName || campaign.uploadedFileName) && !campaign.isReactivation && campaign.id !== "camp-001" && !campaign.name?.includes("Lead Reactivation")
                   ? `${status.label} • ${campaign.uploadedFileName || pendingSchedules[0]?.csvName}`
-                  : (isReactivationCard && campaign.status === "idle" ? "No Lead" : status.label)}
+                  : (isReactivationCard ? (historicalCampaigns.length > 0 ? `${historicalCampaigns[0].date} - ${historicalCampaigns[0].q1?.failedLeads?.length || 0} Leads` : `${new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(new Date())} - 0 Leads`) : status.label)}
             </Badge>
             {isReactivationCard && campaign.qStage && (
                <div className="flex gap-2 ml-2">
@@ -354,12 +354,12 @@ export function CampaignCard({
                </div>
             )}
             
-            {((campaign.status !== "idle" || isReactivationCard) && campaign.leads && campaign.leads.length > 0) && (
+            {(campaign.status !== "idle" && !isReactivationCard && campaign.leads && campaign.leads.length > 0) && (
               <div className="flex items-center gap-2 ml-2">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <div className={cn("flex size-7 cursor-pointer items-center justify-center rounded-full transition-colors", isReactivationCard ? "bg-primary/20 hover:bg-primary/30 shadow-[0_0_10px_rgba(var(--primary),0.3)] border border-primary/30" : "bg-muted/50 hover:bg-muted")} title="View/Edit Leads">
-                      <Info className={cn("size-4", isReactivationCard ? "text-primary" : "text-muted-foreground")} />
+                    <div className="flex size-7 cursor-pointer items-center justify-center rounded-full bg-muted/50 hover:bg-muted transition-colors" title="View/Edit Leads">
+                      <Info className="size-4 text-muted-foreground" />
                     </div>
                   </PopoverTrigger>
                   <PopoverContent className={cn("w-[350px] max-h-96 overflow-y-auto p-4 space-y-4 z-50", isReactivationCard && "backdrop-blur-md bg-background/90 border-primary/30 shadow-2xl")}>
@@ -776,7 +776,11 @@ export function CampaignCard({
                 onClick={() => setLeadsModalOpen(true)}
               >
                 <ListChecks className="size-4" />
-                Lead Info{failedCallsCount > 0 ? ` (${failedCallsCount})` : ""}
+                {isReactivationCard ? (
+                  `Lead Info${historicalCampaigns.length > 0 ? ` (${historicalCampaigns.reduce((acc: number, curr: any) => acc + (curr.q1?.failedLeads?.length || 0), 0)})` : ""}`
+                ) : (
+                  `Lead Info${failedCallsCount > 0 ? ` (${failedCallsCount})` : ""}`
+                )}
               </Button>
             </div>
           )}
