@@ -741,6 +741,19 @@ export function CompanyCallsSection({
                   </option>
                 ))}
               </select>
+              {(() => {
+                const currentDid = rescheduleDid;
+                const didInfo = (company?.assignedNumbers as any[] || []).find((n: any) => n.number === currentDid);
+                if (currentDid && !didInfo?.agentUrl) {
+                  return (
+                    <p className="text-xs font-medium text-red-500 animate-in fade-in mt-1 flex items-center gap-1">
+                      <AlertCircle className="size-3" />
+                      Agent URL is not assigned for this number. Please tell the admin to assign it before starting.
+                    </p>
+                  );
+                }
+                return null;
+              })()}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Failed Leads ({(editCampaignId ? reactivationCampaigns.find(c => c.id === editCampaignId)?.leads || [] : outboundCampaign.leads?.filter((l: any) => l.isFailed) || []).length})</label>
@@ -777,9 +790,16 @@ export function CompanyCallsSection({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRescheduleOpen(false)}>Cancel</Button>
-            <Button onClick={handleReschedule} disabled={isRescheduling || !rescheduleDate || !rescheduleTime || !rescheduleDid}>
-              {isRescheduling ? "Scheduling..." : "Schedule Reactivation"}
-            </Button>
+            {(() => {
+              const currentDid = rescheduleDid;
+              const didInfo = (company?.assignedNumbers as any[] || []).find((n: any) => n.number === currentDid);
+              const isInvalidDid = currentDid && !didInfo?.agentUrl;
+              return (
+                <Button onClick={handleReschedule} disabled={isRescheduling || !rescheduleDate || !rescheduleTime || !rescheduleDid || isInvalidDid}>
+                  {isRescheduling ? "Scheduling..." : "Schedule Reactivation"}
+                </Button>
+              );
+            })()}
           </DialogFooter>
         </DialogContent>
       </Dialog>
