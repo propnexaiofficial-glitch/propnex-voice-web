@@ -793,7 +793,7 @@ export function CompanyCallsSection({
             {(() => {
               const currentDid = rescheduleDid;
               const didInfo = (company?.assignedNumbers as any[] || []).find((n: any) => n.number === currentDid);
-              const isInvalidDid = currentDid && !didInfo?.agentUrl;
+              const isInvalidDid = !!(currentDid && !didInfo?.agentUrl);
               return (
                 <Button onClick={handleReschedule} disabled={isRescheduling || !rescheduleDate || !rescheduleTime || !rescheduleDid || isInvalidDid}>
                   {isRescheduling ? "Scheduling..." : "Schedule Reactivation"}

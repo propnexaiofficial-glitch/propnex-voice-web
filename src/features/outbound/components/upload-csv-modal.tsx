@@ -30,6 +30,7 @@ type DidNumber = {
   direction?: string;
   /** Admin-allocated concurrent channel count for this DID */
   channels?: number;
+  agentUrl?: string | null;
 };
 
 type UploadCsvModalProps = {
