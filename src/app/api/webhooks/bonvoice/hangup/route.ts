@@ -83,6 +83,21 @@ export async function POST(req: Request) {
     const durationSec  = parseInt(String(actualDuration)) || 0;
     const callCost     = cost ? parseFloat(String(cost)) : 0;
 
+    let finalMappedStatus = "COMPLETED"; // default for hangup
+    
+    // Evaluate explicit statuses in hangup webhook
+    const statusRaw = (data.Status || data.status || "").toString().toUpperCase().trim();
+    const agentStatusRaw = (data.AgentStatus || data.agent_status || "").toString().toUpperCase().trim();
+    const effectiveStatus = (statusRaw === "NONE" || !statusRaw) && agentStatusRaw && agentStatusRaw !== "NONE" ? agentStatusRaw : statusRaw;
+
+    if (effectiveStatus === "NO ANSWER" || effectiveStatus === "NOANSWER" || effectiveStatus === "NO_ANSWER" || effectiveStatus === "BUSY") {
+      finalMappedStatus = "MISSED";
+    } else if (effectiveStatus === "FAILED" || effectiveStatus === "CANCEL" || effectiveStatus === "CANCELLED" || effectiveStatus === "CHANUNAVAIL") {
+      finalMappedStatus = "FAILED";
+    } else if (durationSec === 0) {
+      finalMappedStatus = "FAILED";
+    }
+
     // Credit calculation: 1.75 credits per 30s block for all calls
     let creditsUsed = 0;
     if (durationSec > 0) {
@@ -163,14 +178,14 @@ export async function POST(req: Request) {
         await prisma.callLog.update({
           where: { id: log.id },
           data: {
-            status:          "COMPLETED",
+            status:          finalMappedStatus as any,
             durationSeconds: durationSec,
             cost:            callCost,
             creditsUsed:     creditsUsed,
             recordingUrl:    recordingUrl || undefined,
             endedAt:         endTimeParsed,
             providerCallId:  String(callID),
-            providerStatus:  "COMPLETED",
+            providerStatus:  finalMappedStatus,
             providerWebhook: data,
             ...(lead ? { leadId: lead.id } : {}),
           },
@@ -194,7 +209,7 @@ export async function POST(req: Request) {
             callLogId:       `CL${Date.now()}`,
             publicId:        `bonvoice-${Date.now()}`,
             direction:       isInbound ? "INBOUND" : "OUTBOUND",
-            status:          "COMPLETED",
+            status:          finalMappedStatus as any,
             providerCallId:  callID ? String(callID) : undefined,
             startedAt:       startTimeParsed,
             endedAt:         endTimeParsed,
@@ -203,7 +218,7 @@ export async function POST(req: Request) {
             creditsUsed:     creditsUsed,
             recordingUrl:    recordingUrl || undefined,
             provider:        "BONVOICE",
-            providerStatus:  "COMPLETED",
+            providerStatus:  finalMappedStatus,
             providerWebhook: data,
           },
         });
@@ -222,7 +237,7 @@ export async function POST(req: Request) {
               callLogId:       `CL${Date.now()}-${phoneNumber.id.substring(0, 5)}`,
               publicId:        `bonvoice-${Date.now()}-${phoneNumber.id.substring(0, 5)}`,
               direction:       isInbound ? "INBOUND" : "OUTBOUND",
-              status:          "COMPLETED",
+              status:          finalMappedStatus as any,
               companyId:       phoneNumber.companyId ?? undefined,
               phoneNumberId:   phoneNumber.id,
               leadId:          lead?.id ?? undefined,
@@ -235,7 +250,7 @@ export async function POST(req: Request) {
               creditsUsed:     creditsUsed,
               recordingUrl:    recordingUrl || undefined,
               provider:        "BONVOICE",
-              providerStatus:  "COMPLETED",
+              providerStatus:  finalMappedStatus,
               providerWebhook: data,
             },
           });
