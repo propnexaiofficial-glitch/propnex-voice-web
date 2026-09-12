@@ -138,7 +138,7 @@ function LeadRow({ lead, idx, onSave, onDelete, campaignStatus }: { lead: any; i
   );
 }
 
-const MOCK_HISTORICAL_CAMPAIGNS: any[] = [];
+
 
 export function CampaignCard({
   campaign,
@@ -176,10 +176,32 @@ export function CampaignCard({
   const [expandedScheduleIdx, setExpandedScheduleIdx] = useState<number | null>(null);
   const [leadsModalOpen, setLeadsModalOpen] = useState(false);
   const [selectedHistId, setSelectedHistId] = useState<string | null>(null);
+  const [historicalCampaigns, setHistoricalCampaigns] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (isReactivationCard && leadsModalOpen) {
+      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
+      fetch("/api/reactivation/dashboard", {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => res.json())
+        .then(res => {
+          if (res.data) {
+            setHistoricalCampaigns(res.data);
+            if (res.data.length > 0 && !selectedHistId) {
+              setSelectedHistId(res.data[0].id);
+            }
+          }
+        })
+        .catch(err => console.error("Failed to fetch reactivation dashboard", err));
+    }
+  }, [isReactivationCard, leadsModalOpen]);
 
   useEffect(() => {
     if (leadsModalOpen) {
-      setSelectedHistId(MOCK_HISTORICAL_CAMPAIGNS[0]?.id || null);
+    if (leadsModalOpen && historicalCampaigns.length > 0 && !selectedHistId) {
+      setSelectedHistId(historicalCampaigns[0]?.id || null);
+    }
     }
   }, [leadsModalOpen]);
 
@@ -767,7 +789,8 @@ export function CampaignCard({
               <div className="w-full md:w-80 border-b md:border-b-0 md:border-r border-border/50 flex flex-col bg-muted/10 shrink-0">
                 <div className="p-4 text-xs font-semibold text-muted-foreground tracking-wider uppercase border-b border-border/50">Historical Campaigns</div>
                 <div className="flex-none max-h-[40vh] md:max-h-none md:flex-1 overflow-y-auto p-3 space-y-2">
-                  {MOCK_HISTORICAL_CAMPAIGNS.map(hist => {
+                  {historicalCampaigns.length === 0 && <div className="text-sm text-muted-foreground p-4 text-center">No failed leads found today.</div>}
+                  {historicalCampaigns.map(hist => {
                     const isSelected = selectedHistId === hist.id;
                     const totalFailed = (hist.q1.failedLeads?.length || 0) + (hist.q2.failedLeads?.length || 0) + (hist.q3.failedLeads?.length || 0);
                     return (
@@ -810,7 +833,7 @@ export function CampaignCard({
                 </div>
                 
                 {(() => {
-                  const activeHist = MOCK_HISTORICAL_CAMPAIGNS.find(c => c.id === selectedHistId);
+                  const activeHist = historicalCampaigns.find(c => c.id === selectedHistId);
                   if (!activeHist) return <div className="flex-1 flex items-center justify-center text-muted-foreground p-8">Select a campaign to view details</div>;
 
                   return (
