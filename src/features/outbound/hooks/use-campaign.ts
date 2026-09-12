@@ -122,7 +122,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
         isError: true,
       });
     }
-  }, [campaign.id, campaign.status, campaign.leads, campaign.selectedDid]);
+  }, [campaign.id, campaign.status, campaign.leads, campaign.selectedDid, campaign.channels, campaign.uploadedFileName, overrideCompanyId]);
 
   // WebSocket connection to keep UI in sync with backend Redis state instantly
   useEffect(() => {
@@ -463,7 +463,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
     } catch (err) {
       console.error("Failed to clear campaign state on backend", err);
     }
-  }, []);
+  }, [overrideCompanyId]);
 
   const forceStopCampaign = useCallback(async () => {
     try {
@@ -513,7 +513,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
         isError: false,
       });
     }
-  }, []);
+  }, [overrideCompanyId]);
 
   const progressPercent =
     campaign.totalContacts > 0
