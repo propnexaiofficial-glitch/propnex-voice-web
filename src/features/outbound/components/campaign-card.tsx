@@ -348,9 +348,14 @@ export function CampaignCard({
             </Badge>
             {isReactivationCard && campaign.qStage && (
                <div className="flex gap-2 ml-2">
-                 <Badge variant={campaign.qStage === "Q1" ? "default" : "outline"} className={cn("text-xs font-semibold px-2 py-0.5", campaign.qStage === "Q1" && campaign.qStatus === "Running" && "animate-pulse")}>Q1: {campaign.qStage === "Q1" ? campaign.qStatus : (campaign.qStage === "Q2" || campaign.qStage === "Q3" ? "Completed" : "Scheduled")}</Badge>
-                 <Badge variant={campaign.qStage === "Q2" ? "default" : "outline"} className={cn("text-xs font-semibold px-2 py-0.5", campaign.qStage === "Q2" && campaign.qStatus === "Running" && "animate-pulse")}>Q2: {campaign.qStage === "Q2" ? campaign.qStatus : (campaign.qStage === "Q3" ? "Completed" : "Pending")}</Badge>
-                 <Badge variant={campaign.qStage === "Q3" ? "default" : "outline"} className={cn("text-xs font-semibold px-2 py-0.5", campaign.qStage === "Q3" && campaign.qStatus === "Running" && "animate-pulse")}>Q3: {campaign.qStage === "Q3" ? campaign.qStatus : "Pending"}</Badge>
+                 <Badge 
+                    variant={campaign.qStatus === "Completed" || (campaign.qStage === "Q3" && campaign.qStatus === "Completed") ? "outline" : "default"} 
+                    className={cn("text-xs font-semibold px-2 py-0.5", campaign.qStatus === "Running" && "animate-pulse")}
+                 >
+                   {campaign.qStage === "Q3" && campaign.qStatus === "Completed" 
+                      ? "Completed" 
+                      : `${campaign.qStatus} ${campaign.qStage}`}
+                 </Badge>
                </div>
             )}
             
@@ -834,7 +839,11 @@ export function CampaignCard({
                       >
                         <div className="font-semibold truncate text-foreground" title={hist.csvName}>{hist.csvName}</div>
                         <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1.5"><PhoneOutgoing className="size-3" /> {hist.didNumber}</span>
+                          {hist.didNumber && hist.didNumber !== "Unknown" ? (
+                            <span className="flex items-center gap-1.5"><PhoneOutgoing className="size-3" /> {hist.didNumber}</span>
+                          ) : (
+                            <span></span>
+                          )}
                           <Badge variant="outline" className="h-5 px-1.5 text-[10px] bg-background">CH: {hist.channels}</Badge>
                         </div>
                         <div className="text-xs font-medium text-red-400 flex items-center gap-1 mt-0.5">
@@ -916,7 +925,7 @@ export function CampaignCard({
                                         <span className="font-mono flex items-center gap-1">
                                           <PhoneOutgoing className="size-3 opacity-50"/> {lead.phone}
                                         </span>
-                                        {lead.didNumber && (
+                                        {lead.didNumber && lead.didNumber !== "Unknown" && (
                                           <span className="text-[10px] flex items-center gap-1 opacity-70">
                                             {lead.didNumber} (Voice)
                                           </span>
