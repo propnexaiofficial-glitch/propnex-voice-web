@@ -862,8 +862,11 @@ export function CampaignCard({
                                   <TooltipProvider>
                                     <Tooltip delayDuration={100}>
                                       <TooltipTrigger asChild>
-                                        <div className="cursor-help p-1 hover:bg-muted rounded-md transition-colors shrink-0">
-                                          <PhoneOutgoing className="size-3.5 text-muted-foreground" />
+                                        <div className="cursor-help relative flex items-center justify-center shrink-0 group">
+                                          <span className="absolute inline-flex h-full w-full rounded-full bg-primary/30 opacity-75 animate-ping duration-[3000ms]"></span>
+                                          <div className="relative flex items-center justify-center p-1.5 rounded-full bg-primary/10 border border-primary/30 transition-all group-hover:bg-primary/20 group-hover:scale-105 shadow-[0_0_10px_rgba(var(--primary),0.15)]">
+                                            <PhoneOutgoing className="size-3.5 text-primary drop-shadow-md animate-pulse" />
+                                          </div>
                                         </div>
                                       </TooltipTrigger>
                                       <TooltipContent side="right" className="text-xs space-y-2 p-3 bg-card border-border/50">
