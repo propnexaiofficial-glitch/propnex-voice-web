@@ -846,45 +846,6 @@ export function CampaignCard({
                         )}
                       >
                         <div className="flex flex-col gap-1 items-start w-full">
-                          <div className="flex items-center gap-2 w-full justify-between">
-                            <div className="font-semibold truncate text-foreground" title={hist.csvName}>{hist.csvName}</div>
-                            {(() => {
-                              const didStats = hist.q1?.failedLeads?.reduce((acc: any, lead: any) => {
-                                const did = lead.didNumber && lead.didNumber !== "Unknown" ? lead.didNumber : "Unknown";
-                                if (!acc[did]) acc[did] = { count: 0, channels: lead.channels || 1 };
-                                acc[did].count += 1;
-                                return acc;
-                              }, {}) || {};
-                              const didKeys = Object.keys(didStats).filter(d => d !== "Unknown");
-                              
-                              if (didKeys.length > 0) {
-                                return (
-                                  <TooltipProvider>
-                                    <Tooltip delayDuration={100}>
-                                      <TooltipTrigger asChild>
-                                        <div className="cursor-help relative flex items-center justify-center shrink-0 group">
-                                          <span className="absolute inline-flex h-full w-full rounded-full bg-primary/30 opacity-75 animate-ping duration-[3000ms]"></span>
-                                          <div className="relative flex items-center justify-center p-1.5 rounded-full bg-primary/10 border border-primary/30 transition-all group-hover:bg-primary/20 group-hover:scale-105 shadow-[0_0_10px_rgba(var(--primary),0.15)]">
-                                            <PhoneOutgoing className="size-3.5 text-primary drop-shadow-md animate-pulse" />
-                                          </div>
-                                        </div>
-                                      </TooltipTrigger>
-                                      <TooltipContent side="right" className="text-xs space-y-2 p-3 bg-card border-border/50">
-                                        <div className="font-semibold border-b border-border/50 pb-1.5 mb-1.5 text-foreground">DID Usage Breakdown</div>
-                                        {didKeys.map((did) => (
-                                          <div key={did} className="flex flex-col text-muted-foreground gap-0.5">
-                                            <span className="font-medium">DID Number - {did} <span className="opacity-50 mx-1">|</span> Ch - {didStats[did].channels}</span>
-                                            <span className="text-red-400">Failed Calls - {didStats[did].count}</span>
-                                          </div>
-                                        ))}
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                );
-                              }
-                              return null;
-                            })()}
-                          </div>
                           {(() => {
                             const statusText = hist.q3?.status === "Completed" 
                               ? "Completed" 
@@ -894,13 +855,57 @@ export function CampaignCard({
                               : hist.q1?.status === "Pending" || hist.q1?.status === "Scheduled" ? `${hist.q1.status} Q1` 
                               : hist.q2?.status === "Pending" || hist.q2?.status === "Scheduled" ? `${hist.q2.status} Q2` 
                               : `${hist.q3?.status || "Pending"} Q3`;
+                              
+                            const isCompleted = statusText === "Completed";
+                            
+                            const didStats = hist.q1?.failedLeads?.reduce((acc: any, lead: any) => {
+                              const did = lead.didNumber && lead.didNumber !== "Unknown" ? lead.didNumber : "Unknown";
+                              if (!acc[did]) acc[did] = { count: 0, channels: lead.channels || 1 };
+                              acc[did].count += 1;
+                              return acc;
+                            }, {}) || {};
+                            const didKeys = Object.keys(didStats).filter(d => d !== "Unknown");
+
                             return (
-                              <Badge 
-                                variant={statusText === "Completed" ? "outline" : statusText.includes("Running") ? "default" : "secondary"} 
-                                className={cn("text-xs px-2.5 py-1 mt-0.5 font-medium", statusText === "Completed" && "bg-emerald-500/10 text-emerald-500 border-emerald-500/30", statusText.includes("Running") && "animate-pulse bg-primary text-primary-foreground")}
-                              >
-                                {statusText}
-                              </Badge>
+                              <>
+                                <div className="flex items-center gap-2 w-full justify-between">
+                                  <div className="font-semibold truncate text-foreground" title={hist.csvName}>{hist.csvName}</div>
+                                  {didKeys.length > 0 && (
+                                    <TooltipProvider>
+                                      <Tooltip delayDuration={100}>
+                                        <TooltipTrigger asChild>
+                                          <div className="cursor-pointer relative flex items-center justify-center shrink-0 group">
+                                            {!isCompleted && <span className="absolute inline-flex h-full w-full rounded-full bg-primary/30 opacity-75 animate-ping duration-[3000ms]"></span>}
+                                            <div className={cn(
+                                              "relative flex items-center justify-center p-1.5 rounded-full transition-all group-hover:scale-105",
+                                              isCompleted 
+                                                ? "bg-muted/50 hover:bg-muted" 
+                                                : "bg-primary/10 border border-primary/30 group-hover:bg-primary/20 shadow-[0_0_10px_rgba(var(--primary),0.15)]"
+                                            )}>
+                                              <PhoneOutgoing className={cn("size-3.5", isCompleted ? "text-muted-foreground" : "text-primary drop-shadow-md animate-pulse")} />
+                                            </div>
+                                          </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="right" className="text-xs space-y-2 p-3 bg-card border-border/50">
+                                          <div className="font-semibold border-b border-border/50 pb-1.5 mb-1.5 text-foreground">DID Usage Breakdown</div>
+                                          {didKeys.map((did) => (
+                                            <div key={did} className="flex flex-col text-muted-foreground gap-0.5">
+                                              <span className="font-medium">DID Number - {did} <span className="opacity-50 mx-1">|</span> Ch - {didStats[did].channels}</span>
+                                              <span className="text-red-400">Failed Calls - {didStats[did].count}</span>
+                                            </div>
+                                          ))}
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  )}
+                                </div>
+                                <Badge 
+                                  variant={isCompleted ? "outline" : statusText.includes("Running") ? "default" : "secondary"} 
+                                  className={cn("text-xs px-2.5 py-1 mt-0.5 font-medium", isCompleted && "bg-emerald-500/10 text-emerald-500 border-emerald-500/30", statusText.includes("Running") && "animate-pulse bg-primary text-primary-foreground")}
+                                >
+                                  {statusText}
+                                </Badge>
+                              </>
                             );
                           })()}
                         </div>
