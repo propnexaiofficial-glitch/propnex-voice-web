@@ -45,7 +45,8 @@ export async function POST(req: Request) {
 8. If asked about missing inbound/outbound numbers for a subcompany, explicitly tell the user to click the "Request" button in the dashboard to request a new number.
 9. If asked about Lead Reactivation or retries, explain that the system automatically distributes failed leads across 3 waves (Q1, Q2, Q3) scheduled at 10 AM, 3 PM, and 8 PM on the day after the failure, to automatically call them again.
 10. If asked about the Force Stop button on a campaign, explain that it immediately halts the campaign execution, stopping any further outbound calls from being made.
-11. If asked how to search in Inbound, Outbound, or Subcompanies pages, explain that the user can use the search bar at the top of the respective page to filter by name, phone number, or status.`;
+11. If asked how to search in Inbound, Outbound, or Subcompanies pages, explain that the user can use the search bar at the top of the respective page to filter by name, phone number, or status.
+12. IMPORTANT: Answer EXACTLY the question asked. Do not pivot to unrelated information. If the user asks for historical data (like first credit amount) and it is not in the LIVE DATA context below, explicitly state that you cannot see records that old. DO NOT make up generic platform rules or answer unrelated questions.`;
 
     // ── Try cache first, then DB ──
     let realTimeContext = `${systemRules}\n\nUser: ${userName}\nCompany: Not connected.`;
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
       if (cached) {
         realTimeContext = `${systemRules}\n\n${cached}`;
       } else {
-        const [company, subcompanies, billingQuotes, creditUsages, largestDeductions, agents, campaigns, campaignExecutions] = await Promise.all([
+        const [company, subcompanies, billingQuotes, creditUsages, largestDeductions, oldestBillingQuote, agents, campaigns, campaignExecutions] = await Promise.all([
           prisma.company.findUnique({
             where: { id: companyId },
             include: {
@@ -84,6 +85,11 @@ export async function POST(req: Request) {
             where: { companyId },
             orderBy: { amount: 'asc' }, // The largest deductions are negative, so ascending order grabs the biggest ones
             take: 5
+          }) as any,
+          prisma.billingQuote.findMany({
+            where: { companyId, status: "PURCHASED" },
+            orderBy: { purchasedAt: 'asc' },
+            take: 1
           }) as any,
           prisma.aiAgent.findMany({
             where: { companyId }
@@ -237,6 +243,10 @@ Unassigned Agents (3): Marcus, Emma, David`;
           const recentDeductions = allDeductions.length > 0
             ? allDeductions.map((u: any) => `- Date: ${new Date(u.createdAt).toLocaleDateString()}, Amount: ${u.amount}, Reason: ${u.reason}, Description: ${u.description || 'None'}`).join("\n")
             : "No credit usage deductions found.";
+            
+          const firstPurchaseContext = oldestBillingQuote && oldestBillingQuote.length > 0 
+            ? `First Ever Credit Addition / Purchase: Date: ${new Date(oldestBillingQuote[0].purchasedAt).toLocaleDateString()}, Total Added: $${oldestBillingQuote[0].grandTotal}`
+            : "No first purchase record found.";
 
           const freshContext = `LIVE DATA — ${company.name}:
 
@@ -255,6 +265,9 @@ Service Number: ${company.setupConfig?.serviceNumber ?? "Not configured"}
 
 RECENT DEDUCTIONS / MISC FEES (Top 10):
 ${recentDeductions}
+
+HISTORICAL BILLING:
+${firstPurchaseContext}
 
 BILLING HISTORY:
 ${billingHistory}
