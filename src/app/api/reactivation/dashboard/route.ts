@@ -97,7 +97,7 @@ export async function GET(req: NextRequest) {
         const nextShortFmt = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(nextDay); // e.g. "13 Sep"
         
         const q1Time = new Date(nextDay); q1Time.setHours(10, 0, 0, 0);
-        const q2Time = new Date(nextDay); q2Time.setHours(14, 0, 0, 0);
+        const q2Time = new Date(nextDay); q2Time.setHours(15, 0, 0, 0);
         const q3Time = new Date(nextDay); q3Time.setHours(20, 0, 0, 0);
 
         buckets[key] = {
@@ -109,7 +109,7 @@ export async function GET(req: NextRequest) {
           originalDateMs: d.getTime(),
           q1Time, q2Time, q3Time,
           q1: { label: "Wave 1", scheduled: `${nextShortFmt} 10 Am`, status: "Pending", failedLeads: [] },
-          q2: { label: "Wave 2", scheduled: `${nextShortFmt} 2 Pm`, status: "Pending", failedLeads: [] },
+          q2: { label: "Wave 2", scheduled: `${nextShortFmt} 3 Pm`, status: "Pending", failedLeads: [] },
           q3: { label: "Wave 3", scheduled: `${nextShortFmt} 8 Pm`, status: "Pending", failedLeads: [] },
         };
       } else {
