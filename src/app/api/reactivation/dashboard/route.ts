@@ -103,8 +103,8 @@ export async function GET(req: NextRequest) {
         buckets[key] = {
           id: key,
           csvName: `${shortFmt} Failed Leads`,
-          didNumber: call.phoneNumber?.number || "Unknown",
-          channels: call.phoneNumber?.channels || 1,
+          didNumber: (call as any).historicalDidString || call.phoneNumber?.number || "Unknown",
+          channels: (call as any).historicalChannels || call.phoneNumber?.channels || 1,
           date: shortFmt, // E.g. "12 Sep"
           originalDateMs: d.getTime(),
           q1Time, q2Time, q3Time,
@@ -113,7 +113,8 @@ export async function GET(req: NextRequest) {
           q3: { label: "Wave 3", scheduled: `${nextShortFmt} 8 Pm`, status: "Pending", failedLeads: [] },
         };
       } else {
-        if (call.phoneNumber?.number && buckets[key].didNumber !== call.phoneNumber.number) {
+        const currentDid = (call as any).historicalDidString || call.phoneNumber?.number;
+        if (currentDid && buckets[key].didNumber !== currentDid) {
            buckets[key].didNumber = "Multiple Numbers";
         }
       }
@@ -138,8 +139,8 @@ export async function GET(req: NextRequest) {
            id: leadId,
            name: leadName,
            phone: call.lead.phone,
-           didNumber: call.phoneNumber?.number || "Unknown",
-           channels: call.phoneNumber?.channels || 1,
+           didNumber: (call as any).historicalDidString || call.phoneNumber?.number || "Unknown",
+           channels: (call as any).historicalChannels || call.phoneNumber?.channels || 1,
            isCompleted: false
         });
       }
