@@ -872,7 +872,6 @@ export function CampaignCard({
                           ) : (
                             <span></span>
                           )}
-                          <Badge variant="outline" className="h-5 px-1.5 text-[10px] bg-background">CH: {hist.channels}</Badge>
                         </div>
                         <div className="flex items-center justify-between mt-0.5">
                           <div className="text-xs font-medium text-red-400 flex items-center gap-1">
@@ -955,8 +954,8 @@ export function CampaignCard({
                                           </span>
                                         </div>
                                       </div>
-                                      <div className="flex flex-col text-muted-foreground ml-5 mt-1 text-[11px] opacity-80">
-                                        <span>{lead.name || "Unknown"} - {lead.didNumber !== "Unknown" ? lead.didNumber : "Unknown"} - CH: {lead.channels || activeHist.channels || 1}</span>
+                                      <div className="flex flex-col items-center justify-center w-full text-muted-foreground mt-2.5 text-xs font-medium bg-muted/40 py-2 px-3 rounded-md border border-border/40 text-center">
+                                        <span className="text-foreground/90">{lead.name || "Unknown"} - {lead.didNumber !== "Unknown" ? lead.didNumber : "Unknown"} - CH: {lead.channels || activeHist.channels || 1}</span>
                                       </div>
                                     </div>
                                   ))}
