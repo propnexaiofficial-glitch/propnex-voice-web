@@ -26,7 +26,13 @@ export function VoiceAudioPlayer({
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress]   = useState(0);
-  const [duration, setDuration]   = useState<number | null>(null);
+  const [duration, setDuration]   = useState<number | null>(() => {
+    if (typeof window !== "undefined" && src) {
+      const cached = localStorage.getItem(`audio-duration-${src}`);
+      if (cached) return Number(cached);
+    }
+    return null;
+  });
   const [current, setCurrent]     = useState(0);
   const [error, setError]         = useState(false);
   const audioRef   = useRef<HTMLAudioElement | null>(null);
@@ -43,7 +49,16 @@ export function VoiceAudioPlayer({
     setIsPlaying(false);
     setProgress(0);
     setCurrent(0);
-    setDuration(null);
+    
+    // Only reset duration if not cached
+    if (typeof window !== "undefined" && src) {
+       const cached = localStorage.getItem(`audio-duration-${src}`);
+       if (cached) setDuration(Number(cached));
+       else setDuration(null);
+    } else {
+       setDuration(null);
+    }
+    
     setError(false);
 
     const onTime = () => {
@@ -56,6 +71,9 @@ export function VoiceAudioPlayer({
     const onMeta = () => {
       if (el.duration && isFinite(el.duration) && el.duration > 0) {
         setDuration(el.duration);
+        if (src) {
+          localStorage.setItem(`audio-duration-${src}`, el.duration.toString());
+        }
       }
     };
 

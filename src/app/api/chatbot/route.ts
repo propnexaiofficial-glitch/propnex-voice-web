@@ -43,7 +43,7 @@ export async function POST(req: Request) {
 6. For phone numbers always show: Number: +XXXXXXXXXXX, Direction: Inbound/Outbound, Channels: N.
 7. For durations always use "X min Y sec" format.
 8. If asked about missing inbound/outbound numbers for a subcompany, explicitly tell the user to click the "Request" button in the dashboard to request a new number.
-9. If asked about Lead Reactivation or retries, explain that the system automatically runs 3 times (in 3 waves/stages: Q1, Q2, and Q3) to follow up with dormant or failed leads.
+9. If asked about Lead Reactivation or retries, explain that the system automatically distributes failed leads across 3 waves (Q1, Q2, Q3) scheduled at 10 AM, 3 PM, and 8 PM on the day after the failure, to automatically call them again.
 10. If asked about the Force Stop button on a campaign, explain that it immediately halts the campaign execution, stopping any further outbound calls from being made.
 11. If asked how to search in Inbound, Outbound, or Subcompanies pages, explain that the user can use the search bar at the top of the respective page to filter by name, phone number, or status.`;
 
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
       if (cached) {
         realTimeContext = `${systemRules}\n\n${cached}`;
       } else {
-        const [company, subcompanies, billingQuotes, creditUsages, agents, campaigns, campaignExecutions] = await Promise.all([
+        const [company, subcompanies, billingQuotes, creditUsages, largestDeductions, agents, campaigns, campaignExecutions] = await Promise.all([
           prisma.company.findUnique({
             where: { id: companyId },
             include: {
@@ -78,7 +78,12 @@ export async function POST(req: Request) {
           prisma.creditUsage.findMany({
             where: { companyId },
             orderBy: { createdAt: 'desc' },
-            take: 10
+            take: 20
+          }) as any,
+          prisma.creditUsage.findMany({
+            where: { companyId },
+            orderBy: { amount: 'asc' }, // The largest deductions are negative, so ascending order grabs the biggest ones
+            take: 5
           }) as any,
           prisma.aiAgent.findMany({
             where: { companyId }
@@ -228,9 +233,10 @@ Unassigned Agents (3): Marcus, Emma, David`;
             ? billingQuotes.map((q: any) => `- Date: ${q.purchasedAt ? new Date(q.purchasedAt).toLocaleDateString() : 'Unknown'}, Total: $${q.grandTotal}, Call Cost Portion: $${q.callCost}`).join("\n")
             : "No recent billing purchases found.";
 
-          const recentDeductions = creditUsages && creditUsages.length > 0
-            ? creditUsages.map((u: any) => `- Date: ${new Date(u.createdAt).toLocaleDateString()}, Amount: ${u.amount}, Reason: ${u.reason}, Description: ${u.description || 'None'}`).join("\n")
-            : "No recent credit usage deductions found.";
+          const allDeductions = [...(creditUsages || []), ...(largestDeductions || [])].filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i);
+          const recentDeductions = allDeductions.length > 0
+            ? allDeductions.map((u: any) => `- Date: ${new Date(u.createdAt).toLocaleDateString()}, Amount: ${u.amount}, Reason: ${u.reason}, Description: ${u.description || 'None'}`).join("\n")
+            : "No credit usage deductions found.";
 
           const freshContext = `LIVE DATA — ${company.name}:
 
