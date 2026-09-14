@@ -87,15 +87,12 @@ export async function GET(req: NextRequest) {
     for (const call of failedCalls) {
       if (!call.lead) continue;
       
-      const d = new Date(call.startedAt);
-      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      const key = dateStr;
+      const d = call.startedAt;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}-${call.phoneNumber?.number || "Unknown"}`;
       
       if (!buckets[key]) {
         const nextDay = new Date(d);
-        nextDay.setDate(d.getDate() + 1);
-        nextDay.setHours(0, 0, 0, 0);
-
+        nextDay.setDate(nextDay.getDate() + 1);
         const shortFmt = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(d); // e.g. "12 Sep"
         const nextShortFmt = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(nextDay); // e.g. "13 Sep"
         
