@@ -344,7 +344,12 @@ export function CampaignCard({
                 ? `${pendingSchedules.length} Scheduled` 
                 : campaign.status !== "idle" && (pendingSchedules[0]?.csvName || campaign.uploadedFileName) && !campaign.isReactivation && campaign.id !== "camp-001" && !campaign.name?.includes("Lead Reactivation")
                   ? `${status.label} • ${campaign.uploadedFileName || pendingSchedules[0]?.csvName}`
-                  : (isReactivationCard ? (historicalCampaigns.length > 0 ? `${historicalCampaigns[0].date} - ${historicalCampaigns[0].q1?.failedLeads?.length || 0} Leads` : `${new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(new Date())} - 0 Leads`) : status.label)}
+                  : (isReactivationCard ? (() => {
+                      const todayStr = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(new Date());
+                      const todayBucket = historicalCampaigns.find(h => h.date === todayStr || h.date === todayStr.replace("Sept", "Sep"));
+                      const todayLeadsCount = todayBucket?.q1?.failedLeads?.length || 0;
+                      return `${todayStr.replace("Sep", "Sept")} - ${todayLeadsCount} Leads`;
+                    })() : status.label)}
             </Badge>
             {isReactivationCard && campaign.qStage && (
                <div className="flex gap-2 ml-2">
