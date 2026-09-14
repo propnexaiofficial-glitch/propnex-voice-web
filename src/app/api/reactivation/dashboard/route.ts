@@ -33,12 +33,21 @@ export async function GET(req: NextRequest) {
       where: {
         companyId,
         direction: "OUTBOUND",
-        OR: [
-          { status: { in: ["FAILED", "MISSED", "BUSY", "NO_ANSWER", "CANCELLED"] } },
-          { durationSeconds: 0 },
+        AND: [
+          {
+            OR: [
+              { status: { in: ["FAILED", "MISSED", "BUSY", "NO_ANSWER", "CANCELLED"] } },
+              { durationSeconds: 0 },
+            ]
+          },
+          {
+            OR: [
+              { correlationId: null },
+              { correlationId: { not: { startsWith: "reactivation-" } } }
+            ]
+          }
         ],
         leadId: { not: null },
-        correlationId: null, // Reactivation calls now have correlationId set to reactivation-xxx-qX
       },
       include: {
         lead: true,
