@@ -845,8 +845,43 @@ export function CampaignCard({
                             : "bg-background border-border hover:border-primary/30 hover:bg-muted/50"
                         )}
                       >
-                        <div className="flex flex-col gap-1 items-start">
-                          <div className="font-semibold truncate text-foreground w-full" title={hist.csvName}>{hist.csvName}</div>
+                        <div className="flex flex-col gap-1 items-start w-full">
+                          <div className="flex items-center gap-2 w-full justify-between">
+                            <div className="font-semibold truncate text-foreground" title={hist.csvName}>{hist.csvName}</div>
+                            {(() => {
+                              const didStats = hist.q1?.failedLeads?.reduce((acc: any, lead: any) => {
+                                const did = lead.didNumber && lead.didNumber !== "Unknown" ? lead.didNumber : "Unknown";
+                                if (!acc[did]) acc[did] = { count: 0, channels: lead.channels || 1 };
+                                acc[did].count += 1;
+                                return acc;
+                              }, {}) || {};
+                              const didKeys = Object.keys(didStats).filter(d => d !== "Unknown");
+                              
+                              if (didKeys.length > 0) {
+                                return (
+                                  <TooltipProvider>
+                                    <Tooltip delayDuration={100}>
+                                      <TooltipTrigger asChild>
+                                        <div className="cursor-help p-1 hover:bg-muted rounded-md transition-colors shrink-0">
+                                          <PhoneOutgoing className="size-3.5 text-muted-foreground" />
+                                        </div>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="right" className="text-xs space-y-2 p-3 bg-card border-border/50">
+                                        <div className="font-semibold border-b border-border/50 pb-1.5 mb-1.5 text-foreground">DID Usage Breakdown</div>
+                                        {didKeys.map((did) => (
+                                          <div key={did} className="flex flex-col text-muted-foreground gap-0.5">
+                                            <span className="font-medium">DID Number - {did} <span className="opacity-50 mx-1">|</span> Ch - {didStats[did].channels}</span>
+                                            <span className="text-red-400">Failed Calls - {didStats[did].count}</span>
+                                          </div>
+                                        ))}
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                );
+                              }
+                              return null;
+                            })()}
+                          </div>
                           {(() => {
                             const statusText = hist.q3?.status === "Completed" 
                               ? "Completed" 
@@ -859,7 +894,7 @@ export function CampaignCard({
                             return (
                               <Badge 
                                 variant={statusText === "Completed" ? "outline" : statusText.includes("Running") ? "default" : "secondary"} 
-                                className={cn("text-[10px] px-1.5 py-0", statusText === "Completed" && "bg-emerald-500/15 text-emerald-500 border-emerald-500/20", statusText.includes("Running") && "animate-pulse bg-primary text-primary-foreground")}
+                                className={cn("text-xs px-2.5 py-1 mt-0.5 font-medium", statusText === "Completed" && "bg-emerald-500/10 text-emerald-500 border-emerald-500/30", statusText.includes("Running") && "animate-pulse bg-primary text-primary-foreground")}
                               >
                                 {statusText}
                               </Badge>
