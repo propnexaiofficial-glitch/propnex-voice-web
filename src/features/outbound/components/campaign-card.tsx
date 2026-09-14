@@ -845,20 +845,8 @@ export function CampaignCard({
                             : "bg-background border-border hover:border-primary/30 hover:bg-muted/50"
                         )}
                       >
-                        <div className="font-semibold truncate text-foreground" title={hist.csvName}>{hist.csvName}</div>
-                        <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
-                          {hist.didNumber && hist.didNumber !== "Unknown" ? (
-                            <span className="flex items-center gap-1.5"><PhoneOutgoing className="size-3" /> {hist.didNumber}</span>
-                          ) : (
-                            <span></span>
-                          )}
-                          <Badge variant="outline" className="h-5 px-1.5 text-[10px] bg-background">CH: {hist.channels}</Badge>
-                        </div>
-                        <div className="flex items-center justify-between mt-0.5">
-                          <div className="text-xs font-medium text-red-400 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
-                            {totalFailed} Failed Leads Total
-                          </div>
+                        <div className="flex flex-col gap-1 items-start">
+                          <div className="font-semibold truncate text-foreground w-full" title={hist.csvName}>{hist.csvName}</div>
                           {(() => {
                             const statusText = hist.q3?.status === "Completed" 
                               ? "Completed" 
@@ -877,6 +865,20 @@ export function CampaignCard({
                               </Badge>
                             );
                           })()}
+                        </div>
+                        <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
+                          {hist.didNumber && hist.didNumber !== "Unknown" ? (
+                            <span className="flex items-center gap-1.5"><PhoneOutgoing className="size-3" /> {hist.didNumber}</span>
+                          ) : (
+                            <span></span>
+                          )}
+                          <Badge variant="outline" className="h-5 px-1.5 text-[10px] bg-background">CH: {hist.channels}</Badge>
+                        </div>
+                        <div className="flex items-center justify-between mt-0.5">
+                          <div className="text-xs font-medium text-red-400 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                            {totalFailed} Failed Leads Total
+                          </div>
                         </div>
                       </div>
                     );
@@ -948,20 +950,13 @@ export function CampaignCard({
                                           ) : (
                                             <Clock className="size-3 text-muted-foreground shrink-0 opacity-50" />
                                           )}
-                                          <span className={cn("truncate max-w-[140px] font-semibold text-foreground", lead.isCompleted && "text-emerald-600 dark:text-emerald-400")}>{lead.name || "Unknown"}</span>
+                                          <span className={cn("truncate font-semibold text-foreground", lead.isCompleted && "text-emerald-600 dark:text-emerald-400")}>
+                                            Lead {i + 1} - {lead.phone}
+                                          </span>
                                         </div>
                                       </div>
-                                      <div className="flex items-center justify-between text-muted-foreground ml-5">
-                                        <span className="font-mono flex items-center gap-1">
-                                          <PhoneOutgoing className="size-3 opacity-50"/> {lead.phone}
-                                        </span>
-                                        {lead.didNumber && lead.didNumber !== "Unknown" && (
-                                          <span className="text-[10px] flex items-center gap-1.5 opacity-70">
-                                            <span>DID: {lead.didNumber}</span>
-                                            <span className="opacity-50">•</span>
-                                            <span>CH: {lead.channels || activeHist.channels || 1}</span>
-                                          </span>
-                                        )}
+                                      <div className="flex flex-col text-muted-foreground ml-5 mt-1 text-[11px] opacity-80">
+                                        <span>{lead.name || "Unknown"} - {lead.didNumber !== "Unknown" ? lead.didNumber : "Unknown"} - CH: {lead.channels || activeHist.channels || 1}</span>
                                       </div>
                                     </div>
                                   ))}
