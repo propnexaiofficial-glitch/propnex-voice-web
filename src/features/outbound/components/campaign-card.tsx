@@ -846,9 +846,21 @@ export function CampaignCard({
                           )}
                           <Badge variant="outline" className="h-5 px-1.5 text-[10px] bg-background">CH: {hist.channels}</Badge>
                         </div>
-                        <div className="text-xs font-medium text-red-400 flex items-center gap-1 mt-0.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
-                          {totalFailed} Failed Leads Total
+                        <div className="flex items-center justify-between mt-0.5">
+                          <div className="text-xs font-medium text-red-400 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                            {totalFailed} Failed Leads Total
+                          </div>
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                            {hist.q3?.status === "Completed" 
+                              ? "Completed" 
+                              : hist.q1?.status === "Running" ? "Running Q1" 
+                              : hist.q2?.status === "Running" ? "Running Q2" 
+                              : hist.q3?.status === "Running" ? "Running Q3" 
+                              : hist.q1?.status === "Pending" || hist.q1?.status === "Scheduled" ? `${hist.q1.status} Q1` 
+                              : hist.q2?.status === "Pending" || hist.q2?.status === "Scheduled" ? `${hist.q2.status} Q2` 
+                              : `${hist.q3?.status || "Pending"} Q3`}
+                          </Badge>
                         </div>
                       </div>
                     );
@@ -879,7 +891,7 @@ export function CampaignCard({
                             <div className="p-4 border-b border-border/50 bg-muted/20 flex flex-col gap-3 shrink-0">
                               <div className="flex items-center justify-between">
                                 <div className="flex flex-col">
-                                  <span className="font-bold text-foreground">{wave.label}</span>
+                                  <span className="font-bold text-foreground">{wave.label} ({wave.stage})</span>
                                   <span className="text-xs text-muted-foreground">{wave.data.scheduled}</span>
                                 </div>
                                 <Badge 
@@ -891,7 +903,9 @@ export function CampaignCard({
                                     wave.data.status === "Pending" && "text-muted-foreground border-border"
                                   )}
                                 >
-                                  {wave.data.status}
+                                  {wave.data.status === "Running" 
+                                    ? `Running ${wave.data.failedLeads.filter((l: any) => l.isCompleted).length} / ${wave.data.failedLeads.length}` 
+                                    : wave.data.status}
                                 </Badge>
                               </div>
                               <div className="flex items-center justify-between text-xs font-medium">
