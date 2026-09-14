@@ -88,7 +88,7 @@ export async function GET(req: NextRequest) {
       if (!call.lead) continue;
       
       const d = call.startedAt;
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}-${call.phoneNumber?.number || "Unknown"}`;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       
       if (!buckets[key]) {
         const nextDay = new Date(d);
