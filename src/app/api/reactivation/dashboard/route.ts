@@ -142,6 +142,7 @@ export async function GET(req: NextRequest) {
            name: leadName,
            phone: call.lead.phone,
            didNumber: call.phoneNumber?.number || "Unknown",
+           channels: call.phoneNumber?.channels || 1,
            isCompleted: false
         });
       }
