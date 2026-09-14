@@ -142,8 +142,16 @@ export async function POST(req: Request) {
             const failedInbound = inboundCalls.filter((c: any) => c.status === "FAILED");
             const failedOutbound = outboundCalls.filter((c: any) => c.status === "FAILED");
           
-            const inboundCreditSum = inboundCalls.reduce((acc: number, c: any) => acc + (c.creditsUsed || 0), 0);
+            const mainCreditsUsed = company.creditBalance?.creditsUsed || 0;
+            const mainCreditsRemaining = company.creditBalance?.creditsRemaining || 0;
+            const subCreditsUsed = subcompanies.reduce((sum: number, s: any) => sum + (s.creditBalance?.creditsUsed || 0), 0);
+            const subCreditsRemaining = subcompanies.reduce((sum: number, s: any) => sum + (s.creditBalance?.creditsRemaining || 0), 0);
+            
+            const totalCreditsUsed = mainCreditsUsed + subCreditsUsed;
+            const totalCreditsRemaining = mainCreditsRemaining + subCreditsRemaining;
+            
             const outboundCreditSum = outboundCalls.reduce((acc: number, c: any) => acc + (c.creditsUsed || 0), 0);
+            const inboundCreditSum = Math.max(0, totalCreditsUsed - outboundCreditSum);
           
           const sortedByCost = [...callLogs].sort((a: any, b: any) => (b.creditsUsed || 0) - (a.creditsUsed || 0));
           const top10Calls = sortedByCost.slice(0, 10);
@@ -261,8 +269,12 @@ Name: ${user?.firstName || ""} ${user?.lastName || ""}
 Signup Phone: ${user?.phone || "Not provided"}
 
 CREDITS & BILLING:
-Credits Remaining: ${company.creditBalance?.creditsRemaining?.toFixed(2) ?? 0}
-Credits Used Total: ${company.creditBalance?.creditsUsed?.toFixed(2) ?? 0}
+Total Credits Remaining (Main + All Subcompanies): ${totalCreditsRemaining.toFixed(2)}
+Total Credits Used (Main + All Subcompanies): ${totalCreditsUsed.toFixed(2)}
+Main Account Credits Remaining: ${mainCreditsRemaining.toFixed(2)}
+Main Account Credits Used: ${mainCreditsUsed.toFixed(2)}
+Subcompanies Credits Remaining Total: ${subCreditsRemaining.toFixed(2)}
+Subcompanies Credits Used Total: ${subCreditsUsed.toFixed(2)}
 Credits Used (Inbound): ${inboundCreditSum.toFixed(2)}
 Credits Used (Outbound): ${outboundCreditSum.toFixed(2)}
 Total Channels: ${company.setupConfig?.totalChannels ?? 0}
