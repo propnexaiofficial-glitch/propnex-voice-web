@@ -196,7 +196,7 @@ export function CampaignCard({
   const isReactivationCard = campaign.id === "camp-001" || campaign.isReactivation || campaign.name?.includes("Lead Reactivation");
 
   useEffect(() => {
-    if (isReactivationCard && leadsModalOpen) {
+    if (isReactivationCard) {
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
       fetch("/api/reactivation/dashboard", {
         headers: { Authorization: `Bearer ${token}` }
@@ -205,8 +205,9 @@ export function CampaignCard({
         .then(res => {
           if (res.data) {
             setHistoricalCampaigns(res.data);
-            if (res.data.length > 0 && !selectedHistId) {
-              setSelectedHistId(res.data[0].id);
+            if (res.data.length > 0 && (!selectedHistId || leadsModalOpen)) {
+              // Select the first one automatically
+              if (!selectedHistId) setSelectedHistId(res.data[0].id);
             }
           }
         })
@@ -214,13 +215,7 @@ export function CampaignCard({
     }
   }, [isReactivationCard, leadsModalOpen]);
 
-  useEffect(() => {
-    if (leadsModalOpen) {
-    if (leadsModalOpen && historicalCampaigns.length > 0 && !selectedHistId) {
-      setSelectedHistId(historicalCampaigns[0]?.id || null);
-    }
-    }
-  }, [leadsModalOpen]);
+  const totalReactivationLeads = historicalCampaigns.reduce((acc, curr) => acc + (curr.q1?.failedLeads?.length || 0), 0);
 
   const pendingLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => !l.called);
   const successLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => l.called && !l.isFailed);
@@ -354,7 +349,7 @@ export function CampaignCard({
             {isReactivationCard && campaign.qStage && (
                <div className="flex gap-2 ml-2">
                  <Badge 
-                    variant={campaign.qStatus === "Completed" || (campaign.qStage === "Q3" && campaign.qStatus === "Completed") ? "outline" : "default"} 
+                    variant={campaign.qStatus === "Completed" ? "outline" : "default"} 
                     className={cn("text-xs font-semibold px-2 py-0.5", campaign.qStatus === "Running" && "animate-pulse")}
                  >
                    {campaign.qStage === "Q3" && campaign.qStatus === "Completed" 
@@ -475,7 +470,7 @@ export function CampaignCard({
                 {isReactivationCard && campaign.qStage
                   ? `Auto-reactivation ${campaign.qStage} • ${campaign.leads?.length || 0} lead${(campaign.leads?.length || 0) !== 1 ? 's' : ''} scheduled for retry`
                   : isReactivationCard
-                    ? "Automatically re-engage failed leads across 3 follow-up waves."
+                    ? `Automatically re-engage failed leads across 3 follow-up waves. (${totalReactivationLeads} total failed leads today)`
                     : !hasOutboundNumber 
                       ? "Please request an outbound number from the admin to launch campaigns." 
                       : "Upload a CSV contact list to prepare your next outbound campaign."}
@@ -786,12 +781,9 @@ export function CampaignCard({
                 onClick={() => setLeadsModalOpen(true)}
               >
                 <ListChecks className="size-4" />
-                {isReactivationCard ? (() => {
-                  const activeCount = historicalCampaigns
-                    .filter((c: any) => c.q3?.status !== "Completed")
-                    .reduce((acc: number, curr: any) => acc + (curr.q1?.failedLeads?.length || 0), 0);
-                  return `Lead Info${activeCount > 0 ? ` (${activeCount})` : ""}`;
-                })() : (
+                {isReactivationCard ? (
+                  `Lead Info${totalReactivationLeads > 0 ? ` (${totalReactivationLeads})` : ""}`
+                ) : (
                   `Lead Info${failedCallsCount > 0 ? ` (${failedCallsCount})` : ""}`
                 )}
               </Button>
@@ -900,8 +892,12 @@ export function CampaignCard({
                                   )}
                                 </div>
                                 <Badge 
-                                  variant={isCompleted ? "outline" : statusText.includes("Running") ? "default" : "secondary"} 
-                                  className={cn("text-xs px-2.5 py-1 mt-0.5 font-medium", isCompleted && "bg-emerald-500/10 text-emerald-500 border-emerald-500/30", statusText.includes("Running") && "animate-pulse bg-primary text-primary-foreground")}
+                                  variant="outline" 
+                                  className={cn("text-xs px-2.5 py-1 mt-0.5 font-medium border", 
+                                    isCompleted && "bg-emerald-500/15 text-emerald-500 border-emerald-500/30", 
+                                    statusText.includes("Running") && "bg-blue-500/15 text-blue-500 border-blue-500/30 animate-pulse",
+                                    statusText.includes("Pending") && "bg-amber-500/15 text-amber-500 border-amber-500/30"
+                                  )}
                                 >
                                   {statusText}
                                 </Badge>
@@ -948,12 +944,12 @@ export function CampaignCard({
                                   <span className="text-xs text-muted-foreground">{wave.data.scheduled}</span>
                                 </div>
                                 <Badge 
-                                  variant={wave.data.status === "Running" ? "default" : wave.data.status === "Completed" ? "secondary" : "outline"}
+                                  variant="outline"
                                   className={cn(
-                                    "px-2.5 py-1 text-xs",
-                                    wave.data.status === "Running" && "animate-pulse bg-primary text-primary-foreground",
-                                    wave.data.status === "Completed" && "bg-emerald-500/15 text-emerald-500 border-emerald-500/20",
-                                    wave.data.status === "Pending" && "text-muted-foreground border-border"
+                                    "px-2.5 py-1 text-xs font-medium border",
+                                    wave.data.status === "Running" && "bg-blue-500/15 text-blue-500 border-blue-500/30 animate-pulse",
+                                    wave.data.status === "Completed" && "bg-emerald-500/15 text-emerald-500 border-emerald-500/30",
+                                    wave.data.status === "Pending" && "bg-amber-500/15 text-amber-500 border-amber-500/30"
                                   )}
                                 >
                                   {wave.data.status === "Running" 

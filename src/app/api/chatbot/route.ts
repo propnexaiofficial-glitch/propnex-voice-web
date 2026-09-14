@@ -57,7 +57,7 @@ export async function POST(req: Request) {
       if (cached) {
         realTimeContext = `${systemRules}\n\n${cached}`;
       } else {
-        const [company, subcompanies, billingQuotes, creditUsages, largestDeductions, oldestBillingQuote, agents, campaigns, campaignExecutions] = await Promise.all([
+        const [company, subcompanies, billingQuotes, creditUsages, largestDeductions, largestPositiveDeductions, oldestBillingQuote, agents, campaigns, campaignExecutions] = await Promise.all([
           prisma.company.findUnique({
             where: { id: companyId },
             include: {
@@ -79,12 +79,17 @@ export async function POST(req: Request) {
           prisma.creditUsage.findMany({
             where: { companyId },
             orderBy: { createdAt: 'desc' },
-            take: 20
+            take: 500
           }) as any,
           prisma.creditUsage.findMany({
             where: { companyId },
-            orderBy: { amount: 'asc' }, // The largest deductions are negative, so ascending order grabs the biggest ones
-            take: 5
+            orderBy: { amount: 'asc' }, // The largest deductions (negative)
+            take: 50
+          }) as any,
+          prisma.creditUsage.findMany({
+            where: { companyId },
+            orderBy: { amount: 'desc' }, // The largest deductions (positive)
+            take: 50
           }) as any,
           prisma.billingQuote.findMany({
             where: { companyId, status: "PURCHASED" },
@@ -239,7 +244,7 @@ Unassigned Agents (3): Marcus, Emma, David`;
             ? billingQuotes.map((q: any) => `- Date: ${q.purchasedAt ? new Date(q.purchasedAt).toLocaleDateString() : 'Unknown'}, Total: $${q.grandTotal}, Call Cost Portion: $${q.callCost}`).join("\n")
             : "No recent billing purchases found.";
 
-          const allDeductions = [...(creditUsages || []), ...(largestDeductions || [])].filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i);
+          const allDeductions = [...(creditUsages || []), ...(largestDeductions || []), ...(largestPositiveDeductions || [])].filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i);
           const recentDeductions = allDeductions.length > 0
             ? allDeductions.map((u: any) => `- Date: ${new Date(u.createdAt).toLocaleDateString()}, Amount: ${u.amount}, Reason: ${u.reason}, Description: ${u.description || 'None'}`).join("\n")
             : "No credit usage deductions found.";

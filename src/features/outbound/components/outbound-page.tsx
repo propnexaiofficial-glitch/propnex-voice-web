@@ -96,16 +96,7 @@ export function OutboundPageContent() {
   const [persistentFailedLeadsInfo, setPersistentFailedLeadsInfo] = useState<any>({});
 
   useEffect(() => {
-    // FORCE WIPE TO FIX CRASH FOR farhanthehero13
-    try {
-      localStorage.removeItem("pnx_persistent_failed_leads");
-      localStorage.removeItem("pnx_persistent_failed_leads_info");
-      localStorage.removeItem("pnx_reactivation_schedules");
-      localStorage.removeItem("pnx_reactivation_schedule");
-      localStorage.removeItem("outboundCache");
-      localStorage.removeItem("cleared_campaigns");
-    } catch (e) {}
-    
+    // Normal execution
     // Continue with normal execution
     const saved = localStorage.getItem("pnx_persistent_failed_leads");
     if (saved) {
