@@ -786,9 +786,12 @@ export function CampaignCard({
                 onClick={() => setLeadsModalOpen(true)}
               >
                 <ListChecks className="size-4" />
-                {isReactivationCard ? (
-                  `Lead Info${historicalCampaigns.length > 0 ? ` (${historicalCampaigns.reduce((acc: number, curr: any) => acc + (curr.q1?.failedLeads?.length || 0), 0)})` : ""}`
-                ) : (
+                {isReactivationCard ? (() => {
+                  const activeCount = historicalCampaigns
+                    .filter((c: any) => c.q3?.status !== "Completed")
+                    .reduce((acc: number, curr: any) => acc + (curr.q1?.failedLeads?.length || 0), 0);
+                  return `Lead Info${activeCount > 0 ? ` (${activeCount})` : ""}`;
+                })() : (
                   `Lead Info${failedCallsCount > 0 ? ` (${failedCallsCount})` : ""}`
                 )}
               </Button>
@@ -856,16 +859,24 @@ export function CampaignCard({
                             <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
                             {totalFailed} Failed Leads Total
                           </div>
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                            {hist.q3?.status === "Completed" 
+                          {(() => {
+                            const statusText = hist.q3?.status === "Completed" 
                               ? "Completed" 
                               : hist.q1?.status === "Running" ? "Running Q1" 
                               : hist.q2?.status === "Running" ? "Running Q2" 
                               : hist.q3?.status === "Running" ? "Running Q3" 
                               : hist.q1?.status === "Pending" || hist.q1?.status === "Scheduled" ? `${hist.q1.status} Q1` 
                               : hist.q2?.status === "Pending" || hist.q2?.status === "Scheduled" ? `${hist.q2.status} Q2` 
-                              : `${hist.q3?.status || "Pending"} Q3`}
-                          </Badge>
+                              : `${hist.q3?.status || "Pending"} Q3`;
+                            return (
+                              <Badge 
+                                variant={statusText === "Completed" ? "outline" : statusText.includes("Running") ? "default" : "secondary"} 
+                                className={cn("text-[10px] px-1.5 py-0", statusText === "Completed" && "bg-emerald-500/15 text-emerald-500 border-emerald-500/20", statusText.includes("Running") && "animate-pulse bg-primary text-primary-foreground")}
+                              >
+                                {statusText}
+                              </Badge>
+                            );
+                          })()}
                         </div>
                       </div>
                     );
@@ -945,8 +956,10 @@ export function CampaignCard({
                                           <PhoneOutgoing className="size-3 opacity-50"/> {lead.phone}
                                         </span>
                                         {lead.didNumber && lead.didNumber !== "Unknown" && (
-                                          <span className="text-[10px] flex items-center gap-1 opacity-70">
-                                            {lead.didNumber} (Voice)
+                                          <span className="text-[10px] flex items-center gap-1.5 opacity-70">
+                                            <span>DID: {lead.didNumber}</span>
+                                            <span className="opacity-50">•</span>
+                                            <span>CH: {lead.channels || activeHist.channels || 1}</span>
                                           </span>
                                         )}
                                       </div>
