@@ -84,7 +84,22 @@ export async function GET(req: NextRequest) {
     const buckets: Record<string, any> = {};
 
     for (const call of failedCalls) {
-      const leadPhone = call.lead?.phone || (call as any).customerNumber;
+      let fallbackCustomerNumber = "";
+      if (call.providerWebhook && typeof call.providerWebhook === 'object') {
+         const wh: any = call.providerWebhook;
+         fallbackCustomerNumber =
+           wh.DestinationNumber || wh.destination_number || wh.destinationNumber ||
+           wh.caller || wh.to_number || wh.to ||
+           wh.customer_number || wh.customerNumber || "";
+         
+         const callIdRaw = wh.callID || wh.callId || wh.call_id || wh.uuid;
+         if (!fallbackCustomerNumber && callIdRaw && typeof callIdRaw === 'string') {
+           const parts = callIdRaw.split('-');
+           if (parts.length >= 3) fallbackCustomerNumber = parts[2];
+         }
+      }
+
+      const leadPhone = call.lead?.phone || fallbackCustomerNumber;
       if (!leadPhone) continue; // Skip if no phone number available
       
       const d = call.startedAt;
