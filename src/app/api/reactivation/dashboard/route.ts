@@ -42,6 +42,7 @@ export async function GET(req: NextRequest) {
           },
           {
             OR: [
+              { correlationId: { isSet: false } },
               { correlationId: null },
               { correlationId: { not: { startsWith: "reactivation-" } } }
             ]
