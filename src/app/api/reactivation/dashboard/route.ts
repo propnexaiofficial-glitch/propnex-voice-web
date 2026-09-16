@@ -98,6 +98,14 @@ export async function GET(req: NextRequest) {
            if (parts.length >= 3) fallbackCustomerNumber = parts[2];
          }
       }
+      if (!fallbackCustomerNumber && call.providerRequest && typeof call.providerRequest === 'object') {
+         const req: any = call.providerRequest;
+         fallbackCustomerNumber = req.to || req.to_number || req.DestinationNumber || req.customerNumber || "";
+      }
+      if (!fallbackCustomerNumber && call.providerResponse && typeof call.providerResponse === 'object') {
+         const res: any = call.providerResponse;
+         fallbackCustomerNumber = res.to || res.to_number || res.DestinationNumber || res.customerNumber || "";
+      }
 
       const leadPhone = call.lead?.phone || fallbackCustomerNumber;
       if (!leadPhone) continue; // Skip if no phone number available
