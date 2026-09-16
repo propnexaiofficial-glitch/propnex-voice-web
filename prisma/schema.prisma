@@ -421,6 +421,8 @@ model Company {
   parentCompanyId     String?          @db.ObjectId
   parentCompany       Company?         @relation("CompanyToSubCompany", fields: [parentCompanyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   childCompanies      Company[]        @relation("CompanyToSubCompany")
+  infraNotifications    InfraCostNotification[] @relation(name: "InfraNotificationCompany")
+  infraSubNotifications InfraCostNotification[] @relation(name: "InfraNotificationSubCompany")
   primaryUseCase      PrimaryUseCase?
   callVolume          CallVolumeRange?
   settings            Json             @default("{}")
@@ -1866,4 +1868,27 @@ model JobApplication {
   appliedAt      DateTime @default(now())
 
   job            JobPosting @relation(fields: [jobId], references: [id], onDelete: Cascade)
+}
+
+model InfraCostNotification {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  email          String?   
+  companyId      String?   @db.ObjectId 
+  subCompanyId   String?   @db.ObjectId 
+  companyName    String?
+  subCompanyName String?
+  
+  startDate      DateTime
+  endDate        DateTime
+  recurrenceType String    @default("ONCE")
+  customMonths   Int[]     @default([])
+  message        String?
+  
+  pausedUntil    DateTime?
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  company      Company?  @relation(name: "InfraNotificationCompany", fields: [companyId], references: [id], onDelete: Cascade)
+  subCompany   Company?  @relation(name: "InfraNotificationSubCompany", fields: [subCompanyId], references: [id], onDelete: Cascade)
 }

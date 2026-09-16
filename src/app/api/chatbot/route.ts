@@ -46,7 +46,8 @@ export async function POST(req: Request) {
 9. If asked about Lead Reactivation or retries, explain that the system automatically distributes failed leads across 3 waves (Q1, Q2, Q3) scheduled at 10 AM, 3 PM, and 8 PM on the day after the failure, to automatically call them again.
 10. If asked about the Force Stop button on a campaign, explain that it immediately halts the campaign execution, stopping any further outbound calls from being made.
 11. If asked how to search in Inbound, Outbound, or Subcompanies pages, explain that the user can use the search bar at the top of the respective page to filter by name, phone number, or status.
-12. IMPORTANT: Answer EXACTLY the question asked. Do not pivot to unrelated information. If the user asks for historical data (like first credit amount) and it is not in the LIVE DATA context below, explicitly state that you cannot see records that old. DO NOT make up generic platform rules or answer unrelated questions.`;
+12. IMPORTANT: Answer EXACTLY the question asked. Do not pivot to unrelated information. If the user asks for historical data (like first credit amount) and it is not in the LIVE DATA context below, explicitly state that you cannot see records that old. DO NOT make up generic platform rules or answer unrelated questions.
+13. If asked about the infra cost notification or payment, explain the EXACT message, and tell them exactly when it is scheduled to appear and disappear, based ONLY on the INFRA COST NOTIFICATION block below.`;
 
     // ── Try cache first, then DB ──
     let realTimeContext = `${systemRules}\n\nUser: ${userName}\nCompany: Not connected.`;
@@ -57,7 +58,7 @@ export async function POST(req: Request) {
       if (cached) {
         realTimeContext = `${systemRules}\n\n${cached}`;
       } else {
-        const [company, subcompanies, billingQuotes, creditUsages, largestDeductions, largestPositiveDeductions, oldestBillingQuote, agents, campaigns, campaignExecutions] = await Promise.all([
+        const [company, subcompanies, billingQuotes, creditUsages, largestDeductions, largestPositiveDeductions, oldestBillingQuote, agents, campaigns, infraCost, campaignExecutions] = await Promise.all([
           prisma.company.findUnique({
             where: { id: companyId },
             include: {
@@ -101,6 +102,15 @@ export async function POST(req: Request) {
           }) as any,
           prisma.campaign.findMany({
             where: { companyId }
+          }) as any,
+          prisma.infraCostNotification.findFirst({
+            where: {
+              OR: [
+                { companyId },
+                { subCompanyId: companyId }
+              ]
+            },
+            orderBy: { createdAt: 'desc' }
           }) as any,
           prisma.campaignExecution.findMany({
             where: { companyId }
@@ -261,6 +271,34 @@ Unassigned Agents (3): Marcus, Emma, David`;
             ? `First Ever Credit Addition / Purchase: Date: ${new Date(oldestBillingQuote[0].purchasedAt).toLocaleDateString()}, Total Added: $${oldestBillingQuote[0].grandTotal}`
             : "No first purchase record found.";
 
+          let infraCostInfo = "INFRA COST NOTIFICATION:\nCurrently Showing: No\nNo active infra cost notification scheduled.";
+          if (infraCost) {
+            const now = new Date();
+            let isShowingNow = false;
+            if (!infraCost.pausedUntil || new Date(infraCost.pausedUntil) <= now) {
+                const sDate = new Date(infraCost.startDate);
+                const eDate = new Date(infraCost.endDate);
+                const startDay = sDate.getDate();
+                const endDay = eDate.getDate();
+                const currentDay = now.getDate();
+                let isActiveToday = startDay <= endDay ? (currentDay >= startDay && currentDay <= endDay) : (currentDay >= startDay || currentDay <= endDay);
+                let isMonthMatch = false;
+                const startMonth = sDate.getFullYear() * 12 + sDate.getMonth();
+                const currentMonth = now.getFullYear() * 12 + now.getMonth();
+                let effectiveMonthDiff = currentMonth - startMonth;
+                if (startDay > endDay && currentDay <= endDay) { effectiveMonthDiff -= 1; }
+                if (infraCost.recurrenceType === "ONCE") {
+                    if (now <= eDate) isMonthMatch = true;
+                } else if (infraCost.recurrenceType.startsWith("EVERY_")) {
+                    const parts = infraCost.recurrenceType.split("_");
+                    const interval = parseInt(parts[1]) || 1;
+                    if (effectiveMonthDiff >= 0 && effectiveMonthDiff % interval === 0) isMonthMatch = true;
+                }
+                isShowingNow = isActiveToday && isMonthMatch;
+            }
+            infraCostInfo = `INFRA COST NOTIFICATION:\nCurrently Showing: ${isShowingNow ? 'Yes' : 'No'}\nMessage: ${infraCost.message || 'None'}\nSchedule: Shows from day ${new Date(infraCost.startDate).getDate()} to day ${new Date(infraCost.endDate).getDate()} of the month, Recurrence: ${infraCost.recurrenceType}`;
+          }
+
           const freshContext = `LIVE DATA — ${company.name}:
 
 PERSONAL DETAILS:
@@ -285,6 +323,8 @@ ${recentDeductions}
 
 HISTORICAL BILLING:
 ${firstPurchaseContext}
+
+${infraCostInfo}
 
 BILLING HISTORY:
 ${billingHistory}

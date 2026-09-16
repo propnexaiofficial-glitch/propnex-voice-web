@@ -11,6 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MAIN_NAV_ITEMS } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
 import { SidebarChatbot } from "./sidebar-chatbot";
+import { InfraCostAlert } from "./infra-cost-alert";
 
 type SidebarNavProps = {
   onNavigate?: () => void;
@@ -140,6 +141,7 @@ export function Sidebar({ className, isLockedOut }: SidebarProps) {
         <SidebarNav isLockedOut={isLockedOut} />
       </ScrollArea>
 
+      <InfraCostAlert />
       <SidebarChatbot />
       <SidebarLogout />
     </aside>
