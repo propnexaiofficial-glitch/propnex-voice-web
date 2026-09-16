@@ -42,14 +42,7 @@ const features = [
     img: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1600&q=80',
     accent: 'from-fuchsia-500/40 to-violet-600/20',
   },
-  {
-    id: 'missed-calls',
-    title: 'No Call Ever Forgotten',
-    desc: 'Every missed call is logged and queued for callback automatically.',
-    tag: 'Reliability',
-    img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1600&q=80',
-    accent: 'from-cyan-400/40 to-teal-600/20',
-  },
+
   {
     id: 'voice-cloning',
     title: 'Voice Cloning',

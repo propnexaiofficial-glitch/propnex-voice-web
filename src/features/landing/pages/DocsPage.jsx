@@ -81,16 +81,16 @@ const docs = [
   {
     id: 'lead-reactivation',
     title: 'How Lead Reactivation Works',
-    tag: 'Playbook',
+    tag: 'Strategy',
     img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=80',
     accent: 'from-amber-500/40 via-black/55 to-black/90',
     border: 'border-amber-400/25',
     glow: 'shadow-[0_0_32px_rgba(245,158,11,0.1)]',
     body: [
-      'Pull dormant leads from CRM inactivity windows or CSV uploads.',
-      'PropNex Voice Agent re-introduces the brand, confirms interest, and books or nurtures.',
-      'Quiet hours, max attempts, and staggered retries keep campaigns compliant.',
-      'Hot intent is handed to sales with full transcript and scoring.',
+      'Seamlessly process a single unified CSV file into dynamic outbound calling queues.',
+      'Automated Multi-Wave Calling: Automatically triggers 3 distinct calling waves separated by smart 30-minute intervals.',
+      'Real-time Metric Syncing: Live tracking of Positive intents, Connects, and Wave Completion.',
+      'Strict Timezone & Badge Compliance: Ensures all dials respect strict timezones and accurately identifies daily buckets.',
     ],
   },
   {

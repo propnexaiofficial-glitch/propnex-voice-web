@@ -24,7 +24,7 @@ const clients = [
     name: 'SchoolKnot',
     industry: 'EdTech',
     location: 'India',
-    logo: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=400&q=60',
+    logo: '/SchoolKnot.png',
   },
   {
     name: 'Orbitel',
@@ -43,6 +43,12 @@ const clients = [
     industry: 'US Client',
     location: 'United States',
     logo: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=400&q=60',
+  },
+  {
+    name: 'The Honour enterprise',
+    industry: 'Enterprise',
+    location: 'India',
+    logo: '/honour.jpg',
   },
 ]
 
@@ -106,9 +112,6 @@ export default function CustomersPage() {
               </div>
               <div className="p-4">
                 <p className="font-semibold text-white">{c.name}</p>
-                <p className="mt-0.5 text-xs uppercase tracking-[0.14em] text-white/40">
-                  {c.industry} · {c.location}
-                </p>
               </div>
             </SectionCard>
           ))}
