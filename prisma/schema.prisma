@@ -336,6 +336,20 @@ enum SystemEventType {
   CREDIT_LOW
   INTEGRATION_SYNC
   BILLING_ALERT
+  CREDIT_ADDED
+  CREDIT_DEDUCTED
+  CREDIT_EDITED
+  NOTIFICATION_CREATED
+  NOTIFICATION_EDITED
+  NOTIFICATION_DELETED
+  AGENT_CREATED
+  AGENT_EDITED
+  AGENT_DELETED
+  NUMBER_ASSIGNED
+  NUMBER_RELEASED
+  COMPANY_CREATED
+  JOB_POSTED
+  FORM_INFO
 }
 
 enum SupportRequestReason {
@@ -1422,16 +1436,17 @@ model BillingInvoice {
 
 model SystemEvent {
   id         String          @id @default(auto()) @map("_id") @db.ObjectId
-  companyId  String          @db.ObjectId
+  companyId  String?         @db.ObjectId
   type       SystemEventType
   actorId    String?         @db.ObjectId
   entityType String?
   entityId   String?
   title      String
+  message    String?
   payload    Json            @default("{}")
   createdAt  DateTime        @default(now())
 
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@index([companyId, createdAt])
   @@index([companyId, type])

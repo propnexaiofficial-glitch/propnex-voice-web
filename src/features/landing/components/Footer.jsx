@@ -1,5 +1,8 @@
-import { Link } from '@/features/landing/lib/router'
-import Logo from './Logo'
+"use client";
+
+import { usePathname, useRouter } from 'next/navigation';
+import NextLink from 'next/link';
+import Logo from './Logo';
 
 const cols = [
   {
@@ -40,6 +43,53 @@ const cols = [
   },
 ]
 
+function FooterLink({ to, children, className }) {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const handleClick = (e) => {
+    const hashIndex = to.indexOf('#');
+    if (hashIndex === -1) {
+      // No hash — scroll to top when navigating to a new page
+      if (pathname !== to) {
+        // Let Next.js handle it normally, we just ensure top scroll
+        setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+      }
+      return;
+    }
+
+    e.preventDefault();
+    const targetPath = to.slice(0, hashIndex) || '/';
+    const hash = to.slice(hashIndex + 1);
+
+    const scrollToHash = () => {
+      const el = document.getElementById(hash);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+
+    if (pathname === targetPath) {
+      // Already on the correct page — just scroll to the section
+      scrollToHash();
+    } else {
+      // Navigate to the page, then scroll after it renders
+      router.push(targetPath);
+      setTimeout(scrollToHash, 500);
+    }
+  };
+
+  return (
+    <NextLink
+      href={to}
+      onClick={handleClick}
+      className={className}
+    >
+      {children}
+    </NextLink>
+  );
+}
+
 export default function Footer() {
   return (
     <footer className="border-t border-white/10 pb-10 pt-16">
@@ -59,17 +109,12 @@ export default function Footer() {
               <ul className="space-y-2.5">
                 {c.links.map((l) => (
                   <li key={l.label}>
-                    <Link
+                    <FooterLink
                       to={l.to}
-                      onClick={() => {
-                        if (!l.to.includes('#')) {
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }
-                      }}
                       className="text-sm text-slate-500 transition hover:text-white"
                     >
                       {l.label}
-                    </Link>
+                    </FooterLink>
                   </li>
                 ))}
               </ul>
