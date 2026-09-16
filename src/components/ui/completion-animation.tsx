@@ -11,7 +11,7 @@ interface CompletionAnimationProps {
   subtitle?: string;
   onComplete: () => void;
   durationMs?: number;
-  type?: "campaign" | "schedule" | "force_stopped";
+  type?: "campaign" | "schedule" | "force_stopped" | "reactivation";
 }
 
 export function CompletionAnimation({
@@ -22,7 +22,7 @@ export function CompletionAnimation({
   type = "campaign",
 }: CompletionAnimationProps) {
   const { width, height } = useWindowSize();
-  const [showConfetti, setShowConfetti] = useState(type === "campaign");
+  const [showConfetti, setShowConfetti] = useState(type === "campaign" || type === "reactivation");
   const [visible, setVisible] = useState(true);
   const duration = durationMs ?? (type === "campaign" ? 6000 : 5000); // Enough time for scrolling
   const onCompleteRef = useRef(onComplete);
@@ -30,9 +30,9 @@ export function CompletionAnimation({
 
   useEffect(() => {
     // Reset confetti if type changes
-    setShowConfetti(type === "campaign");
+    setShowConfetti(type === "campaign" || type === "reactivation");
     
-    const confettiTimer = type === "campaign"
+    const confettiTimer = (type === "campaign" || type === "reactivation")
       ? setTimeout(() => setShowConfetti(false), duration - 2000)
       : undefined;
 

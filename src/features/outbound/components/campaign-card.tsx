@@ -192,11 +192,13 @@ export function CampaignCard({
   const [leadsModalOpen, setLeadsModalOpen] = useState(false);
   const [selectedHistId, setSelectedHistId] = useState<string | null>(null);
   const [historicalCampaigns, setHistoricalCampaigns] = useState<any[]>([]);
+  const [isHistoricalLoading, setIsHistoricalLoading] = useState(false);
 
   const isReactivationCard = campaign.id === "camp-001" || campaign.isReactivation || campaign.name?.includes("Lead Reactivation");
 
   useEffect(() => {
     if (isReactivationCard) {
+      setIsHistoricalLoading(true);
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
       fetch("/api/reactivation/dashboard", {
         headers: { Authorization: `Bearer ${token}` }
@@ -209,13 +211,29 @@ export function CampaignCard({
               // Select the first one automatically
               if (!selectedHistId) setSelectedHistId(res.data[0].id);
             }
+            // Trigger animation if today's Q3 is completed and not shown yet
+            const todayStr = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(new Date());
+            const todayBucket = res.data.find((h: any) => h.date === todayStr || h.date === todayStr.replace("Sept", "Sep"));
+            if (todayBucket && todayBucket.q3?.status === "Completed") {
+              const shownKey = `reactivation_animation_shown_${todayBucket.id}`;
+              if (!localStorage.getItem(shownKey)) {
+                localStorage.setItem(shownKey, "true");
+                window.dispatchEvent(new CustomEvent('triggerReactivationAnimation', {
+                  detail: { title: "Lead Reactivation Completed", subtitle: "All 3 waves finished.", type: "reactivation" }
+                }));
+              }
+            }
           }
         })
-        .catch(err => console.error("Failed to fetch reactivation dashboard", err));
+        .catch(err => console.error("Failed to fetch reactivation dashboard", err))
+        .finally(() => setIsHistoricalLoading(false));
     }
   }, [isReactivationCard, leadsModalOpen]);
 
-  const totalReactivationLeads = historicalCampaigns.reduce((acc, curr) => acc + (curr.q1?.failedLeads?.length || 0), 0);
+  const todayStr = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(new Date());
+  const todayBucket = historicalCampaigns.find(h => h.date === todayStr || h.date === todayStr.replace("Sept", "Sep"));
+  const todayLeadsCount = todayBucket ? (todayBucket.q1?.failedLeads?.length || 0) : 0;
+  const totalReactivationLeads = todayLeadsCount;
 
   const pendingLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => !l.called);
   const successLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => l.called && !l.isFailed);
@@ -340,13 +358,11 @@ export function CampaignCard({
                 : campaign.status !== "idle" && (pendingSchedules[0]?.csvName || campaign.uploadedFileName) && !campaign.isReactivation && campaign.id !== "camp-001" && !campaign.name?.includes("Lead Reactivation")
                   ? `${status.label} • ${campaign.uploadedFileName || pendingSchedules[0]?.csvName}`
                   : (isReactivationCard ? (() => {
-                      const todayStr = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(new Date());
-                      const todayBucket = historicalCampaigns.find(h => h.date === todayStr || h.date === todayStr.replace("Sept", "Sep"));
-                      const todayLeadsCount = todayBucket?.q1?.failedLeads?.length || 0;
-                      return `${todayStr.replace("Sep", "Sept")} - ${todayLeadsCount} Leads`;
+                      if (isHistoricalLoading) return "Loading Leads...";
+                      return `${todayStr.replace("Sep", "Sept")} - ${totalReactivationLeads} Leads`;
                     })() : status.label)}
             </Badge>
-            {isReactivationCard && campaign.qStage && (
+            {isReactivationCard && campaign.qStage && campaign.qStatus && (
                <div className="flex gap-2 ml-2">
                  <Badge 
                     variant={campaign.qStatus === "Completed" ? "outline" : "default"} 
@@ -782,7 +798,7 @@ export function CampaignCard({
               >
                 <ListChecks className="size-4" />
                 {isReactivationCard ? (
-                  `Lead Info${totalReactivationLeads > 0 ? ` (${totalReactivationLeads})` : ""}`
+                  isHistoricalLoading ? "Lead Info (...)" : `Lead Info${totalReactivationLeads > 0 ? ` (${totalReactivationLeads})` : " (0)"}`
                 ) : (
                   `Lead Info${failedCallsCount > 0 ? ` (${failedCallsCount})` : ""}`
                 )}

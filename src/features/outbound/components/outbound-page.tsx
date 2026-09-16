@@ -196,6 +196,15 @@ export function OutboundPageContent() {
     }
   }, [rescheduleDate, rescheduleTime]);
 
+  // Listen for the custom trigger from campaign card
+  useEffect(() => {
+    const handleTrigger = (e: any) => {
+      setAnimationState(e.detail);
+    };
+    window.addEventListener('triggerReactivationAnimation', handleTrigger);
+    return () => window.removeEventListener('triggerReactivationAnimation', handleTrigger);
+  }, []);
+
   // Intercept alertData to show animation instead if it matches success criteria
   useEffect(() => {
     if (alertData && !alertData.isError) {
