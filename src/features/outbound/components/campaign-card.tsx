@@ -818,7 +818,7 @@ export function CampaignCard({
                 onClick={() => setLeadsModalOpen(true)}
               >
                 <ListChecks className="size-4" />
-                {isHistoricalLoading ? "Lead Info (...)" : `Lead Info${totalFailedLeadsHistory > 0 ? ` (${totalFailedLeadsHistory})` : " (0)"}`}
+                {isHistoricalLoading ? "Lead Info (...)" : `Lead Info${historicalCampaigns.length > 0 ? ` (${historicalCampaigns.length})` : " (0)"}`}
               </Button>
             </div>
           )}
