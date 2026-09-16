@@ -33,6 +33,7 @@ function DashboardShellInner({
   const [creditsRemaining, setCreditsRemaining] = useState<number | null>(null);
 
   const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
+  const [infraCosts, setInfraCosts] = useState<any[]>([]);
 
   useEffect(() => {
     if (isBlocked && blockedUntilDate) {
@@ -262,6 +263,21 @@ function DashboardShellInner({
     checkState();
   }, []);
 
+  const fetchInfraCosts = async (token: string) => {
+    try {
+      const res = await fetch(`/api/users/me/infra-costs`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store"
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setInfraCosts(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch infra costs", e);
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -333,14 +349,26 @@ function DashboardShellInner({
 
     fetchUser();
     
-    // Poll every 5 seconds for real-time credit & call updates
-    const interval = setInterval(fetchUser, 30000);
+    // Poll every 5 seconds for real-time credit & call updates (actually 30s)
+    const interval = setInterval(() => {
+      fetchUser();
+      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+      if (token) fetchInfraCosts(token);
+    }, 30000);
+
+    // Initial fetch of infra costs
+    const initialToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+    if (initialToken) fetchInfraCosts(initialToken);
 
     // Refresh immediately when user switches back to the tab
-    const handleFocus = () => fetchUser();
+    const handleFocus = () => {
+      fetchUser();
+      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+      if (token) fetchInfraCosts(token);
+    };
     window.addEventListener("focus", handleFocus);
     window.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") fetchUser();
+      if (document.visibilityState === "visible") handleFocus();
     });
 
     return () => {
@@ -587,6 +615,28 @@ function DashboardShellInner({
                 </button>
               </div>
             )}
+            
+            {/* Infra Cost Notifications */}
+            {infraCosts.length > 0 && (
+              <div className="mb-6 space-y-3">
+                {infraCosts.map((cost) => (
+                  <div key={cost.id} className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/20 text-red-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-red-500">Action Required: Invoice Due</h3>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {cost.message || "You have a pending invoice that needs to be paid. Please make the payment immediately to avoid suspension."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {children}
           </div>
         </main>
