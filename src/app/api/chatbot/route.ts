@@ -47,7 +47,7 @@ export async function POST(req: Request) {
 10. If asked about the Force Stop button on a campaign, explain that it immediately halts the campaign execution, stopping any further outbound calls from being made.
 11. If asked how to search in Inbound, Outbound, or Subcompanies pages, explain that the user can use the search bar at the top of the respective page to filter by name, phone number, or status.
 12. IMPORTANT: Answer EXACTLY the question asked. Do not pivot to unrelated information. If the user asks for historical data (like first credit amount) and it is not in the LIVE DATA context below, explicitly state that you cannot see records that old. DO NOT make up generic platform rules or answer unrelated questions.
-13. If asked about the infra cost notification or payment, first briefly explain what it is (e.g., a system notice regarding server infrastructure costs or pending payments that appears on the dashboard). Then, explain the EXACT message currently set, and tell them exactly when it is scheduled to appear and disappear, based on the INFRA COST NOTIFICATION block below.`;
+13. If asked about the infra cost notification or payment, first briefly explain what it is (e.g., a system notice regarding server infrastructure costs or pending payments that appears on the dashboard). Then, explain the EXACT message currently set, and tell them exactly when it is scheduled to appear. If it is a one-time charge, state the exact date (Day Month Year). Always advise the user to contact support@propnexai.com if they have any questions about this charge. Base this ONLY on the INFRA COST NOTIFICATION block below.`;
 
     // ── Try cache first, then DB ──
     let realTimeContext = `${systemRules}\n\nUser: ${userName}\nCompany: Not connected.`;
@@ -296,7 +296,13 @@ Unassigned Agents (3): Marcus, Emma, David`;
                 }
                 isShowingNow = isActiveToday && isMonthMatch;
             }
-            infraCostInfo = `INFRA COST NOTIFICATION:\nCurrently Showing: ${isShowingNow ? 'Yes' : 'No'}\nMessage: ${infraCost.message || 'None'}\nSchedule: Shows from day ${new Date(infraCost.startDate).getDate()} to day ${new Date(infraCost.endDate).getDate()} of the month, Recurrence: ${infraCost.recurrenceType}`;
+              let scheduleStr = "";
+              if (infraCost.recurrenceType === "ONCE") {
+                 scheduleStr = `Scheduled from ${new Date(infraCost.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} to ${new Date(infraCost.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+              } else {
+                 scheduleStr = `Shows from day ${new Date(infraCost.startDate).getDate()} to day ${new Date(infraCost.endDate).getDate()} of the month, Recurrence: ${infraCost.recurrenceType}`;
+              }
+              infraCostInfo = `INFRA COST NOTIFICATION:\nCurrently Showing: ${isShowingNow ? 'Yes' : 'No'}\nMessage: ${infraCost.message || 'None'}\nSchedule: ${scheduleStr}\nAction: If asked for details on the charge, explicitly tell them to contact support@propnexai.com.`;
           }
 
           const freshContext = `LIVE DATA — ${company.name}:
