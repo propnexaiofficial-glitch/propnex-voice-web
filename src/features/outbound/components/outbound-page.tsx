@@ -67,7 +67,21 @@ export function OutboundPageContent() {
   const { user, isLoading } = useUserContext();
   
   // Use state to prevent flickering when user context reloads from stale localstorage
-  const [hasOutboundNumber, setHasOutboundNumber] = useState(true);
+  const [hasOutboundNumber, setHasOutboundNumber] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+          if (parsed.role === "SYSTEM_ADMIN" || (Array.isArray(parsed.assignedNumbersDetailed) && parsed.assignedNumbersDetailed.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH"))) {
+            return true;
+          }
+          if (parsed.assignedNumbersDetailed !== undefined) return false;
+        }
+      } catch {}
+    }
+    return true; // default to true to avoid showing request for valid users briefly
+  });
   
   useEffect(() => {
     if (isLoading) return;

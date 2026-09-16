@@ -186,7 +186,16 @@ export function CampaignCard({
 
   const [reminding, setReminding] = useState(false);
   const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);
-  const [isLocked, setIsLocked] = useState(false);
+  const [isLocked, setIsLocked] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const key = companyId ? `last_outbound_number_request_${companyId}` : "last_outbound_number_request";
+    const lastRequest = localStorage.getItem(key);
+    if (lastRequest) {
+      const hoursSince = (Date.now() - parseInt(lastRequest)) / (1000 * 60 * 60);
+      return hoursSince < 24;
+    }
+    return false;
+  });
   const [activeTab, setActiveTab] = useState<"pending" | "successful" | "failed">("pending");
   const [expandedScheduleIdx, setExpandedScheduleIdx] = useState<number | null>(null);
   const [leadsModalOpen, setLeadsModalOpen] = useState(false);
