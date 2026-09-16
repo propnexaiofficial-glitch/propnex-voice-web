@@ -185,17 +185,9 @@ export function CampaignCard({
     : (campaign.leads || []).filter((l: any) => l.called).length;
 
   const [reminding, setReminding] = useState(false);
-  const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);
-  const [isLocked, setIsLocked] = useState(() => {
-    if (typeof window === "undefined") return false;
-    const key = companyId ? `last_outbound_number_request_${companyId}` : "last_outbound_number_request";
-    const lastRequest = localStorage.getItem(key);
-    if (lastRequest) {
-      const hoursSince = (Date.now() - parseInt(lastRequest)) / (1000 * 60 * 60);
-      return hoursSince < 24;
-    }
-    return false;
-  });
+  const [remindMessage, setRemindMessage] = useState<{text: string, type: 'success'|'error'} | null>(null);
+  const [isLocked, setIsLocked] = useState(false);
+  const [isCheckingLock, setIsCheckingLock] = useState(() => !hasOutboundNumber && !(campaign.id === "camp-001" || campaign.isReactivation || campaign.name?.includes("Lead Reactivation")));
   const [activeTab, setActiveTab] = useState<"pending" | "successful" | "failed">("pending");
   const [expandedScheduleIdx, setExpandedScheduleIdx] = useState<number | null>(null);
   const [leadsModalOpen, setLeadsModalOpen] = useState(false);
@@ -266,25 +258,49 @@ export function CampaignCard({
 
 
   useEffect(() => {
-    if (isReactivationCard) return;
-
-    const key = companyId ? `last_outbound_number_request_${companyId}` : "last_outbound_number_request";
-    
-    if (hasOutboundNumber) {
+    if (isReactivationCard || hasOutboundNumber) {
+      setIsCheckingLock(false);
       return;
     }
 
-    const lastRequest = localStorage.getItem(key);
-    if (lastRequest) {
-      const hoursSince = (Date.now() - parseInt(lastRequest)) / (1000 * 60 * 60);
-      if (hoursSince < 24) {
-        setIsLocked(true);
-        setRemindMessage({ text: "You can only request once every 24 hours.", type: "error" });
-      } else {
-        localStorage.removeItem(key);
-      }
-    }
-  }, [companyId, hasOutboundNumber]);
+    const storedUserStr = localStorage.getItem("user");
+    const user = storedUserStr ? JSON.parse(storedUserStr) : {};
+    const email = user.email || user.id || "default";
+
+    const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
+    
+    setIsCheckingLock(true);
+    
+    fetch(`${adminBase}/api/number-requests?email=${encodeURIComponent(email)}&type=OUTBOUND${companyId ? `&companyId=${companyId}` : ''}`)
+      .then(res => res.json())
+      .then(data => {
+         if (data.locked) {
+           setIsLocked(true);
+           setRemindMessage({ text: "You can only request once every 24 hours.", type: "error" });
+           const key = companyId ? `last_outbound_number_request_${companyId}` : "last_outbound_number_request";
+           localStorage.setItem(key, Date.now().toString());
+         } else {
+           setIsLocked(false);
+           setRemindMessage(null);
+         }
+      })
+      .catch(err => {
+         console.error("Failed to check lock", err);
+         const key = companyId ? `last_outbound_number_request_${companyId}` : "last_outbound_number_request";
+         const lastRequest = localStorage.getItem(key);
+         if (lastRequest) {
+           const hoursSince = (Date.now() - parseInt(lastRequest)) / (1000 * 60 * 60);
+           if (hoursSince < 24) {
+             setIsLocked(true);
+             setRemindMessage({ text: "You can only request once every 24 hours.", type: "error" });
+           }
+         }
+      })
+      .finally(() => {
+         setIsCheckingLock(false);
+      });
+
+  }, [companyId, hasOutboundNumber, isReactivationCard]);
 
   const handleRemindAdmin = async () => {
     try {
@@ -714,9 +730,9 @@ export function CampaignCard({
         <div className="flex flex-col gap-2 items-end">
           <div className="flex flex-wrap gap-2 items-center">
             {!hasOutboundNumber && !isReactivationCard ? (
-              <Button onClick={handleRemindAdmin} disabled={reminding || isLocked} className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white">
+              <Button onClick={handleRemindAdmin} disabled={reminding || isLocked || isCheckingLock} className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white">
                 <PhoneOutgoing className="size-4" />
-                {reminding ? "Sending..." : (isLocked ? "Request Sent" : "Request Outbound Number")}
+                {isCheckingLock ? "Checking..." : reminding ? "Sending..." : (isLocked ? "Request Sent" : "Request Outbound Number")}
               </Button>
             ) : (campaign.status === "idle" || campaign.status === "completed" || campaign.status === "failed" || campaign.status === "force_stopped") && !isReactivationCard ? (
               <div className="flex gap-2">
