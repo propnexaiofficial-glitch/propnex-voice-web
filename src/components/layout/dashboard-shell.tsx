@@ -360,22 +360,9 @@ function DashboardShellInner({
     const initialToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
     if (initialToken) fetchInfraCosts(initialToken);
 
-    // Refresh immediately when user switches back to the tab
-    const handleFocus = () => {
-      fetchUser();
-      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-      if (token) fetchInfraCosts(token);
-    };
-    window.addEventListener("focus", handleFocus);
-    window.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") handleFocus();
-    });
-
     return () => {
       isMounted = false;
       clearInterval(interval);
-      window.removeEventListener("focus", handleFocus);
-      window.removeEventListener("visibilitychange", handleFocus);
     };
   }, [isWaiting, isRejected, isWaitingNumber]);
 
