@@ -149,7 +149,7 @@ export function SignUpPageContent() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <div>
+        <div className="space-y-1">
           <AuthField
             label="Confirm password"
             name="confirmPassword"
@@ -157,13 +157,25 @@ export function SignUpPageContent() {
             placeholder="Confirm password"
             autoComplete="new-password"
             disabled={submitting}
-            error={errors.confirmPassword}
+            error={password && confirmPassword && password !== confirmPassword ? " " : errors.confirmPassword}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
-          {password && confirmPassword && password === confirmPassword && (
-            <p className="text-xs text-green-400 mt-1">✓ Passwords match</p>
+          {password && confirmPassword && (
+            <div className="flex justify-center pt-1 w-full">
+              {password === confirmPassword ? (
+                <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-medium text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.1)] transition-all">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                  Passwords match
+                </div>
+              ) : (
+                <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-[11px] font-medium text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.1)] transition-all">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  Passwords do not match
+                </div>
+              )}
+            </div>
           )}
         </div>
 
