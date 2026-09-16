@@ -20,7 +20,7 @@ export default function PrivacyPage() {
       </PageHero>
       <div className="mx-auto max-w-4xl px-5 py-12 md:px-8">
         <div className="prose prose-invert max-w-none text-slate-300">
-          <p className="mb-8"><strong>Last updated:</strong> {new Intl.DateTimeFormat('en-US', { month: 'long', day: '2-digit', year: 'numeric' }).format(new Date())}</p>
+          <p className="mb-8"><strong>Last updated:</strong> September 08, 2026</p>
 
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">1. Introduction</h2>
           <p className="mb-4">

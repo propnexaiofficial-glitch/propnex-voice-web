@@ -25,9 +25,9 @@ const cols = [
     title: 'Resources',
     links: [
       { label: 'Docs Hub', to: '/docs' },
-      { label: 'APIs', to: '/docs' },
-      { label: 'Voice Cloning', to: '/docs' },
-      { label: 'Telephony', to: '/docs' },
+      { label: 'APIs', to: '/docs/apis' },
+      { label: 'Voice Cloning', to: '/docs/voice-cloning' },
+      { label: 'Telephony', to: '/docs/telephony' },
     ],
   },
   {
@@ -35,7 +35,7 @@ const cols = [
     links: [
       { label: 'Privacy', to: '/privacy' },
       { label: 'Terms', to: '/terms' },
-      { label: 'Security', to: '/privacy' },
+      { label: 'Security', to: '/features#privacy' },
     ],
   },
 ]
@@ -61,7 +61,11 @@ export default function Footer() {
                   <li key={l.label}>
                     <Link
                       to={l.to}
-                      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                      onClick={() => {
+                        if (!l.to.includes('#')) {
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                      }}
                       className="text-sm text-slate-500 transition hover:text-white"
                     >
                       {l.label}
