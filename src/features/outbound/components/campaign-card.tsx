@@ -810,18 +810,7 @@ export function CampaignCard({
             </div>
           )}
 
-          {isReactivationCard && campaign.qStage && (
-            <Button
-              variant="outline"
-              className="border-primary/50 text-primary hover:bg-primary/10 gap-2 h-9 text-sm"
-              onClick={() => setLeadsModalOpen(true)}
-            >
-              <ListChecks className="size-4" />
-              Lead Info ({campaign.leads?.length || 0})
-            </Button>
-          )}
-
-          {isReactivationCard && !campaign.qStage && (campaign.status === "idle" || campaign.status === "completed" || campaign.status === "scheduled") && (
+          {isReactivationCard && (
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -829,11 +818,7 @@ export function CampaignCard({
                 onClick={() => setLeadsModalOpen(true)}
               >
                 <ListChecks className="size-4" />
-                {isReactivationCard ? (
-                  isHistoricalLoading ? "Lead Info (...)" : `Lead Info${totalFailedLeadsHistory > 0 ? ` (${totalFailedLeadsHistory})` : " (0)"}`
-                ) : (
-                  `Lead Info${failedCallsCount > 0 ? ` (${failedCallsCount})` : ""}`
-                )}
+                {isHistoricalLoading ? "Lead Info (...)" : `Lead Info${totalFailedLeadsHistory > 0 ? ` (${totalFailedLeadsHistory})` : " (0)"}`}
               </Button>
             </div>
           )}
