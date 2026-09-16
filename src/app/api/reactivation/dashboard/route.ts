@@ -46,8 +46,7 @@ export async function GET(req: NextRequest) {
               { correlationId: { not: { startsWith: "reactivation-" } } }
             ]
           }
-        ],
-        leadId: { not: null },
+        ]
       },
       include: {
         lead: true,
@@ -85,7 +84,8 @@ export async function GET(req: NextRequest) {
     const buckets: Record<string, any> = {};
 
     for (const call of failedCalls) {
-      if (!call.lead) continue;
+      const leadPhone = call.lead?.phone || (call as any).customerNumber;
+      if (!leadPhone) continue; // Skip if no phone number available
       
       const d = call.startedAt;
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -119,26 +119,27 @@ export async function GET(req: NextRequest) {
         }
       }
       
-      const leadId = call.leadId;
-      const leadPhone = call.lead.phone;
+      const leadId = call.leadId || `manual-${leadPhone}`;
       if (!buckets[key].q1.failedLeads.find((l: any) => l.phone === leadPhone)) {
         
         let leadName = "Unknown";
-        if (call.lead.firstName || call.lead.lastName) {
-           leadName = `${call.lead.firstName || ""} ${call.lead.lastName || ""}`.trim();
-        } else if ((call.lead as any).name) {
-           leadName = (call.lead as any).name;
-        } else if (call.lead.customFields) {
-           try {
-             const custom = typeof call.lead.customFields === 'string' ? JSON.parse(call.lead.customFields) : call.lead.customFields;
-             if (custom.Name || custom.name) leadName = custom.Name || custom.name;
-           } catch(e) {}
+        if (call.lead) {
+          if (call.lead.firstName || call.lead.lastName) {
+             leadName = `${call.lead.firstName || ""} ${call.lead.lastName || ""}`.trim();
+          } else if ((call.lead as any).name) {
+             leadName = (call.lead as any).name;
+          } else if (call.lead.customFields) {
+             try {
+               const custom = typeof call.lead.customFields === 'string' ? JSON.parse(call.lead.customFields) : call.lead.customFields;
+               if (custom.Name || custom.name) leadName = custom.Name || custom.name;
+             } catch(e) {}
+          }
         }
 
         buckets[key].q1.failedLeads.push({
            id: leadId,
            name: leadName,
-           phone: call.lead.phone,
+           phone: leadPhone,
            didNumber: (call as any).historicalDidString || call.phoneNumber?.number || "Unknown",
            channels: (call as any).historicalChannels || call.phoneNumber?.channels || 1,
            isCompleted: false
