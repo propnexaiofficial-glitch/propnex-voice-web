@@ -241,9 +241,9 @@ export function CampaignCard({
 
   const todayStr = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(new Date()).replace("Sept", "Sep");
   const todayBucket = historicalCampaigns.find(h => h.date === todayStr || h.date === todayStr.replace("Sep", "Sept"));
-  const todayLeadsCount = todayBucket ? ((todayBucket.q1?.failedLeads?.length || 0) + (todayBucket.q2?.failedLeads?.length || 0) + (todayBucket.q3?.failedLeads?.length || 0)) : 0;
+  const todayLeadsCount = todayBucket ? (todayBucket.q1?.failedLeads?.length || 0) : 0;
   const totalReactivationLeads = todayLeadsCount;
-  const totalFailedLeadsHistory = historicalCampaigns.reduce((acc, curr) => acc + (curr.q1?.failedLeads?.length || 0) + (curr.q2?.failedLeads?.length || 0) + (curr.q3?.failedLeads?.length || 0), 0);
+  const totalFailedLeadsHistory = historicalCampaigns.reduce((acc, curr) => acc + (curr.q1?.failedLeads?.length || 0), 0);
 
   const pendingLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => !l.called);
   const successLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => l.called && !l.isFailed);
@@ -851,7 +851,7 @@ export function CampaignCard({
                   {historicalCampaigns.length === 0 && <div className="text-sm text-muted-foreground p-4 text-center">No failed leads found today.</div>}
                   {historicalCampaigns.map(hist => {
                     const isSelected = selectedHistId === hist.id;
-                    const totalFailed = (hist.q1.failedLeads?.length || 0) + (hist.q2.failedLeads?.length || 0) + (hist.q3.failedLeads?.length || 0);
+                    const totalFailed = (hist.q1.failedLeads?.length || 0);
                     return (
                       <div 
                         key={hist.id}

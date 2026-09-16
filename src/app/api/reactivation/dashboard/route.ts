@@ -120,9 +120,14 @@ export async function GET(req: NextRequest) {
         const shortFmt = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(d); // e.g. "12 Sep"
         const nextShortFmt = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(nextDay); // e.g. "13 Sep"
         
-        const q1Time = new Date(nextDay); q1Time.setHours(10, 0, 0, 0);
-        const q2Time = new Date(nextDay); q2Time.setHours(15, 0, 0, 0);
-        const q3Time = new Date(nextDay); q3Time.setHours(20, 0, 0, 0);
+        const yyyy = nextDay.getFullYear();
+        const mm = String(nextDay.getMonth() + 1).padStart(2, "0");
+        const dd = String(nextDay.getDate()).padStart(2, "0");
+        const nextDayStr = `${yyyy}-${mm}-${dd}`;
+
+        const q1Time = new Date(`${nextDayStr}T10:00:00+05:30`);
+        const q2Time = new Date(`${nextDayStr}T15:00:00+05:30`);
+        const q3Time = new Date(`${nextDayStr}T20:00:00+05:30`);
 
         buckets[key] = {
           id: key,
@@ -204,12 +209,12 @@ export async function GET(req: NextRequest) {
          // Q1 always gets the lead. Show checkmark if it completed.
          q1FinalList.push({ ...lead, isCompleted: completedInQ1 });
 
-         // If it didn't complete in Q1, it rolls over to Q2 (assuming Q1 has already run, or it's scheduled)
-         if (!completedInQ1) {
+         // If Q1 is completed and the lead didn't complete in Q1, it rolls over to Q2
+         if (b.q1.status === "Completed" && !completedInQ1) {
             q2FinalList.push({ ...lead, isCompleted: completedInQ2 });
             
-            // If it didn't complete in Q2, it rolls over to Q3
-            if (!completedInQ2) {
+            // If Q2 is completed and the lead didn't complete in Q2, it rolls over to Q3
+            if (b.q2.status === "Completed" && !completedInQ2) {
                q3FinalList.push({ ...lead, isCompleted: completedInQ3 });
             }
          }
