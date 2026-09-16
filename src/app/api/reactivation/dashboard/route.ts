@@ -223,6 +223,14 @@ export async function GET(req: NextRequest) {
       b.q1.failedLeads = q1FinalList;
       b.q2.failedLeads = q2FinalList;
       b.q3.failedLeads = q3FinalList;
+
+      // If a wave is empty and the previous wave is completed, this wave is automatically completed (nothing to run)
+      if (b.q1.status === "Completed" && q2FinalList.length === 0) {
+         b.q2.status = "Completed";
+      }
+      if (b.q2.status === "Completed" && q3FinalList.length === 0) {
+         b.q3.status = "Completed";
+      }
     }
 
     const data = Object.values(buckets).sort((a: any, b: any) => b.originalDateMs - a.originalDateMs);
