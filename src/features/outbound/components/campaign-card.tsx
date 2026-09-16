@@ -501,13 +501,11 @@ export function CampaignCard({
           {(campaign.status === "idle" || campaign.status === "completed" || isReactivationCard) && (
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">
-                {isReactivationCard && campaign.qStage
-                  ? `Auto-reactivation ${campaign.qStage} • ${campaign.leads?.length || 0} lead${(campaign.leads?.length || 0) !== 1 ? 's' : ''} scheduled for retry`
-                  : isReactivationCard
-                    ? `Automatically re-engage failed leads across 3 follow-up waves. (${totalReactivationLeads} total failed leads today)`
-                    : !hasOutboundNumber 
-                      ? "Please request an outbound number from the admin to launch campaigns." 
-                      : "Upload a CSV contact list to prepare your next outbound campaign."}
+                {isReactivationCard
+                  ? `Automatically re-engage failed leads across 3 follow-up waves. (${totalReactivationLeads} total failed leads today)`
+                  : !hasOutboundNumber 
+                    ? "Please request an outbound number from the admin to launch campaigns." 
+                    : "Upload a CSV contact list to prepare your next outbound campaign."}
               </p>
             </div>
           )}
