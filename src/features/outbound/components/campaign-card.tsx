@@ -198,42 +198,51 @@ export function CampaignCard({
 
   useEffect(() => {
     if (isReactivationCard) {
-      setIsHistoricalLoading(true);
-      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
-      fetch("/api/reactivation/dashboard", {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(res => res.json())
-        .then(res => {
-          if (res.data) {
-            setHistoricalCampaigns(res.data);
-            if (res.data.length > 0 && (!selectedHistId || leadsModalOpen)) {
-              // Select the first one automatically
-              if (!selectedHistId) setSelectedHistId(res.data[0].id);
-            }
-            // Trigger animation if today's Q3 is completed and not shown yet
-            const todayStr = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(new Date());
-            const todayBucket = res.data.find((h: any) => h.date === todayStr || h.date === todayStr.replace("Sept", "Sep"));
-            if (todayBucket && todayBucket.q3?.status === "Completed") {
-              const shownKey = `reactivation_animation_shown_${todayBucket.id}`;
-              if (!localStorage.getItem(shownKey)) {
-                localStorage.setItem(shownKey, "true");
-                window.dispatchEvent(new CustomEvent('triggerReactivationAnimation', {
-                  detail: { title: "Lead Reactivation Completed", subtitle: "All 3 waves finished.", type: "reactivation" }
-                }));
+      const fetchDashboard = () => {
+        const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
+        fetch("/api/reactivation/dashboard", {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+          .then(res => res.json())
+          .then(res => {
+            if (res.data) {
+              setHistoricalCampaigns(res.data);
+              if (res.data.length > 0 && (!selectedHistId || leadsModalOpen)) {
+                // Select the first one automatically
+                if (!selectedHistId) setSelectedHistId(res.data[0].id);
+              }
+              // Trigger animation if today's Q3 is completed and not shown yet
+              const todayStr = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(new Date()).replace("Sept", "Sep");
+              const todayBucket = res.data.find((h: any) => h.date === todayStr || h.date === todayStr.replace("Sep", "Sept"));
+              if (todayBucket && todayBucket.q3?.status === "Completed") {
+                const shownKey = `reactivation_animation_shown_${todayBucket.id}`;
+                if (!localStorage.getItem(shownKey)) {
+                  localStorage.setItem(shownKey, "true");
+                  window.dispatchEvent(new CustomEvent('triggerReactivationAnimation', {
+                    detail: { title: "Lead Reactivation Completed", subtitle: "All 3 waves finished.", type: "reactivation" }
+                  }));
+                }
               }
             }
-          }
-        })
-        .catch(err => console.error("Failed to fetch reactivation dashboard", err))
-        .finally(() => setIsHistoricalLoading(false));
+          })
+          .catch(err => console.error("Failed to fetch reactivation dashboard", err))
+          .finally(() => setIsHistoricalLoading(false));
+      };
+
+      setIsHistoricalLoading(true);
+      fetchDashboard();
+
+      // Poll every 10s for real-time updates as missed/0-sec calls happen in other campaigns
+      const interval = setInterval(fetchDashboard, 10000);
+      return () => clearInterval(interval);
     }
   }, [isReactivationCard, leadsModalOpen]);
 
-  const todayStr = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(new Date());
-  const todayBucket = historicalCampaigns.find(h => h.date === todayStr || h.date === todayStr.replace("Sept", "Sep"));
+  const todayStr = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(new Date()).replace("Sept", "Sep");
+  const todayBucket = historicalCampaigns.find(h => h.date === todayStr || h.date === todayStr.replace("Sep", "Sept"));
   const todayLeadsCount = todayBucket ? (todayBucket.q1?.failedLeads?.length || 0) : 0;
-  const totalReactivationLeads = historicalCampaigns.length;
+  const totalReactivationLeads = todayLeadsCount;
+  const totalFailedLeadsHistory = historicalCampaigns.reduce((acc, curr) => acc + (curr.q1?.failedLeads?.length || 0), 0);
 
   const pendingLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => !l.called);
   const successLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => l.called && !l.isFailed);
@@ -359,7 +368,7 @@ export function CampaignCard({
                   ? `${status.label} • ${campaign.uploadedFileName || pendingSchedules[0]?.csvName}`
                   : (isReactivationCard ? (() => {
                       if (isHistoricalLoading) return "Loading Leads...";
-                      return `${todayStr.replace("Sep", "Sept")} - ${totalReactivationLeads} Leads`;
+                      return `${todayStr} - ${totalReactivationLeads} Lead${totalReactivationLeads !== 1 ? 's' : ''}`;
                     })() : status.label)}
             </Badge>
             {isReactivationCard && campaign.qStage && campaign.qStatus && (
@@ -798,7 +807,7 @@ export function CampaignCard({
               >
                 <ListChecks className="size-4" />
                 {isReactivationCard ? (
-                  isHistoricalLoading ? "Lead Info (...)" : `Lead Info${totalReactivationLeads > 0 ? ` (${totalReactivationLeads})` : " (0)"}`
+                  isHistoricalLoading ? "Lead Info (...)" : `Lead Info${totalFailedLeadsHistory > 0 ? ` (${totalFailedLeadsHistory})` : " (0)"}`
                 ) : (
                   `Lead Info${failedCallsCount > 0 ? ` (${failedCallsCount})` : ""}`
                 )}
