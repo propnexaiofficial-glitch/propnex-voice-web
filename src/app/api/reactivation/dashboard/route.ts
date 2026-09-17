@@ -200,10 +200,19 @@ export async function GET(req: NextRequest) {
       );
 
       // A wave is "Completed" ONLY if real call logs exist for it.
-      // Time passing alone does NOT mark a wave completed.
-      const hasQ1Logs = reactivationLogs.some(l => l.correlationId === q1CorrelationId);
-      const hasQ2Logs = reactivationLogs.some(l => l.correlationId === q2CorrelationId);
-      const hasQ3Logs = reactivationLogs.some(l => l.correlationId === q3CorrelationId);
+      // We check for the strict new correlationId OR any log ending in -q1/-q2/-q3 that belongs to these leads (for historical logs).
+      const hasQ1Logs = reactivationLogs.some(l => 
+        l.correlationId === q1CorrelationId || 
+        (l.correlationId.endsWith("-q1") && b.q1.failedLeads.some((fl: any) => fl.id === l.leadId))
+      );
+      const hasQ2Logs = reactivationLogs.some(l => 
+        l.correlationId === q2CorrelationId || 
+        (l.correlationId.endsWith("-q2") && b.q1.failedLeads.some((fl: any) => fl.id === l.leadId))
+      );
+      const hasQ3Logs = reactivationLogs.some(l => 
+        l.correlationId === q3CorrelationId || 
+        (l.correlationId.endsWith("-q3") && b.q1.failedLeads.some((fl: any) => fl.id === l.leadId))
+      );
 
       b.q1.status = q1Running ? "Running" : (hasQ1Logs ? "Completed" : "Pending");
       b.q2.status = q2Running ? "Running" : (hasQ2Logs ? "Completed" : "Pending");
@@ -217,9 +226,10 @@ export async function GET(req: NextRequest) {
       for (const lead of b.q1.failedLeads) {
         const leadLogs = reactivationLogs.filter(l => l.leadId === lead.id);
 
-        const q1Log = leadLogs.find(l => l.correlationId === q1CorrelationId);
-        const q2Log = leadLogs.find(l => l.correlationId === q2CorrelationId);
-        const q3Log = leadLogs.find(l => l.correlationId === q3CorrelationId);
+        // For finding specific logs, try strict match first, fallback to endsWith
+        const q1Log = leadLogs.find(l => l.correlationId === q1CorrelationId) || leadLogs.find(l => l.correlationId.endsWith("-q1"));
+        const q2Log = leadLogs.find(l => l.correlationId === q2CorrelationId) || leadLogs.find(l => l.correlationId.endsWith("-q2"));
+        const q3Log = leadLogs.find(l => l.correlationId === q3CorrelationId) || leadLogs.find(l => l.correlationId.endsWith("-q3"));
 
         const completedInQ1 = q1Log?.status === "COMPLETED" && (q1Log.durationSeconds || 0) > 0;
         const completedInQ2 = q2Log?.status === "COMPLETED" && (q2Log.durationSeconds || 0) > 0;
