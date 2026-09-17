@@ -186,9 +186,9 @@ export async function GET(req: NextRequest) {
       const q2Running = Array.from(activeCampaignIds).some(id => id.includes("-q2"));
       const q3Running = Array.from(activeCampaignIds).some(id => id.includes("-q3"));
 
-      const hasQ1Logs = reactivationLogs.some(l => l.correlationId?.endsWith("-q1") && buckets[key].q1.failedLeads.some((fl: any) => fl.id === l.leadId || fl.phone === (l as any).publicId));
-      const hasQ2Logs = reactivationLogs.some(l => l.correlationId?.endsWith("-q2") && buckets[key].q1.failedLeads.some((fl: any) => fl.id === l.leadId || fl.phone === (l as any).publicId));
-      const hasQ3Logs = reactivationLogs.some(l => l.correlationId?.endsWith("-q3") && buckets[key].q1.failedLeads.some((fl: any) => fl.id === l.leadId || fl.phone === (l as any).publicId));
+      const hasQ1Logs = reactivationLogs.some(l => l.correlationId === `reactivation-${key}-q1` && buckets[key].q1.failedLeads.some((fl: any) => fl.id === l.leadId || fl.phone === (l as any).publicId));
+      const hasQ2Logs = reactivationLogs.some(l => l.correlationId === `reactivation-${key}-q2` && buckets[key].q1.failedLeads.some((fl: any) => fl.id === l.leadId || fl.phone === (l as any).publicId));
+      const hasQ3Logs = reactivationLogs.some(l => l.correlationId === `reactivation-${key}-q3` && buckets[key].q1.failedLeads.some((fl: any) => fl.id === l.leadId || fl.phone === (l as any).publicId));
 
       b.q1.status = q1Running ? "Running" : (hasQ1Logs || now > b.q1Time ? "Completed" : "Pending");
       b.q2.status = q2Running ? "Running" : (hasQ2Logs || now > b.q2Time ? "Completed" : "Pending");
@@ -202,9 +202,9 @@ export async function GET(req: NextRequest) {
       for (const lead of b.q1.failedLeads) {
          const leadLogs = reactivationLogs.filter(l => l.leadId === lead.id);
          
-         const q1Log = leadLogs.find(l => l.correlationId?.endsWith("-q1"));
-         const q2Log = leadLogs.find(l => l.correlationId?.endsWith("-q2"));
-         const q3Log = leadLogs.find(l => l.correlationId?.endsWith("-q3"));
+         const q1Log = leadLogs.find(l => l.correlationId === `reactivation-${key}-q1`);
+         const q2Log = leadLogs.find(l => l.correlationId === `reactivation-${key}-q2`);
+         const q3Log = leadLogs.find(l => l.correlationId === `reactivation-${key}-q3`);
 
          let completedInQ1 = q1Log?.status === "COMPLETED" && (q1Log.durationSeconds || 0) > 0;
          let completedInQ2 = q2Log?.status === "COMPLETED" && (q2Log.durationSeconds || 0) > 0;
