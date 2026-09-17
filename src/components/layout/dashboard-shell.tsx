@@ -78,6 +78,14 @@ function DashboardShellInner({
           return true;
         }
       }
+
+      if (isNumber) {
+        const localBlock = localStorage.getItem("pnx_number_remind_time");
+        if (localBlock && Date.now() - parseInt(localBlock, 10) < 24 * 60 * 60 * 1000) {
+          setIsRemindDisabled(true);
+          return true;
+        }
+      }
     } catch(e) {}
     setIsRemindDisabled(false);
     return false;
@@ -109,7 +117,8 @@ function DashboardShellInner({
           body: JSON.stringify({
             email,
             companyId: user.companyId || null,
-            name: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unknown"
+            name: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unknown",
+            type: "INBOUND"
           })
         });
       } else {
@@ -123,6 +132,9 @@ function DashboardShellInner({
       if (res.ok) {
         setIsRemindDisabled(true);
         setRemindMessage({ text: "Reminder sent successfully! The admin has been notified. (24h Lock active)", type: "success" });
+        if (isWaitingNumber) {
+          localStorage.setItem("pnx_number_remind_time", Date.now().toString());
+        }
         
         // Fetch updated user from backend to get the latest timestamp lock
         try {
@@ -579,7 +591,7 @@ function DashboardShellInner({
           )}
 
           <div className={isLockedOut && pathname !== "/dashboard/billing" ? "hidden" : "block"}>
-            {isWaitingNumber && (
+            {isWaitingNumber && pathname === "/dashboard/inbound" && (
               <div className="mb-6 rounded-lg border border-yellow-500/20 bg-yellow-500/10 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-yellow-500/20 text-yellow-500">
