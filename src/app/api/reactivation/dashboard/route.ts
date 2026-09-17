@@ -59,7 +59,8 @@ export async function GET(req: NextRequest) {
         leadId: true,
         status: true,
         correlationId: true,
-        durationSeconds: true
+        durationSeconds: true,
+        startedAt: true
       }
     });
 
@@ -199,19 +200,28 @@ export async function GET(req: NextRequest) {
         l => l.correlationId === q3CorrelationId && (l.status === "PENDING" || l.status === "RINGING")
       );
 
-      // A wave is "Completed" ONLY if real call logs exist for it.
-      // We check for the strict new correlationId, OR a legacy correlationId that contains this bucket's date.
+      // We check for the strict new correlationId, OR a legacy correlationId whose startedAt date matches the scheduled wave date.
+      const matchLegacy = (log: any, suffix: string, expectedTime: Date) => {
+        if (!log.correlationId?.endsWith(suffix)) return false;
+        // If it's the new format, don't use legacy match
+        if (log.correlationId?.match(/reactivation-\d{4}-\d{2}-\d{2}-/)) return false;
+        // For legacy, check if the log started on or after the expected day (ignoring exact hours)
+        const logDate = new Date(log.startedAt).toISOString().split('T')[0];
+        const expectedDate = expectedTime.toISOString().split('T')[0];
+        return logDate === expectedDate;
+      };
+
       const hasQ1Logs = reactivationLogs.some(l => 
         l.correlationId === q1CorrelationId || 
-        (l.correlationId?.endsWith("-q1") && l.correlationId?.includes(key) && b.q1.failedLeads.some((fl: any) => fl.id === l.leadId))
+        (b.q1.failedLeads.some((fl: any) => fl.id === l.leadId) && matchLegacy(l, "-q1", b.q1Time))
       );
       const hasQ2Logs = reactivationLogs.some(l => 
         l.correlationId === q2CorrelationId || 
-        (l.correlationId?.endsWith("-q2") && l.correlationId?.includes(key) && b.q1.failedLeads.some((fl: any) => fl.id === l.leadId))
+        (b.q1.failedLeads.some((fl: any) => fl.id === l.leadId) && matchLegacy(l, "-q2", b.q2Time))
       );
       const hasQ3Logs = reactivationLogs.some(l => 
         l.correlationId === q3CorrelationId || 
-        (l.correlationId?.endsWith("-q3") && l.correlationId?.includes(key) && b.q1.failedLeads.some((fl: any) => fl.id === l.leadId))
+        (b.q1.failedLeads.some((fl: any) => fl.id === l.leadId) && matchLegacy(l, "-q3", b.q3Time))
       );
 
       b.q1.status = q1Running ? "Running" : (hasQ1Logs ? "Completed" : "Pending");
@@ -226,10 +236,10 @@ export async function GET(req: NextRequest) {
       for (const lead of b.q1.failedLeads) {
         const leadLogs = reactivationLogs.filter(l => l.leadId === lead.id);
 
-        // For finding specific logs, try strict match first, fallback to endsWith + includes(key)
-        const q1Log = leadLogs.find(l => l.correlationId === q1CorrelationId) || leadLogs.find(l => l.correlationId?.endsWith("-q1") && l.correlationId?.includes(key));
-        const q2Log = leadLogs.find(l => l.correlationId === q2CorrelationId) || leadLogs.find(l => l.correlationId?.endsWith("-q2") && l.correlationId?.includes(key));
-        const q3Log = leadLogs.find(l => l.correlationId === q3CorrelationId) || leadLogs.find(l => l.correlationId?.endsWith("-q3") && l.correlationId?.includes(key));
+        // For finding specific logs, try strict match first, fallback to legacy match
+        const q1Log = leadLogs.find(l => l.correlationId === q1CorrelationId) || leadLogs.find(l => matchLegacy(l, "-q1", b.q1Time));
+        const q2Log = leadLogs.find(l => l.correlationId === q2CorrelationId) || leadLogs.find(l => matchLegacy(l, "-q2", b.q2Time));
+        const q3Log = leadLogs.find(l => l.correlationId === q3CorrelationId) || leadLogs.find(l => matchLegacy(l, "-q3", b.q3Time));
 
         const completedInQ1 = q1Log?.status === "COMPLETED" && (q1Log.durationSeconds || 0) > 0;
         const completedInQ2 = q2Log?.status === "COMPLETED" && (q2Log.durationSeconds || 0) > 0;
