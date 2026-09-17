@@ -81,11 +81,20 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    // Group by Date ONLY (YYYY-MM-DD)
     const buckets: Record<string, any> = {};
+    let currentKey = "";
     const seenPhones = new Set<string>();
 
     for (const call of failedCalls) {
+      const d = call.startedAt;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      
+      // Per-day deduplication: Reset seenPhones when we enter a new day
+      if (key !== currentKey) {
+        currentKey = key;
+        seenPhones.clear();
+      }
+
       let fallbackCustomerNumber = "";
       if (call.providerWebhook && typeof call.providerWebhook === 'object') {
          const wh: any = call.providerWebhook;
@@ -112,12 +121,9 @@ export async function GET(req: NextRequest) {
       const leadPhone = call.lead?.phone || fallbackCustomerNumber;
       if (!leadPhone) continue; // Skip if no phone number available
       
-      // Global deduplication: only add a number to the reactivation pipeline once across all history
+      // Deduplication per day: only add a number to the reactivation pipeline once per day
       if (seenPhones.has(leadPhone)) continue;
       seenPhones.add(leadPhone);
-      
-      const d = call.startedAt;
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       
       if (!buckets[key]) {
         const nextDay = new Date(d);
