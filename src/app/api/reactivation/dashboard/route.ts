@@ -179,63 +179,98 @@ export async function GET(req: NextRequest) {
     // Now refine the lists based on actual Reactivation Q1/Q2/Q3 performance
     for (const key of Object.keys(buckets)) {
       const b = buckets[key];
-      const now = new Date();
 
-      // Determine Statuses based on active status, existing logs, or time
-      const q1Running = Array.from(activeCampaignIds).some(id => id.includes("-q1"));
-      const q2Running = Array.from(activeCampaignIds).some(id => id.includes("-q2"));
-      const q3Running = Array.from(activeCampaignIds).some(id => id.includes("-q3"));
+      // Build the stable correlationIds that the cron now uses.
+      // Format: reactivation-{YYYY-MM-DD}-{companyId[0..7]}-{didLast6}-q1|q2|q3
+      const compShort = companyId.replace(/-/g, "").slice(0, 8);
+      const didDigits = (b.didNumber || "").replace(/\D/g, "").slice(-6);
+      const q1CorrelationId = `reactivation-${key}-${compShort}-${didDigits}-q1`;
+      const q2CorrelationId = `reactivation-${key}-${compShort}-${didDigits}-q2`;
+      const q3CorrelationId = `reactivation-${key}-${compShort}-${didDigits}-q3`;
 
-      const hasQ1Logs = reactivationLogs.some(l => l.correlationId === `reactivation-${key}-q1` && buckets[key].q1.failedLeads.some((fl: any) => fl.id === l.leadId || fl.phone === (l as any).publicId));
-      const hasQ2Logs = reactivationLogs.some(l => l.correlationId === `reactivation-${key}-q2` && buckets[key].q1.failedLeads.some((fl: any) => fl.id === l.leadId || fl.phone === (l as any).publicId));
-      const hasQ3Logs = reactivationLogs.some(l => l.correlationId === `reactivation-${key}-q3` && buckets[key].q1.failedLeads.some((fl: any) => fl.id === l.leadId || fl.phone === (l as any).publicId));
+      // A wave is "Running" if any of its logs are still PENDING/RINGING
+      const q1Running = reactivationLogs.some(
+        l => l.correlationId === q1CorrelationId && (l.status === "PENDING" || l.status === "RINGING")
+      );
+      const q2Running = reactivationLogs.some(
+        l => l.correlationId === q2CorrelationId && (l.status === "PENDING" || l.status === "RINGING")
+      );
+      const q3Running = reactivationLogs.some(
+        l => l.correlationId === q3CorrelationId && (l.status === "PENDING" || l.status === "RINGING")
+      );
 
-      b.q1.status = q1Running ? "Running" : (hasQ1Logs || now > b.q1Time ? "Completed" : "Pending");
-      b.q2.status = q2Running ? "Running" : (hasQ2Logs || now > b.q2Time ? "Completed" : "Pending");
-      b.q3.status = q3Running ? "Running" : (hasQ3Logs || now > b.q3Time ? "Completed" : "Pending");
+      // A wave is "Completed" ONLY if real call logs exist for it.
+      // Time passing alone does NOT mark a wave completed.
+      const hasQ1Logs = reactivationLogs.some(l => l.correlationId === q1CorrelationId);
+      const hasQ2Logs = reactivationLogs.some(l => l.correlationId === q2CorrelationId);
+      const hasQ3Logs = reactivationLogs.some(l => l.correlationId === q3CorrelationId);
 
-      // Filter Leads across stages
-      const q1FinalList = [];
-      const q2FinalList = [];
-      const q3FinalList = [];
+      b.q1.status = q1Running ? "Running" : (hasQ1Logs ? "Completed" : "Pending");
+      b.q2.status = q2Running ? "Running" : (hasQ2Logs ? "Completed" : "Pending");
+      b.q3.status = q3Running ? "Running" : (hasQ3Logs ? "Completed" : "Pending");
+
+      // Build per-lead outcome lists for each wave
+      const q1FinalList: any[] = [];
+      const q2FinalList: any[] = [];
+      const q3FinalList: any[] = [];
 
       for (const lead of b.q1.failedLeads) {
-         const leadLogs = reactivationLogs.filter(l => l.leadId === lead.id);
-         
-         const q1Log = leadLogs.find(l => l.correlationId === `reactivation-${key}-q1`);
-         const q2Log = leadLogs.find(l => l.correlationId === `reactivation-${key}-q2`);
-         const q3Log = leadLogs.find(l => l.correlationId === `reactivation-${key}-q3`);
+        const leadLogs = reactivationLogs.filter(l => l.leadId === lead.id);
 
-         let completedInQ1 = q1Log?.status === "COMPLETED" && (q1Log.durationSeconds || 0) > 0;
-         let completedInQ2 = q2Log?.status === "COMPLETED" && (q2Log.durationSeconds || 0) > 0;
-         let completedInQ3 = q3Log?.status === "COMPLETED" && (q3Log.durationSeconds || 0) > 0;
+        const q1Log = leadLogs.find(l => l.correlationId === q1CorrelationId);
+        const q2Log = leadLogs.find(l => l.correlationId === q2CorrelationId);
+        const q3Log = leadLogs.find(l => l.correlationId === q3CorrelationId);
 
-         // Q1 always gets the lead. Show checkmark if it completed.
-         q1FinalList.push({ ...lead, isCompleted: completedInQ1 });
+        const completedInQ1 = q1Log?.status === "COMPLETED" && (q1Log.durationSeconds || 0) > 0;
+        const completedInQ2 = q2Log?.status === "COMPLETED" && (q2Log.durationSeconds || 0) > 0;
+        const completedInQ3 = q3Log?.status === "COMPLETED" && (q3Log.durationSeconds || 0) > 0;
 
-         // If Q1 is completed and the lead didn't complete in Q1, it rolls over to Q2
-         if (b.q1.status === "Completed" && !completedInQ1) {
-            q2FinalList.push({ ...lead, isCompleted: completedInQ2 });
-            
-            // If Q2 is completed and the lead didn't complete in Q2, it rolls over to Q3
-            if (b.q2.status === "Completed" && !completedInQ2) {
-               q3FinalList.push({ ...lead, isCompleted: completedInQ3 });
-            }
-         }
+        // Wave 1 always shows all original leads
+        q1FinalList.push({ ...lead, isCompleted: completedInQ1 });
+
+        // Wave 2 gets leads that Wave 1 actually called but did NOT succeed
+        // (only if Wave 1 has real logs — not time-based)
+        if (hasQ1Logs && !completedInQ1) {
+          q2FinalList.push({ ...lead, isCompleted: completedInQ2 });
+
+          // Wave 3 gets leads that Wave 2 actually called but did NOT succeed
+          if (hasQ2Logs && !completedInQ2) {
+            q3FinalList.push({ ...lead, isCompleted: completedInQ3 });
+          }
+        }
       }
 
-      b.q1.failedLeads = q1FinalList;
-      b.q2.failedLeads = q2FinalList;
-      b.q3.failedLeads = q3FinalList;
+      // Sort each wave: successful calls first, failed/pending last
+      const sortWave = (list: any[]) =>
+        list.sort((a, b) => (b.isCompleted ? 1 : 0) - (a.isCompleted ? 1 : 0));
 
-      // If a wave is empty and the previous wave is completed, this wave is automatically completed (nothing to run)
+      b.q1.failedLeads = sortWave(q1FinalList);
+      b.q2.failedLeads = sortWave(q2FinalList);
+      b.q3.failedLeads = sortWave(q3FinalList);
+
+      // If a wave has no pending leads after filtering, auto-complete it
+      // (only when the previous wave is already Completed)
       if (b.q1.status === "Completed" && q2FinalList.length === 0) {
-         b.q2.status = "Completed";
+        b.q2.status = "Completed";
       }
       if (b.q2.status === "Completed" && q3FinalList.length === 0) {
-         b.q3.status = "Completed";
+        b.q3.status = "Completed";
       }
+
+      // Determine overall campaign status for the sidebar badge
+      // Completed = all 3 waves done (or auto-completed because no failed leads remained)
+      b.overallStatus =
+        b.q3.status === "Completed"
+          ? "Completed"
+          : b.q1.status === "Pending"
+          ? "Pending Q1"
+          : b.q2.status === "Pending"
+          ? "Pending Q2"
+          : b.q3.status === "Pending"
+          ? "Pending Q3"
+          : "Running";
     }
+
 
     const data = Object.values(buckets).sort((a: any, b: any) => b.originalDateMs - a.originalDateMs);
 
