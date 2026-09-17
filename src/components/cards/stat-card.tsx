@@ -97,10 +97,9 @@ export function StatCard({ stat, index = 0, className }: StatCardProps) {
             {stat.creditsPercentage ?? 0}% of total limit used
           </span>
         </div>
-      ) : stat.isNewAccount && (stat.value === "0" || stat.value === 0 || stat.value === "...") ? (
-        <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground/80">
-          <Loader2 className="size-3 animate-spin" />
-          <span>Gathering info...</span>
+      ) : stat.isNewAccount ? (
+        <div className="mt-3 flex items-center gap-1.5 text-xs">
+          <span className="font-medium text-emerald-500">Gathering info</span>
         </div>
       ) : stat.change !== undefined && (
         <div className="mt-3 flex items-center gap-1.5 text-xs">
