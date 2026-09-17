@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDownRight, ArrowUpRight, PhoneIncoming, PhoneOutgoing } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, PhoneIncoming, PhoneOutgoing, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { cn } from "@/lib/utils";
@@ -96,6 +96,11 @@ export function StatCard({ stat, index = 0, className }: StatCardProps) {
           <span className="inline-flex items-center rounded-sm bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-500">
             {stat.creditsPercentage ?? 0}% of total limit used
           </span>
+        </div>
+      ) : stat.isNewAccount ? (
+        <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground/80">
+          <Loader2 className="size-3 animate-spin" />
+          <span>Gathering info...</span>
         </div>
       ) : stat.change !== undefined && (
         <div className="mt-3 flex items-center gap-1.5 text-xs">

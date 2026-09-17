@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Building2, Mail, Phone, ArrowUpRight, ArrowDownRight, Minus, PhoneIncoming, PhoneOutgoing } from "lucide-react";
+import { Building2, Mail, Phone, ArrowUpRight, ArrowDownRight, Minus, PhoneIncoming, PhoneOutgoing, Loader2 } from "lucide-react";
 
 import { PremiumBadge } from "@/components/common/premium-badge";
 import { Badge } from "@/components/ui/badge";
@@ -278,6 +278,11 @@ export function CompanyOverviewSection({
               {isLoading ? (
                 <div className="mt-2 flex items-center justify-center">
                   <div className="h-3 w-20 animate-pulse rounded bg-muted-foreground/20"></div>
+                </div>
+              ) : stat.isNewAccount ? (
+                <div className="mt-2 flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground/80">
+                  <Loader2 className="size-3 animate-spin" />
+                  <span>Gathering info...</span>
                 </div>
               ) : (
                 <div className="mt-2 flex items-center justify-center gap-1 text-[10px]">
