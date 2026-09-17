@@ -194,6 +194,7 @@ export function CampaignCard({
   const [selectedHistId, setSelectedHistId] = useState<string | null>(null);
   const [historicalCampaigns, setHistoricalCampaigns] = useState<any[]>([]);
   const [isHistoricalLoading, setIsHistoricalLoading] = useState(false);
+  const [wavePages, setWavePages] = useState<Record<string, number>>({});
 
   const isReactivationCard = campaign.id === "camp-001" || campaign.isReactivation || campaign.name?.includes("Lead Reactivation");
 
@@ -967,7 +968,14 @@ export function CampaignCard({
                           { stage: "Q1", label: activeHist.q1?.label || "Wave 1", data: activeHist.q1 },
                           { stage: "Q2", label: activeHist.q2?.label || "Wave 2", data: activeHist.q2 },
                           { stage: "Q3", label: activeHist.q3?.label || "Wave 3", data: activeHist.q3 }
-                        ].map((wave, idx) => (
+                        ].map((wave, idx) => {
+                          const currentPage = wavePages[`${activeHist.id}-${wave.stage}`] || 1;
+                          const itemsPerPage = 10;
+                          const totalPages = Math.max(1, Math.ceil((wave.data.failedLeads?.length || 0) / itemsPerPage));
+                          const paginatedLeads = (wave.data.failedLeads || []).slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+                          const setWavePage = (page: number) => setWavePages(prev => ({ ...prev, [`${activeHist.id}-${wave.stage}`]: page }));
+                          
+                          return (
                           <div key={wave.stage} className="flex-1 flex flex-col border border-border/60 rounded-2xl bg-card overflow-hidden shadow-sm relative min-h-[300px] md:min-h-0">
                             {/* Wave Header */}
                             <div className="p-4 border-b border-border/50 bg-muted/20 flex flex-col gap-3 shrink-0">
@@ -1004,8 +1012,8 @@ export function CampaignCard({
                                   <span className="text-sm">No failed leads mapped to this stage yet.</span>
                                 </div>
                               ) : (
-                                <div className="space-y-1.5">
-                                  {wave.data.failedLeads.map((lead: any, i: number) => (
+                                <div className="space-y-1.5 pb-2">
+                                  {paginatedLeads.map((lead: any, i: number) => (
                                     <div key={i} className={cn("flex flex-col gap-1 text-xs border border-border/30 pb-2.5 pt-2.5 px-3 rounded-xl bg-background/50 shadow-sm", lead.isCompleted ? "border-emerald-500/30 bg-emerald-500/5" : "hover:bg-muted/30")}>
                                       <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
@@ -1015,7 +1023,7 @@ export function CampaignCard({
                                             <Clock className="size-4 text-muted-foreground shrink-0 opacity-50" />
                                           )}
                                           <span className={cn("truncate font-bold text-sm text-foreground", lead.isCompleted && "text-emerald-600 dark:text-emerald-400")}>
-                                            Lead {i + 1} - {lead.phone}
+                                            Lead {(currentPage - 1) * itemsPerPage + i + 1} - {lead.phone}
                                           </span>
                                         </div>
                                       </div>
@@ -1027,8 +1035,38 @@ export function CampaignCard({
                                 </div>
                               )}
                             </div>
+                            
+                            {/* Pagination Controls */}
+                            {totalPages > 1 && (
+                              <div className="p-3 border-t border-border/50 bg-muted/10 shrink-0">
+                                <div className="flex items-center justify-between">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="h-7 text-xs px-2"
+                                    onClick={() => setWavePage(Math.max(1, currentPage - 1))}
+                                    disabled={currentPage === 1}
+                                  >
+                                    Previous
+                                  </Button>
+                                  <span className="text-xs text-muted-foreground">
+                                    Page {currentPage} of {totalPages}
+                                  </span>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="h-7 text-xs px-2"
+                                    onClick={() => setWavePage(Math.min(totalPages, currentPage + 1))}
+                                    disabled={currentPage === totalPages}
+                                  >
+                                    Next
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   );
