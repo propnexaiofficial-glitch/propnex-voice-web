@@ -303,10 +303,10 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
               });
             }
           }
-        } catch (e) {
-          console.error("Fallback polling failed", e);
+        } catch (err) {
+          console.error("Failed to poll campaign status:", err);
         }
-      }, 5000);
+      }, 15000); // Changed from 2s to 15s to rely on WebSockets for instant updates
     }
     
     return () => {

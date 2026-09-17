@@ -12,6 +12,13 @@ interface CompletionAnimationProps {
   onComplete: () => void;
   durationMs?: number;
   type?: "campaign" | "schedule" | "force_stopped" | "reactivation";
+  stats?: {
+    success: number;
+    failed: number;
+    total: number;
+    wave: string;
+    dateTime: string;
+  };
 }
 
 export function CompletionAnimation({
@@ -20,6 +27,7 @@ export function CompletionAnimation({
   onComplete,
   durationMs,
   type = "campaign",
+  stats,
 }: CompletionAnimationProps) {
   const { width, height } = useWindowSize();
   const [showConfetti, setShowConfetti] = useState(type === "campaign" || type === "reactivation");
@@ -99,23 +107,50 @@ export function CompletionAnimation({
                  <CalendarClock className="size-8 shrink-0 animate-pulse drop-shadow-md text-primary" />
                )}
                
-               {/* Marquee scrolling container */}
-               <div className="flex-1 overflow-hidden whitespace-nowrap relative" style={{ maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)' }}>
-                 <motion.div 
-                   className="inline-block"
-                   animate={{ x: ["100%", "-100%"] }}
-                   transition={{ duration: 10, ease: "linear", repeat: Infinity }}
-                 >
-                   <span className="text-xl sm:text-2xl font-bold tracking-tight pr-6 drop-shadow-sm">
-                     {title}
-                   </span>
-                   {subtitle && (
-                     <span className="text-base sm:text-lg opacity-80 border-l-2 border-current pl-6 ml-2 inline-flex items-center">
-                       {subtitle}
+               {/* Marquee scrolling container OR Reactivation Stats */}
+               {type === "reactivation" && stats ? (
+                 <div className="flex-1 flex flex-col justify-center overflow-hidden pr-6">
+                   <div className="flex items-center gap-3 mb-1.5">
+                     <span className="text-lg sm:text-xl font-bold tracking-tight drop-shadow-sm text-primary">
+                       {stats.wave || "Reactivation"} Completed
                      </span>
-                   )}
-                 </motion.div>
-               </div>
+                     <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30">
+                       {stats.dateTime}
+                     </span>
+                   </div>
+                   <div className="flex items-center gap-4 text-sm font-medium opacity-90">
+                     <div className="flex items-center gap-1.5">
+                       <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                       <span>Success: {stats.success}</span>
+                     </div>
+                     <div className="flex items-center gap-1.5">
+                       <div className="size-2 rounded-full bg-destructive animate-pulse" />
+                       <span>Failed: {stats.failed}</span>
+                     </div>
+                     <div className="flex items-center gap-1.5">
+                       <div className="size-2 rounded-full bg-blue-500" />
+                       <span>Total: {stats.total}</span>
+                     </div>
+                   </div>
+                 </div>
+               ) : (
+                 <div className="flex-1 overflow-hidden whitespace-nowrap relative" style={{ maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)' }}>
+                   <motion.div 
+                     className="inline-block"
+                     animate={{ x: ["100%", "-100%"] }}
+                     transition={{ duration: 10, ease: "linear", repeat: Infinity }}
+                   >
+                     <span className="text-xl sm:text-2xl font-bold tracking-tight pr-6 drop-shadow-sm">
+                       {title}
+                     </span>
+                     {subtitle && (
+                       <span className="text-base sm:text-lg opacity-80 border-l-2 border-current pl-6 ml-2 inline-flex items-center">
+                         {subtitle}
+                       </span>
+                     )}
+                   </motion.div>
+                 </div>
+               )}
                
                <button 
                  onClick={() => {

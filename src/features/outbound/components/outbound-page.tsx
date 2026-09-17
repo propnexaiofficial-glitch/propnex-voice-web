@@ -96,7 +96,7 @@ export function OutboundPageContent() {
   }, [user, isLoading]);
 
   const [editCampaignId, setEditCampaignId] = useState<string | null>(null);
-  const [animationState, setAnimationState] = useState<{title: string, subtitle?: string, type?: "campaign" | "schedule" | "force_stopped"} | null>(null);
+  const [animationState, setAnimationState] = useState<{title: string, subtitle?: string, type?: "campaign" | "schedule" | "force_stopped" | "reactivation", stats?: any} | null>(null);
   const [scheduleHistoryList, setScheduleHistoryList] = useState<any[]>([]);
 
   const [transcriptOpen, setTranscriptOpen] = useState(false);
@@ -223,10 +223,24 @@ export function OutboundPageContent() {
   useEffect(() => {
     if (alertData && !alertData.isError) {
       if (alertData.title === "Campaign Completed" || alertData.title === "Campaign Force Stopped") {
+        const isReactivation = outboundCampaign.isReactivation;
+        
+        let stats = undefined;
+        if (isReactivation && alertData.title === "Campaign Completed") {
+          stats = {
+            success: outboundCampaign.successfulCalls || 0,
+            failed: outboundCampaign.failedCalls || 0,
+            total: outboundCampaign.completedCalls || 0,
+            wave: outboundCampaign.qStage ? `Wave ${outboundCampaign.qStage.replace('q', '')} (${outboundCampaign.qStage.toUpperCase()})` : "Reactivation",
+            dateTime: new Date().toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, month: 'short', day: 'numeric' })
+          };
+        }
+
         setAnimationState({
           title: alertData.title,
           subtitle: alertData.description,
-          type: alertData.title === "Campaign Force Stopped" ? "force_stopped" : "campaign",
+          type: alertData.title === "Campaign Force Stopped" ? "force_stopped" : (isReactivation ? "reactivation" : "campaign"),
+          stats
         });
         setAlertData(null);
 
@@ -382,11 +396,12 @@ export function OutboundPageContent() {
   return (
     <div className="space-y-6">
       {animationState && (
-        <CompletionAnimation 
-          title={animationState.title} 
-          subtitle={animationState.subtitle} 
-          type={animationState.type ?? "campaign"}
-          onComplete={handleAnimationComplete} 
+        <CompletionAnimation
+          title={animationState.title}
+          subtitle={animationState.subtitle}
+          type={animationState.type}
+          stats={animationState.stats}
+          onComplete={() => setAnimationState(null)}
         />
       )}
       
