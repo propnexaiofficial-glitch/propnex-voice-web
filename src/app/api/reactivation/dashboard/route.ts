@@ -191,9 +191,9 @@ export async function GET(req: NextRequest) {
       const q2Running = Array.from(activeCampaignIds).some(id => id.includes("-q2"));
       const q3Running = Array.from(activeCampaignIds).some(id => id.includes("-q3"));
 
-      const hasQ1Logs = reactivationLogs.some(l => l.correlationId?.endsWith("-q1") && buckets[key].q1.failedLeads.some((fl: any) => fl.id === l.leadId || fl.phone === l.publicId));
-      const hasQ2Logs = reactivationLogs.some(l => l.correlationId?.endsWith("-q2") && buckets[key].q1.failedLeads.some((fl: any) => fl.id === l.leadId || fl.phone === l.publicId));
-      const hasQ3Logs = reactivationLogs.some(l => l.correlationId?.endsWith("-q3") && buckets[key].q1.failedLeads.some((fl: any) => fl.id === l.leadId || fl.phone === l.publicId));
+      const hasQ1Logs = reactivationLogs.some(l => l.correlationId?.endsWith("-q1") && buckets[key].q1.failedLeads.some((fl: any) => fl.id === l.leadId || fl.phone === (l as any).publicId));
+      const hasQ2Logs = reactivationLogs.some(l => l.correlationId?.endsWith("-q2") && buckets[key].q1.failedLeads.some((fl: any) => fl.id === l.leadId || fl.phone === (l as any).publicId));
+      const hasQ3Logs = reactivationLogs.some(l => l.correlationId?.endsWith("-q3") && buckets[key].q1.failedLeads.some((fl: any) => fl.id === l.leadId || fl.phone === (l as any).publicId));
 
       b.q1.status = q1Running ? "Running" : (hasQ1Logs || now > b.q1Time ? "Completed" : "Pending");
       b.q2.status = q2Running ? "Running" : (hasQ2Logs || now > b.q2Time ? "Completed" : "Pending");
