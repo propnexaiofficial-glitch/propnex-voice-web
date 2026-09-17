@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
         phoneNumber: true,
       },
       orderBy: {
-        startedAt: "desc"
+        startedAt: "asc"
       }
     });
 
@@ -83,6 +83,7 @@ export async function GET(req: NextRequest) {
 
     // Group by Date ONLY (YYYY-MM-DD)
     const buckets: Record<string, any> = {};
+    const seenPhones = new Set<string>();
 
     for (const call of failedCalls) {
       let fallbackCustomerNumber = "";
@@ -110,6 +111,10 @@ export async function GET(req: NextRequest) {
 
       const leadPhone = call.lead?.phone || fallbackCustomerNumber;
       if (!leadPhone) continue; // Skip if no phone number available
+      
+      // Global deduplication: only add a number to the reactivation pipeline once across all history
+      if (seenPhones.has(leadPhone)) continue;
+      seenPhones.add(leadPhone);
       
       const d = call.startedAt;
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -181,14 +186,18 @@ export async function GET(req: NextRequest) {
       const b = buckets[key];
       const now = new Date();
 
-      // Determine Statuses
+      // Determine Statuses based on active status, existing logs, or time
       const q1Running = Array.from(activeCampaignIds).some(id => id.includes("-q1"));
       const q2Running = Array.from(activeCampaignIds).some(id => id.includes("-q2"));
       const q3Running = Array.from(activeCampaignIds).some(id => id.includes("-q3"));
 
-      b.q1.status = q1Running ? "Running" : (now > b.q1Time ? "Completed" : "Pending");
-      b.q2.status = q2Running ? "Running" : (now > b.q2Time ? "Completed" : "Pending");
-      b.q3.status = q3Running ? "Running" : (now > b.q3Time ? "Completed" : "Pending");
+      const hasQ1Logs = reactivationLogs.some(l => l.correlationId?.endsWith("-q1") && buckets[key].q1.failedLeads.some((fl: any) => fl.id === l.leadId || fl.phone === l.publicId));
+      const hasQ2Logs = reactivationLogs.some(l => l.correlationId?.endsWith("-q2") && buckets[key].q1.failedLeads.some((fl: any) => fl.id === l.leadId || fl.phone === l.publicId));
+      const hasQ3Logs = reactivationLogs.some(l => l.correlationId?.endsWith("-q3") && buckets[key].q1.failedLeads.some((fl: any) => fl.id === l.leadId || fl.phone === l.publicId));
+
+      b.q1.status = q1Running ? "Running" : (hasQ1Logs || now > b.q1Time ? "Completed" : "Pending");
+      b.q2.status = q2Running ? "Running" : (hasQ2Logs || now > b.q2Time ? "Completed" : "Pending");
+      b.q3.status = q3Running ? "Running" : (hasQ3Logs || now > b.q3Time ? "Completed" : "Pending");
 
       // Filter Leads across stages
       const q1FinalList = [];
