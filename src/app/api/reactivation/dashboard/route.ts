@@ -224,9 +224,12 @@ export async function GET(req: NextRequest) {
         (b.q1.failedLeads.some((fl: any) => fl.id === l.leadId) && matchLegacy(l, "-q3", b.q3Time))
       );
 
-      b.q1.status = q1Running ? "Running" : (hasQ1Logs ? "Completed" : "Pending");
-      b.q2.status = q2Running ? "Running" : (hasQ2Logs ? "Completed" : "Pending");
-      b.q3.status = q3Running ? "Running" : (hasQ3Logs ? "Completed" : "Pending");
+      const nowMs = Date.now();
+      const isMissed = (time: Date) => nowMs > time.getTime() + 24 * 60 * 60 * 1000;
+
+      b.q1.status = q1Running ? "Running" : (hasQ1Logs || isMissed(b.q1Time) ? "Completed" : "Pending");
+      b.q2.status = q2Running ? "Running" : (hasQ2Logs || isMissed(b.q2Time) ? "Completed" : "Pending");
+      b.q3.status = q3Running ? "Running" : (hasQ3Logs || isMissed(b.q3Time) ? "Completed" : "Pending");
 
       // Build per-lead outcome lists for each wave
       const q1FinalList: any[] = [];
