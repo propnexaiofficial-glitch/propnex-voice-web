@@ -33,20 +33,9 @@ export async function GET(req: NextRequest) {
       where: {
         companyId,
         direction: "OUTBOUND",
-        AND: [
-          {
-            OR: [
-              { status: { in: ["FAILED", "MISSED", "BUSY", "NO_ANSWER", "CANCELLED"] } },
-              { durationSeconds: 0 },
-            ]
-          },
-          {
-            OR: [
-              { correlationId: { isSet: false } },
-              { correlationId: null },
-              { correlationId: { not: { startsWith: "reactivation-" } } }
-            ]
-          }
+        OR: [
+          { status: { in: ["FAILED", "MISSED", "BUSY", "NO_ANSWER", "CANCELLED"] } },
+          { durationSeconds: 0 },
         ]
       },
       include: {
