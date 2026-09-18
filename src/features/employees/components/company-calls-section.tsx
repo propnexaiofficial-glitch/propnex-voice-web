@@ -135,8 +135,8 @@ export function CompanyCallsSection({
     
     if (company.assignedNumbers) {
       const hasNum = direction === "outbound" 
-        ? company.assignedNumbers.some((n: any) => n.direction === "OUTBOUND" || n.direction === "BOTH")
-        : company.assignedNumbers.some((n: any) => n.direction === "INBOUND" || n.direction === "BOTH");
+        ? company.assignedNumbers.some((n: any) => n.direction?.toUpperCase() === "OUTBOUND" || n.direction?.toUpperCase() === "BOTH")
+        : company.assignedNumbers.some((n: any) => n.direction?.toUpperCase() === "INBOUND" || n.direction?.toUpperCase() === "BOTH");
         
       setHasAssignedNumber(hasNum);
     } else if (company.assignedNumbers === undefined) {
