@@ -873,11 +873,14 @@ export function CampaignCard({
                       >
                         <div className="flex flex-col gap-1 items-start w-full">
                           {(() => {
+                            const getCompletedCount = (wave: any) => wave?.failedLeads?.filter((l: any) => l.isCompleted)?.length || 0;
+                            const getTotalCount = (wave: any) => wave?.failedLeads?.length || 0;
+
                             const statusText = hist.q3?.status === "Completed" 
                               ? "Completed" 
-                              : hist.q1?.status === "Running" ? "Running Q1" 
-                              : hist.q2?.status === "Running" ? "Running Q2" 
-                              : hist.q3?.status === "Running" ? "Running Q3" 
+                              : hist.q1?.status === "Running" ? `Running ${getCompletedCount(hist.q1)} / ${getTotalCount(hist.q1)} Q1` 
+                              : hist.q2?.status === "Running" ? `Running ${getCompletedCount(hist.q2)} / ${getTotalCount(hist.q2)} Q2` 
+                              : hist.q3?.status === "Running" ? `Running ${getCompletedCount(hist.q3)} / ${getTotalCount(hist.q3)} Q3` 
                               : hist.q1?.status === "Pending" || hist.q1?.status === "Scheduled" ? `${hist.q1.status} Q1` 
                               : hist.q2?.status === "Pending" || hist.q2?.status === "Scheduled" ? `${hist.q2.status} Q2` 
                               : `${hist.q3?.status || "Pending"} Q3`;
