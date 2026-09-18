@@ -1013,25 +1013,29 @@ export function CampaignCard({
                                 </div>
                               ) : (
                                 <div className="space-y-1.5 pb-2">
-                                  {paginatedLeads.map((lead: any, i: number) => (
-                                    <div key={i} className={cn("flex flex-col gap-1 text-xs border border-border/30 pb-2.5 pt-2.5 px-3 rounded-xl bg-background/50 shadow-sm", lead.isCompleted ? "border-emerald-500/30 bg-emerald-500/5" : "hover:bg-muted/30")}>
+                                  {paginatedLeads.map((lead: any, i: number) => {
+                                    const isFailed = lead.isFailed || (wave.data.status === "Completed" && !lead.isCompleted);
+                                    return (
+                                    <div key={i} className={cn("flex flex-col gap-1 text-xs border border-border/30 pb-2.5 pt-2.5 px-3 rounded-xl bg-background/50 shadow-sm", lead.isCompleted ? "border-emerald-500/30 bg-emerald-500/5" : isFailed ? "border-red-500/30 bg-red-500/5" : "hover:bg-muted/30")}>
                                       <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
                                           {lead.isCompleted ? (
                                             <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+                                          ) : isFailed ? (
+                                            <X className="size-4 text-red-500 shrink-0" />
                                           ) : (
                                             <Clock className="size-4 text-muted-foreground shrink-0 opacity-50" />
                                           )}
-                                          <span className={cn("truncate font-bold text-sm text-foreground", lead.isCompleted && "text-emerald-600 dark:text-emerald-400")}>
+                                          <span className={cn("truncate font-bold text-sm text-foreground", lead.isCompleted && "text-emerald-600 dark:text-emerald-400", isFailed && "text-red-600 dark:text-red-400")}>
                                             Lead {(currentPage - 1) * itemsPerPage + i + 1} - {lead.phone}
                                           </span>
                                         </div>
                                       </div>
-                                      <div className="flex flex-col items-center justify-center w-full text-muted-foreground mt-2 text-xs font-medium bg-muted/40 py-2 px-3 rounded-lg border border-border/40 text-center">
-                                        <span className="text-foreground/90">Name - {lead.name || "Unknown"}, DID Number - {lead.didNumber !== "Unknown" ? lead.didNumber : "Unknown"}, Ch - {lead.channels || activeHist.channels || 1}</span>
+                                      <div className={cn("flex flex-col items-center justify-center w-full mt-2 text-xs font-medium py-2 px-3 rounded-lg border text-center", lead.isCompleted ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400" : isFailed ? "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400" : "bg-muted/40 border-border/40 text-muted-foreground")}>
+                                        <span className={cn("text-foreground/90", lead.isCompleted ? "text-emerald-700 dark:text-emerald-400" : isFailed ? "text-red-700 dark:text-red-400" : "")}>Name - {lead.name || "Unknown"}, DID Number - {lead.didNumber !== "Unknown" ? lead.didNumber : "Unknown"}, Ch - {lead.channels || activeHist.channels || 1}</span>
                                       </div>
                                     </div>
-                                  ))}
+                                  )})}
                                 </div>
                               )}
                             </div>
