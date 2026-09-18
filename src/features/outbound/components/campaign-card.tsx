@@ -1017,10 +1017,37 @@ export function CampaignCard({
                                     : wave.data.status}
                                 </Badge>
                               </div>
-                              <div className="flex items-center justify-between text-xs font-medium">
-                                <span className="text-muted-foreground">Failed Leads:</span>
-                                <span className="text-foreground bg-muted px-2 py-0.5 rounded-full">{wave.data.failedLeads.length}</span>
-                              </div>
+                              {(() => {
+                                const total = wave.data.failedLeads.length;
+                                const succeeded = wave.data.failedLeads.filter((l: any) => l.isCompleted).length;
+                                const failed = wave.data.status === "Completed" ? total - succeeded : 0;
+                                const pending = wave.data.status !== "Completed" ? total - succeeded : 0;
+                                return (
+                                  <div className="flex items-center justify-between gap-2 text-xs font-medium flex-wrap">
+                                    <span className="flex items-center gap-1">
+                                      <span className="text-muted-foreground">Total Leads</span>
+                                      <span className="bg-muted text-foreground px-2 py-0.5 rounded-full">{total}</span>
+                                    </span>
+                                    {wave.data.status === "Completed" ? (
+                                      <>
+                                        <span className="flex items-center gap-1">
+                                          <span className="text-emerald-500/80">Success</span>
+                                          <span className="bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full">{succeeded}</span>
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                          <span className="text-red-500/80">Failed</span>
+                                          <span className="bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full">{failed}</span>
+                                        </span>
+                                      </>
+                                    ) : (
+                                      <span className="flex items-center gap-1">
+                                        <span className="text-amber-500/80">Pending</span>
+                                        <span className="bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full">{pending}</span>
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </div>
                             
                             {/* Wave Leads List */}
