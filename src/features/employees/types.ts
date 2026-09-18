@@ -3,7 +3,7 @@ export type SubCompany = {
   name: string;
   contactEmail: string;
   contactPhone: string;
-  assignedNumbers: Array<{ number: string, direction?: string, channels?: number }>; // phone numbers assigned to this sub-company
+  assignedNumbers: Array<{ id?: string; number: string; direction?: string; channels?: number; agentUrl?: string | null }>; // phone numbers assigned to this sub-company
   channels?: number;
   creditsUsed: number;
   creditsLimit: number;
