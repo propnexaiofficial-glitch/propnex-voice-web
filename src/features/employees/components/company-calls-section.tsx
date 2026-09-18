@@ -678,16 +678,20 @@ export function CompanyCallsSection({
 
           {!isLocked && (
             <div className="flex flex-col gap-2 items-end">
-              {!hasAssignedNumber && !isLockChecking ? (
+              {!hasAssignedNumber ? (
                 isRequestLocked ? (
                   <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md text-sm text-muted-foreground border border-border h-10">
                     <CheckCircle2 className="size-4 text-emerald-500" />
                     Request sent (Available in 24h)
                   </div>
                 ) : (
-                  <Button onClick={handleRemindAdmin} disabled={reminding} className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white h-10">
+                  <Button 
+                    onClick={handleRemindAdmin} 
+                    disabled={reminding || isLockChecking} 
+                    className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white h-10"
+                  >
                     <PhoneIncoming className="size-4" />
-                    {reminding ? "Sending..." : "Request Inbound Number"}
+                    {reminding ? "Sending..." : isLockChecking ? "Checking..." : "Request Inbound Number"}
                   </Button>
                 )
               ) : null}
