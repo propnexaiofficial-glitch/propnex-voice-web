@@ -434,7 +434,6 @@ export function CampaignCard({
                       <div className="space-y-2">
                         <p className="font-semibold text-sm text-muted-foreground">Pending ({(campaign.leads || []).length} Leads)</p>
                         {(campaign.leads || [])
-                          .slice(0, 50)
                           .map((l: any, i: number) => ({ ...l, originalIdx: i }))
                           .sort((a: any, b: any) => {
                             const aValid = a.phone && isValidPhoneNumber(String(a.phone || ""));
@@ -446,9 +445,6 @@ export function CampaignCard({
                           .map((lead: any) => (
                             <LeadRow key={`${lead.phone}-${lead.originalIdx}`} lead={lead} idx={lead.originalIdx} onSave={(newLead) => onEditLead?.(lead.originalIdx, newLead)} onDelete={campaign.status === "ready" ? () => onDeleteLead?.(lead.originalIdx) : undefined} campaignStatus={campaign.status} />
                         ))}
-                        {(campaign.leads || []).length > 50 && (
-                          <p className="text-xs text-muted-foreground text-center py-2">+{(campaign.leads || []).length - 50} more leads</p>
-                        )}
                       </div>
                     )}
 
@@ -468,24 +464,18 @@ export function CampaignCard({
                         
                         {activeTab === "pending" && pendingLeads.length > 0 && (
                           <div className="space-y-2">
-                            {pendingLeads.slice(0, 50).map((lead: any) => (
+                            {pendingLeads.map((lead: any) => (
                               <LeadRow key={`${lead.phone}-${lead.originalIdx}`} lead={lead} idx={lead.originalIdx} onSave={() => {}} campaignStatus={campaign.status} />
                             ))}
-                            {pendingLeads.length > 50 && (
-                              <p className="text-xs text-muted-foreground text-center py-2">+{pendingLeads.length - 50} more pending</p>
-                            )}
                           </div>
                         )}
                         {activeTab === "pending" && pendingLeads.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No pending leads</p>}
 
                         {activeTab === "successful" && successLeads.length > 0 && (
                           <div className="space-y-2">
-                            {successLeads.slice(0, 50).map((lead: any) => (
+                            {successLeads.map((lead: any) => (
                               <LeadRow key={`${lead.phone}-${lead.originalIdx}`} lead={lead} idx={lead.originalIdx} onSave={() => {}} campaignStatus={campaign.status} />
                             ))}
-                            {successLeads.length > 50 && (
-                              <p className="text-xs text-emerald-600/70 text-center py-2">+{successLeads.length - 50} more successful</p>
-                            )}
                           </div>
                         )}
                         {activeTab === "successful" && successLeads.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No successful calls yet</p>}
