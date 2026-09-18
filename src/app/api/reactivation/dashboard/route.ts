@@ -27,11 +27,17 @@ export async function GET(req: NextRequest) {
 
     const companyId = member.companyId;
 
+    const subCompanies = await prisma.company.findMany({
+      where: { parentCompanyId: companyId },
+      select: { id: true }
+    });
+    const companyIdsToQuery = [companyId, ...subCompanies.map((c: any) => c.id)];
+
     // Fetch all initial FAILED/MISSED calls to find the base "Failed Leads" pool
     // We only want original outbound calls, NOT reactivation calls
     const failedCalls = await prisma.callLog.findMany({
       where: {
-        companyId,
+        companyId: { in: companyIdsToQuery },
         direction: "OUTBOUND",
         OR: [
           { status: { in: ["FAILED", "MISSED", "BUSY", "NO_ANSWER", "CANCELLED"] } },
@@ -51,7 +57,7 @@ export async function GET(req: NextRequest) {
     // We need these to know if a lead successfully answered during Q1, Q2, or Q3
     const reactivationLogs = await prisma.callLog.findMany({
       where: {
-        companyId,
+        companyId: { in: companyIdsToQuery },
         direction: "OUTBOUND",
         correlationId: { startsWith: "reactivation-" }
       },
