@@ -380,7 +380,17 @@ export function CompanyCallsSection({
   };
 
 
-  const [isRequestLocked, setIsRequestLocked] = useState(false);
+  const [isRequestLocked, setIsRequestLocked] = useState(() => {
+    if (typeof window !== "undefined") {
+      const key = `last_${direction}_number_request_${companyId}`;
+      const lastRequest = localStorage.getItem(key);
+      if (lastRequest) {
+        const hoursSince = (Date.now() - parseInt(lastRequest)) / (1000 * 60 * 60);
+        if (hoursSince < 24) return true;
+      }
+    }
+    return false;
+  });
   const [isLockChecking, setIsLockChecking] = useState(true);
   const [reminding, setReminding] = useState(false);
   const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);
