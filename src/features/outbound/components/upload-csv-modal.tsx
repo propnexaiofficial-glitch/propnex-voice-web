@@ -56,21 +56,28 @@ export function UploadCsvModal({
   const [extractedLeads, setExtractedLeads] = useState<ExtractedLead[]>([]);
   const [error, setError] = useState<string | null>(null);
   
-  const outboundNumbers = didNumbers.filter(n => {
+  const outboundNumbers = (didNumbers || []).filter(n => {
     const dir = (n.direction || "").toUpperCase();
     return !n.direction || dir === "OUTBOUND" || dir === "BOTH" || dir === "GENERAL";
   });
-  const [selectedDid, setSelectedDid] = useState<string>(outboundNumbers[0]?.number || "");
+  const [selectedDid, setSelectedDid] = useState<string>("");
 
-  // Auto-select first DID if available
+  // Auto-select first DID whenever outboundNumbers changes (handles async load)
   useEffect(() => {
-    if (!selectedDid && outboundNumbers.length > 0) {
+    if (outboundNumbers.length > 0 && (!selectedDid || !outboundNumbers.some(n => n.number === selectedDid))) {
       setSelectedDid(outboundNumbers[0].number);
     }
-  }, [outboundNumbers, selectedDid]);
+  }, [outboundNumbers]);
 
-  // Derive channel count from selected DID's admin-assigned channels
-  const selectedDidInfo = outboundNumbers.find(n => n.number === selectedDid);
+  // Normalize a phone number to digits-only for comparison
+  const normalizePhone = (num: string) => (num || "").replace(/\D/g, "");
+
+  // Derive channel count and agentUrl from selected DID — compare normalized numbers to handle format mismatches
+  const selectedDidInfo = outboundNumbers.find(n => {
+    if (n.number === selectedDid) return true;
+    // Normalize both to last 10 digits for comparison
+    return normalizePhone(n.number).slice(-10) === normalizePhone(selectedDid).slice(-10);
+  });
   const derivedChannels = selectedDidInfo?.channels ?? 1;
 
   const formatPhoneNumber = (numStr: string): string => {
@@ -305,9 +312,9 @@ export function UploadCsvModal({
                 : `Up to ${derivedChannels} calls will be made in parallel, as allocated by your admin.`}
             </p>
             {(!selectedDidInfo?.agentUrl) && (
-              <p className="text-xs text-amber-500 mt-1 flex items-center gap-1">
+              <p className="text-xs font-medium text-red-500 animate-in fade-in mt-1 flex items-center gap-1">
                 <AlertCircle className="size-3" />
-                Note: Agent URL not yet assigned for this number. You can upload your CSV, but the campaign will not start until the admin assigns an agent URL.
+                Agent URL is not assigned for this number. Please tell the admin to assign it before starting.
               </p>
             )}
           </div>
@@ -382,7 +389,7 @@ export function UploadCsvModal({
           <Button type="button" variant="outline" onClick={() => handleClose(false)}>
             Cancel
           </Button>
-          <Button type="button" disabled={!selectedFile || validLeadsCount === 0} onClick={handleConfirm}>
+          <Button type="button" disabled={!selectedFile || validLeadsCount === 0 || (outboundNumbers.length > 0 && !selectedDidInfo?.agentUrl)} onClick={handleConfirm}>
             Upload &amp; Extract Leads
           </Button>
         </DialogFooter>
