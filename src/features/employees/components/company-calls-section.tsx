@@ -395,6 +395,11 @@ export function CompanyCallsSection({
   const [reminding, setReminding] = useState(false);
   const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);
 
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   useEffect(() => {
     if (isContextLoading) return;
     const key = `last_${direction}_number_request_${companyId}`;
@@ -689,7 +694,9 @@ export function CompanyCallsSection({
           {!isLocked && (
             <div className="flex flex-col gap-2 items-end">
               {!hasAssignedNumber ? (
-                isRequestLocked ? (
+                !isMounted ? (
+                  <div className="h-10 w-52 bg-muted/50 animate-pulse rounded-md border border-border"></div>
+                ) : isRequestLocked ? (
                   <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md text-sm text-muted-foreground border border-border h-10">
                     <CheckCircle2 className="size-4 text-emerald-500" />
                     Request sent (Available in 24h)
@@ -698,14 +705,14 @@ export function CompanyCallsSection({
                   <Button 
                     onClick={handleRemindAdmin} 
                     disabled={reminding || isLockChecking} 
-                    className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white h-10"
+                    className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white h-10 w-52"
                   >
                     <PhoneIncoming className="size-4" />
                     {reminding ? "Sending..." : isLockChecking ? "Checking..." : "Request Inbound Number"}
                   </Button>
                 )
               ) : null}
-              {remindMessage && !isRequestLocked && (
+              {remindMessage && !isRequestLocked && isMounted && (
                 <p className={`text-xs ${remindMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
                   {remindMessage.text}
                 </p>
