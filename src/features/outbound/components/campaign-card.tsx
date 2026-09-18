@@ -120,7 +120,9 @@ function LeadRow({ lead, idx, onSave, onDelete, campaignStatus }: { lead: any; i
     <div className={cn("flex justify-between items-center text-xs border-b border-border pb-1 hover:bg-muted/30 p-1 -mx-1 px-1 rounded transition-colors group", (!lead.phone || !isValidPhoneNumber(String(lead.phone || ""))) && campaignStatus === "ready" && "bg-red-500/10 border-red-500/20")}>
       <div className="flex flex-col gap-0.5 overflow-hidden">
         <div className="flex items-center gap-2">
-          {lead.isCompleted ? (
+          {lead.isFailed ? (
+            <X className="size-3.5 text-rose-500 shrink-0" />
+          ) : lead.isCompleted ? (
             <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
           ) : lead.called ? (
             <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
@@ -138,14 +140,14 @@ function LeadRow({ lead, idx, onSave, onDelete, campaignStatus }: { lead: any; i
       </div>
       <div className="flex items-center gap-2">
         <span className={cn("font-mono", lead.called && "line-through text-muted-foreground", (!lead.phone || !isValidPhoneNumber(String(lead.phone || ""))) && campaignStatus === "ready" && "text-red-400 font-medium")}>{lead.phone}</span>
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-          <button onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-foreground">
+        <div className="flex items-center gap-1">
+          <Button size="icon" variant="ghost" className="h-5 w-5 text-sky-400 hover:text-sky-300 hover:bg-sky-500/10" onClick={() => setIsEditing(true)}>
             <Pencil className="size-3" />
-          </button>
+          </Button>
           {onDelete && (
-            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }} className="text-muted-foreground hover:text-red-500">
+            <Button size="icon" variant="ghost" className="h-5 w-5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}>
               <Trash2 className="size-3" />
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -419,11 +421,15 @@ export function CampaignCard({
                       All Numbers
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className={cn("w-[350px] max-h-96 overflow-y-auto p-4 space-y-4 z-50", isReactivationCard && "backdrop-blur-md bg-background/90 border-primary/30 shadow-2xl")}>
+                  <PopoverContent className={cn("w-[350px] max-h-[30rem] overflow-y-auto p-4 space-y-4 z-50 shadow-2xl", isReactivationCard && "backdrop-blur-md bg-background/90 border-primary/30")}>
                     
+                    <div className="sticky -top-4 -mx-4 px-4 py-3 bg-background/95 backdrop-blur-md border-b border-border z-10 font-semibold text-sm">
+                      All Numbers of {campaign.uploadedFileName || (pendingSchedules[0]?.csvName) || "CSV"}
+                    </div>
+
                     {(campaign.status === "ready" || campaign.status === "scheduled") && (
                       <div className="space-y-2">
-                        <p className="font-semibold">Pending ({(campaign.leads || []).length} Leads)</p>
+                        <p className="font-semibold text-sm text-muted-foreground">Pending ({(campaign.leads || []).length} Leads)</p>
                         {(campaign.leads || [])
                           .slice(0, 50)
                           .map((l: any, i: number) => ({ ...l, originalIdx: i }))
