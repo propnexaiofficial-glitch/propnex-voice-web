@@ -35,11 +35,11 @@ export async function GET(req: NextRequest) {
       select: { createdAt: true }
     });
 
-    // Check if account is < 30 days old
     const now = new Date();
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(now.getDate() - 30);
-    const isNewAccount = targetCompanyRecord?.createdAt ? new Date(targetCompanyRecord.createdAt) > thirtyDaysAgo : false;
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    // Check if account was created in the current calendar month
+    const isNewAccount = targetCompanyRecord?.createdAt ? new Date(targetCompanyRecord.createdAt) >= startOfThisMonth : false;
 
 
     let companyIdsToQuery = [];
@@ -54,8 +54,6 @@ export async function GET(req: NextRequest) {
       });
       companyIdsToQuery = [member.companyId, ...subCompanies.map((c: any) => c.id)];
     }
-
-    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
