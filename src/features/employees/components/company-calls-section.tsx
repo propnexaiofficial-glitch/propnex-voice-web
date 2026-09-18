@@ -128,6 +128,9 @@ export function CompanyCallsSection({
   const isOutOfCredits = (company?.creditsRemaining ?? 0) <= 0;
   const isLocked = company?.status === "SUSPENDED" || company?.status === "DELETED";
 
+  // Track whether we've completed the first load so we don't flash skeleton on polls
+  const hasLoadedOnce = !isContextLoading || !!company;
+
   const [hasAssignedNumber, setHasAssignedNumber] = useState<boolean | null>(null);
   
   useEffect(() => {
@@ -538,7 +541,8 @@ export function CompanyCallsSection({
     setUploadOpen(false);
   };
 
-  if (isContextLoading) {
+  // Only show skeleton on the very first load (no data yet), NOT during polling re-renders
+  if (isContextLoading && !hasLoadedOnce) {
     return (
       <div className="space-y-4">
         <div className="h-32 w-full animate-pulse rounded-xl bg-muted" />
