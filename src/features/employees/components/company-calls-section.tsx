@@ -128,7 +128,7 @@ export function CompanyCallsSection({
   const isOutOfCredits = (company?.creditsRemaining ?? 0) <= 0;
   const isLocked = company?.status === "SUSPENDED" || company?.status === "DELETED";
 
-  const [hasAssignedNumber, setHasAssignedNumber] = useState(true);
+  const [hasAssignedNumber, setHasAssignedNumber] = useState<boolean | null>(null);
   
   useEffect(() => {
     if (isContextLoading || !company) return;
@@ -141,6 +141,7 @@ export function CompanyCallsSection({
       setHasAssignedNumber(hasNum);
     } else if (company.assignedNumbers === undefined) {
       // If we are sure it's loaded but there's no array, assume false
+      setHasAssignedNumber(false);
     }
   }, [company, direction, isContextLoading]);
 
@@ -207,7 +208,7 @@ export function CompanyCallsSection({
     }
   }, [companyId]);
 
-  const shouldShowIdleReactivation = hasAssignedNumber && persistentFailedLeads.length > 0;
+  const shouldShowIdleReactivation = (hasAssignedNumber ?? true) && persistentFailedLeads.length > 0;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -401,7 +402,7 @@ export function CompanyCallsSection({
   }, []);
 
   useEffect(() => {
-    if (isContextLoading) return;
+    if (isContextLoading || hasAssignedNumber === null) return;
     const key = `last_${direction}_number_request_${companyId}`;
     
     if (hasAssignedNumber) {
@@ -611,7 +612,7 @@ export function CompanyCallsSection({
                   });
                 }}
                 failedCallsCount={0}
-                hasOutboundNumber={hasAssignedNumber}
+                hasOutboundNumber={hasAssignedNumber ?? true}
                 companyId={companyId}
               />
             </motion.div>
@@ -652,15 +653,15 @@ export function CompanyCallsSection({
                 failedCallsCount={persistentFailedLeads.length}
                 disableSchedule={persistentFailedLeads.length === 0}
                 scheduleDisabledReason="No unscheduled failed calls available."
-                hasOutboundNumber={hasAssignedNumber}
+                hasOutboundNumber={hasAssignedNumber ?? true}
                 companyId={companyId}
               />
             </motion.div>
           )}
         </AnimatePresence>
           <CampaignCard
-            campaign={hasAssignedNumber ? outboundCampaign : { ...outboundCampaign, status: "idle", leads: [], failedCalls: 0, completedCalls: 0 }}
-            progressPercent={hasAssignedNumber ? progressPercent : 0}
+              campaign={(hasAssignedNumber ?? true) ? outboundCampaign : { ...outboundCampaign, status: "idle", leads: [], failedCalls: 0, completedCalls: 0 }}
+              progressPercent={(hasAssignedNumber ?? true) ? progressPercent : 0}
             onUploadClick={() => setUploadOpen(true)}
             onStart={() => {
               startCampaign();
@@ -671,7 +672,7 @@ export function CompanyCallsSection({
             onForceStop={forceStopCampaign}
             onEditLead={editLead}
             onDeleteLead={deleteLead}
-            hasOutboundNumber={hasAssignedNumber}
+            hasOutboundNumber={hasAssignedNumber ?? true}
             companyId={companyId}
           />
         </>
@@ -692,9 +693,9 @@ export function CompanyCallsSection({
           </div>
 
           {!isLocked && (
-            <div className="flex flex-col gap-2 items-end">
-              {!hasAssignedNumber ? (
-                !isMounted ? (
+              <div className="flex flex-col gap-2 items-end">
+                {hasAssignedNumber === false ? (
+                  !isMounted ? (
                   <div className="h-10 w-52 bg-muted/50 animate-pulse rounded-md border border-border"></div>
                 ) : isRequestLocked ? (
                   <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md text-sm text-muted-foreground border border-border h-10">
