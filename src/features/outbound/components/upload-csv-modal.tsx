@@ -324,10 +324,10 @@ export function UploadCsvModal({
         )}
 
         <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={() => handleClose(false)}>
+          <Button type="button" variant="outline" onClick={() => handleClose(false)}>
             Cancel
           </Button>
-          <Button disabled={!selectedFile || validLeadsCount === 0 || (outboundNumbers.length > 0 && !selectedDidInfo?.agentUrl)} onClick={handleConfirm}>
+          <Button type="button" disabled={!selectedFile || validLeadsCount === 0 || (outboundNumbers.length > 0 && !selectedDidInfo?.agentUrl)} onClick={handleConfirm}>
             Upload &amp; Extract Leads
           </Button>
         </DialogFooter>

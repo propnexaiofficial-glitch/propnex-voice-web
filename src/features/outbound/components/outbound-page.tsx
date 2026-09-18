@@ -334,6 +334,54 @@ export function OutboundPageContent() {
     }
   }, [alertData, setAlertData, clearCampaign, outboundCampaign.isReactivation, outboundCampaign.leads]);
 
+  // Check for completed sub-company campaigns (Main Company feature)
+  useEffect(() => {
+    if (!user || user.role !== "COMPANY_OWNER") return;
+
+    const checkForSubcompanyCompletions = async () => {
+      try {
+        const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
+        const companiesRes = await fetch(`${apiBase === '/api' ? '' : apiBase}/api/companies`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (!companiesRes.ok) return;
+        const companiesData = await companiesRes.json();
+        const subCompanies = companiesData.filter((c: any) => c.parentCompanyId === user.companyId);
+
+        for (const sub of subCompanies) {
+          const statusRes = await fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/status?companyId=${sub.id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          if (statusRes.ok) {
+            const statusData = await statusRes.json();
+            if (statusData?.data?.status === "completed") {
+              const ackKey = `ack_sub_camp_completed_${sub.id}_${statusData.data.id || 'recent'}`;
+              if (!localStorage.getItem(ackKey)) {
+                localStorage.setItem(ackKey, "true");
+                setAnimationState({
+                  title: "Sub-Company Campaign Completed!",
+                  subtitle: `Campaign for ${sub.name} has finished.`,
+                  type: "campaign"
+                });
+                // We leave the state in Redis. The sub-company tab will clear it when visited.
+              }
+            }
+          }
+        }
+      } catch (err) {
+        // Silently ignore polling errors
+      }
+    };
+
+    // Run once on mount and then poll every 15s
+    checkForSubcompanyCompletions();
+    const intervalId = setInterval(checkForSubcompanyCompletions, 15000);
+    return () => clearInterval(intervalId);
+  }, [user]);
+
   const handleReschedule = async () => {
     try {
       setIsRescheduling(true);
