@@ -410,18 +410,6 @@ export function CampaignCard({
                </div>
             )}
             
-            {isReactivationCard && (
-              <div className="flex items-center gap-2 ml-2">
-                <div 
-                  className="flex size-7 cursor-pointer items-center justify-center rounded-full bg-muted/50 hover:bg-muted transition-colors" 
-                  title="View Lead Reactivation Dashboard"
-                  onClick={() => setLeadsModalOpen(true)}
-                >
-                  <Info className="size-4 text-muted-foreground" />
-                </div>
-              </div>
-            )}
-            
             {(campaign.status !== "idle" && !isReactivationCard && campaign.leads && campaign.leads.length > 0) && (
               <div className="flex items-center gap-2 ml-2">
                 <Popover>
@@ -433,7 +421,6 @@ export function CampaignCard({
                   <PopoverContent className={cn("w-[350px] max-h-96 overflow-y-auto p-4 space-y-4 z-50", isReactivationCard && "backdrop-blur-md bg-background/90 border-primary/30 shadow-2xl")}>
                     
                     {(campaign.status === "ready" || campaign.status === "scheduled") && (
-
                       <div className="space-y-2">
                         <p className="font-semibold">Pending ({(campaign.leads || []).length} Leads)</p>
                         {(campaign.leads || [])
@@ -1033,30 +1020,31 @@ export function CampaignCard({
                               {(() => {
                                 const total = wave.data.failedLeads.length;
                                 const succeeded = wave.data.failedLeads.filter((l: any) => l.isCompleted).length;
-                                const failed = wave.data.failedLeads.filter((l: any) => l.isFailed).length;
-                                const pending = total - succeeded - failed;
-                                
+                                const failed = wave.data.status === "Completed" ? total - succeeded : 0;
+                                const pending = wave.data.status !== "Completed" ? total - succeeded : 0;
                                 return (
-                                  <div className="flex items-center justify-between gap-2 text-xs font-medium flex-wrap mt-2 border-t border-border/30 pt-2">
+                                  <div className="flex items-center justify-between gap-2 text-xs font-medium flex-wrap">
                                     <span className="flex items-center gap-1">
                                       <span className="text-muted-foreground">Total Leads</span>
                                       <span className="bg-muted text-foreground px-2 py-0.5 rounded-full">{total}</span>
                                     </span>
-                                    
-                                    <span className="flex items-center gap-1">
-                                      <span className="text-amber-500/80">Pending</span>
-                                      <span className="bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full">{Math.max(0, pending)}</span>
-                                    </span>
-                                    
-                                    <span className="flex items-center gap-1">
-                                      <span className="text-emerald-500/80">Success</span>
-                                      <span className="bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full">{succeeded}</span>
-                                    </span>
-                                    
-                                    <span className="flex items-center gap-1">
-                                      <span className="text-red-500/80">Failed</span>
-                                      <span className="bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full">{failed}</span>
-                                    </span>
+                                    {wave.data.status === "Completed" ? (
+                                      <>
+                                        <span className="flex items-center gap-1">
+                                          <span className="text-emerald-500/80">Success</span>
+                                          <span className="bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full">{succeeded}</span>
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                          <span className="text-red-500/80">Failed</span>
+                                          <span className="bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full">{failed}</span>
+                                        </span>
+                                      </>
+                                    ) : (
+                                      <span className="flex items-center gap-1">
+                                        <span className="text-amber-500/80">Pending</span>
+                                        <span className="bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full">{pending}</span>
+                                      </span>
+                                    )}
                                   </div>
                                 );
                               })()}
