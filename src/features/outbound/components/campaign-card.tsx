@@ -414,9 +414,10 @@ export function CampaignCard({
               <div className="flex items-center gap-2 ml-2">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <div className="flex size-7 cursor-pointer items-center justify-center rounded-full bg-muted/50 hover:bg-muted transition-colors" title="View/Edit Leads">
-                      <Info className="size-4 text-muted-foreground" />
-                    </div>
+                    <Button variant="outline" size="sm" className="h-7 text-xs px-3 rounded-full bg-muted/50 hover:bg-muted transition-colors border-border/50 gap-1.5 font-medium" title="View/Edit Leads">
+                      <ListChecks className="size-3.5 text-muted-foreground" />
+                      All Numbers
+                    </Button>
                   </PopoverTrigger>
                   <PopoverContent className={cn("w-[350px] max-h-96 overflow-y-auto p-4 space-y-4 z-50", isReactivationCard && "backdrop-blur-md bg-background/90 border-primary/30 shadow-2xl")}>
                     
