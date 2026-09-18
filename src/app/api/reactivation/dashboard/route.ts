@@ -231,7 +231,8 @@ export async function GET(req: NextRequest) {
       );
 
       const nowMs = Date.now();
-      const isMissed = (time: Date) => nowMs > time.getTime() + 24 * 60 * 60 * 1000;
+      // If a wave is past its scheduled time by more than 1 hour and has no logs, consider it missed/completed
+      const isMissed = (time: Date) => nowMs > time.getTime() + 1 * 60 * 60 * 1000;
 
       b.q1.status = q1Running ? "Running" : (hasQ1Logs || isMissed(b.q1Time) ? "Completed" : "Pending");
       b.q2.status = q2Running ? "Running" : (hasQ2Logs || isMissed(b.q2Time) ? "Completed" : "Pending");
@@ -257,13 +258,15 @@ export async function GET(req: NextRequest) {
         // Wave 1 always shows all original leads
         q1FinalList.push({ ...lead, isCompleted: completedInQ1 });
 
-        // Wave 2 gets leads that Wave 1 actually called but did NOT succeed
-        // (only if Wave 1 has real logs — not time-based)
-        if (hasQ1Logs && !completedInQ1) {
+        // Only propagate leads to Q2 if Q1 is finished (completed or missed)
+        const q1IsCompleted = b.q1.status === "Completed";
+        const q2IsCompleted = b.q2.status === "Completed";
+
+        if (q1IsCompleted && !completedInQ1) {
           q2FinalList.push({ ...lead, isCompleted: completedInQ2 });
 
-          // Wave 3 gets leads that Wave 2 actually called but did NOT succeed
-          if (hasQ2Logs && !completedInQ2) {
+          // Only propagate leads to Q3 if Q2 is finished
+          if (q2IsCompleted && !completedInQ2) {
             q3FinalList.push({ ...lead, isCompleted: completedInQ3 });
           }
         }
