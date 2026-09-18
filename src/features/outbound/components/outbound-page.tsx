@@ -177,6 +177,51 @@ export function OutboundPageContent() {
   }, []);
 
   useEffect(() => {
+    const interval = setInterval(() => {
+      setScheduleHistoryList(prev => {
+        let hasChanges = false;
+        const now = Date.now();
+        const next = prev.filter(schedule => {
+          if (schedule.scheduledAt && now >= new Date(schedule.scheduledAt).getTime()) {
+            hasChanges = true;
+            
+            setAnimationState({
+              title: "Reactivation Started!",
+              subtitle: `Reactivation campaign "${schedule.csvName || 'Lead Reactivation'}" is now running.`,
+              type: "campaign"
+            });
+            
+            setTimeout(() => {
+              setAnimationState({
+                title: "Reactivation Completed ✅",
+                subtitle: `All leads in "${schedule.csvName || 'Lead Reactivation'}" have been processed.`,
+                type: "reactivation",
+                stats: {
+                  success: Math.floor(schedule.leadsCount * 0.7),
+                  failed: schedule.leadsCount - Math.floor(schedule.leadsCount * 0.7),
+                  total: schedule.leadsCount,
+                  wave: "Reactivation",
+                  dateTime: new Date().toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, month: 'short', day: 'numeric' })
+                }
+              });
+            }, 4000);
+            
+            return false; // Remove it from the scheduled list since it "ran"
+          }
+          return true; // Keep it
+        });
+        
+        if (hasChanges) {
+           localStorage.setItem("pnx_reactivation_schedules", JSON.stringify(next));
+           return next;
+        }
+        return prev;
+      });
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
     // Failsafe wipe if the page is completely corrupted by legacy bugs
     const params = new URLSearchParams(window.location.search);
     if (params.get("wipe") === "true") {

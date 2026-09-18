@@ -280,9 +280,8 @@ export function CompanyOverviewSection({
                   <div className="h-3 w-20 animate-pulse rounded bg-muted-foreground/20"></div>
                 </div>
               ) : stat.isNewAccount ? (
-                <div className="mt-2 flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground/80">
-                  <Loader2 className="size-3 animate-spin" />
-                  <span>Gathering info...</span>
+                <div className="mt-2 flex items-center justify-center gap-1.5 text-[10px]">
+                  <span className="font-medium text-emerald-500">Gathering info</span>
                 </div>
               ) : (
                 <div className="mt-2 flex items-center justify-center gap-1 text-[10px]">

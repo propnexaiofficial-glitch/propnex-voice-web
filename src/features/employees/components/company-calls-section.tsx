@@ -381,6 +381,7 @@ export function CompanyCallsSection({
 
 
   const [isRequestLocked, setIsRequestLocked] = useState(false);
+  const [isLockChecking, setIsLockChecking] = useState(true);
   const [reminding, setReminding] = useState(false);
   const [remindMessage, setRemindMessage] = useState<{text: string, type: string} | null>(null);
 
@@ -393,20 +394,49 @@ export function CompanyCallsSection({
       localStorage.removeItem(key);
       setIsRequestLocked(false);
       setRemindMessage(null);
+      setIsLockChecking(false);
       return;
     }
 
+    // Check local storage first for immediate UI update
     const lastRequest = localStorage.getItem(key);
+    let lockedLocally = false;
     if (lastRequest) {
       const hoursSince = (Date.now() - parseInt(lastRequest)) / (1000 * 60 * 60);
       if (hoursSince < 24) {
         setIsRequestLocked(true);
-        setRemindMessage({ text: "You can only request once every 24 hours.", type: "error" });
+        lockedLocally = true;
       } else {
         localStorage.removeItem(key);
       }
     }
-  }, [direction, companyId, hasAssignedNumber]);
+
+    // Also verify with backend to ensure lock state is consistent across devices/sessions
+    const checkDbLockStatus = async () => {
+      try {
+        const storedUserStr = localStorage.getItem("user");
+        if (!storedUserStr) { setIsLockChecking(false); return; }
+        const user = JSON.parse(storedUserStr);
+        const email = user.email || user.id;
+        if (!email) { setIsLockChecking(false); return; }
+
+        const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
+        const res = await fetch(`${adminBase}/api/number-requests?email=${encodeURIComponent(email)}&companyId=${encodeURIComponent(companyId)}&type=${encodeURIComponent(direction.toUpperCase())}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.locked) {
+            setIsRequestLocked(true);
+            localStorage.setItem(key, Date.now().toString());
+          }
+        }
+      } catch (e) {
+        // Silent catch for DB check
+      } finally {
+        setIsLockChecking(false);
+      }
+    };
+    checkDbLockStatus();
+  }, [direction, companyId, hasAssignedNumber, isContextLoading]);
 
   const handleRemindAdmin = async () => {
     try {
@@ -648,13 +678,20 @@ export function CompanyCallsSection({
 
           {!isLocked && (
             <div className="flex flex-col gap-2 items-end">
-              {!hasAssignedNumber ? (
-                <Button onClick={handleRemindAdmin} disabled={reminding || isRequestLocked} className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white">
-                  <PhoneIncoming className="size-4" />
-                  {reminding ? "Sending..." : (isRequestLocked ? "Request Sent" : "Request Inbound Number")}
-                </Button>
+              {!hasAssignedNumber && !isLockChecking ? (
+                isRequestLocked ? (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md text-sm text-muted-foreground border border-border h-10">
+                    <CheckCircle2 className="size-4 text-emerald-500" />
+                    Request sent (Available in 24h)
+                  </div>
+                ) : (
+                  <Button onClick={handleRemindAdmin} disabled={reminding} className="gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white h-10">
+                    <PhoneIncoming className="size-4" />
+                    {reminding ? "Sending..." : "Request Inbound Number"}
+                  </Button>
+                )
               ) : null}
-              {remindMessage && (
+              {remindMessage && !isRequestLocked && (
                 <p className={`text-xs ${remindMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
                   {remindMessage.text}
                 </p>
