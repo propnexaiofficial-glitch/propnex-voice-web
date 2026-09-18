@@ -56,7 +56,10 @@ export function UploadCsvModal({
   const [extractedLeads, setExtractedLeads] = useState<ExtractedLead[]>([]);
   const [error, setError] = useState<string | null>(null);
   
-  const outboundNumbers = didNumbers.filter(n => !n.direction || n.direction === "OUTBOUND" || n.direction === "BOTH");
+  const outboundNumbers = didNumbers.filter(n => {
+    const dir = (n.direction || "").toUpperCase();
+    return !n.direction || dir === "OUTBOUND" || dir === "BOTH" || dir === "GENERAL";
+  });
   const [selectedDid, setSelectedDid] = useState<string>(outboundNumbers[0]?.number || "");
 
   // Auto-select first DID if available
