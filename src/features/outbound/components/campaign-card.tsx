@@ -414,20 +414,23 @@ export function CampaignCard({
             
             {(campaign.status !== "idle" && !isReactivationCard && campaign.leads && campaign.leads.length > 0) && (
               <div className="flex items-center gap-2 ml-2">
-                <Popover>
-                  <PopoverTrigger asChild>
+                <Dialog>
+                  <DialogTrigger asChild>
                     <Button variant="outline" size="sm" className="h-7 text-xs px-3 rounded-full bg-muted/50 hover:bg-muted transition-colors border-border/50 gap-1.5 font-medium" title="View/Edit Leads">
                       <ListChecks className="size-3.5 text-muted-foreground" />
                       All Numbers
                     </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className={cn("w-[350px] max-h-[30rem] overflow-y-auto p-4 space-y-4 z-50 shadow-2xl", isReactivationCard && "backdrop-blur-md bg-background/90 border-primary/30")}>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl w-[90vw] h-[80vh] flex flex-col overflow-hidden bg-background/95 backdrop-blur-xl border-primary/20 p-0 shadow-2xl z-50">
+                    <DialogHeader className="p-6 pb-4 border-b border-border/50 bg-muted/10 shrink-0">
+                      <DialogTitle className="text-xl flex items-center gap-2 font-semibold">
+                        <ListChecks className="size-5 text-primary" />
+                        All Numbers of {campaign.uploadedFileName || (pendingSchedules[0]?.csvName) || "CSV"}
+                      </DialogTitle>
+                    </DialogHeader>
                     
-                    <div className="sticky -top-4 -mx-4 px-4 py-3 bg-background/95 backdrop-blur-md border-b border-border z-10 font-semibold text-sm">
-                      All Numbers of {campaign.uploadedFileName || (pendingSchedules[0]?.csvName) || "CSV"}
-                    </div>
-
-                    {(campaign.status === "ready" || campaign.status === "scheduled") && (
+                    <div className="flex-1 overflow-y-auto p-6">
+                      {(campaign.status === "ready" || campaign.status === "scheduled") && (
                       <div className="space-y-2">
                         <p className="font-semibold text-sm text-muted-foreground">Pending ({(campaign.leads || []).length} Leads)</p>
                         {(campaign.leads || [])
@@ -498,8 +501,9 @@ export function CampaignCard({
                       </div>
                     )}
 
-                  </PopoverContent>
-                </Popover>
+                    </div>
+                  </DialogContent>
+                </Dialog>
                 
                 {campaign.status === "ready" && (campaign.leads || []).some((l: any) => !l.phone || !isValidPhoneNumber(String(l.phone || ""))) && (
                   <span className="text-xs font-medium text-red-500 bg-red-500/10 px-2 py-1 rounded-md flex items-center animate-in fade-in zoom-in-95 duration-200">
