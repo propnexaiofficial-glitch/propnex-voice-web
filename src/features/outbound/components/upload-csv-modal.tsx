@@ -314,45 +314,63 @@ export function UploadCsvModal({
           </div>
         )}
 
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => inputRef.current?.click()}
-          onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
-          onDragOver={(e) => {
+        <label
+          htmlFor={`csv-file-input-${title?.replace(/\s/g, "-")}`}
+          onDragEnter={(e) => {
             e.preventDefault();
+            e.stopPropagation();
             setDragOver(true);
           }}
-          onDragLeave={() => setDragOver(false)}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!dragOver) setDragOver(true);
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            // Only hide highlight if we actually left the label (not a child element)
+            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+              setDragOver(false);
+            }
+          }}
           onDrop={(e) => {
             e.preventDefault();
+            e.stopPropagation();
             setDragOver(false);
-            handleFile(e.dataTransfer.files[0] ?? null);
+            const file = e.dataTransfer.files?.[0] ?? null;
+            if (file) handleFile(file);
           }}
           className={cn(
             "flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 transition-colors",
             dragOver
-              ? "border-foreground/30 bg-muted"
+              ? "border-primary/60 bg-primary/5"
               : "border-border hover:border-border hover:bg-muted/50"
           )}
         >
-          <div className="flex size-12 items-center justify-center rounded-xl bg-muted">
+          <div className="flex size-12 items-center justify-center rounded-xl bg-muted pointer-events-none">
             <Upload className="size-6 text-foreground" />
           </div>
-          <p className="mt-3 text-sm font-medium">
+          <p className="mt-3 text-sm font-medium pointer-events-none">
             Drag &amp; drop your file here
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-xs text-muted-foreground pointer-events-none">
             or click to browse · .csv or .xlsx
           </p>
           <input
             ref={inputRef}
+            id={`csv-file-input-${title?.replace(/\s/g, "-")}`}
             type="file"
             accept=".csv,.xlsx"
             className="hidden"
-            onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
+            onChange={(e) => {
+              const file = e.target.files?.[0] ?? null;
+              if (file) handleFile(file);
+              // Reset so same file can be re-selected
+              e.target.value = "";
+            }}
           />
-        </div>
+        </label>
 
         {/* Info / error notice — no editable invalid-number section */}
         {error && (
