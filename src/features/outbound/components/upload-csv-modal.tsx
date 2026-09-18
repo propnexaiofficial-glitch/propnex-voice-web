@@ -288,23 +288,17 @@ export function UploadCsvModal({
               </div>
             ) : (
               // Multiple numbers — show dropdown
-              <div className="flex items-center gap-2">
-                <select
-                  value={selectedDid}
-                  onChange={(e) => setSelectedDid(e.target.value)}
-                  className="flex h-10 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  {outboundNumbers.map((n) => (
-                    <option key={n.id} value={n.number}>
-                      {n.number.startsWith('+') ? n.number : `+91${n.number.replace(/^[0]+/, '')}`} ({n.channels ?? 1} ch)
-                    </option>
-                  ))}
-                </select>
-                <div className="flex shrink-0 items-center gap-1 rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-1.5 text-xs text-blue-300">
-                  <Zap className="size-3" />
-                  {derivedChannels} ch
-                </div>
-              </div>
+              <select
+                value={selectedDid}
+                onChange={(e) => setSelectedDid(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {outboundNumbers.map((n) => (
+                  <option key={n.id} value={n.number}>
+                    {n.number.startsWith('+') ? n.number : `+91${n.number.replace(/^[0]+/, '')}`} ({n.channels ?? 1} ch)
+                  </option>
+                ))}
+              </select>
             )}
             <p className="text-xs text-muted-foreground">
               {derivedChannels === 1
