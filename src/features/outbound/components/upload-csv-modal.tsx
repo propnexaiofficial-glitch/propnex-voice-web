@@ -87,39 +87,91 @@ export function UploadCsvModal({
     return "";
   };
 
-  const processData = (data: any[]) => {
+  const processData = (rows: any[][]) => {
     const leads: ExtractedLead[] = [];
-    
-    if (data.length === 0) {
+    if (rows.length === 0) {
       setError("The file is empty.");
       return;
     }
 
-    const phoneKey = Object.keys(data[0]).find(k => k.toLowerCase().includes("phone") || k.toLowerCase().includes("number") || k.toLowerCase().includes("mobile"));
-    const nameKey = Object.keys(data[0]).find(k => k.toLowerCase().includes("name"));
+    let phoneColIdx = -1;
+    let nameColIdx = -1;
+    let startRowIdx = 0;
 
-    if (!phoneKey) {
-      setError("Could not find a 'phone' or 'number' column in the file.");
+    const firstRow = rows[0] || [];
+    // 1. Try to find headers by name
+    for (let i = 0; i < firstRow.length; i++) {
+      const val = String(firstRow[i] || "").toLowerCase();
+      if (val.includes("phone") || val.includes("number") || val.includes("mobile")) {
+        phoneColIdx = i;
+      } else if (val.includes("name")) {
+        nameColIdx = i;
+      }
+    }
+
+    if (phoneColIdx !== -1) {
+      startRowIdx = 1; // Found header, start from next row
+    } else {
+      // 2. Guess column by looking for a phone number in the first row
+      for (let i = 0; i < firstRow.length; i++) {
+        const val = String(firstRow[i] || "");
+        const cleaned = val.replace(/\D/g, "");
+        if (cleaned.length >= 8 && cleaned.length <= 15) {
+          phoneColIdx = i;
+          break;
+        }
+      }
+      
+      // If still not found, try the second row (in case first row was a weird header)
+      if (phoneColIdx === -1 && rows.length > 1) {
+        const secondRow = rows[1] || [];
+        for (let i = 0; i < secondRow.length; i++) {
+          const val = String(secondRow[i] || "");
+          const cleaned = val.replace(/\D/g, "");
+          if (cleaned.length >= 8 && cleaned.length <= 15) {
+            phoneColIdx = i;
+            startRowIdx = 1; // Assuming first row was header
+            break;
+          }
+        }
+      }
+
+      // Guess name column as the first column that isn't the phone column and has mostly letters
+      if (nameColIdx === -1 && phoneColIdx !== -1) {
+        const targetRow = startRowIdx === 0 ? firstRow : (rows[1] || []);
+        for (let i = 0; i < targetRow.length; i++) {
+          if (i !== phoneColIdx && /[a-zA-Z]/.test(String(targetRow[i] || ""))) {
+            nameColIdx = i;
+            break;
+          }
+        }
+      }
+    }
+
+    if (phoneColIdx === -1) {
+      setError("Could not detect a phone number column in the file.");
       return;
     }
 
     let invalidCount = 0;
 
-    data.forEach(row => {
-      const phoneVal = row[phoneKey];
-      const nameVal = nameKey ? row[nameKey] : "Unknown";
+    for (let i = startRowIdx; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row || row.length === 0) continue;
+      
+      const phoneVal = row[phoneColIdx];
+      const nameVal = nameColIdx !== -1 ? row[nameColIdx] : "Unknown";
       
       if (phoneVal) {
-        const formatted = formatPhoneNumber(phoneVal.toString());
+        const formatted = formatPhoneNumber(String(phoneVal));
         if (formatted) {
-          leads.push({ name: nameVal ? nameVal.toString().trim() : "Unknown", phone: formatted });
+          leads.push({ name: nameVal ? String(nameVal).trim() : "Unknown", phone: formatted });
         } else {
-          // Mark as invalid but still track — invalid ones are silently skipped at confirm
           invalidCount++;
-          leads.push({ name: nameVal ? nameVal.toString().trim() : "Unknown", phone: phoneVal.toString(), isInvalid: true });
+          leads.push({ name: nameVal ? String(nameVal).trim() : "Unknown", phone: String(phoneVal).trim(), isInvalid: true });
         }
       }
-    });
+    }
 
     if (leads.length === 0) {
       setError("No numbers were found in the file.");
@@ -151,10 +203,10 @@ export function UploadCsvModal({
 
     if (ext === "csv") {
       Papa.parse(file, {
-        header: true,
+        header: false,
         skipEmptyLines: true,
         complete: (results) => {
-          processData(results.data);
+          processData(results.data as any[][]);
         },
         error: () => {
           setError("Failed to parse CSV file.");
@@ -168,8 +220,8 @@ export function UploadCsvModal({
           const workbook = xlsx.read(data, { type: "array" });
           const firstSheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
-          const jsonData = xlsx.utils.sheet_to_json(worksheet);
-          processData(jsonData);
+          const jsonData = xlsx.utils.sheet_to_json(worksheet, { header: 1 });
+          processData(jsonData as any[][]);
         } catch (err) {
           setError("Failed to parse Excel file.");
         }
