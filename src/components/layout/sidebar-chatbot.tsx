@@ -330,7 +330,7 @@ export function SidebarChatbot() {
             left: calc(var(--sidebar-width, 280px) + 24px);
           }
         }
-        .chat-window.open{opacity:1;visibility:visible;transform:translateY(0) scale(1);transition:visibility 0s linear 0s, opacity .45s cubic-bezier(.16,1,.3,1), transform .45s cubic-bezier(.16,1,.3,1);}
+        .chat-window.open{opacity:1;visibility:visible;pointer-events:auto !important;transform:translateY(0) scale(1);transition:visibility 0s linear 0s, opacity .45s cubic-bezier(.16,1,.3,1), transform .45s cubic-bezier(.16,1,.3,1);}
         
         .ch-head{
           position:relative;overflow:hidden;
@@ -499,7 +499,7 @@ export function SidebarChatbot() {
           {/* BACKDROP */}
           <div 
             className={cn("chat-backdrop", isOpen && "show")} 
-            onClick={() => setIsOpen(false)}
+            onPointerDown={() => setIsOpen(false)}
           ></div>
 
           {/* CHAT PANEL */}
@@ -553,7 +553,7 @@ export function SidebarChatbot() {
             </div>
 
             <div className="ch-inp-wrap">
-              <div className="ch-inp" onTouchEnd={(e) => { textareaRef.current?.focus(); }}>
+              <div className="ch-inp">
                 <textarea
                   ref={textareaRef}
                   className="ch-ta"
