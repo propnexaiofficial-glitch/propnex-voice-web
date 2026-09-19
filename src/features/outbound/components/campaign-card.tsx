@@ -910,39 +910,37 @@ export function CampaignCard({
                               acc[did].count += 1;
                               return acc;
                             }, {}) || {};
-                            const didKeys = Object.keys(didStats).filter(d => d !== "Unknown");
+                            const didKeys = Object.keys(didStats);
 
                             return (
                               <>
                                 <div className="flex items-center gap-2 w-full justify-between">
                                   <div className="font-semibold truncate text-foreground" title={hist.csvName}>{hist.csvName}</div>
                                   {didKeys.length > 0 && (
-                                    <TooltipProvider>
-                                      <Tooltip delayDuration={100}>
-                                        <TooltipTrigger asChild>
-                                          <div className="cursor-pointer relative flex items-center justify-center shrink-0 group">
-                                            {!isCompleted && <span className="absolute inline-flex h-full w-full rounded-full bg-primary/30 opacity-75 animate-ping duration-[3000ms]"></span>}
-                                            <div className={cn(
-                                              "relative flex items-center justify-center p-1.5 rounded-full transition-all group-hover:scale-105",
-                                              isCompleted 
-                                                ? "bg-muted/50 hover:bg-muted" 
-                                                : "bg-primary/10 border border-primary/30 group-hover:bg-primary/20 shadow-[0_0_10px_rgba(var(--primary),0.15)]"
-                                            )}>
-                                              <PhoneOutgoing className={cn("size-3.5", isCompleted ? "text-muted-foreground" : "text-primary drop-shadow-md animate-pulse")} />
-                                            </div>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <div className="cursor-pointer relative flex items-center justify-center shrink-0 group" onClick={(e) => e.stopPropagation()}>
+                                          {!isCompleted && <span className="absolute inline-flex h-full w-full rounded-full bg-primary/30 opacity-75 animate-ping duration-[3000ms]"></span>}
+                                          <div className={cn(
+                                            "relative flex items-center justify-center p-1.5 rounded-full transition-all group-hover:scale-105",
+                                            isCompleted 
+                                              ? "bg-muted/50 hover:bg-muted" 
+                                              : "bg-primary/10 border border-primary/30 group-hover:bg-primary/20 shadow-[0_0_10px_rgba(var(--primary),0.15)]"
+                                          )}>
+                                            <PhoneOutgoing className={cn("size-3.5", isCompleted ? "text-muted-foreground" : "text-primary drop-shadow-md animate-pulse")} />
                                           </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="right" className="text-xs space-y-2 p-3 bg-card border-border/50">
-                                          <div className="font-semibold border-b border-border/50 pb-1.5 mb-1.5 text-foreground">DID Usage Breakdown</div>
-                                          {didKeys.map((did) => (
-                                            <div key={did} className="flex flex-col text-muted-foreground gap-0.5">
-                                              <span className="font-medium">DID Number - {did} <span className="opacity-50 mx-1">|</span> Ch - {didStats[did].channels}</span>
-                                              <span className="text-red-400">Failed Calls - {didStats[did].count}</span>
-                                            </div>
-                                          ))}
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
+                                        </div>
+                                      </PopoverTrigger>
+                                      <PopoverContent side="right" className="text-xs space-y-2 p-3 bg-card border-border/50 w-auto" onClick={(e) => e.stopPropagation()}>
+                                        <div className="font-semibold border-b border-border/50 pb-1.5 mb-1.5 text-foreground">DID Usage Breakdown</div>
+                                        {didKeys.map((did) => (
+                                          <div key={did} className="flex flex-col text-muted-foreground gap-0.5">
+                                            <span className="font-medium">DID Number - {did} <span className="opacity-50 mx-1">|</span> Ch - {didStats[did].channels}</span>
+                                            <span className="text-red-400">Failed Calls - {didStats[did].count}</span>
+                                          </div>
+                                        ))}
+                                      </PopoverContent>
+                                    </Popover>
                                   )}
                                 </div>
                                 <Badge 
