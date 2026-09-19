@@ -302,17 +302,18 @@ export function SidebarChatbot() {
           height:calc(100vh - 140px);
           max-height:560px;
         }
-        /* Full-screen on mobile - dvh shrinks when keyboard opens */
+        /* Full-screen on mobile - precise bounds to prevent clipping */
         @media (max-width: 639px) {
           .chat-window {
             left:0 !important;
             right:0 !important;
             bottom:0 !important;
+            top: 80px !important;
+            height:auto !important;
             width:100% !important;
             max-width:100% !important;
             border-radius:24px 24px 0 0;
-            height:92dvh;
-            max-height:none;
+            max-height:none !important;
             transform-origin:bottom center;
           }
           .chat-window.open {
@@ -401,7 +402,6 @@ export function SidebarChatbot() {
           flex-shrink:0;
           -webkit-tap-highlight-color:transparent;
           user-select:none;
-          touch-action:manipulation;
         }
         .ch-tag:active{background:rgba(255,255,255,.16);color:#f4f4f5;border-color:rgba(255,255,255,.25)}
         .ch-tag:hover{background:rgba(255,255,255,.11);color:#f4f4f5;border-color:rgba(255,255,255,.2)}
@@ -515,7 +515,7 @@ export function SidebarChatbot() {
               <div className="ch-tags-row">
                 <div className="ch-tags">
                   {getTags().map(tag => (
-                    <div key={tag} className="ch-tag" onPointerDown={() => handleTagClick(tag)}>{tag}</div>
+                    <div key={tag} className="ch-tag" onClick={() => handleTagClick(tag)}>{tag}</div>
                   ))}
                 </div>
               </div>
