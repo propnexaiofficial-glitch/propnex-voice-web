@@ -42,7 +42,7 @@ function groupBy<T>(arr: T[], key: (item: T) => string): Record<string, T[]> {
 }
 
 // ── Gemini call with key rotation + retry on 429 ──────────────────────────
-async function callGemini(payload: object, model = "gemini-1.5-flash"): Promise<Response> {
+async function callGemini(payload: object, model = "gemini-flash-lite-latest"): Promise<Response> {
   let lastErr: any = null;
   // Try all keys in order; on 429 rotate immediately
   for (let i = 0; i < GEMINI_API_KEYS.length; i++) {
