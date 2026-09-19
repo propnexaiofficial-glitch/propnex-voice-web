@@ -366,7 +366,7 @@ export function SidebarChatbot() {
         .ch-inp-wrap{padding:12px 16px 16px;border-top:1px solid rgba(255,255,255,.07);flex-shrink:0;background:#111113}
         .ch-inp{display:flex;align-items:flex-end;gap:8px;background:#18181b;border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:8px 8px 8px 16px;transition:border-color .2s,box-shadow .2s}
         .ch-inp:focus-within{border-color:rgba(255,255,255,.25);box-shadow:0 0 0 3px rgba(255,255,255,.04)}
-        .ch-ta{flex:1;background:none;border:none;outline:none;color:#f4f4f5;font-size:.86rem;font-family:'Inter',sans-serif;resize:none;min-height:22px;max-height:90px;line-height:1.5;padding-bottom:2px}
+        .ch-ta{flex:1;background:none;border:none;outline:none;color:#f4f4f5;font-size:16px;font-family:'Inter',sans-serif;resize:none;min-height:22px;max-height:90px;line-height:1.5;padding-bottom:2px;user-select:text;-webkit-user-select:text}
         .ch-ta::placeholder{color:#52525b}
         .ch-send{width:34px;height:34px;flex-shrink:0;background:#f4f4f5;color:#09090b;border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .2s cubic-bezier(.34,1.56,.64,1),background .2s}
         .ch-send:hover{transform:scale(1.1);background:#d4d4d8}

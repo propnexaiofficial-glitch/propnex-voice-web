@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useUserContext } from "@/features/auth/context/user-context";
 import { PhoneIncoming, PhoneOutgoing } from "lucide-react";
@@ -170,7 +170,7 @@ export function ProfileCard({ className }: ProfileCardProps) {
               </p>
             </div>
 
-            <TooltipProvider>
+            <div>
               <div className="grid gap-3 sm:grid-cols-2 pl-11">
                 {/* Main Company Numbers */}
                 <div className="space-y-1.5">
@@ -185,13 +185,13 @@ export function ProfileCard({ className }: ProfileCardProps) {
                           <span className="text-xs text-muted-foreground mr-1 truncate max-w-[120px]" title={group.companyName}>{group.companyName}</span>
                         </div>
                         <div className="flex items-center gap-2 mr-2">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center justify-center size-6 rounded-md bg-muted/50 hover:bg-muted cursor-default transition-colors">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <div className="flex items-center justify-center size-6 rounded-md bg-muted/50 hover:bg-muted cursor-pointer transition-colors">
                                 <PhoneIncoming className="size-3 text-blue-500" />
                               </div>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="flex flex-col gap-1.5 p-3">
+                            </PopoverTrigger>
+                            <PopoverContent side="top" className="flex flex-col gap-1.5 p-3 w-auto z-[60]">
                               <p className="font-semibold text-xs border-b border-border pb-1">Inbound Info</p>
                               <div className="text-xs">
                                 <span className="text-muted-foreground">Numbers: </span>
@@ -205,16 +205,16 @@ export function ProfileCard({ className }: ProfileCardProps) {
                                   </div>
                                 ) : "None"}
                               </div>
-                            </TooltipContent>
-                          </Tooltip>
+                            </PopoverContent>
+                          </Popover>
 
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center justify-center size-6 rounded-md bg-muted/50 hover:bg-muted cursor-default transition-colors">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <div className="flex items-center justify-center size-6 rounded-md bg-muted/50 hover:bg-muted cursor-pointer transition-colors">
                                 <PhoneOutgoing className="size-3 text-orange-500" />
                               </div>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="flex flex-col gap-1.5 p-3">
+                            </PopoverTrigger>
+                            <PopoverContent side="top" className="flex flex-col gap-1.5 p-3 w-auto z-[60]">
                               <p className="font-semibold text-xs border-b border-border pb-1">Outbound Info</p>
                               <div className="text-xs">
                                 <span className="text-muted-foreground">Numbers: </span>
@@ -228,8 +228,8 @@ export function ProfileCard({ className }: ProfileCardProps) {
                                   </div>
                                 ) : "None"}
                               </div>
-                            </TooltipContent>
-                          </Tooltip>
+                            </PopoverContent>
+                          </Popover>
                         </div>
                       </div>
                     ))
@@ -267,13 +267,13 @@ export function ProfileCard({ className }: ProfileCardProps) {
                           <span className="text-xs text-muted-foreground mr-1 truncate max-w-[120px]" title={group.companyName}>{group.companyName}</span>
                         </div>
                         <div className="flex items-center gap-2 mr-2">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center justify-center size-6 rounded-md bg-muted/50 hover:bg-muted cursor-default transition-colors">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <div className="flex items-center justify-center size-6 rounded-md bg-muted/50 hover:bg-muted cursor-pointer transition-colors">
                                 <PhoneIncoming className="size-3 text-blue-500" />
                               </div>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="flex flex-col gap-1.5 p-3">
+                            </PopoverTrigger>
+                            <PopoverContent side="top" className="flex flex-col gap-1.5 p-3 w-auto z-[60]">
                               <p className="font-semibold text-xs border-b border-border pb-1">Inbound Info</p>
                               <div className="text-xs">
                                 <span className="text-muted-foreground">Numbers: </span>
@@ -287,16 +287,16 @@ export function ProfileCard({ className }: ProfileCardProps) {
                                   </div>
                                 ) : "None"}
                               </div>
-                            </TooltipContent>
-                          </Tooltip>
+                            </PopoverContent>
+                          </Popover>
 
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center justify-center size-6 rounded-md bg-muted/50 hover:bg-muted cursor-default transition-colors">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <div className="flex items-center justify-center size-6 rounded-md bg-muted/50 hover:bg-muted cursor-pointer transition-colors">
                                 <PhoneOutgoing className="size-3 text-orange-500" />
                               </div>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="flex flex-col gap-1.5 p-3">
+                            </PopoverTrigger>
+                            <PopoverContent side="top" className="flex flex-col gap-1.5 p-3 w-auto z-[60]">
                               <p className="font-semibold text-xs border-b border-border pb-1">Outbound Info</p>
                               <div className="text-xs">
                                 <span className="text-muted-foreground">Numbers: </span>
@@ -310,8 +310,8 @@ export function ProfileCard({ className }: ProfileCardProps) {
                                   </div>
                                 ) : "None"}
                               </div>
-                            </TooltipContent>
-                          </Tooltip>
+                            </PopoverContent>
+                          </Popover>
                         </div>
                       </div>
                     ))
@@ -320,7 +320,7 @@ export function ProfileCard({ className }: ProfileCardProps) {
                   )}
                 </div>
               </div>
-            </TooltipProvider>
+            </div>
           </div>
         </div>
       </div>

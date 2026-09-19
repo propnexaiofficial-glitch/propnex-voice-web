@@ -7,10 +7,10 @@ import { useEffect, useState, useCallback } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useEmployeesContext } from "@/features/employees/context/employees-context";
 import { cn } from "@/lib/utils";
 
@@ -155,7 +155,7 @@ export function CreditsWidget({
     <Link
       href="/dashboard/billing"
       className={cn(
-        "group hidden items-center gap-3 rounded-md border border-border bg-card px-3 py-2 transition-all hover:bg-accent md:flex",
+        "group flex items-center gap-2 sm:gap-3 rounded-md border border-border bg-card px-2 sm:px-3 py-1.5 sm:py-2 transition-all hover:bg-accent",
         className
       )}
     >
@@ -173,9 +173,9 @@ export function CreditsWidget({
   );
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>{widgetContent}</TooltipTrigger>
-      <TooltipContent side="bottom" align="end" className="w-[280px] p-0 glass-card">
+    <Popover>
+      <PopoverTrigger asChild>{widgetContent}</PopoverTrigger>
+      <PopoverContent side="bottom" align="end" className="w-[280px] p-0 glass-card z-[60]">
         <div className="p-3 border-b border-border/50">
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Main & Sub-Company Credits</h4>
         </div>
@@ -223,7 +223,7 @@ export function CreditsWidget({
             <span>{grandTotal.toLocaleString()}</span>
           </div>
         </div>
-      </TooltipContent>
-    </Tooltip>
+      </PopoverContent>
+    </Popover>
   );
 }
