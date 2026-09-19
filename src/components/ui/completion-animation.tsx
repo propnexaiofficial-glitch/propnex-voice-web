@@ -134,21 +134,38 @@ export function CompletionAnimation({
                    </div>
                  </div>
                ) : (
-                 <div className="flex-1 overflow-hidden whitespace-nowrap relative" style={{ maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)' }}>
-                   <motion.div 
-                     className="inline-block"
-                     animate={{ x: ["100%", "-100%"] }}
-                     transition={{ duration: 10, ease: "linear", repeat: Infinity }}
-                   >
-                     <span className="text-xl sm:text-2xl font-bold tracking-tight pr-6 drop-shadow-sm">
+                 <div className="flex-1 overflow-hidden relative min-w-0">
+                   {/* Mobile: static visible layout */}
+                   <div className="flex flex-col sm:hidden gap-0.5 pr-2">
+                     <span className="text-base font-bold tracking-tight leading-tight drop-shadow-sm truncate">
                        {title}
                      </span>
                      {subtitle && (
-                       <span className="text-base sm:text-lg opacity-80 border-l-2 border-current pl-6 ml-2 inline-flex items-center">
+                       <span className="text-xs opacity-75 leading-snug line-clamp-2">
                          {subtitle}
                        </span>
                      )}
-                   </motion.div>
+                   </div>
+                   {/* Desktop: scrolling marquee */}
+                   <div
+                     className="hidden sm:block whitespace-nowrap"
+                     style={{ maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)' }}
+                   >
+                     <motion.div
+                       className="inline-block"
+                       animate={{ x: ["100%", "-100%"] }}
+                       transition={{ duration: 10, ease: "linear", repeat: Infinity }}
+                     >
+                       <span className="text-xl font-bold tracking-tight pr-6 drop-shadow-sm">
+                         {title}
+                       </span>
+                       {subtitle && (
+                         <span className="text-base opacity-80 border-l-2 border-current pl-6 ml-2 inline-flex items-center">
+                           {subtitle}
+                         </span>
+                       )}
+                     </motion.div>
+                   </div>
                  </div>
                )}
                

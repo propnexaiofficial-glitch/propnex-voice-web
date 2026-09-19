@@ -197,6 +197,26 @@ export function CampaignCard({
   const [historicalCampaigns, setHistoricalCampaigns] = useState<any[]>([]);
   const [isHistoricalLoading, setIsHistoricalLoading] = useState(false);
   const [wavePages, setWavePages] = useState<Record<string, number>>({});
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [isDoneChecking, setIsDoneChecking] = useState(false);
+
+  // ─── Nightly calculation window detection (11:45 PM – 00:05 AM IST) ───
+  useEffect(() => {
+    const checkCalculatingWindow = () => {
+      const now = new Date();
+      // IST = UTC+5:30
+      const istMinutes = (now.getUTCHours() * 60 + now.getUTCMinutes() + 330) % (24 * 60);
+      // 23:45 = 1425 min, 00:05 = 5 min (next day)
+      const inWindow = istMinutes >= 1425 || istMinutes <= 5;
+      setIsCalculating(inWindow);
+      // After the window closes (00:05 → 00:08 IST), briefly show "Done Checking"
+      const justDone = istMinutes >= 6 && istMinutes <= 8;
+      setIsDoneChecking(justDone);
+    };
+    checkCalculatingWindow();
+    const t = setInterval(checkCalculatingWindow, 15000); // check every 15s
+    return () => clearInterval(t);
+  }, []);
 
   const isReactivationCard = campaign.id === "camp-001" || campaign.isReactivation || campaign.name?.includes("Lead Reactivation");
 
@@ -389,16 +409,45 @@ export function CampaignCard({
               <PhoneOutgoing className="size-5 text-foreground" />
             </div>
             <h3 className="text-lg font-semibold">{campaign.name}</h3>
-            <Badge variant="secondary">
-              {isPendingSchedule && (campaign.status === "idle" || campaign.status === "scheduled")
-                ? `${pendingSchedules.length} Scheduled` 
-                : campaign.status !== "idle" && (pendingSchedules[0]?.csvName || campaign.uploadedFileName) && !campaign.isReactivation && campaign.id !== "camp-001" && !campaign.name?.includes("Lead Reactivation")
-                  ? `${status.label} • ${campaign.uploadedFileName || pendingSchedules[0]?.csvName}`
-                  : (isReactivationCard ? (() => {
-                      if (isHistoricalLoading) return "Loading Leads...";
-                      return `${todayStr} - ${totalReactivationLeads} Lead${totalReactivationLeads !== 1 ? 's' : ''}`;
-                    })() : status.label)}
-            </Badge>
+            {isReactivationCard && isCalculating ? (
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold animate-pulse"
+                style={{
+                  background: "linear-gradient(90deg, rgba(251,191,36,0.25), rgba(245,158,11,0.35), rgba(251,191,36,0.25))",
+                  backgroundSize: "200% 100%",
+                  animation: "calcGlow 1.5s ease-in-out infinite, pulse 1.5s ease-in-out infinite",
+                  border: "1px solid rgba(251,191,36,0.6)",
+                  color: "#fbbf24",
+                  boxShadow: "0 0 12px rgba(251,191,36,0.4), 0 0 24px rgba(251,191,36,0.2)",
+                }}
+              >
+                <span className="inline-block animate-spin" style={{ animationDuration: "1s" }}>⟳</span>
+                Calculating...
+              </span>
+            ) : isReactivationCard && isDoneChecking ? (
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                style={{
+                  background: "rgba(52,211,153,0.2)",
+                  border: "1px solid rgba(52,211,153,0.5)",
+                  color: "#34d399",
+                  boxShadow: "0 0 10px rgba(52,211,153,0.3)",
+                }}
+              >
+                ✓ Done Checking
+              </span>
+            ) : (
+              <Badge variant="secondary">
+                {isPendingSchedule && (campaign.status === "idle" || campaign.status === "scheduled")
+                  ? `${pendingSchedules.length} Scheduled` 
+                  : campaign.status !== "idle" && (pendingSchedules[0]?.csvName || campaign.uploadedFileName) && !campaign.isReactivation && campaign.id !== "camp-001" && !campaign.name?.includes("Lead Reactivation")
+                    ? `${status.label} • ${campaign.uploadedFileName || pendingSchedules[0]?.csvName}`
+                    : (isReactivationCard ? (() => {
+                        if (isHistoricalLoading) return "Loading Leads...";
+                        return `${todayStr} - ${totalReactivationLeads} Lead${totalReactivationLeads !== 1 ? 's' : ''}`;
+                      })() : status.label)}
+              </Badge>
+            )}
             {isReactivationCard && campaign.qStage && campaign.qStatus && (
                <div className="flex gap-2 ml-2">
                  <Badge 
