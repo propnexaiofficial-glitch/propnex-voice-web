@@ -385,18 +385,17 @@ export function SidebarChatbot() {
           display:flex;
           flex-wrap:nowrap;
           overflow-x:auto;
-          -webkit-overflow-scrolling:touch;
+          overflow-y:hidden;
           scrollbar-width:none;
           gap:8px;
           padding:0 16px 4px;
-          touch-action:pan-x;
         }
         .ch-tags-inner::-webkit-scrollbar{display:none}
         @media (min-width:640px){
           .ch-tags-inner{
             flex-wrap:wrap;
             overflow-x:visible;
-            touch-action:auto;
+            overflow-y:visible;
           }
         }
         /* Tags row - raw tailwind used now, just keeping minimal if needed */
@@ -422,9 +421,7 @@ export function SidebarChatbot() {
         .ch-msgs{
           flex:1;
           overflow-y:auto;
-          -webkit-overflow-scrolling:touch;
-          overscroll-behavior:contain;
-          touch-action:pan-y;
+          overflow-x:hidden;
           padding:16px 16px 8px;
           display:flex;flex-direction:column;gap:12px;
           scrollbar-width:thin;
@@ -463,10 +460,10 @@ export function SidebarChatbot() {
             padding-bottom:max(14px, env(safe-area-inset-bottom));
           }
         }
-        .ch-inp{display:flex;align-items:flex-end;gap:8px;background:#18181b;border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:8px 8px 8px 16px;transition:border-color .2s,box-shadow .2s;cursor:text;position:relative;z-index:10;}
+        .ch-inp{display:flex;align-items:flex-end;gap:8px;background:#18181b;border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:8px 8px 8px 16px;transition:border-color .2s,box-shadow .2s;cursor:text;}
         .ch-inp:focus-within{border-color:rgba(255,255,255,.25);box-shadow:0 0 0 3px rgba(255,255,255,.04)}
         /* 16px prevents iOS/Android zoom on focus */
-        .ch-ta{flex:1;background:none;border:none;outline:none;color:#f4f4f5;font-size:16px;font-family:'Inter',sans-serif;resize:none;min-height:22px;max-height:90px;line-height:1.5;padding-bottom:2px;-webkit-user-select:text;user-select:text;touch-action:manipulation;-webkit-appearance:none;appearance:none;}
+        .ch-ta{flex:1;background:none;border:none;outline:none;color:#f4f4f5;font-size:16px;font-family:'Inter',sans-serif;resize:none;min-height:22px;max-height:90px;line-height:1.5;padding-bottom:2px;-webkit-appearance:none;appearance:none;}
         .ch-ta::placeholder{color:#52525b}
         .ch-send{width:36px;height:36px;flex-shrink:0;background:#f4f4f5;color:#09090b;border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .2s cubic-bezier(.34,1.56,.64,1),background .2s;-webkit-tap-highlight-color:transparent;}
         .ch-send:hover{transform:scale(1.1);background:#d4d4d8}
@@ -565,8 +562,6 @@ export function SidebarChatbot() {
                   autoCorrect="off"
                   autoCapitalize="sentences"
                   enterKeyHint="send"
-                  onClick={() => textareaRef.current?.focus()}
-                  onFocus={(e) => e.target.scrollIntoView({ block: 'nearest' })}
                   onChange={(e) => {
                     setInputValue(e.target.value);
                     e.target.style.height = 'auto';
