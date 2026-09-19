@@ -507,8 +507,8 @@ export function SidebarChatbot() {
             </div>
             {/* Tags OUTSIDE ch-head so overflow:hidden doesn't clip horizontal scroll */}
             {messages.length <= 1 && (
-              <div className="w-full shrink-0 border-b border-white/5 py-3 overflow-hidden">
-                <div className="flex overflow-x-auto flex-nowrap w-full gap-2 px-4 pb-1 touch-pan-x snap-x snap-mandatory" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+              <div className="w-full shrink-0 border-b border-white/5 py-3 overflow-hidden sm:overflow-visible">
+                <div className="flex flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-x-visible w-full gap-2 px-4 pb-1 touch-pan-x snap-x snap-mandatory sm:snap-none" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
                   {getTags().map(tag => (
                     <div key={tag} className="ch-tag snap-start" onClick={() => handleTagClick(tag)}>{tag}</div>
                   ))}
