@@ -323,13 +323,13 @@ export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" })
         /* Mobile — bottom sheet, NOT full screen */
         @media (max-width: 639px) {
           .chat-window {
-            left: 10px !important;
-            right: 10px !important;
-            bottom: 20px !important;
-            top: 20px !important;
+            left: 16px !important;
+            right: 16px !important;
+            bottom: 16px !important;
+            top: auto !important;
             width: auto !important;
-            height: auto !important;
-            max-height: none !important;
+            height: calc(100svh - 100px) !important;
+            max-height: 600px !important;
             max-width: none !important;
             transform-origin: bottom center;
             border-radius: 20px;
@@ -403,6 +403,7 @@ export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" })
           overflow-x:auto;
           overflow-y:hidden;
           -webkit-overflow-scrolling:touch;
+          touch-action:pan-x;
           scrollbar-width:none;
           gap:8px;
           padding:0 16px 4px;
