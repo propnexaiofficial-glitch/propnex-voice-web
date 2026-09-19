@@ -293,9 +293,10 @@ export function SidebarChatbot() {
           background:#111113;
           border:1px solid rgba(255,255,255,.13);
           border-radius:28px;
-          overflow:clip; /* NOT overflow:hidden — hidden blocks Android keyboard/touch */
+          overflow:clip;
           display:flex;flex-direction:column;
-          z-index:99999;
+          min-height:0;
+          z-index:2147483647;
           box-shadow:0 0 0 1px rgba(255,255,255,.03),0 40px 80px rgba(0,0,0,.8),0 0 60px rgba(255,255,255,.02);
           opacity:0;visibility:hidden;
           transform:translateY(20px) scale(.95);
@@ -312,8 +313,8 @@ export function SidebarChatbot() {
             bottom: 90px !important;
             top: auto !important;
             width: auto !important;
-            height: 72vh !important;
-            max-height: 72vh !important;
+            height: 500px !important;
+            max-height: calc(100% - 100px) !important;
             max-width: none !important;
             border-radius: 20px !important;
             transform-origin: bottom center;
@@ -330,7 +331,7 @@ export function SidebarChatbot() {
             left: calc(var(--sidebar-width, 280px) + 24px);
           }
         }
-        .chat-window.open{opacity:1;visibility:visible;pointer-events:auto !important;transform:translateY(0) scale(1);transition:visibility 0s linear 0s, opacity .45s cubic-bezier(.16,1,.3,1), transform .45s cubic-bezier(.16,1,.3,1);}
+        .chat-window.open{opacity:1;visibility:visible;pointer-events:auto !important;user-select:auto !important;-webkit-user-select:auto !important;transform:translateY(0) scale(1);transition:visibility 0s linear 0s, opacity .45s cubic-bezier(.16,1,.3,1), transform .45s cubic-bezier(.16,1,.3,1);}
         
         .ch-head{
           position:relative;overflow:hidden;
@@ -420,6 +421,7 @@ export function SidebarChatbot() {
         /* Messages area - must scroll on all devices */
         .ch-msgs{
           flex:1;
+          min-height:0;
           overflow-y:auto;
           overflow-x:hidden;
           padding:16px 16px 8px;
@@ -463,7 +465,7 @@ export function SidebarChatbot() {
         .ch-inp{display:flex;align-items:flex-end;gap:8px;background:#18181b;border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:8px 8px 8px 16px;transition:border-color .2s,box-shadow .2s;cursor:text;}
         .ch-inp:focus-within{border-color:rgba(255,255,255,.25);box-shadow:0 0 0 3px rgba(255,255,255,.04)}
         /* 16px prevents iOS/Android zoom on focus */
-        .ch-ta{flex:1;background:none;border:none;outline:none;color:#f4f4f5;font-size:16px;font-family:'Inter',sans-serif;resize:none;min-height:22px;max-height:90px;line-height:1.5;padding-bottom:2px;-webkit-appearance:none;appearance:none;}
+        .ch-ta{flex:1;background:none;border:none;outline:none;color:#f4f4f5;font-size:16px;font-family:'Inter',sans-serif;resize:none;min-height:22px;max-height:90px;line-height:1.5;padding-bottom:2px;-webkit-appearance:none;appearance:none;-webkit-user-select:text !important;user-select:text !important;pointer-events:auto !important;}
         .ch-ta::placeholder{color:#52525b}
         .ch-send{width:36px;height:36px;flex-shrink:0;background:#f4f4f5;color:#09090b;border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .2s cubic-bezier(.34,1.56,.64,1),background .2s;-webkit-tap-highlight-color:transparent;}
         .ch-send:hover{transform:scale(1.1);background:#d4d4d8}
