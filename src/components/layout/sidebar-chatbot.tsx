@@ -140,28 +140,21 @@ export function SidebarChatbot() {
 
       if (!res.body) throw new Error("No readable stream");
 
-      // Stop typing animation as soon as we start processing the response stream
-      setIsTyping(false);
-
-      // Add a placeholder bot message AFTER typing indicator hides
-      const botMsgId = (Date.now() + 1).toString();
-      setMessages((prev) => [...prev, { id: botMsgId, text: "", type: "bot" }]);
-
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
+      let fullResponse = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        
-        const chunk = decoder.decode(value, { stream: true });
-        
-        setMessages(prev => prev.map(msg => {
-          if (msg.id === botMsgId) {
-            return { ...msg, text: msg.text + chunk };
-          }
-          return msg;
-        }));
+        fullResponse += decoder.decode(value, { stream: true });
+      }
+      
+      // Stop typing animation and append the full message at once
+      setIsTyping(false);
+      
+      if (fullResponse) {
+        setMessages((prev) => [...prev, { id: Date.now().toString(), text: fullResponse, type: "bot" }]);
       }
     } catch (error: any) {
       console.error(error);
