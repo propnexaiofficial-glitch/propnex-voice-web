@@ -131,6 +131,7 @@ export async function POST(req: Request) {
         ]);
 
         // ── Optimized full call logs fetch (NO lead JOIN to prevent timeout) ────────
+        // ── Main Data Fetching ────────────────────────────────────────────────
         const rawCallLogs = await prisma.callLog.findMany({
           where: { companyId },
           select: {
@@ -223,6 +224,30 @@ export async function POST(req: Request) {
           const topOutboundEnriched = topOutbound.map(enrichCustomer);
           
           const absoluteHighestCaller = topByTotalEnriched.length > 0 ? topByTotalEnriched[0] : null;
+
+          // ── Absolute Earliest Inbound Call ──────────────────────────
+          const earliestInboundCall = await prisma.callLog.findFirst({
+            where: { companyId: { in: [companyId, ...subCompanyIds] }, direction: "INBOUND" },
+            orderBy: { startedAt: "asc" },
+            select: { startedAt: true, durationSeconds: true, lead: { select: { phone: true, firstName: true } } }
+          });
+
+          // ── Scheduled Reactivation Data ──────────────────────────
+          let scheduledReactivations: any[] = [];
+          try {
+            const proto = req.headers.get("x-forwarded-proto") || "http";
+            const host = req.headers.get("host");
+            const authHeader = req.headers.get("authorization");
+            const reactRes = await fetch(`${proto}://${host}/api/reactivation/dashboard`, {
+              headers: authHeader ? { authorization: authHeader } : {}
+            });
+            if (reactRes.ok) {
+              const rData = await reactRes.json();
+              scheduledReactivations = rData.data || [];
+            }
+          } catch (e) {
+             console.error("Failed to fetch scheduled reactivations for chatbot", e);
+          }
 
           // ── Per-date grouping (last 60 days) ─────────────────────────
           const dateGroups = groupBy(allCalls as any[], (c: any) => dateFmt(c.startedAt));
@@ -489,8 +514,19 @@ There are 3 types of outbound calls:
 LEAD REACTIVATION HISTORY (${reactivationCalls.length} total reactivation calls):
 ${reactLines.length > 0 ? reactLines.join("\n") : "No reactivation calls found yet."}
 
-ABSOLUTE HIGHEST CALLER ACROSS ENTIRE DATABASE:
-${absoluteHighestCaller ? `Number: ${absoluteHighestCaller.phone} | Name: ${absoluteHighestCaller.name} | Total Calls: ${absoluteHighestCaller.inbound + absoluteHighestCaller.outbound} | Total Duration: ${toMinSec(absoluteHighestCaller.totalDuration)}` : "None"}
+ABSOLUTE HIGHEST CALLER ACROSS ENTIRE ACCOUNT:
+${absoluteHighestCaller ? `Customer ${absoluteHighestCaller.name} (${absoluteHighestCaller.phone}) made a total of ${absoluteHighestCaller.inbound + absoluteHighestCaller.outbound} calls (Inbound: ${absoluteHighestCaller.inbound}, Outbound: ${absoluteHighestCaller.outbound}). Total duration: ${toMinSec(absoluteHighestCaller.totalDuration)}.` : "None"}
+
+${earliestInboundCall ? `FIRST INBOUND CALL EVER:
+Date: ${dateFmt(earliestInboundCall.startedAt)}, Time: ${timeFmt(earliestInboundCall.startedAt)}
+Customer: ${earliestInboundCall.lead?.phone || "Unknown"}
+Duration: ${toMinSec(earliestInboundCall.durationSeconds)}` : ""}
+
+SCHEDULED REACTIVATION WAVES (Today & Future):
+${scheduledReactivations.length > 0 ? scheduledReactivations.map((w: any) => `Date: ${w.date}
+Wave 1 (10 AM): ${w.q1?.status}, ${w.q1?.failedLeads?.length || 0} calls
+Wave 2 (3 PM): ${w.q2?.status}, ${w.q2?.failedLeads?.length || 0} calls
+Wave 3 (8 PM): ${w.q3?.status}, ${w.q3?.failedLeads?.length || 0} calls`).join("\n\n") : "No lead reactivation calls scheduled."}
 
 TOP 50 CUSTOMERS BY TOTAL CALLS (Fallback for generic queries):
 ${topByTotalEnriched.map(c => `Customer: ${c.phone} | Name: ${c.name} | Total: ${c.inbound + c.outbound} (In: ${c.inbound}, Out: ${c.outbound}) | Total Duration: ${toMinSec(c.totalDuration)} | Last Call: ${dateFmt(c.lastCall)}`).join("\n") || "No customer data."}
