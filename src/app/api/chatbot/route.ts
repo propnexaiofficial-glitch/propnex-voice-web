@@ -208,11 +208,14 @@ export async function POST(req: Request) {
 
           // Get unique top lead IDs to fetch details for
           const topLeadIds = new Set([...topByTotal.slice(0, 50), ...topInbound, ...topOutbound].map(c => c.leadId));
-          const topLeads = await prisma.lead.findMany({
-            where: { id: { in: Array.from(topLeadIds) } },
+          
+          // Also fetch ALL leads for the raw directory
+          const allLeadIds = Array.from(new Set(rawCallLogs.map((c: any) => c.leadId).filter(Boolean)));
+          const allLeadsData = await prisma.lead.findMany({
+            where: { id: { in: allLeadIds as string[] } },
             select: { id: true, phone: true, firstName: true, lastName: true }
           });
-          const leadDataMap = new Map(topLeads.map(l => [l.id, l]));
+          const leadDataMap = new Map(allLeadsData.map(l => [l.id, l]));
 
           const enrichCustomer = (c: any) => {
             const l = leadDataMap.get(c.leadId) as any;
@@ -562,7 +565,10 @@ TOP 10 MOST EXPENSIVE CALLS:
 ${top10Calls.map(formatCallShort).join("\n")}
 
 20 MOST RECENT CALLS:
-${recent20.map(formatCallShort).join("\n")}`;
+${recent20.map(formatCallShort).join("\n")}
+
+ALL CALLS DIRECTORY (Raw data log - use this to answer questions about specific dates, highest/lowest metrics, or individual calls):
+${rawCallLogs.map((c: any) => `[${dateFmt(c.startedAt)}] ${c.direction} | ${c.status} | Ph: ${leadDataMap.get(c.leadId)?.phone || "Unknown"} | Dur: ${toMinSec(c.durationSeconds)} | Cost: ${c.creditsUsed || 0}`).join("\n")}`;
 
           setCachedContext(companyId, freshContext);
           realTimeContext = `${systemRules}\n\n${freshContext}`;
