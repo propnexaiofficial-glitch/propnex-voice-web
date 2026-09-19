@@ -225,6 +225,11 @@ export async function POST(req: Request) {
       } else {
         // Create for EVERY matched PhoneNumber
         for (const phoneNumber of candidates) {
+          if (isInbound && phoneNumber.direction === "OUTBOUND") {
+            console.log(`Bonvoice Hangup: Skipping INBOUND call for OUTBOUND-only number ${phoneNumber.number}`);
+            continue;
+          }
+
           let lead: any = null;
           if (callerCore && phoneNumber.companyId) {
             lead = await prisma.lead.findFirst({

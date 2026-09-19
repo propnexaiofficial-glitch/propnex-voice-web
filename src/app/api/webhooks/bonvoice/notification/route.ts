@@ -211,6 +211,11 @@ export async function POST(req: Request) {
       } else {
         // Create a CallLog for EVERY matched PhoneNumber so it shows up in EVERY sub-company dashboard perfectly
         for (const phoneNumber of candidates) {
+          if (isInbound && phoneNumber.direction === "OUTBOUND") {
+            console.log(`Bonvoice Notification: Skipping INBOUND call for OUTBOUND-only number ${phoneNumber.number}`);
+            continue;
+          }
+
           let lead: any = null;
           if (callerCore && phoneNumber.companyId) {
             lead = await prisma.lead.findFirst({
