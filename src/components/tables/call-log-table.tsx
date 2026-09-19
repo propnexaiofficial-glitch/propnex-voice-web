@@ -104,7 +104,21 @@ export function CallLogTable({
                   )}
                 >
                   <td className="px-4 py-3 font-medium">
-                    {call.customerNumber?.startsWith('+') ? call.customerNumber : `+91${call.customerNumber?.replace(/^[0]+/, '') || ''}`}
+                    <div className="flex flex-col">
+                      {call.callType && (
+                        <span className={cn(
+                          "text-[9px] uppercase font-bold tracking-wider",
+                          call.callType === "campaign" ? "text-fuchsia-500/80" :
+                          call.callType === "lead" ? "text-emerald-500/80" :
+                          "text-blue-500/80"
+                        )}>
+                          {call.callType}
+                        </span>
+                      )}
+                      <span>
+                        {call.customerNumber?.startsWith('+') ? call.customerNumber : `+91${call.customerNumber?.replace(/^[0]+/, '') || ''}`}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground font-mono text-sm">
                     {call.assignedNumber ? (call.assignedNumber.startsWith('+') ? call.assignedNumber : `+91${call.assignedNumber.replace(/^[0]+/, '')}`) : <span className="opacity-40">—</span>}

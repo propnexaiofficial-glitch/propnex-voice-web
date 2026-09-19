@@ -23,6 +23,7 @@ export type CallRecord = {
   transcriptUrl?: string;
   transcript: TranscriptLine[];
   liveStartedAt?: string; // ISO timestamp for live duration counter
+  callType?: "lead" | "campaign" | "api";
 };
 
 export type CallLogFilters = {

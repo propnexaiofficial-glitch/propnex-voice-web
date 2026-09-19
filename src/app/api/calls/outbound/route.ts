@@ -212,6 +212,14 @@ export async function GET(req: NextRequest) {
 
       // The fallbackCustomerNumber was already extracted above (lines 175-189)
 
+      // 6. Determine callType
+      let callType: "lead" | "campaign" | "api" = "api";
+      if (call.campaignId) {
+        callType = "campaign";
+      } else if (call.leadId) {
+        callType = "lead";
+      }
+
       return {
         id: call.id,
         callId: call.callLogId,
@@ -226,6 +234,7 @@ export async function GET(req: NextRequest) {
         transcriptUrl: call.transcriptUrl || undefined,
         transcript: [],
         liveStartedAt: (call.status === "RINGING" || call.status === "ANSWERED") ? ((call as any).answeredAt ? (call as any).answeredAt.toISOString() : call.startedAt.toISOString()) : undefined,
+        callType,
       };
     });
 
