@@ -168,6 +168,8 @@ export async function POST(req: Request) {
             answeredAt: finalStatusToUpdate === "ANSWERED" ? new Date() : undefined,
             providerCallId: String(callID),
             providerWebhook: data,
+            historicalDidString: log.historicalDidString || didNumber,
+            historicalChannels: log.historicalChannels || 1,
           },
         });
       }
@@ -206,6 +208,8 @@ export async function POST(req: Request) {
             provider:        "BONVOICE",
             providerStatus:  mappedStatus,
             providerWebhook: data,
+            historicalDidString: didNumber,
+            historicalChannels: 1,
           },
         });
       } else {
@@ -253,6 +257,8 @@ export async function POST(req: Request) {
               provider:        "BONVOICE",
               providerStatus:  mappedStatus,
               providerWebhook: data,
+              historicalDidString: phoneNumber.number,
+              historicalChannels: phoneNumber.channels || 1,
             },
           });
           console.log(`Bonvoice Notification: Created call log ${newLog.id} status=${mappedStatus} for company=${phoneNumber.companyId}`);

@@ -187,6 +187,8 @@ export async function POST(req: Request) {
             providerCallId:  String(callID),
             providerStatus:  finalMappedStatus,
             providerWebhook: data,
+            historicalDidString: log.historicalDidString || didNumber,
+            historicalChannels: log.historicalChannels || 1,
             ...(lead ? { leadId: lead.id } : {}),
           },
         });
@@ -220,6 +222,8 @@ export async function POST(req: Request) {
             provider:        "BONVOICE",
             providerStatus:  finalMappedStatus,
             providerWebhook: data,
+            historicalDidString: didNumber,
+            historicalChannels: 1,
           },
         });
       } else {
@@ -257,6 +261,8 @@ export async function POST(req: Request) {
               provider:        "BONVOICE",
               providerStatus:  finalMappedStatus,
               providerWebhook: data,
+              historicalDidString: phoneNumber.number,
+              historicalChannels: phoneNumber.channels || 1,
             },
           });
           if (phoneNumber.companyId) {

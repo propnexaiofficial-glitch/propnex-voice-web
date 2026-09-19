@@ -840,6 +840,8 @@ model CallLog {
   provider         String?
   providerStatus   String?
   providerCallId   String?
+  historicalDidString String?
+  historicalChannels  Int?
   correlationId    String?
   providerRequestedAt DateTime?
   providerAcceptedAt  DateTime?

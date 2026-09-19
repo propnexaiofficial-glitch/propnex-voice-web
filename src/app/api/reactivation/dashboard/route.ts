@@ -150,11 +150,18 @@ export async function GET(req: NextRequest) {
         const q2Time = new Date(`${nextDayStr}T15:00:00+05:30`);
         const q3Time = new Date(`${nextDayStr}T20:00:00+05:30`);
 
+        let histDid = call.historicalDidString || call.phoneNumber?.number;
+        let histCh = call.historicalChannels || call.phoneNumber?.channels;
+        if (!histDid && call.providerWebhook) {
+          const pw = call.providerWebhook as any;
+          histDid = pw.DisplayNumber || pw.display_number || pw.DestinationNumber || pw.destination_number || pw.did || pw.SourceNumber || pw.source_number || pw.caller;
+        }
+
         buckets[key] = {
           id: key,
           csvName: `${shortFmt} Failed Leads`,
-          didNumber: (call as any).historicalDidString || call.phoneNumber?.number || fallbackNumber,
-          channels: (call as any).historicalChannels || call.phoneNumber?.channels || fallbackChannels,
+          didNumber: histDid || fallbackNumber,
+          channels: histCh || fallbackChannels,
           date: shortFmt, // E.g. "12 Sep"
           originalDateMs: d.getTime(),
           q1Time, q2Time, q3Time,
@@ -190,12 +197,19 @@ export async function GET(req: NextRequest) {
           ? "Campaign" 
           : "Internal";
 
+        let histDid2 = call.historicalDidString || call.phoneNumber?.number;
+        let histCh2 = call.historicalChannels || call.phoneNumber?.channels;
+        if (!histDid2 && call.providerWebhook) {
+          const pw = call.providerWebhook as any;
+          histDid2 = pw.DisplayNumber || pw.display_number || pw.DestinationNumber || pw.destination_number || pw.did || pw.SourceNumber || pw.source_number || pw.caller;
+        }
+
         buckets[key].q1.failedLeads.push({
            id: leadId,
            name: leadName,
            phone: leadPhone,
-           didNumber: (call as any).historicalDidString || call.phoneNumber?.number || fallbackNumber,
-           channels: (call as any).historicalChannels || call.phoneNumber?.channels || fallbackChannels,
+           didNumber: histDid2 || fallbackNumber,
+           channels: histCh2 || fallbackChannels,
            isCompleted: false,
            originalCallType
         });
