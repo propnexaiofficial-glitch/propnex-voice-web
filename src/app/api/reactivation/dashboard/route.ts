@@ -33,13 +33,26 @@ export async function GET(req: NextRequest) {
     });
     const companyIdsToQuery = [companyId, ...subCompanies.map((c: any) => c.id)];
 
-    // Fetch a dynamic fallback number for pending calls in case the original DID was removed or not recorded
+    // Fetch a dynamic fallback number for pending calls - MUST be OUTBOUND or BOTH direction, never inbound
     const activeFallbackPhone = await prisma.phoneNumber.findFirst({
-      where: { companyId: { in: companyIdsToQuery } },
+      where: {
+        companyId: companyId, // strictly main company only
+        direction: { in: ["OUTBOUND", "BOTH"] },
+        status: "ACTIVE",
+      },
       select: { number: true, channels: true }
     });
     const fallbackNumber = activeFallbackPhone?.number || "Unknown";
     const fallbackChannels = activeFallbackPhone?.channels || 1;
+
+    // Build a Set of currently-active outbound number strings for quick lookup
+    const activeOutboundNumbers = new Set<string>();
+    if (activeFallbackPhone?.number) activeOutboundNumbers.add(activeFallbackPhone.number);
+    const allActiveOutboundPhones = await prisma.phoneNumber.findMany({
+      where: { companyId: companyId, direction: { in: ["OUTBOUND", "BOTH"] }, status: "ACTIVE" },
+      select: { number: true }
+    });
+    allActiveOutboundPhones.forEach((p: any) => activeOutboundNumbers.add(p.number));
 
     // Fetch all initial FAILED/MISSED calls to find the base "Failed Leads" pool
     // We only want original outbound calls, NOT reactivation calls
@@ -150,18 +163,17 @@ export async function GET(req: NextRequest) {
         const q2Time = new Date(`${nextDayStr}T15:00:00+05:30`);
         const q3Time = new Date(`${nextDayStr}T20:00:00+05:30`);
 
-        let histDid = call.historicalDidString || call.phoneNumber?.number;
-        let histCh = call.historicalChannels || call.phoneNumber?.channels;
-        if (!histDid && call.providerWebhook) {
-          const pw = call.providerWebhook as any;
-          histDid = pw.DisplayNumber || pw.display_number || pw.DestinationNumber || pw.destination_number || pw.did || pw.SourceNumber || pw.source_number || pw.caller;
-        }
+          // If the original number still exists in DB (phoneNumber relation not null), use it.
+          // If it was deleted by admin (phoneNumber is null), show current active outbound number for pending waves.
+          const numStillActive = call.phoneNumber !== null;
+          const didToShow   = numStillActive ? (call.phoneNumber!.number) : fallbackNumber;
+          const chToShow    = numStillActive ? (call.phoneNumber!.channels || fallbackChannels) : fallbackChannels;
 
         buckets[key] = {
           id: key,
           csvName: `${shortFmt} Failed Leads`,
-          didNumber: histDid || fallbackNumber,
-          channels: histCh || fallbackChannels,
+          didNumber: didToShow,
+          channels: chToShow,
           date: shortFmt, // E.g. "12 Sep"
           originalDateMs: d.getTime(),
           q1Time, q2Time, q3Time,
@@ -170,9 +182,14 @@ export async function GET(req: NextRequest) {
           q3: { label: "Wave 3", scheduled: `${nextShortFmt} 8 Pm`, status: "Pending", failedLeads: [] },
         };
       } else {
-        const currentDid = (call as any).historicalDidString || call.phoneNumber?.number;
+        const currentDid = call.phoneNumber?.number;
         if (currentDid && buckets[key].didNumber !== currentDid) {
-           buckets[key].didNumber = "Multiple Numbers";
+          // Both numbers still active but different — mark as multiple
+          buckets[key].didNumber = "Multiple Numbers";
+        } else if (!call.phoneNumber && buckets[key].didNumber !== fallbackNumber) {
+          // Original number was deleted — pending wave should show current active outbound
+          buckets[key].didNumber = fallbackNumber;
+          buckets[key].channels  = fallbackChannels;
         }
       }
       
@@ -197,19 +214,16 @@ export async function GET(req: NextRequest) {
           ? "Campaign" 
           : "Internal";
 
-        let histDid2 = call.historicalDidString || call.phoneNumber?.number;
-        let histCh2 = call.historicalChannels || call.phoneNumber?.channels;
-        if (!histDid2 && call.providerWebhook) {
-          const pw = call.providerWebhook as any;
-          histDid2 = pw.DisplayNumber || pw.display_number || pw.DestinationNumber || pw.destination_number || pw.did || pw.SourceNumber || pw.source_number || pw.caller;
-        }
+        const numStillActive2 = call.phoneNumber !== null;
+        const didToShow2  = numStillActive2 ? (call.phoneNumber!.number) : fallbackNumber;
+        const chToShow2   = numStillActive2 ? (call.phoneNumber!.channels || fallbackChannels) : fallbackChannels;
 
         buckets[key].q1.failedLeads.push({
            id: leadId,
            name: leadName,
            phone: leadPhone,
-           didNumber: histDid2 || fallbackNumber,
-           channels: histCh2 || fallbackChannels,
+           didNumber: didToShow2,
+           channels: chToShow2,
            isCompleted: false,
            originalCallType
         });
