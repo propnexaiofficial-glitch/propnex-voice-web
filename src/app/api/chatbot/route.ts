@@ -548,7 +548,7 @@ ${recent20.map(formatCallShort).join("\n")}`;
     if (!geminiRes.ok) {
       const err = await geminiRes.text();
       console.error("Gemini API Error:", err);
-      return NextResponse.json({ error: "AI service unavailable" }, { status: 500 });
+      return NextResponse.json({ error: `Gemini API Error: ${err}` }, { status: 500 });
     }
 
     // ── Stream response ──────────────────────────────────────────────────
