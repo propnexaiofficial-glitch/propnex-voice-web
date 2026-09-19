@@ -936,7 +936,6 @@ export function CampaignCard({
                                         {didKeys.map((did) => (
                                           <div key={did} className="flex flex-col text-muted-foreground gap-0.5">
                                             <span className="font-medium">DID Number - {did} <span className="opacity-50 mx-1">|</span> Ch - {didStats[did].channels}</span>
-                                            <span className="text-red-400">Failed Calls - {didStats[did].count}</span>
                                           </div>
                                         ))}
                                       </PopoverContent>
@@ -960,7 +959,7 @@ export function CampaignCard({
                         <div className="flex items-center justify-between mt-0.5">
                           <div className="text-xs font-medium text-red-400 flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
-                            {totalFailed} Failed Leads Total
+                            Total Failed Calls - {totalFailed} (Campaign - {hist.q1.failedLeads?.filter((l: any) => l.originalCallType === "Campaign").length || 0} , Internal - {totalFailed - (hist.q1.failedLeads?.filter((l: any) => l.originalCallType === "Campaign").length || 0)})
                           </div>
                         </div>
                       </div>
