@@ -33,6 +33,14 @@ export async function GET(req: NextRequest) {
     });
     const companyIdsToQuery = [companyId, ...subCompanies.map((c: any) => c.id)];
 
+    // Fetch a dynamic fallback number for pending calls in case the original DID was removed or not recorded
+    const activeFallbackPhone = await prisma.phoneNumber.findFirst({
+      where: { companyId: { in: companyIdsToQuery } },
+      select: { number: true, channels: true }
+    });
+    const fallbackNumber = activeFallbackPhone?.number || "Unknown";
+    const fallbackChannels = activeFallbackPhone?.channels || 1;
+
     // Fetch all initial FAILED/MISSED calls to find the base "Failed Leads" pool
     // We only want original outbound calls, NOT reactivation calls
     const failedCalls = await prisma.callLog.findMany({
@@ -145,8 +153,8 @@ export async function GET(req: NextRequest) {
         buckets[key] = {
           id: key,
           csvName: `${shortFmt} Failed Leads`,
-          didNumber: (call as any).historicalDidString || call.phoneNumber?.number || "07946350798",
-          channels: (call as any).historicalChannels || call.phoneNumber?.channels || 2,
+          didNumber: (call as any).historicalDidString || call.phoneNumber?.number || fallbackNumber,
+          channels: (call as any).historicalChannels || call.phoneNumber?.channels || fallbackChannels,
           date: shortFmt, // E.g. "12 Sep"
           originalDateMs: d.getTime(),
           q1Time, q2Time, q3Time,
@@ -188,8 +196,8 @@ export async function GET(req: NextRequest) {
            id: leadId,
            name: leadName,
            phone: leadPhone,
-           didNumber: (call as any).historicalDidString || call.phoneNumber?.number || "07946350798",
-           channels: (call as any).historicalChannels || call.phoneNumber?.channels || 2,
+           didNumber: (call as any).historicalDidString || call.phoneNumber?.number || fallbackNumber,
+           channels: (call as any).historicalChannels || call.phoneNumber?.channels || fallbackChannels,
            isCompleted: false,
            originalCallType
         });
