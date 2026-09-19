@@ -601,6 +601,9 @@ ${recent20.map(formatCallShort).join("\n")}`;
 
   } catch (error: any) {
     console.error("Chatbot API Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: error?.message || "AI service unavailable" },
+      { status: 500 }
+    );
   }
 }
