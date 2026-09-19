@@ -2,6 +2,7 @@
 
 import { DashboardHeader } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
+import { SidebarChatbot } from "@/components/layout/sidebar-chatbot";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect, useState } from "react";
 import { EmployeesProvider } from "@/features/employees/context/employees-context";
@@ -640,6 +641,7 @@ function DashboardShellInner({
           </div>
         </main>
       </div>
+      <SidebarChatbot />
     </div>
   );
 }

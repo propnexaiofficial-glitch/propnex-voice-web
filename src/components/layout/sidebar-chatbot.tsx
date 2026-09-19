@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { Send, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
@@ -495,7 +494,7 @@ export function SidebarChatbot() {
         <div className="fab-label"><div className="fab-dot"></div>Task Desk</div>
       </div>
 
-      {mounted && createPortal(
+      {mounted && (
         <>
           {/* BACKDROP */}
           <div 
@@ -575,8 +574,7 @@ export function SidebarChatbot() {
               <div className="ch-hint">Task Desk · Online &amp; active</div>
             </div>
           </div>
-        </>,
-        document.body
+        </>
       )}
     </>
   );
