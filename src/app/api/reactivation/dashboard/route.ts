@@ -43,7 +43,12 @@ export async function GET(req: NextRequest) {
           { status: { in: ["FAILED", "MISSED", "BUSY", "NO_ANSWER", "CANCELLED"] } },
           { durationSeconds: 0 },
         ],
-        NOT: { correlationId: { startsWith: "reactivation-" } }
+        NOT: {
+          AND: [
+            { correlationId: { isSet: true } },
+            { correlationId: { startsWith: "reactivation-" } }
+          ]
+        }
       },
       include: {
         lead: true,
