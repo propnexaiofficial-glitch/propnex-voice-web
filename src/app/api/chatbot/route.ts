@@ -149,6 +149,7 @@ export async function POST(req: Request) {
             retryNumber: true,
             disconnectReason: true,
             leadId: true,
+            providerWebhook: true,
           },
           orderBy: { startedAt: "desc" },
           take: 2000, // Reduced from 10000 to prevent Vercel 502 OOM/Timeout
@@ -163,6 +164,7 @@ export async function POST(req: Request) {
                 durationSeconds: true, cost: true, creditsUsed: true,
                 startedAt: true, phoneNumberId: true, recordingUrl: true,
                 campaignId: true, isRetry: true, leadId: true,
+                providerWebhook: true,
               },
               take: 1000, // Reduced from 5000 to prevent Vercel 502 OOM/Timeout
             })
@@ -299,7 +301,20 @@ export async function POST(req: Request) {
           const formatCall = (c: any) => {
             if (!c) return "None";
             const l = notableLeadMap.get(c.leadId) as any;
-            return `Customer: ${l?.phone || "Unknown"} (${l?.firstName || ""} ${l?.lastName || ""}).trim() | DID: ${c.historicalDidString || "N/A"} | Duration: ${toMinSec(c.durationSeconds)} | Credits: ${c.creditsUsed || 0} | Date: ${dateFmt(c.startedAt)}${c.recordingUrl ? " | Recording: " + c.recordingUrl : ""}`;
+            
+            let assignedNumber = c.historicalDidString || "N/A";
+            let customerNumber = l?.phone || "Unknown";
+            
+            if (c.providerWebhook && typeof c.providerWebhook === 'object') {
+               const wh: any = c.providerWebhook;
+               const extractedAssigned = wh.DisplayNumber || wh.display_number || wh.displayNumber || wh.DestinationNumber || wh.destination_number || wh.destinationNumber || wh.did || wh.agentNumber || wh.did_number || wh.didNumber || wh.message?.call?.agent?.number || wh.call?.agent?.number;
+               if (extractedAssigned) assignedNumber = extractedAssigned;
+               
+               const extractedCustomer = wh.SourceNumber || wh.source_number || wh.sourceNumber || wh.caller || wh.from_number || wh.from || wh.customer_number || wh.customerNumber;
+               if (extractedCustomer) customerNumber = extractedCustomer;
+            }
+            
+            return `Customer: ${customerNumber} (${l?.firstName || ""} ${l?.lastName || ""}).trim() | DID/Assigned: ${assignedNumber} | Duration: ${toMinSec(c.durationSeconds)} | Credits: ${c.creditsUsed || 0} | Date: ${dateFmt(c.startedAt)}${c.recordingUrl ? " | Recording: " + c.recordingUrl : ""}`;
           };
 
           const formatCallShort = (c: any) => {
@@ -559,6 +574,7 @@ ${recent20.map(formatCallShort).join("\n")}`;
 
         const dec = new TextDecoder();
         let buf = "";
+        let fullText = "";
 
         while (true) {
           const { done, value } = await reader.read();
@@ -571,7 +587,11 @@ ${recent20.map(formatCallShort).join("\n")}`;
           for (const line of lines) {
             if (!line.startsWith("data: ")) continue;
             const raw = line.slice(6).trim();
-            if (raw === "[DONE]") { controller.close(); return; }
+            if (raw === "[DONE]") { 
+              controller.enqueue(new TextEncoder().encode(fullText));
+              controller.close(); 
+              return; 
+            }
             try {
               const parsed = JSON.parse(raw);
               const chunk = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -581,10 +601,14 @@ ${recent20.map(formatCallShort).join("\n")}`;
                   .replace(/^#+\s*/gm, "")
                   .replace(/\*([^*]+)\*/g, "$1")
                   .replace(/_{2}([^_]+)_{2}/g, "$1");
-                controller.enqueue(new TextEncoder().encode(clean));
+                fullText += clean;
               }
             } catch (_) { /* partial JSON — skip */ }
           }
+        }
+        
+        if (fullText) {
+           controller.enqueue(new TextEncoder().encode(fullText));
         }
         controller.close();
       },
