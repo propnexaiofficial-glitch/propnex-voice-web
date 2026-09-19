@@ -293,7 +293,7 @@ export function SidebarChatbot() {
           background:#111113;
           border:1px solid rgba(255,255,255,.13);
           border-radius:28px;
-          overflow:clip;
+          overflow:hidden;
           display:flex;flex-direction:column;
           min-height:0;
           z-index:2147483647;
@@ -387,6 +387,7 @@ export function SidebarChatbot() {
           flex-wrap:nowrap;
           overflow-x:auto;
           overflow-y:hidden;
+          -webkit-overflow-scrolling:touch;
           scrollbar-width:none;
           gap:8px;
           padding:0 16px 4px;
@@ -424,6 +425,7 @@ export function SidebarChatbot() {
           min-height:0;
           overflow-y:auto;
           overflow-x:hidden;
+          -webkit-overflow-scrolling:touch;
           padding:16px 16px 8px;
           display:flex;flex-direction:column;gap:12px;
           scrollbar-width:thin;
@@ -465,7 +467,7 @@ export function SidebarChatbot() {
         .ch-inp{display:flex;align-items:flex-end;gap:8px;background:#18181b;border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:8px 8px 8px 16px;transition:border-color .2s,box-shadow .2s;cursor:text;}
         .ch-inp:focus-within{border-color:rgba(255,255,255,.25);box-shadow:0 0 0 3px rgba(255,255,255,.04)}
         /* 16px prevents iOS/Android zoom on focus */
-        .ch-ta{flex:1;background:none;border:none;outline:none;color:#f4f4f5;font-size:16px;font-family:'Inter',sans-serif;resize:none;min-height:22px;max-height:90px;line-height:1.5;padding-bottom:2px;-webkit-appearance:none;appearance:none;-webkit-user-select:text !important;user-select:text !important;pointer-events:auto !important;}
+        .ch-ta{flex:1;background:none;border:none;outline:none;color:#f4f4f5;font-size:16px;font-family:'Inter',sans-serif;height:24px;line-height:1.5;padding:0;-webkit-appearance:none;appearance:none;-webkit-user-select:text !important;user-select:text !important;pointer-events:auto !important;}
         .ch-ta::placeholder{color:#52525b}
         .ch-send{width:36px;height:36px;flex-shrink:0;background:#f4f4f5;color:#09090b;border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .2s cubic-bezier(.34,1.56,.64,1),background .2s;-webkit-tap-highlight-color:transparent;}
         .ch-send:hover{transform:scale(1.1);background:#d4d4d8}
@@ -552,11 +554,11 @@ export function SidebarChatbot() {
             </div>
 
             <div className="ch-inp-wrap">
-              <div className="ch-inp">
-                <textarea
-                  ref={textareaRef}
+              <form className="ch-inp" onSubmit={(e) => { e.preventDefault(); handleSend(); }}>
+                <input
+                  type="text"
+                  ref={textareaRef as any}
                   className="ch-ta"
-                  rows={1}
                   placeholder="Message Task Desk..."
                   value={inputValue}
                   inputMode="text"
@@ -564,17 +566,12 @@ export function SidebarChatbot() {
                   autoCorrect="off"
                   autoCapitalize="sentences"
                   enterKeyHint="send"
-                  onChange={(e) => {
-                    setInputValue(e.target.value);
-                    e.target.style.height = 'auto';
-                    e.target.style.height = Math.min(e.target.scrollHeight, 90) + 'px';
-                  }}
-                  onKeyDown={handleKeyDown}
+                  onChange={(e) => setInputValue(e.target.value)}
                 />
-                <button id="chat-send-btn" className="ch-send" onClick={handleSend} disabled={isTyping || !inputValue.trim()}>
+                <button type="submit" id="chat-send-btn" className="ch-send" disabled={isTyping || !inputValue.trim()}>
                   <Send className="size-3.5 text-zinc-900" />
                 </button>
-              </div>
+              </form>
               <div className="ch-hint">Task Desk · Online &amp; active</div>
             </div>
           </div>
