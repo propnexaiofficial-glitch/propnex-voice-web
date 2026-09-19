@@ -331,7 +331,7 @@ export function SidebarChatbot() {
             left: calc(var(--sidebar-width, 280px) + 24px);
           }
         }
-        .chat-window.open{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
+        .chat-window.open{opacity:1;pointer-events:auto !important;transform:translateY(0) scale(1)}
         
         .ch-head{
           position:relative;overflow:hidden;
@@ -437,10 +437,10 @@ export function SidebarChatbot() {
             padding-bottom:max(14px, env(safe-area-inset-bottom));
           }
         }
-        .ch-inp{display:flex;align-items:flex-end;gap:8px;background:#18181b;border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:8px 8px 8px 16px;transition:border-color .2s,box-shadow .2s}
+        .ch-inp{display:flex;align-items:flex-end;gap:8px;background:#18181b;border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:8px 8px 8px 16px;transition:border-color .2s,box-shadow .2s;cursor:text;}
         .ch-inp:focus-within{border-color:rgba(255,255,255,.25);box-shadow:0 0 0 3px rgba(255,255,255,.04)}
-        /* 16px prevents iOS zoom on focus */
-        .ch-ta{flex:1;background:none;border:none;outline:none;color:#f4f4f5;font-size:16px;font-family:'Inter',sans-serif;resize:none;min-height:22px;max-height:90px;line-height:1.5;padding-bottom:2px;user-select:text;-webkit-user-select:text;touch-action:manipulation}
+        /* 16px prevents iOS zoom on focus, auto user-select fixes Android keyboard bugs */
+        .ch-ta{flex:1;background:none;border:none;outline:none;color:#f4f4f5;font-size:16px;font-family:'Inter',sans-serif;resize:none;min-height:22px;max-height:90px;line-height:1.5;padding-bottom:2px;user-select:auto !important;-webkit-user-select:auto !important;touch-action:manipulation;pointer-events:auto !important;position:relative;z-index:10;}
         .ch-ta::placeholder{color:#52525b}
         .ch-send{width:36px;height:36px;flex-shrink:0;background:#f4f4f5;color:#09090b;border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .2s cubic-bezier(.34,1.56,.64,1),background .2s;-webkit-tap-highlight-color:transparent;}
         .ch-send:hover{transform:scale(1.1);background:#d4d4d8}
@@ -526,7 +526,7 @@ export function SidebarChatbot() {
               <div ref={msgsEndRef} />
             </div>
 
-            <div className="ch-inp-wrap">
+            <div className="ch-inp-wrap" onClick={() => textareaRef.current?.focus()}>
               <div className="ch-inp">
                 <textarea
                   ref={textareaRef}
