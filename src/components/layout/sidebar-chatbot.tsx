@@ -51,6 +51,18 @@ export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" })
     return () => window.removeEventListener("open-chatbot", handleOpen);
   }, []);
 
+  // Lock body scroll when window mode is open to prevent background scrolling
+  useEffect(() => {
+    if (mode === "window" && isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, mode]);
+
   // Set personalized greeting once when user context loads
   useEffect(() => {
     if (greetingSet.current) return;
@@ -296,6 +308,7 @@ export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" })
           border:1px solid rgba(255,255,255,.13);
           border-radius:28px;
           overflow:hidden;
+          overscroll-behavior:contain;
           display:flex;flex-direction:column;
           min-height:0;
           z-index:2147483647;
@@ -427,6 +440,7 @@ export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" })
           min-height:0;
           overflow-y:auto;
           overflow-x:hidden;
+          overscroll-behavior:contain;
           -webkit-overflow-scrolling:touch;
           padding:16px 16px 8px;
           display:flex;flex-direction:column;gap:12px;
