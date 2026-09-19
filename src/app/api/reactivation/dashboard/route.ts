@@ -42,7 +42,8 @@ export async function GET(req: NextRequest) {
         OR: [
           { status: { in: ["FAILED", "MISSED", "BUSY", "NO_ANSWER", "CANCELLED"] } },
           { durationSeconds: 0 },
-        ]
+        ],
+        NOT: { correlationId: { startsWith: "reactivation-" } }
       },
       include: {
         lead: true,
@@ -172,13 +173,20 @@ export async function GET(req: NextRequest) {
           }
         }
 
+        const originalCallType = call.campaignId || (call.correlationId && call.correlationId.startsWith("camp-")) 
+          ? "Campaign" 
+          : call.leadId && !call.campaignId && !call.correlationId 
+          ? "Lead" 
+          : "Internal";
+
         buckets[key].q1.failedLeads.push({
            id: leadId,
            name: leadName,
            phone: leadPhone,
            didNumber: (call as any).historicalDidString || call.phoneNumber?.number || "Unknown",
            channels: (call as any).historicalChannels || call.phoneNumber?.channels || 1,
-           isCompleted: false
+           isCompleted: false,
+           originalCallType
         });
       }
     }

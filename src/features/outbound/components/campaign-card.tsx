@@ -1074,7 +1074,7 @@ export function CampaignCard({
                                             <Clock className="size-4 text-muted-foreground shrink-0 opacity-50" />
                                           )}
                                           <span className={cn("truncate font-bold text-sm text-foreground", lead.isCompleted && "text-emerald-600 dark:text-emerald-400", isFailed && "text-red-600 dark:text-red-400")}>
-                                            Lead {(currentPage - 1) * itemsPerPage + i + 1} - {lead.phone}
+                                            {(wave.stage === "Q1" && lead.originalCallType && lead.originalCallType !== "Lead") ? lead.originalCallType : "Lead"} {(currentPage - 1) * itemsPerPage + i + 1} - {lead.phone}
                                           </span>
                                         </div>
                                       </div>
