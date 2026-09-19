@@ -188,8 +188,6 @@ export async function GET(req: NextRequest) {
 
         const originalCallType = call.campaignId || (call.correlationId && call.correlationId.startsWith("camp-")) 
           ? "Campaign" 
-          : call.leadId && !call.campaignId && !call.correlationId 
-          ? "Lead" 
           : "Internal";
 
         buckets[key].q1.failedLeads.push({
