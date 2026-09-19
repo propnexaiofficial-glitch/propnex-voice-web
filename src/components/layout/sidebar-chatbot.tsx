@@ -317,8 +317,8 @@ export function SidebarChatbot() {
             left:0 !important;
             right:0 !important;
             bottom:0 !important;
-            top: auto !important;
-            height:100dvh !important;
+            top:0 !important;
+            height:auto !important;
             width:100% !important;
             border-radius:24px 24px 0 0 !important;
             border-bottom:none !important;
@@ -382,26 +382,7 @@ export function SidebarChatbot() {
         .ch-btn{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#52525b;transition:.15s;-webkit-tap-highlight-color:transparent;}
         .ch-btn:hover,.ch-btn:active{background:rgba(255,255,255,.1);color:#f4f4f5}
         
-        /* Tags row — always horizontal scrollable, lives outside ch-head */
-        .ch-tags-row{
-          padding:12px 16px 12px;
-          border-bottom:1px solid rgba(255,255,255,.07);
-          flex-shrink:0;
-          width:100%;
-          box-sizing:border-box;
-        }
-        .ch-tags{
-          display:flex;
-          gap:8px;
-          flex-wrap:nowrap;
-          overflow-x:auto;
-          -webkit-overflow-scrolling:touch;
-          scrollbar-width:none;
-          padding-bottom:2px;
-          touch-action:pan-x;
-          width:100%;
-        }
-        .ch-tags::-webkit-scrollbar{display:none}
+        /* Tags row - raw tailwind used now, just keeping minimal if needed */
         .ch-tag{
           padding:7px 15px;
           border:1px solid rgba(255,255,255,.1);
@@ -526,10 +507,10 @@ export function SidebarChatbot() {
             </div>
             {/* Tags OUTSIDE ch-head so overflow:hidden doesn't clip horizontal scroll */}
             {messages.length <= 1 && (
-              <div className="ch-tags-row">
-                <div className="ch-tags">
+              <div className="w-full shrink-0 border-b border-white/5 py-3 overflow-hidden">
+                <div className="flex overflow-x-auto flex-nowrap w-full gap-2 px-4 pb-1 touch-pan-x snap-x snap-mandatory" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
                   {getTags().map(tag => (
-                    <div key={tag} className="ch-tag" onClick={() => handleTagClick(tag)}>{tag}</div>
+                    <div key={tag} className="ch-tag snap-start" onClick={() => handleTagClick(tag)}>{tag}</div>
                   ))}
                 </div>
               </div>
