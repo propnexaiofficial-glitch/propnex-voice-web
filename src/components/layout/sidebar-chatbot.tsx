@@ -306,17 +306,17 @@ export function SidebarChatbot() {
           height:calc(100vh - 140px);
           max-height:560px;
         }
-        /* Full-screen on mobile - precise bounds to prevent clipping */
+        /* Mobile - Floating chat with padding and Dynamic Viewport Height (dvh) for perfect keyboard support */
         @media (max-width: 639px) {
           .chat-window {
-            left:0 !important;
-            right:0 !important;
-            bottom:0 !important;
-            top: 80px !important;
-            height:auto !important;
-            width:100% !important;
-            max-width:100% !important;
-            border-radius:24px 24px 0 0;
+            left:12px !important;
+            right:12px !important;
+            bottom:12px !important;
+            top: auto !important;
+            height:calc(100dvh - 24px) !important;
+            width:calc(100% - 24px) !important;
+            max-width:none !important;
+            border-radius:24px !important;
             max-height:none !important;
             transform-origin:bottom center;
           }
@@ -324,7 +324,7 @@ export function SidebarChatbot() {
             transform:translateY(0) scale(1);
           }
           .chat-window:not(.open) {
-            transform:translateY(100%);
+            transform:translateY(120%);
           }
         }
         @media (min-width: 1024px) {
