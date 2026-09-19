@@ -268,7 +268,7 @@ export function SidebarChatbot() {
         
         /*  BACKDROP  */
         .chat-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);z-index:99998;opacity:0;pointer-events:none;transition:opacity .4s}
-        .chat-backdrop.show{opacity:1;pointer-events:all}
+        .chat-backdrop.show{opacity:1;pointer-events:auto}
         
         /*  CHAT PANEL  */
         .chat-window{
@@ -296,7 +296,7 @@ export function SidebarChatbot() {
             left: calc(var(--sidebar-width, 280px) + 24px);
           }
         }
-        .chat-window.open{opacity:1;pointer-events:all;transform:translateY(0) scale(1)}
+        .chat-window.open{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
         
         .ch-head{
           position:relative;overflow:hidden;

@@ -8,10 +8,10 @@ import { cn } from "@/lib/utils";
 import type { BillingSummary } from "@/features/billing/types";
 import { useEmployeesContext } from "@/features/employees/context/employees-context";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 type CreditBalanceCardProps = {
   summary: BillingSummary;
@@ -71,19 +71,20 @@ export function CreditBalanceCard({ summary, className }: CreditBalanceCardProps
             <p className="mt-1 font-semibold">{mainBalance.toLocaleString()}</p>
           </div>
           {/* Assigned (Sub) with info tooltip */}
+          {/* Assigned (Sub) with info popover */}
           <div>
             <div className="flex items-center gap-1">
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 Assigned (Sub)
               </p>
               {companies.length > 0 && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
+                <Popover>
+                  <PopoverTrigger asChild>
                     <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
                       <Info className="size-3" />
                     </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" align="start" className="w-[220px] p-3 space-y-1.5">
+                  </PopoverTrigger>
+                  <PopoverContent side="top" align="start" className="w-[220px] p-3 space-y-1.5">
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                       Main & Sub-Company Credits
                     </p>
@@ -102,8 +103,8 @@ export function CreditBalanceCard({ summary, className }: CreditBalanceCardProps
                       <span className="text-[10px] font-semibold uppercase text-muted-foreground">Total</span>
                       <span className="text-xs font-bold text-fuchsia-400">{subRemaining.toLocaleString()}</span>
                     </div>
-                  </TooltipContent>
-                </Tooltip>
+                  </PopoverContent>
+                </Popover>
               )}
             </div>
             <p className="mt-1 font-semibold">{subRemaining.toLocaleString()}</p>

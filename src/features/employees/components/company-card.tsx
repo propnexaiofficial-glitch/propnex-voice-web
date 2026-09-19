@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { SubCompany } from "@/features/employees/types";
 import { cn } from "@/lib/utils";
 
@@ -119,15 +119,14 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
                 {!hasNumbers ? (
                   <span className="font-medium text-amber-500">Pending...</span>
                 ) : (
-                  <TooltipProvider>
                     <div className="flex items-center gap-2">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center justify-center size-5 rounded bg-muted/50 hover:bg-muted transition-colors cursor-default" onClick={(e) => e.preventDefault()}>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <div className="flex items-center justify-center size-5 rounded bg-muted/50 hover:bg-muted transition-colors cursor-pointer">
                             <PhoneIncoming className="size-3 text-blue-500" />
                           </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="flex flex-col gap-1.5 p-3" onClick={(e) => e.preventDefault()}>
+                        </PopoverTrigger>
+                        <PopoverContent side="top" className="flex flex-col gap-1.5 p-3">
                           <p className="font-semibold text-xs border-b border-border pb-1">Inbound Info</p>
                           <div className="text-xs">
                             <span className="text-muted-foreground">Numbers: </span>
@@ -141,15 +140,15 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
                               </div>
                             ) : "None"}
                           </div>
-                        </TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center justify-center size-5 rounded bg-muted/50 hover:bg-muted transition-colors cursor-default" onClick={(e) => e.preventDefault()}>
+                        </PopoverContent>
+                      </Popover>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <div className="flex items-center justify-center size-5 rounded bg-muted/50 hover:bg-muted transition-colors cursor-pointer">
                             <PhoneOutgoing className="size-3 text-orange-500" />
                           </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="flex flex-col gap-1.5 p-3" onClick={(e) => e.preventDefault()}>
+                        </PopoverTrigger>
+                        <PopoverContent side="top" className="flex flex-col gap-1.5 p-3">
                           <p className="font-semibold text-xs border-b border-border pb-1">Outbound Info</p>
                           <div className="text-xs">
                             <span className="text-muted-foreground">Numbers: </span>
@@ -163,10 +162,9 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
                               </div>
                             ) : "None"}
                           </div>
-                        </TooltipContent>
-                      </Tooltip>
+                        </PopoverContent>
+                      </Popover>
                     </div>
-                  </TooltipProvider>
                 )}
               </p>
             </div>
