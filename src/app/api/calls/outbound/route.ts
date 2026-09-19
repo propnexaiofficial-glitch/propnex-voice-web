@@ -127,6 +127,23 @@ export async function GET(req: NextRequest) {
           ];
         }
       }
+
+      // Hide failed/missed/0s calls IF they are pure Lead calls (because they go to Reactivation instead)
+      // Pure lead calls have campaignId = null, correlationId = null, and leadId != null
+      whereClause.NOT = {
+        AND: [
+          { campaignId: null },
+          { correlationId: null },
+          { leadId: { not: null } },
+          {
+            OR: [
+              { status: { not: "COMPLETED" } },
+              { durationSeconds: 0 }
+            ]
+          }
+        ]
+      };
+
       return whereClause;
     };
 
