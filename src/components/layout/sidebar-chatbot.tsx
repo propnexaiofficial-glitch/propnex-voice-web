@@ -374,6 +374,31 @@ export function SidebarChatbot() {
         .ch-btn{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#52525b;transition:.15s;-webkit-tap-highlight-color:transparent;}
         .ch-btn:hover,.ch-btn:active{background:rgba(255,255,255,.1);color:#f4f4f5}
         
+        /* Tags row: wraps on desktop, scrolls on mobile */
+        .ch-tags-row{
+          width:100%;
+          flex-shrink:0;
+          border-bottom:1px solid rgba(255,255,255,.07);
+          padding:10px 0;
+        }
+        .ch-tags-inner{
+          display:flex;
+          flex-wrap:nowrap;
+          overflow-x:auto;
+          -webkit-overflow-scrolling:touch;
+          scrollbar-width:none;
+          gap:8px;
+          padding:0 16px 4px;
+          touch-action:pan-x;
+        }
+        .ch-tags-inner::-webkit-scrollbar{display:none}
+        @media (min-width:640px){
+          .ch-tags-inner{
+            flex-wrap:wrap;
+            overflow-x:visible;
+            touch-action:auto;
+          }
+        }
         /* Tags row - raw tailwind used now, just keeping minimal if needed */
         .ch-tag{
           padding:7px 15px;
@@ -499,12 +524,12 @@ export function SidebarChatbot() {
                 </div>
               </div>
             </div>
-            {/* Tags row — scrollable on mobile, wraps on desktop */}
+            {/* Tags row — wraps on desktop, scrolls on mobile */}
             {messages.length <= 1 && (
-              <div style={{ width:'100%', flexShrink:0, borderBottom:'1px solid rgba(255,255,255,.07)', padding:'10px 0' }}>
-                <div style={{ display:'flex', flexWrap:'nowrap', overflowX:'auto', WebkitOverflowScrolling:'touch', scrollbarWidth:'none', gap:'8px', padding:'0 16px 4px', touchAction:'pan-x' }}>
+              <div className="ch-tags-row">
+                <div className="ch-tags-inner">
                   {getTags().map(tag => (
-                    <div key={tag} className="ch-tag" style={{ flexShrink:0, whiteSpace:'nowrap' }} onClick={() => handleTagClick(tag)}>{tag}</div>
+                    <div key={tag} className="ch-tag" onClick={() => handleTagClick(tag)}>{tag}</div>
                   ))}
                 </div>
               </div>
