@@ -130,7 +130,7 @@ export async function POST(req: Request) {
           prisma.campaignExecution.findMany({ where: { companyId } }) as any,
         ]);
 
-        // ── Full call logs with lead phone + recording URL ──────────────
+        // ── Optimized full call logs fetch (NO lead JOIN to prevent timeout) ────────
         const rawCallLogs = await prisma.callLog.findMany({
           where: { companyId },
           select: {
@@ -148,9 +148,10 @@ export async function POST(req: Request) {
             isRetry: true,
             retryNumber: true,
             disconnectReason: true,
-            lead: { select: { phone: true, firstName: true, lastName: true } },
+            leadId: true,
           },
           orderBy: { startedAt: "desc" },
+          take: 10000, // safety limit
         });
 
         const subCompanyIds = subcompanies.map((s: any) => s.id);
@@ -161,9 +162,9 @@ export async function POST(req: Request) {
                 id: true, companyId: true, direction: true, status: true,
                 durationSeconds: true, cost: true, creditsUsed: true,
                 startedAt: true, phoneNumberId: true, recordingUrl: true,
-                campaignId: true, isRetry: true,
-                lead: { select: { phone: true, firstName: true, lastName: true } },
+                campaignId: true, isRetry: true, leadId: true,
               },
+              take: 5000, // safety limit
             })
           : [];
 
@@ -174,15 +175,14 @@ export async function POST(req: Request) {
           const reactivationCalls = allCalls.filter((c: any) => c.isRetry === true);
 
           // ── Per-customer stats ────────────────────────────────────────
-          const customerCallMap: Record<string, { phone: string; name: string; inbound: number; outbound: number; totalDuration: number; lastCall: string; recordings: string[] }> = {};
+          const customerCallMap: Record<string, { leadId: string; inbound: number; outbound: number; totalDuration: number; lastCall: string; recordings: string[] }> = {};
 
           for (const c of allCalls as any[]) {
-            const phone = c.lead?.phone || "Unknown";
-            if (phone === "Unknown") continue;
-            if (!customerCallMap[phone]) {
-              customerCallMap[phone] = {
-                phone,
-                name: `${c.lead?.firstName || ""} ${c.lead?.lastName || ""}`.trim() || "Unknown",
+            const lid = c.leadId;
+            if (!lid) continue;
+            if (!customerCallMap[lid]) {
+              customerCallMap[lid] = {
+                leadId: lid,
                 inbound: 0,
                 outbound: 0,
                 totalDuration: 0,
@@ -190,7 +190,7 @@ export async function POST(req: Request) {
                 recordings: [],
               };
             }
-            const entry = customerCallMap[phone];
+            const entry = customerCallMap[lid];
             if (c.direction === "INBOUND") entry.inbound++;
             else entry.outbound++;
             entry.totalDuration += c.durationSeconds || 0;
@@ -202,6 +202,23 @@ export async function POST(req: Request) {
           const topByTotal   = [...customerList].sort((a, b) => (b.inbound + b.outbound) - (a.inbound + a.outbound)).slice(0, 20);
           const topInbound   = [...customerList].sort((a, b) => b.inbound  - a.inbound).slice(0, 10);
           const topOutbound  = [...customerList].sort((a, b) => b.outbound - a.outbound).slice(0, 10);
+
+          // Get unique top lead IDs to fetch details for
+          const topLeadIds = new Set([...topByTotal, ...topInbound, ...topOutbound].map(c => c.leadId));
+          const topLeads = await prisma.lead.findMany({
+            where: { id: { in: Array.from(topLeadIds) } },
+            select: { id: true, phone: true, firstName: true, lastName: true }
+          });
+          const leadDataMap = new Map(topLeads.map(l => [l.id, l]));
+
+          const enrichCustomer = (c: any) => {
+            const l = leadDataMap.get(c.leadId) as any;
+            return { ...c, phone: l?.phone || "Unknown", name: `${l?.firstName || ""} ${l?.lastName || ""}`.trim() || "Unknown" };
+          };
+
+          const topByTotalEnriched = topByTotal.map(enrichCustomer);
+          const topInboundEnriched = topInbound.map(enrichCustomer);
+          const topOutboundEnriched = topOutbound.map(enrichCustomer);
 
           // ── Per-date grouping (last 60 days) ─────────────────────────
           const dateGroups = groupBy(allCalls as any[], (c: any) => dateFmt(c.startedAt));
@@ -219,11 +236,23 @@ export async function POST(req: Request) {
           // ── Per-date customer breakdown (last 14 days) ─────────────
           const perDayCustomerLines: string[] = [];
           const last14Days = dateKeys.slice(0, 14);
+          
+          // Need to fetch leads for these days
+          const recentDayLeadIds = new Set<string>();
+          for (const d of last14Days) {
+            dateGroups[d].forEach((c: any) => { if (c.leadId) recentDayLeadIds.add(c.leadId); });
+          }
+          const recentDayLeads = await prisma.lead.findMany({
+            where: { id: { in: Array.from(recentDayLeadIds) } },
+            select: { id: true, phone: true }
+          });
+          const recentLeadPhoneMap = new Map(recentDayLeads.map(l => [l.id, l.phone]));
+
           for (const d of last14Days) {
             const dayCalls = dateGroups[d] as any[];
             const phoneMap: Record<string, number> = {};
             for (const c of dayCalls) {
-              const ph = c.lead?.phone;
+              const ph = recentLeadPhoneMap.get(c.leadId);
               if (ph) phoneMap[ph] = (phoneMap[ph] || 0) + 1;
             }
             const topPhones = Object.entries(phoneMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
@@ -234,8 +263,13 @@ export async function POST(req: Request) {
 
           // ── Recording URLs (recent 50 calls with recordings) ────────
           const callsWithRecordings = (allCalls as any[]).filter(c => c.recordingUrl).slice(0, 50);
+          
+          const recLeadIds = Array.from(new Set(callsWithRecordings.map(c => c.leadId).filter(Boolean)));
+          const recLeads = await prisma.lead.findMany({ where: { id: { in: recLeadIds } }, select: { id: true, phone: true } });
+          const recLeadMap = new Map(recLeads.map(l => [l.id, l.phone]));
+
           const recordingLines = callsWithRecordings.map((c: any) =>
-            `${timeFmt(c.startedAt)} | ${c.direction} | Customer: ${c.lead?.phone || "Unknown"} | DID: ${c.historicalDidString || "Unknown"} | Duration: ${toMinSec(c.durationSeconds)} | Recording URL: ${c.recordingUrl}`
+            `${timeFmt(c.startedAt)} | ${c.direction} | Customer: ${recLeadMap.get(c.leadId) || "Unknown"} | DID: ${c.historicalDidString || "Unknown"} | Duration: ${toMinSec(c.durationSeconds)} | Recording URL: ${c.recordingUrl}`
           );
 
           // ── Reactivation calls history ────────────────────────────
@@ -254,16 +288,23 @@ export async function POST(req: Request) {
 
           const sortedByCost = [...rawCallLogs].sort((a: any, b: any) => (b.creditsUsed || 0) - (a.creditsUsed || 0));
           const top10Calls = sortedByCost.slice(0, 10);
-
           const recent20 = [...rawCallLogs].slice(0, 20); // already sorted by startedAt desc
 
-          const formatCall = (c: any) => c
-            ? `Customer: ${c.lead?.phone || "Unknown"} (${(c.lead?.firstName || "") + " " + (c.lead?.lastName || "")}).trim() | DID: ${c.historicalDidString || "N/A"} | Duration: ${toMinSec(c.durationSeconds)} | Credits: ${c.creditsUsed || 0} | Date: ${dateFmt(c.startedAt)}${c.recordingUrl ? " | Recording: " + c.recordingUrl : ""}`
-            : "None";
+          const notableCallIds = new Set([...top10Calls, ...recent20, longestIn, longestOut].filter(Boolean).map(c => c.leadId).filter(Boolean));
+          const notableLeadsData = await prisma.lead.findMany({ where: { id: { in: Array.from(notableCallIds) } }, select: { id: true, phone: true, firstName: true, lastName: true } });
+          const notableLeadMap = new Map(notableLeadsData.map(l => [l.id, l]));
 
-          const formatCallShort = (c: any) => c
-            ? `${dateFmt(c.startedAt)} | ${c.direction} | ${c.lead?.phone || "Unknown"} | ${toMinSec(c.durationSeconds)} | ${c.status}${c.recordingUrl ? " | REC: " + c.recordingUrl : ""}`
-            : "";
+          const formatCall = (c: any) => {
+            if (!c) return "None";
+            const l = notableLeadMap.get(c.leadId) as any;
+            return `Customer: ${l?.phone || "Unknown"} (${l?.firstName || ""} ${l?.lastName || ""}).trim() | DID: ${c.historicalDidString || "N/A"} | Duration: ${toMinSec(c.durationSeconds)} | Credits: ${c.creditsUsed || 0} | Date: ${dateFmt(c.startedAt)}${c.recordingUrl ? " | Recording: " + c.recordingUrl : ""}`;
+          };
+
+          const formatCallShort = (c: any) => {
+            if (!c) return "";
+            const l = notableLeadMap.get(c.leadId) as any;
+            return `${dateFmt(c.startedAt)} | ${c.direction} | ${l?.phone || "Unknown"} | ${toMinSec(c.durationSeconds)} | ${c.status}${c.recordingUrl ? " | REC: " + c.recordingUrl : ""}`;
+          };
 
           // ── Credits ──────────────────────────────────────────────
           const mainCreditsRemaining = company.creditBalance?.creditsRemaining || 0;
@@ -430,13 +471,13 @@ LEAD REACTIVATION HISTORY (${reactivationCalls.length} total reactivation calls)
 ${reactLines.length > 0 ? reactLines.join("\n") : "No reactivation calls found yet."}
 
 TOP 20 CUSTOMERS BY TOTAL CALLS:
-${topByTotal.map(c => `Customer: ${c.phone} | Name: ${c.name} | Total: ${c.inbound + c.outbound} (In: ${c.inbound}, Out: ${c.outbound}) | Total Duration: ${toMinSec(c.totalDuration)} | Last Call: ${dateFmt(c.lastCall)}`).join("\n") || "No customer data."}
+${topByTotalEnriched.map(c => `Customer: ${c.phone} | Name: ${c.name} | Total: ${c.inbound + c.outbound} (In: ${c.inbound}, Out: ${c.outbound}) | Total Duration: ${toMinSec(c.totalDuration)} | Last Call: ${dateFmt(c.lastCall)}`).join("\n") || "No customer data."}
 
 TOP 10 CUSTOMERS BY INBOUND CALLS:
-${topInbound.map(c => `${c.phone} | Name: ${c.name} | Inbound: ${c.inbound} | Duration: ${toMinSec(c.totalDuration)}`).join("\n") || "None"}
+${topInboundEnriched.map(c => `${c.phone} | Name: ${c.name} | Inbound: ${c.inbound} | Duration: ${toMinSec(c.totalDuration)}`).join("\n") || "None"}
 
 TOP 10 CUSTOMERS BY OUTBOUND CALLS:
-${topOutbound.map(c => `${c.phone} | Name: ${c.name} | Outbound: ${c.outbound} | Duration: ${toMinSec(c.totalDuration)}`).join("\n") || "None"}
+${topOutboundEnriched.map(c => `${c.phone} | Name: ${c.name} | Outbound: ${c.outbound} | Duration: ${toMinSec(c.totalDuration)}`).join("\n") || "None"}
 
 PER-DAY CALL SUMMARY (Last 60 days):
 ${perDayLines.join("\n") || "No data."}
