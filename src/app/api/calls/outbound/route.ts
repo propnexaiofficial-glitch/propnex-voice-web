@@ -131,6 +131,7 @@ export async function GET(req: NextRequest) {
       // Hide failed/missed/0s calls IF they are Lead Reactivation calls
       whereClause.NOT = {
         AND: [
+          { correlationId: { isSet: true } },
           { correlationId: { startsWith: "reactivation-" } },
           {
             OR: [
