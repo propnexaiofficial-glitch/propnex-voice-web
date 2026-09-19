@@ -151,7 +151,7 @@ export async function POST(req: Request) {
             leadId: true,
           },
           orderBy: { startedAt: "desc" },
-          take: 10000, // safety limit
+          take: 2000, // Reduced from 10000 to prevent Vercel 502 OOM/Timeout
         });
 
         const subCompanyIds = subcompanies.map((s: any) => s.id);
@@ -164,7 +164,7 @@ export async function POST(req: Request) {
                 startedAt: true, phoneNumberId: true, recordingUrl: true,
                 campaignId: true, isRetry: true, leadId: true,
               },
-              take: 5000, // safety limit
+              take: 1000, // Reduced from 5000 to prevent Vercel 502 OOM/Timeout
             })
           : [];
 
