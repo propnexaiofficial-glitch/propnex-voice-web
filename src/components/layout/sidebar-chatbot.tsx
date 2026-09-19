@@ -304,26 +304,25 @@ export function SidebarChatbot() {
           height:calc(100vh - 140px);
           max-height:560px;
         }
-        /* Mobile - Floating chat with padding and Dynamic Viewport Height (dvh) for perfect keyboard support */
+        /* Mobile — bottom sheet, NOT full screen */
         @media (max-width: 639px) {
           .chat-window {
-            left:0 !important;
-            right:0 !important;
-            bottom:0 !important;
-            top:0 !important;
-            height:auto !important;
-            width:100% !important;
-            border-radius:24px 24px 0 0 !important;
-            border-bottom:none !important;
-            max-width:none !important;
-            max-height:none !important;
-            transform-origin:bottom center;
+            left: 10px !important;
+            right: 10px !important;
+            bottom: 90px !important;
+            top: auto !important;
+            width: auto !important;
+            height: 72vh !important;
+            max-height: 72vh !important;
+            max-width: none !important;
+            border-radius: 20px !important;
+            transform-origin: bottom center;
           }
           .chat-window.open {
-            transform:translateY(0) scale(1);
+            transform: translateY(0) scale(1);
           }
           .chat-window:not(.open) {
-            transform:translateY(120%);
+            transform: translateY(calc(100% + 100px)) scale(1);
           }
         }
         @media (min-width: 1024px) {
@@ -425,22 +424,24 @@ export function SidebarChatbot() {
         .td:nth-child(2){animation-delay:.18s}.td:nth-child(3){animation-delay:.36s}
         @keyframes tb{0%,60%,100%{transform:translateY(0);background:#52525b}30%{transform:translateY(-6px);background:#a1a1aa}}
         
-        /* Input wrap - always visible above keyboard on mobile */
+        /* Input wrap */
         .ch-inp-wrap{
           padding:10px 14px 14px;
           border-top:1px solid rgba(255,255,255,.07);
           flex-shrink:0;
           background:#111113;
+          position:relative;
+          z-index:10;
         }
         @media (max-width:639px){
           .ch-inp-wrap{
             padding-bottom:max(14px, env(safe-area-inset-bottom));
           }
         }
-        .ch-inp{display:flex;align-items:flex-end;gap:8px;background:#18181b;border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:8px 8px 8px 16px;transition:border-color .2s,box-shadow .2s;cursor:text;}
+        .ch-inp{display:flex;align-items:flex-end;gap:8px;background:#18181b;border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:8px 8px 8px 16px;transition:border-color .2s,box-shadow .2s;cursor:text;position:relative;z-index:10;}
         .ch-inp:focus-within{border-color:rgba(255,255,255,.25);box-shadow:0 0 0 3px rgba(255,255,255,.04)}
-        /* 16px prevents iOS zoom on focus, auto user-select fixes Android keyboard bugs */
-        .ch-ta{flex:1;background:none;border:none;outline:none;color:#f4f4f5;font-size:16px;font-family:'Inter',sans-serif;resize:none;min-height:22px;max-height:90px;line-height:1.5;padding-bottom:2px;user-select:auto !important;-webkit-user-select:auto !important;touch-action:manipulation;pointer-events:auto !important;position:relative;z-index:10;}
+        /* 16px prevents iOS/Android zoom on focus */
+        .ch-ta{flex:1;background:none;border:none;outline:none;color:#f4f4f5;font-size:16px;font-family:'Inter',sans-serif;resize:none;min-height:22px;max-height:90px;line-height:1.5;padding-bottom:2px;-webkit-user-select:text;user-select:text;touch-action:manipulation;-webkit-appearance:none;appearance:none;}
         .ch-ta::placeholder{color:#52525b}
         .ch-send{width:36px;height:36px;flex-shrink:0;background:#f4f4f5;color:#09090b;border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .2s cubic-bezier(.34,1.56,.64,1),background .2s;-webkit-tap-highlight-color:transparent;}
         .ch-send:hover{transform:scale(1.1);background:#d4d4d8}
@@ -498,12 +499,12 @@ export function SidebarChatbot() {
                 </div>
               </div>
             </div>
-            {/* Tags OUTSIDE ch-head so overflow:hidden doesn't clip horizontal scroll */}
+            {/* Tags row — scrollable on mobile, wraps on desktop */}
             {messages.length <= 1 && (
-              <div className="w-full shrink-0 border-b border-white/5 py-3 overflow-hidden sm:overflow-visible">
-                <div className="flex flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-x-visible w-full gap-2 px-4 pb-1 touch-pan-x snap-x snap-mandatory sm:snap-none" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+              <div style={{ width:'100%', flexShrink:0, borderBottom:'1px solid rgba(255,255,255,.07)', padding:'10px 0' }}>
+                <div style={{ display:'flex', flexWrap:'nowrap', overflowX:'auto', WebkitOverflowScrolling:'touch', scrollbarWidth:'none', gap:'8px', padding:'0 16px 4px', touchAction:'pan-x' }}>
                   {getTags().map(tag => (
-                    <div key={tag} className="ch-tag snap-start" onClick={() => handleTagClick(tag)}>{tag}</div>
+                    <div key={tag} className="ch-tag" style={{ flexShrink:0, whiteSpace:'nowrap' }} onClick={() => handleTagClick(tag)}>{tag}</div>
                   ))}
                 </div>
               </div>
@@ -526,8 +527,8 @@ export function SidebarChatbot() {
               <div ref={msgsEndRef} />
             </div>
 
-            <div className="ch-inp-wrap" onClick={() => textareaRef.current?.focus()}>
-              <div className="ch-inp">
+            <div className="ch-inp-wrap">
+              <div className="ch-inp" onTouchStart={() => { setTimeout(() => textareaRef.current?.focus(), 50); }}>
                 <textarea
                   ref={textareaRef}
                   className="ch-ta"
@@ -535,7 +536,12 @@ export function SidebarChatbot() {
                   placeholder="Message Task Desk..."
                   value={inputValue}
                   inputMode="text"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="sentences"
                   enterKeyHint="send"
+                  onClick={() => textareaRef.current?.focus()}
+                  onFocus={(e) => e.target.scrollIntoView({ block: 'nearest' })}
                   onChange={(e) => {
                     setInputValue(e.target.value);
                     e.target.style.height = 'auto';
