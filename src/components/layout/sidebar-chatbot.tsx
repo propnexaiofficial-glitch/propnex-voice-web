@@ -121,7 +121,7 @@ export function SidebarChatbot() {
       const companyId = user?.companyId || null;
       const firstName = user?.firstName || "";
       
-      const response = await fetch("/api/chatbot", {
+      const res = await fetch("/api/chatbot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -132,17 +132,22 @@ export function SidebarChatbot() {
         })
       });
 
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        const errMsg = errorData?.error || "Sorry, I encountered an error. Please try again.";
+        throw new Error(errMsg);
+      }
+
+      if (!res.body) throw new Error("No readable stream");
+
       // Stop typing animation as soon as we start processing the response stream
       setIsTyping(false);
-
-      if (!response.ok) throw new Error("Failed to fetch response");
-      if (!response.body) throw new Error("No response body");
 
       // Add a placeholder bot message AFTER typing indicator hides
       const botMsgId = (Date.now() + 1).toString();
       setMessages((prev) => [...prev, { id: botMsgId, text: "", type: "bot" }]);
 
-      const reader = response.body.getReader();
+      const reader = res.body.getReader();
       const decoder = new TextDecoder();
 
       while (true) {
@@ -158,20 +163,19 @@ export function SidebarChatbot() {
           return msg;
         }));
       }
-    } catch (error) {
-      console.error("Chat error:", error);
-      setIsTyping(false);
-      setMessages(prev => {
-        const last = prev[prev.length - 1];
+    } catch (error: any) {
+      console.error(error);
+      setMessages((prev) => {
+        const arr = [...prev];
+        const last = arr[arr.length - 1];
         if (last && last.type === "bot" && last.text === "") {
-          return prev.map(msg =>
-            msg.id === last.id
-              ? { ...msg, text: "Sorry, I encountered an error. Please try again." }
-              : msg
-          );
+          last.text = `Error: ${error.message}`;
+          return [...arr];
         }
-        return [...prev, { id: Date.now().toString(), type: "bot", text: "Sorry, I encountered an error. Please try again." }];
+        return [...prev, { id: Date.now().toString(), text: `Error: ${error.message}`, type: "bot" }];
       });
+    } finally {
+      setIsTyping(false);
     }
   };
 
