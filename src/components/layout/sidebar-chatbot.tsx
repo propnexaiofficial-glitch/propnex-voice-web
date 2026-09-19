@@ -297,10 +297,10 @@ export function SidebarChatbot() {
           display:flex;flex-direction:column;
           z-index:99999;
           box-shadow:0 0 0 1px rgba(255,255,255,.03),0 40px 80px rgba(0,0,0,.8),0 0 60px rgba(255,255,255,.02);
-          opacity:0;pointer-events:none;
+          opacity:0;visibility:hidden;
           transform:translateY(20px) scale(.95);
           transform-origin:bottom left;
-          transition:opacity .45s cubic-bezier(.16,1,.3,1),transform .45s cubic-bezier(.16,1,.3,1);
+          transition:visibility 0s linear .45s, opacity .45s cubic-bezier(.16,1,.3,1), transform .45s cubic-bezier(.16,1,.3,1);
           height:calc(100vh - 140px);
           max-height:560px;
         }
@@ -330,7 +330,7 @@ export function SidebarChatbot() {
             left: calc(var(--sidebar-width, 280px) + 24px);
           }
         }
-        .chat-window.open{opacity:1;pointer-events:auto !important;transform:translateY(0) scale(1)}
+        .chat-window.open{opacity:1;visibility:visible;transform:translateY(0) scale(1);transition:visibility 0s linear 0s, opacity .45s cubic-bezier(.16,1,.3,1), transform .45s cubic-bezier(.16,1,.3,1);}
         
         .ch-head{
           position:relative;overflow:hidden;
@@ -553,7 +553,7 @@ export function SidebarChatbot() {
             </div>
 
             <div className="ch-inp-wrap">
-              <div className="ch-inp" onTouchStart={() => { setTimeout(() => textareaRef.current?.focus(), 50); }}>
+              <div className="ch-inp" onTouchEnd={(e) => { textareaRef.current?.focus(); }}>
                 <textarea
                   ref={textareaRef}
                   className="ch-ta"
