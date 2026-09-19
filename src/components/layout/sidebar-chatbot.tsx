@@ -325,14 +325,14 @@ export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" })
           .chat-window {
             left: 10px !important;
             right: 10px !important;
-            bottom: 90px !important;
-            top: auto !important;
+            bottom: 20px !important;
+            top: 20px !important;
             width: auto !important;
-            height: 500px !important;
-            max-height: calc(100% - 100px) !important;
+            height: auto !important;
+            max-height: none !important;
             max-width: none !important;
-            border-radius: 20px !important;
             transform-origin: bottom center;
+            border-radius: 20px;
           }
           .chat-window.open {
             transform: translateY(0) scale(1);
