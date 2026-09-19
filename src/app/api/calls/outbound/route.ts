@@ -128,17 +128,15 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      // Hide failed/missed/0s calls IF they are pure Lead calls (because they go to Reactivation instead)
-      // Pure lead calls have campaignId = null, correlationId = null, and leadId != null
+      // Hide failed/missed/0s calls IF they are Lead Reactivation calls
       whereClause.NOT = {
         AND: [
-          { campaignId: null },
-          { correlationId: null },
-          { leadId: { not: null } },
+          { correlationId: { startsWith: "reactivation-" } },
           {
             OR: [
               { status: { not: "COMPLETED" } },
-              { durationSeconds: 0 }
+              { durationSeconds: 0 },
+              { durationSeconds: null }
             ]
           }
         ]
@@ -231,10 +229,12 @@ export async function GET(req: NextRequest) {
 
       // 6. Determine callType
       let callType: "lead" | "campaign" | "internal" = "internal";
-      if (call.campaignId || (call.correlationId && (call.correlationId.startsWith("camp-") || call.correlationId.startsWith("reactivation-")))) {
+      if (call.campaignId || (call.correlationId && call.correlationId.startsWith("camp-"))) {
         callType = "campaign";
-      } else if (call.leadId) {
+      } else if (call.correlationId && call.correlationId.startsWith("reactivation-")) {
         callType = "lead";
+      } else {
+        callType = "internal";
       }
 
       return {
