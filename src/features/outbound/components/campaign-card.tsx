@@ -1064,18 +1064,25 @@ export function CampaignCard({
                                     const isFailed = lead.isFailed || (wave.data.status === "Completed" && !lead.isCompleted);
                                     return (
                                     <div key={i} className={cn("flex flex-col gap-1 text-xs border border-border/30 pb-2.5 pt-2.5 px-3 rounded-xl bg-background/50 shadow-sm", lead.isCompleted ? "border-emerald-500/30 bg-emerald-500/5" : isFailed ? "border-red-500/30 bg-red-500/5" : "hover:bg-muted/30")}>
-                                      <div className="flex items-center justify-between w-full min-w-0 gap-2">
-                                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                                          {lead.isCompleted ? (
-                                            <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
-                                          ) : isFailed ? (
-                                            <X className="size-4 text-red-500 shrink-0" />
-                                          ) : (
-                                            <Clock className="size-4 text-muted-foreground shrink-0 opacity-50" />
-                                          )}
-                                          <span className={cn("truncate font-bold text-sm text-foreground", lead.isCompleted && "text-emerald-600 dark:text-emerald-400", isFailed && "text-red-600 dark:text-red-400")}>
-                                            {(wave.stage === "Q1" && lead.originalCallType && lead.originalCallType !== "Lead") ? lead.originalCallType : "Lead"} {(currentPage - 1) * itemsPerPage + i + 1} - {lead.phone}
-                                          </span>
+                                      <div className="flex items-start justify-between w-full gap-2">
+                                        <div className="flex items-start gap-2 flex-1">
+                                          <div className="mt-0.5 shrink-0">
+                                            {lead.isCompleted ? (
+                                              <CheckCircle2 className="size-4 text-emerald-500" />
+                                            ) : isFailed ? (
+                                              <X className="size-4 text-red-500" />
+                                            ) : (
+                                              <Clock className="size-4 text-muted-foreground opacity-50" />
+                                            )}
+                                          </div>
+                                          <div className="flex flex-col gap-0.5">
+                                            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground opacity-80">
+                                              {(wave.stage === "Q1" && lead.originalCallType && lead.originalCallType !== "Lead") ? lead.originalCallType : "Lead"} {(currentPage - 1) * itemsPerPage + i + 1}
+                                            </span>
+                                            <span className={cn("font-bold text-[13px] tracking-wide text-foreground break-all", lead.isCompleted && "text-emerald-600 dark:text-emerald-400", isFailed && "text-red-600 dark:text-red-400")}>
+                                              {lead.phone}
+                                            </span>
+                                          </div>
                                         </div>
                                       </div>
                                       <div className={cn("flex flex-col items-center justify-center w-full mt-2 text-xs font-medium py-2 px-3 rounded-lg border text-center", lead.isCompleted ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400" : isFailed ? "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400" : "bg-muted/40 border-border/40 text-muted-foreground")}>
