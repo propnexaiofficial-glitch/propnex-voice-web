@@ -145,8 +145,8 @@ export async function GET(req: NextRequest) {
         buckets[key] = {
           id: key,
           csvName: `${shortFmt} Failed Leads`,
-          didNumber: (call as any).historicalDidString || call.phoneNumber?.number || "Unknown",
-          channels: (call as any).historicalChannels || call.phoneNumber?.channels || 1,
+          didNumber: (call as any).historicalDidString || call.phoneNumber?.number || "07946350798",
+          channels: (call as any).historicalChannels || call.phoneNumber?.channels || 2,
           date: shortFmt, // E.g. "12 Sep"
           originalDateMs: d.getTime(),
           q1Time, q2Time, q3Time,
@@ -188,8 +188,8 @@ export async function GET(req: NextRequest) {
            id: leadId,
            name: leadName,
            phone: leadPhone,
-           didNumber: (call as any).historicalDidString || call.phoneNumber?.number || "Unknown",
-           channels: (call as any).historicalChannels || call.phoneNumber?.channels || 1,
+           didNumber: (call as any).historicalDidString || call.phoneNumber?.number || "07946350798",
+           channels: (call as any).historicalChannels || call.phoneNumber?.channels || 2,
            isCompleted: false,
            originalCallType
         });
