@@ -135,8 +135,7 @@ export async function GET(req: NextRequest) {
           {
             OR: [
               { status: { not: "COMPLETED" } },
-              { durationSeconds: 0 },
-              { durationSeconds: null }
+              { durationSeconds: 0 }
             ]
           }
         ]
