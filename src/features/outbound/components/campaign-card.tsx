@@ -1064,8 +1064,8 @@ export function CampaignCard({
                                     const isFailed = lead.isFailed || (wave.data.status === "Completed" && !lead.isCompleted);
                                     return (
                                     <div key={i} className={cn("flex flex-col gap-1 text-xs border border-border/30 pb-2.5 pt-2.5 px-3 rounded-xl bg-background/50 shadow-sm", lead.isCompleted ? "border-emerald-500/30 bg-emerald-500/5" : isFailed ? "border-red-500/30 bg-red-500/5" : "hover:bg-muted/30")}>
-                                      <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
+                                      <div className="flex items-center justify-between w-full min-w-0 gap-2">
+                                        <div className="flex items-center gap-2 min-w-0 flex-1">
                                           {lead.isCompleted ? (
                                             <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
                                           ) : isFailed ? (
