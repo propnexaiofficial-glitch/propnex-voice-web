@@ -213,7 +213,7 @@ export function SidebarChatbot() {
     }
     
     // Default dashboard tags
-    return ["🚀 Setup campaign", "🤖 Agent library", "📊 Analytics", "💳 Billing"];
+    return ["🚀 Setup campaign", "🤖 Agent library", "📊 Analytics", "💳 Billing", "📞 Lead Reactivation", "🏢 Sub-companies"];
   };
 
   return (
@@ -378,7 +378,7 @@ export function SidebarChatbot() {
         
         /* Tags row — always horizontal scrollable, lives outside ch-head */
         .ch-tags-row{
-          padding:0 16px 12px;
+          padding:12px 16px 12px;
           border-bottom:1px solid rgba(255,255,255,.07);
           flex-shrink:0;
         }
