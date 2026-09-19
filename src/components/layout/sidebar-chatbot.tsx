@@ -33,6 +33,17 @@ export function SidebarChatbot() {
   const { user } = useUserContext();
 
   const greetingSet = useRef(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-focus textarea when chat opens so keyboard appears on mobile
+  useEffect(() => {
+    if (isOpen) {
+      const t = setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 450);
+      return () => clearTimeout(t);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     setMounted(true);
@@ -291,7 +302,7 @@ export function SidebarChatbot() {
           height:calc(100vh - 140px);
           max-height:560px;
         }
-        /* Full-screen on mobile */
+        /* Full-screen on mobile - dvh shrinks when keyboard opens */
         @media (max-width: 639px) {
           .chat-window {
             left:0 !important;
@@ -300,7 +311,7 @@ export function SidebarChatbot() {
             width:100% !important;
             max-width:100% !important;
             border-radius:24px 24px 0 0;
-            height:var(--chat-h, 85vh);
+            height:92dvh;
             max-height:none;
             transform-origin:bottom center;
           }
@@ -360,34 +371,40 @@ export function SidebarChatbot() {
         .ch-btn{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#52525b;transition:.15s;-webkit-tap-highlight-color:transparent;}
         .ch-btn:hover,.ch-btn:active{background:rgba(255,255,255,.1);color:#f4f4f5}
         
-        /* Tags — scrollable row on mobile */
+        /* Tags row — always horizontal scrollable, lives outside ch-head */
+        .ch-tags-row{
+          padding:0 16px 12px;
+          border-bottom:1px solid rgba(255,255,255,.07);
+          flex-shrink:0;
+        }
         .ch-tags{
-          display:flex;gap:6px;
-          flex-wrap:wrap;
-          margin-top:12px;position:relative;z-index:1;
+          display:flex;
+          gap:8px;
+          flex-wrap:nowrap;
+          overflow-x:auto;
+          -webkit-overflow-scrolling:touch;
+          scrollbar-width:none;
+          padding-bottom:2px;
         }
-        @media (max-width:639px){
-          .ch-tags{
-            flex-wrap:nowrap;
-            overflow-x:auto;
-            -webkit-overflow-scrolling:touch;
-            scrollbar-width:none;
-            padding-bottom:4px;
-            margin-bottom:-4px;
-          }
-          .ch-tags::-webkit-scrollbar{display:none}
-        }
+        .ch-tags::-webkit-scrollbar{display:none}
         .ch-tag{
-          padding:6px 14px;border:1px solid rgba(255,255,255,.1);
-          border-radius:20px;font-size:.72rem;font-weight:500;
-          color:#a1a1aa;cursor:pointer;
+          padding:7px 15px;
+          border:1px solid rgba(255,255,255,.1);
+          border-radius:20px;
+          font-size:.73rem;
+          font-weight:500;
+          color:#a1a1aa;
+          cursor:pointer;
           background:rgba(255,255,255,.04);
-          transition:.2s;white-space:nowrap;
+          transition:.15s;
+          white-space:nowrap;
           flex-shrink:0;
           -webkit-tap-highlight-color:transparent;
           user-select:none;
+          touch-action:manipulation;
         }
-        .ch-tag:hover,.ch-tag:active{background:rgba(255,255,255,.11);color:#f4f4f5;border-color:rgba(255,255,255,.18)}
+        .ch-tag:active{background:rgba(255,255,255,.16);color:#f4f4f5;border-color:rgba(255,255,255,.25)}
+        .ch-tag:hover{background:rgba(255,255,255,.11);color:#f4f4f5;border-color:rgba(255,255,255,.2)}
         
         /* Messages area - must scroll on all devices */
         .ch-msgs{
@@ -492,14 +509,17 @@ export function SidebarChatbot() {
                   <div className="ch-status"><div className="ch-dot"></div>Online & active</div>
                 </div>
               </div>
-              {messages.length <= 1 && (
+            </div>
+            {/* Tags OUTSIDE ch-head so overflow:hidden doesn't clip horizontal scroll */}
+            {messages.length <= 1 && (
+              <div className="ch-tags-row">
                 <div className="ch-tags">
                   {getTags().map(tag => (
-                    <div key={tag} className="ch-tag" onClick={() => handleTagClick(tag)}>{tag}</div>
+                    <div key={tag} className="ch-tag" onPointerDown={() => handleTagClick(tag)}>{tag}</div>
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             <div className="ch-msgs">
               {messages.map((msg) => (
@@ -520,11 +540,14 @@ export function SidebarChatbot() {
 
             <div className="ch-inp-wrap">
               <div className="ch-inp">
-                <textarea 
-                  className="ch-ta" 
-                  rows={1} 
-                  placeholder="Message Task Desk..." 
+                <textarea
+                  ref={textareaRef}
+                  className="ch-ta"
+                  rows={1}
+                  placeholder="Message Task Desk..."
                   value={inputValue}
+                  inputMode="text"
+                  enterKeyHint="send"
                   onChange={(e) => {
                     setInputValue(e.target.value);
                     e.target.style.height = 'auto';
