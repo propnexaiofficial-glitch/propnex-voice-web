@@ -122,7 +122,10 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
                     <div className="flex items-center gap-2">
                       <Popover>
                         <PopoverTrigger asChild>
-                          <div className="flex items-center justify-center size-5 rounded bg-muted/50 hover:bg-muted transition-colors cursor-pointer">
+                          <div
+                            className="flex items-center justify-center size-5 rounded bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <PhoneIncoming className="size-3 text-blue-500" />
                           </div>
                         </PopoverTrigger>
@@ -144,7 +147,10 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
                       </Popover>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <div className="flex items-center justify-center size-5 rounded bg-muted/50 hover:bg-muted transition-colors cursor-pointer">
+                          <div
+                            className="flex items-center justify-center size-5 rounded bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <PhoneOutgoing className="size-3 text-orange-500" />
                           </div>
                         </PopoverTrigger>

@@ -5,7 +5,7 @@ import { Building2, Mail, Phone, ArrowUpRight, ArrowDownRight, Minus, PhoneIncom
 
 import { PremiumBadge } from "@/components/common/premium-badge";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CallPreviewPanel } from "@/features/employees/components/call-preview-panel";
 import { TransferCreditsModal } from "@/features/employees/components/transfer-credits-modal";
 import type { CallPreview, SubCompany } from "@/features/employees/types";
@@ -169,15 +169,17 @@ export function CompanyOverviewSection({
                 {!hasNumbers ? (
                   <span className="text-xs text-amber-500">Pending Assignment...</span>
                 ) : (
-                  <TooltipProvider>
-                    <div className="flex items-center gap-2">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center justify-center size-6 rounded-md bg-muted/50 hover:bg-muted transition-colors cursor-default" onClick={(e) => e.preventDefault()}>
+                  <div className="flex items-center gap-2">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <div
+                            className="flex items-center justify-center size-7 rounded-md bg-muted/50 hover:bg-muted active:bg-muted transition-colors cursor-pointer select-none"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <PhoneIncoming className="size-3.5 text-blue-500" />
                           </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="flex flex-col gap-1.5 p-3" onClick={(e) => e.preventDefault()}>
+                        </PopoverTrigger>
+                        <PopoverContent side="top" className="flex flex-col gap-1.5 p-3 w-48 z-[200]">
                           <p className="font-semibold text-xs border-b border-border pb-1">Inbound Info</p>
                           <div className="text-xs">
                             <span className="text-muted-foreground">Numbers: </span>
@@ -191,15 +193,18 @@ export function CompanyOverviewSection({
                               </div>
                             ) : "None"}
                           </div>
-                        </TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center justify-center size-6 rounded-md bg-muted/50 hover:bg-muted transition-colors cursor-default" onClick={(e) => e.preventDefault()}>
+                        </PopoverContent>
+                      </Popover>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <div
+                            className="flex items-center justify-center size-7 rounded-md bg-muted/50 hover:bg-muted active:bg-muted transition-colors cursor-pointer select-none"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <PhoneOutgoing className="size-3.5 text-orange-500" />
                           </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="flex flex-col gap-1.5 p-3" onClick={(e) => e.preventDefault()}>
+                        </PopoverTrigger>
+                        <PopoverContent side="top" className="flex flex-col gap-1.5 p-3 w-48 z-[200]">
                           <p className="font-semibold text-xs border-b border-border pb-1">Outbound Info</p>
                           <div className="text-xs">
                             <span className="text-muted-foreground">Numbers: </span>
@@ -213,10 +218,9 @@ export function CompanyOverviewSection({
                               </div>
                             ) : "None"}
                           </div>
-                        </TooltipContent>
-                      </Tooltip>
+                        </PopoverContent>
+                      </Popover>
                     </div>
-                  </TooltipProvider>
                 )}
               </div>
             </div>
