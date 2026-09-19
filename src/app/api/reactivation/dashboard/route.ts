@@ -110,7 +110,10 @@ export async function GET(req: NextRequest) {
 
     for (const call of failedCalls) {
       const d = call.startedAt;
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      
+      // Group by the actual calendar day in India (IST)
+      const istFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" });
+      const key = istFmt.format(d); // "YYYY-MM-DD"
       
       // Per-day deduplication: Reset seenPhones when we enter a new day
       if (key !== currentKey) {
@@ -149,16 +152,16 @@ export async function GET(req: NextRequest) {
       seenPhones.add(leadPhone);
       
       if (!buckets[key]) {
-        const nextDay = new Date(d);
-        nextDay.setDate(nextDay.getDate() + 1);
-        const shortFmt = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(d); // e.g. "12 Sep"
-        const nextShortFmt = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(nextDay); // e.g. "13 Sep"
+        // Calculate the NEXT calendar day in IST
+        const nextDayMs = d.getTime() + 24 * 60 * 60 * 1000;
+        const shortFmtOptions: Intl.DateTimeFormatOptions = { timeZone: "Asia/Kolkata", day: "2-digit", month: "short" };
+        const shortFmt = new Intl.DateTimeFormat("en-GB", shortFmtOptions).format(d); // e.g. "12 Sep"
+        const nextShortFmt = new Intl.DateTimeFormat("en-GB", shortFmtOptions).format(new Date(nextDayMs)); // e.g. "13 Sep"
         
-        const yyyy = nextDay.getFullYear();
-        const mm = String(nextDay.getMonth() + 1).padStart(2, "0");
-        const dd = String(nextDay.getDate()).padStart(2, "0");
-        const nextDayStr = `${yyyy}-${mm}-${dd}`;
-
+        // Build Q1, Q2, Q3 schedule times in IST (UTC+5:30)
+        // Extract the next day's date components in IST
+        const nextDayStr = istFmt.format(new Date(nextDayMs)); // "YYYY-MM-DD"
+        
         const q1Time = new Date(`${nextDayStr}T10:00:00+05:30`);
         const q2Time = new Date(`${nextDayStr}T15:00:00+05:30`);
         const q3Time = new Date(`${nextDayStr}T20:00:00+05:30`);
@@ -305,15 +308,15 @@ export async function GET(req: NextRequest) {
         // Wave 1 always shows all original leads
         q1FinalList.push({ ...lead, isCompleted: completedInQ1 });
 
-        // Real-time transfer: Lead propagates to Q2 instantly if Q1 finished but failed
-        const isPendingInQ1 = !q1Log || ["PENDING", "RINGING", "IN-PROGRESS", "QUEUED"].includes(q1Log.status?.toUpperCase() || "PENDING");
+        // Real-time transfer: Lead propagates to Q2 instantly if Q1 finished but failed (or if Q1 was completely missed)
+        const isPendingInQ1 = (!q1Log && !isMissed(b.q1Time)) || (q1Log && ["PENDING", "RINGING", "IN-PROGRESS", "QUEUED"].includes(q1Log.status?.toUpperCase() || ""));
         const failedInQ1 = !isPendingInQ1 && !completedInQ1;
 
         if (failedInQ1) {
           q2FinalList.push({ ...lead, isCompleted: completedInQ2 });
 
-          // Real-time transfer: Lead propagates to Q3 instantly if Q2 finished but failed
-          const isPendingInQ2 = !q2Log || ["PENDING", "RINGING", "IN-PROGRESS", "QUEUED"].includes(q2Log.status?.toUpperCase() || "PENDING");
+          // Real-time transfer: Lead propagates to Q3 instantly if Q2 finished but failed (or if Q2 was completely missed)
+          const isPendingInQ2 = (!q2Log && !isMissed(b.q2Time)) || (q2Log && ["PENDING", "RINGING", "IN-PROGRESS", "QUEUED"].includes(q2Log.status?.toUpperCase() || ""));
           const failedInQ2 = !isPendingInQ2 && !completedInQ2;
 
           if (failedInQ2) {
