@@ -21,7 +21,7 @@ const BUBBLE_MESSAGES = [
   '🤖 I\'m here!'
 ];
 
-export function SidebarChatbot() {
+export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" }) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -46,6 +46,9 @@ export function SidebarChatbot() {
 
   useEffect(() => {
     setMounted(true);
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener("open-chatbot", handleOpen);
+    return () => window.removeEventListener("open-chatbot", handleOpen);
   }, []);
 
   // Set personalized greeting once when user context loads
@@ -474,27 +477,31 @@ export function SidebarChatbot() {
         .ch-hint{text-align:center;font-size:.62rem;color:#52525b;margin-top:6px;letter-spacing:.2px}
       `}} />
 
-      {/* ROUND FAB WIDGET */}
-      <div className="fab-wrap" onClick={() => { setIsOpen(true); setShowBubble(false); }}>
-        <div className={cn("fab-bubble", showBubble && "show")}>
-          {bubbleText}
-        </div>
-        <div className="fab">
-          <div className="fab-ring"></div>
-          <div className="fab-ring"></div>
-          <div className="fab-ring"></div>
-          <div className="fab-circle">
-            <div className="fab-glow"></div>
-            <div className="fab-glow-mask"></div>
-            <div className="fab-scan"></div>
-            <span className="fab-icon">🤖</span>
+      {mode === "fab" && (
+        <div className="fab-wrap" onClick={() => { 
+          window.dispatchEvent(new CustomEvent("open-chatbot"));
+          setShowBubble(false);
+        }}>
+          <div className={cn("fab-bubble", showBubble && "show")}>
+            {bubbleText}
           </div>
-          <span className="fab-hand">👋</span>
+          <div className="fab">
+            <div className="fab-ring"></div>
+            <div className="fab-ring"></div>
+            <div className="fab-ring"></div>
+            <div className="fab-circle">
+              <div className="fab-glow"></div>
+              <div className="fab-glow-mask"></div>
+              <div className="fab-scan"></div>
+              <span className="fab-icon">🤖</span>
+            </div>
+            <span className="fab-hand">👋</span>
+          </div>
+          <div className="fab-label"><div className="fab-dot"></div>Task Desk</div>
         </div>
-        <div className="fab-label"><div className="fab-dot"></div>Task Desk</div>
-      </div>
+      )}
 
-      {mounted && (
+      {mode === "window" && mounted && (
         <>
           {/* BACKDROP */}
           <div 
