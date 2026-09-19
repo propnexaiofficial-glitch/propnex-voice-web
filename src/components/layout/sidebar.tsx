@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MAIN_NAV_ITEMS } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
+import { SidebarChatbot } from "./sidebar-chatbot";
 import { InfraCostAlert } from "./infra-cost-alert";
 
 type SidebarNavProps = {
@@ -141,6 +142,7 @@ export function Sidebar({ className, isLockedOut }: SidebarProps) {
       </ScrollArea>
 
       <InfraCostAlert />
+      <SidebarChatbot mode="fab" />
       <SidebarLogout />
     </aside>
   );
