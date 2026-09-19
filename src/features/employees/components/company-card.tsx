@@ -119,13 +119,13 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
                 {!hasNumbers ? (
                   <span className="font-medium text-amber-500">Pending...</span>
                 ) : (
-                    <div className="flex items-center gap-2">
+                    <div 
+                      className="flex items-center gap-2"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    >
                       <Popover>
                         <PopoverTrigger asChild>
-                          <div
-                            className="flex items-center justify-center size-5 rounded bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-                            onClick={(e) => e.stopPropagation()}
-                          >
+                          <div className="flex items-center justify-center size-5 rounded bg-muted/50 hover:bg-muted transition-colors cursor-pointer">
                             <PhoneIncoming className="size-3 text-blue-500" />
                           </div>
                         </PopoverTrigger>
@@ -147,10 +147,7 @@ export function CompanyCard({ company, index = 0, className }: CompanyCardProps)
                       </Popover>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <div
-                            className="flex items-center justify-center size-5 rounded bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-                            onClick={(e) => e.stopPropagation()}
-                          >
+                          <div className="flex items-center justify-center size-5 rounded bg-muted/50 hover:bg-muted transition-colors cursor-pointer">
                             <PhoneOutgoing className="size-3 text-orange-500" />
                           </div>
                         </PopoverTrigger>
