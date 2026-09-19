@@ -1075,7 +1075,8 @@ export function CampaignCard({
                                           </div>
                                           <div className="flex flex-col gap-0.5">
                                             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground opacity-80">
-                                              {(wave.stage === "Q1" && lead.originalCallType && lead.originalCallType !== "Lead") ? lead.originalCallType : "Lead"} {(currentPage - 1) * itemsPerPage + i + 1}
+                                              LEAD {(currentPage - 1) * itemsPerPage + i + 1}
+                                              {(wave.stage === "Q1" && lead.originalCallType && lead.originalCallType !== "Lead") ? ` (${lead.originalCallType})` : ""}
                                             </span>
                                             <span className={cn("font-bold text-[13px] tracking-wide text-foreground break-all", lead.isCompleted && "text-emerald-600 dark:text-emerald-400", isFailed && "text-red-600 dark:text-red-400")}>
                                               {lead.phone}
