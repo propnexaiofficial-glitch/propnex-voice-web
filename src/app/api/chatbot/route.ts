@@ -258,10 +258,16 @@ export async function POST(req: Request) {
             const dayOut  = dayCalls.filter((c: any) => c.direction === "OUTBOUND").length;
             const dayInternal = dayCalls.filter((c: any) => !(c.campaignId || (c.correlationId && c.correlationId.startsWith("camp-")))).length;
             const dayCampaign = dayCalls.filter((c: any) => !!(c.campaignId || (c.correlationId && c.correlationId.startsWith("camp-")))).length;
+            
+            const dayCompleted = dayCalls.filter((c: any) => c.status === "COMPLETED").length;
+            const dayFailed = dayCalls.filter((c: any) => c.status === "FAILED").length;
+            const dayMissed = dayCalls.filter((c: any) => c.status === "MISSED").length;
+            const dayBusy = dayCalls.filter((c: any) => c.status === "BUSY").length;
+            const dayNoAnswer = dayCalls.filter((c: any) => c.status === "NO_ANSWER").length;
+            
             const dayDur  = dayCalls.reduce((s: number, c: any) => s + (c.durationSeconds || 0), 0);
-            const dayFail = dayCalls.filter((c: any) => c.status === "FAILED").length;
             const dayCred = dayCalls.reduce((s: number, c: any) => s + (c.creditsUsed || 0), 0);
-            return `${d}: Total ${dayCalls.length} (Inbound: ${dayIn}, Outbound: ${dayOut}), Internal Calls: ${dayInternal}, Campaign Calls: ${dayCampaign}, Failed: ${dayFail}, Duration: ${toMinSec(dayDur)}, Credits Used: ${dayCred.toFixed(2)}`;
+            return `${d}: Total ${dayCalls.length} (Inbound: ${dayIn}, Outbound: ${dayOut}), Internal: ${dayInternal}, Campaign: ${dayCampaign}, Status Breakdown: (Completed: ${dayCompleted}, Failed: ${dayFailed}, Missed: ${dayMissed}, Busy: ${dayBusy}, No Answer: ${dayNoAnswer}), Duration: ${toMinSec(dayDur)}, Credits Used: ${dayCred.toFixed(2)}`;
           });
 
           // ── Per-date customer breakdown (last 14 days) ─────────────
