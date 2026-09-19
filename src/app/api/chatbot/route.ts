@@ -204,7 +204,7 @@ export async function POST(req: Request) {
           const topOutbound  = [...customerList].sort((a, b) => b.outbound - a.outbound).slice(0, 10);
 
           // Get unique top lead IDs to fetch details for
-          const topLeadIds = new Set([...topByTotal, ...topInbound, ...topOutbound].map(c => c.leadId));
+          const topLeadIds = new Set([...topByTotal.slice(0, 50), ...topInbound, ...topOutbound].map(c => c.leadId));
           const topLeads = await prisma.lead.findMany({
             where: { id: { in: Array.from(topLeadIds) } },
             select: { id: true, phone: true, firstName: true, lastName: true }
@@ -216,9 +216,11 @@ export async function POST(req: Request) {
             return { ...c, phone: l?.phone || "Unknown", name: `${l?.firstName || ""} ${l?.lastName || ""}`.trim() || "Unknown" };
           };
 
-          const topByTotalEnriched = topByTotal.map(enrichCustomer);
+          const topByTotalEnriched = topByTotal.slice(0, 50).map(enrichCustomer);
           const topInboundEnriched = topInbound.map(enrichCustomer);
           const topOutboundEnriched = topOutbound.map(enrichCustomer);
+          
+          const absoluteHighestCaller = topByTotalEnriched.length > 0 ? topByTotalEnriched[0] : null;
 
           // ── Per-date grouping (last 60 days) ─────────────────────────
           const dateGroups = groupBy(allCalls as any[], (c: any) => dateFmt(c.startedAt));
@@ -319,6 +321,7 @@ export async function POST(req: Request) {
           const unassignedAgents = agents.filter((a: any) => !company.phoneNumbers.some((p: any) => p.inboundAgentId === a.id || p.outboundAgentId === a.id));
 
           // ── Campaigns ────────────────────────────────────────────
+          const activeCampaigns = campaigns.filter((c: any) => c.status === "RUNNING");
           const campaignsInfo = campaigns.length > 0
             ? campaigns.map((camp: any) => {
                 const exec = (campaignExecutions || []).find((e: any) => e.campaignId === camp.id);
@@ -328,8 +331,9 @@ export async function POST(req: Request) {
                 const completed = exec?.statsCompleted || 0;
                 const failed    = exec?.statsFailed || 0;
                 const left      = Math.max(0, total - processed);
-                const qInfo     = camp.currentQStage ? `, Q Stage: ${camp.currentQStage}, Q Status: ${camp.qStatus || "Pending"}` : "";
-                return `Campaign: ${camp.name} | CSV: ${csvName} | Leads: ${total} | Completed: ${completed} | Failed: ${failed} | Remaining: ${left}${qInfo}`;
+                const qInfo     = camp.currentQStage ? `, Q Stage (Reactivation): ${camp.currentQStage}, Q Status: ${camp.qStatus || "Pending"}` : "";
+                const isRunning = camp.status === "RUNNING" || exec?.status === "RUNNING" ? "YES (CURRENTLY RUNNING)" : "NO";
+                return `Campaign: ${camp.name} | Running Right Now: ${isRunning} | CSV: ${csvName} | Leads: ${total} | Success: ${completed} | Failed: ${failed} | Remaining: ${left}${qInfo}`;
               }).join("\n")
             : "No campaigns found.";
 
@@ -461,16 +465,19 @@ ${company.outboundCampaigns?.length > 0
 SUBCOMPANIES (${subcompanies.length}):
 ${subInfo}
 
-HOW OUTBOUND WORKS:
+HOW OUTBOUND WORKS & CURRENT STATUS:
 There are 3 types of outbound calls:
-1. CAMPAIGN: The admin uploads a CSV with phone numbers. The system calls each number using the chosen AI agent. You can schedule it for a time or run immediately. Stats: Total/Completed/Failed/Remaining.
-2. INTERNAL: A manual one-to-one call made directly from the dashboard by an agent to a specific customer number.
-3. LEAD REACTIVATION (Q1/Q2/Q3): At 11:50 PM IST each night, the system scans all FAILED/NO_ANSWER calls from that day. It schedules 3 automatic retry waves — Q1 at 10 AM, Q2 at 3 PM, Q3 at 8 PM the next day. Each wave only retries leads that have not yet answered. This runs automatically every night.
+1. CAMPAIGN: Automated CSV-based calls. Active Campaigns Running Right Now: ${activeCampaigns.length}.
+2. INTERNAL: Manual one-to-one calls made directly from the dashboard by an agent to a specific customer.
+3. LEAD REACTIVATION (Q1/Q2/Q3): At 11:50 PM IST each night, the system scans all FAILED/NO_ANSWER calls. It schedules 3 automatic retry waves — Q1 at 10 AM, Q2 at 3 PM, Q3 at 8 PM the next day. It only retries leads that have not yet answered.
 
 LEAD REACTIVATION HISTORY (${reactivationCalls.length} total reactivation calls):
 ${reactLines.length > 0 ? reactLines.join("\n") : "No reactivation calls found yet."}
 
-TOP 20 CUSTOMERS BY TOTAL CALLS:
+ABSOLUTE HIGHEST CALLER ACROSS ENTIRE DATABASE:
+${absoluteHighestCaller ? `Number: ${absoluteHighestCaller.phone} | Name: ${absoluteHighestCaller.name} | Total Calls: ${absoluteHighestCaller.inbound + absoluteHighestCaller.outbound} | Total Duration: ${toMinSec(absoluteHighestCaller.totalDuration)}` : "None"}
+
+TOP 50 CUSTOMERS BY TOTAL CALLS (Fallback for generic queries):
 ${topByTotalEnriched.map(c => `Customer: ${c.phone} | Name: ${c.name} | Total: ${c.inbound + c.outbound} (In: ${c.inbound}, Out: ${c.outbound}) | Total Duration: ${toMinSec(c.totalDuration)} | Last Call: ${dateFmt(c.lastCall)}`).join("\n") || "No customer data."}
 
 TOP 10 CUSTOMERS BY INBOUND CALLS:
