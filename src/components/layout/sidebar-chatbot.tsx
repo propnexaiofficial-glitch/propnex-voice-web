@@ -293,7 +293,7 @@ export function SidebarChatbot() {
           background:#111113;
           border:1px solid rgba(255,255,255,.13);
           border-radius:28px;
-          overflow:hidden;
+          overflow:clip; /* NOT overflow:hidden — hidden blocks Android keyboard/touch */
           display:flex;flex-direction:column;
           z-index:99999;
           box-shadow:0 0 0 1px rgba(255,255,255,.03),0 40px 80px rgba(0,0,0,.8),0 0 60px rgba(255,255,255,.02);
