@@ -196,24 +196,29 @@ export function SidebarChatbot() {
   };
 
   const getTags = () => {
+    let base = ["🚀 Setup campaign", "🤖 Agent library", "📊 Analytics", "💳 Billing", "📞 Lead Reactivation", "🏢 Sub-companies"];
+    
     if (pathname.includes('/billing')) {
-      return ["💳 How do I add credits?", "📊 What is my balance?", "📋 View billing history", "🏦 Minimum recharge?"];
-    }
-    if (pathname.includes('/companies')) {
-      return ["🏢 Create a subcompany", "💰 Transfer credits", "📊 View subcompany stats", "👥 Subcompany limits"];
-    }
-    if (pathname.includes('/campaign')) {
-      return ["🚀 Setup a new campaign", "📊 View campaign analytics", "⏸️ How to pause a campaign", "📞 What is lead reactivation?"];
-    }
-    if (pathname.includes('/agents')) {
-      return ["🤖 What agents are available?", "🛠️ How do I assign an agent?", "📞 Can I listen to recordings?", "🎙️ Create custom agent"];
-    }
-    if (pathname.includes('/settings')) {
-      return ["⚙️ How to change password?", "🔑 API Keys setup", "🔔 Notification preferences"];
+      base = ["💳 How do I add credits?", "📊 What is my balance?", "📋 View billing history", "🏦 Minimum recharge?"];
+    } else if (pathname.includes('/companies')) {
+      base = ["🏢 Create a subcompany", "💰 Transfer credits", "📊 View subcompany stats", "👥 Subcompany limits"];
+    } else if (pathname.includes('/campaign')) {
+      base = ["🚀 Setup a new campaign", "📊 View campaign analytics", "⏸️ How to pause a campaign"];
+    } else if (pathname.includes('/agents')) {
+      base = ["🤖 What agents are available?", "🛠️ How do I assign an agent?", "📞 Can I listen to recordings?", "🎙️ Create custom agent"];
+    } else if (pathname.includes('/settings')) {
+      base = ["⚙️ How to change password?", "🔑 API Keys setup", "🔔 Notification preferences"];
     }
     
-    // Default dashboard tags
-    return ["🚀 Setup campaign", "🤖 Agent library", "📊 Analytics", "💳 Billing", "📞 Lead Reactivation", "🏢 Sub-companies"];
+    // Ensure these major points are always accessible
+    const alwaysInclude = ["📞 Lead reactivation", "💼 Major points"];
+    for (const tag of alwaysInclude) {
+        if (!base.some(t => t.toLowerCase() === tag.toLowerCase())) {
+            base.push(tag);
+        }
+    }
+    
+    return base;
   };
 
   return (
@@ -309,14 +314,15 @@ export function SidebarChatbot() {
         /* Mobile - Floating chat with padding and Dynamic Viewport Height (dvh) for perfect keyboard support */
         @media (max-width: 639px) {
           .chat-window {
-            left:12px !important;
-            right:12px !important;
-            bottom:12px !important;
+            left:0 !important;
+            right:0 !important;
+            bottom:0 !important;
             top: auto !important;
-            height:calc(100dvh - 24px) !important;
-            width:calc(100% - 24px) !important;
+            height:100dvh !important;
+            width:100% !important;
+            border-radius:24px 24px 0 0 !important;
+            border-bottom:none !important;
             max-width:none !important;
-            border-radius:24px !important;
             max-height:none !important;
             transform-origin:bottom center;
           }
@@ -381,6 +387,8 @@ export function SidebarChatbot() {
           padding:12px 16px 12px;
           border-bottom:1px solid rgba(255,255,255,.07);
           flex-shrink:0;
+          width:100%;
+          box-sizing:border-box;
         }
         .ch-tags{
           display:flex;
@@ -390,6 +398,8 @@ export function SidebarChatbot() {
           -webkit-overflow-scrolling:touch;
           scrollbar-width:none;
           padding-bottom:2px;
+          touch-action:pan-x;
+          width:100%;
         }
         .ch-tags::-webkit-scrollbar{display:none}
         .ch-tag{

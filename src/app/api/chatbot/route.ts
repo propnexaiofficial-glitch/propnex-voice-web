@@ -42,7 +42,7 @@ function groupBy<T>(arr: T[], key: (item: T) => string): Record<string, T[]> {
 }
 
 // ── Gemini call with key rotation + retry on 429 ──────────────────────────
-async function callGemini(payload: object, model = "gemini-flash-lite-latest"): Promise<Response> {
+async function callGemini(payload: object, model = "gemini-1.5-flash"): Promise<Response> {
   let lastErr: any = null;
   // Try all keys in order; on 429 rotate immediately
   for (let i = 0; i < GEMINI_API_KEYS.length; i++) {
@@ -618,7 +618,6 @@ ${recent20.map(formatCallShort).join("\n")}`;
 
         const dec = new TextDecoder();
         let buf = "";
-        let fullText = "";
 
         while (true) {
           const { done, value } = await reader.read();
@@ -632,7 +631,6 @@ ${recent20.map(formatCallShort).join("\n")}`;
             if (!line.startsWith("data: ")) continue;
             const raw = line.slice(6).trim();
             if (raw === "[DONE]") { 
-              controller.enqueue(new TextEncoder().encode(fullText));
               controller.close(); 
               return; 
             }
@@ -643,16 +641,16 @@ ${recent20.map(formatCallShort).join("\n")}`;
                 const clean = chunk
                   .replace(/\*\*/g, "")
                   .replace(/^#+\s*/gm, "")
-                  .replace(/\*([^*]+)\*/g, "$1")
+                  .replace(/\*([^*]+)\*/g, "")
                   .replace(/_{2}([^_]+)_{2}/g, "$1");
-                fullText += clean;
+                controller.enqueue(new TextEncoder().encode(clean));
               }
             } catch (_) { /* partial JSON — skip */ }
           }
         }
         
-        if (fullText) {
-           controller.enqueue(new TextEncoder().encode(fullText));
+        if (buf) {
+           // any leftover that was not a complete JSON line but stream ended
         }
         controller.close();
       },

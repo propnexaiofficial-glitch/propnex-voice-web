@@ -284,7 +284,7 @@ export async function POST(req: Request) {
                 amount:      creditsUsed,
                 reason:      "CALL",
                 callLogId:   charge.callLogId,
-                description: `Bonvoice ${isInbound ? "inbound" : "outbound"} call (${durationSec}s, ${creditsUsed.toFixed(2)} credits)`,
+                description: `${isInbound ? "Inbound" : "Outbound"} call (${durationSec}s, ${creditsUsed.toFixed(2)} credits)`,
               },
             });
 
