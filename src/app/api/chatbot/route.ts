@@ -147,10 +147,10 @@ export async function POST(req: Request) {
             historicalDidString: true,
             campaignId: true,
             isRetry: true,
-            retryNumber: true,
             disconnectReason: true,
             leadId: true,
             providerWebhook: true,
+            correlationId: true,
           },
           orderBy: { startedAt: "desc" },
           take: 2000, // Reduced from 10000 to prevent Vercel 502 OOM/Timeout
@@ -165,7 +165,7 @@ export async function POST(req: Request) {
                 durationSeconds: true, cost: true, creditsUsed: true,
                 startedAt: true, phoneNumberId: true, recordingUrl: true,
                 campaignId: true, isRetry: true, leadId: true,
-                providerWebhook: true,
+                providerWebhook: true, correlationId: true,
               },
               take: 1000, // Reduced from 5000 to prevent Vercel 502 OOM/Timeout
             })
@@ -256,10 +256,12 @@ export async function POST(req: Request) {
             const dayCalls = dateGroups[d];
             const dayIn   = dayCalls.filter((c: any) => c.direction === "INBOUND").length;
             const dayOut  = dayCalls.filter((c: any) => c.direction === "OUTBOUND").length;
+            const dayInternal = dayCalls.filter((c: any) => !(c.campaignId || (c.correlationId && c.correlationId.startsWith("camp-")))).length;
+            const dayCampaign = dayCalls.filter((c: any) => !!(c.campaignId || (c.correlationId && c.correlationId.startsWith("camp-")))).length;
             const dayDur  = dayCalls.reduce((s: number, c: any) => s + (c.durationSeconds || 0), 0);
             const dayFail = dayCalls.filter((c: any) => c.status === "FAILED").length;
             const dayCred = dayCalls.reduce((s: number, c: any) => s + (c.creditsUsed || 0), 0);
-            return `${d}: Total ${dayCalls.length} (In: ${dayIn}, Out: ${dayOut}), Failed: ${dayFail}, Duration: ${toMinSec(dayDur)}, Credits Used: ${dayCred.toFixed(2)}`;
+            return `${d}: Total ${dayCalls.length} (Inbound: ${dayIn}, Outbound: ${dayOut}), Internal Calls: ${dayInternal}, Campaign Calls: ${dayCampaign}, Failed: ${dayFail}, Duration: ${toMinSec(dayDur)}, Credits Used: ${dayCred.toFixed(2)}`;
           });
 
           // ── Per-date customer breakdown (last 14 days) ─────────────
