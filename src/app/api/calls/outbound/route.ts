@@ -213,8 +213,8 @@ export async function GET(req: NextRequest) {
       // The fallbackCustomerNumber was already extracted above (lines 175-189)
 
       // 6. Determine callType
-      let callType: "lead" | "campaign" | "api" = "api";
-      if (call.campaignId) {
+      let callType: "lead" | "campaign" | "internal" = "internal";
+      if (call.campaignId || (call.correlationId && (call.correlationId.startsWith("camp-") || call.correlationId.startsWith("reactivation-")))) {
         callType = "campaign";
       } else if (call.leadId) {
         callType = "lead";

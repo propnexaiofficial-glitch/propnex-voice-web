@@ -112,7 +112,7 @@ export function CallLogTable({
                           call.callType === "lead" ? "text-emerald-500/80" :
                           "text-blue-500/80"
                         )}>
-                          {call.callType}
+                          {call.callType === "internal" ? "Internal" : call.callType}
                         </span>
                       )}
                       <span>
