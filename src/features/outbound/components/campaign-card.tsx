@@ -1080,21 +1080,56 @@ export function CampaignCard({
                                         <span className="flex items-center gap-1">
                                           <span className="text-emerald-500/80">Success</span>
                                           <span className="bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full">{succeeded}</span>
-                                        </span>
+                                                                <span className="flex items-center gap-1">
+                                            <span className="text-red-500/80">Failed</span>
+                                            <span className="bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full">{failed}</span>
+                                          </span>
+                                        </>
+                                      ) : (
                                         <span className="flex items-center gap-1">
-                                          <span className="text-red-500/80">Failed</span>
-                                          <span className="bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full">{failed}</span>
+                                          <span className="text-amber-500/80">Pending</span>
+                                          <span className="bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full">{pending}</span>
                                         </span>
-                                      </>
-                                    ) : (
-                                      <span className="flex items-center gap-1">
-                                        <span className="text-amber-500/80">Pending</span>
-                                        <span className="bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full">{pending}</span>
+                                      )}
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+                              
+                              {/* Sub-header Stats */}
+                              <div className="flex flex-col gap-1.5 p-3">
+                                {wave.stage === "Q1" || wave.data.status === "Running" || wave.data.status === "Completed" ? (
+                                  <>
+                                    <div className="flex items-center justify-between text-xs mb-1">
+                                      <span className="text-muted-foreground flex items-center gap-1.5">
+                                        Total Leads
+                                        <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4 bg-muted/50">{wave.data.totalLeads}</Badge>
                                       </span>
-                                    )}
+                                      <span className="text-emerald-500/80 font-medium flex items-center gap-1.5">
+                                        Success
+                                        <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">{wave.data.completedLeads}</Badge>
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center justify-start text-xs">
+                                      <span className="text-red-400 font-medium flex items-center gap-1.5">
+                                        Failed
+                                        <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4 bg-red-500/10 text-red-400 hover:bg-red-500/20">{wave.data.failedLeads.length}</Badge>
+                                      </span>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="flex items-center justify-between text-xs mb-1">
+                                    <span className="text-muted-foreground flex items-center gap-1.5">
+                                      Total Leads
+                                      <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4 bg-muted/50">{wave.data.totalLeads}</Badge>
+                                    </span>
+                                    <span className="text-amber-500/80 font-medium flex items-center gap-1.5">
+                                      Pending
+                                      <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20">{wave.data.totalLeads}</Badge>
+                                    </span>
                                   </div>
-                                );
-                              })()}
+                                )}
+                              </div>
                             </div>
                             
                             {/* Wave Leads List */}
@@ -1119,7 +1154,7 @@ export function CampaignCard({
                                             ) : isFailed ? (
                                               <X className="size-4 text-red-500" />
                                             ) : isRinging ? (
-                                              <PhoneOutgoing className="size-4 text-sky-500 animate-pulse" />
+                                              <PhoneOutgoing className="size-4 text-white animate-pulse" />
                                             ) : (
                                               <Clock className="size-4 text-muted-foreground opacity-50" />
                                             )}
@@ -1135,8 +1170,8 @@ export function CampaignCard({
                                           </div>
                                         </div>
                                       </div>
-                                      <div className={cn("flex flex-col items-center justify-center w-full mt-2 text-xs font-medium py-2 px-3 rounded-lg border text-center", lead.isCompleted ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400" : isFailed ? "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400" : isRinging ? "bg-sky-500/10 border-sky-500/20 text-sky-700 dark:text-sky-400" : "bg-muted/40 border-border/40 text-muted-foreground")}>
-                                        <span className={cn("text-foreground/90", lead.isCompleted ? "text-emerald-700 dark:text-emerald-400" : isFailed ? "text-red-700 dark:text-red-400" : isRinging ? "text-sky-700 dark:text-sky-400 font-bold animate-pulse" : "")}>
+                                      <div className={cn("flex flex-col items-center justify-center w-full mt-2 text-xs font-medium py-2 px-3 rounded-lg border text-center", lead.isCompleted ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400" : isFailed ? "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400" : isRinging ? "bg-sky-500/20 border-sky-500/30 text-white" : "bg-muted/40 border-border/40 text-muted-foreground")}>
+                                        <span className={cn("text-foreground/90", lead.isCompleted ? "text-emerald-700 dark:text-emerald-400" : isFailed ? "text-red-700 dark:text-red-400" : isRinging ? "text-white font-bold animate-pulse" : "")}>
                                           {isRinging ? "Calling Now... " : ""}Name - {lead.name || "Unknown"}, DID Number - {lead.didNumber !== "Unknown" ? lead.didNumber : "Unknown"}, Ch - {lead.channels || activeHist.channels || 1}
                                         </span>
                                       </div>
