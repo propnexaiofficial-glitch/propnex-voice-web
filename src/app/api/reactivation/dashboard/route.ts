@@ -240,20 +240,17 @@ export async function GET(req: NextRequest) {
       // Build the stable correlationIds that the cron now uses.
       // Format: reactivation-{YYYY-MM-DD}-{companyId[0..7]}-{didLast6}-q1|q2|q3
       const compShort = companyId.replace(/-/g, "").slice(0, 8);
-      const didDigits = (b.didNumber || "").replace(/\D/g, "").slice(-6);
-      const q1CorrelationId = `reactivation-${key}-${compShort}-${didDigits}-q1`;
-      const q2CorrelationId = `reactivation-${key}-${compShort}-${didDigits}-q2`;
-      const q3CorrelationId = `reactivation-${key}-${compShort}-${didDigits}-q3`;
+      const correlationPrefix = `reactivation-${key}-${compShort}-`;
 
       // A wave is "Running" if any of its logs are still PENDING/RINGING
       const q1Running = reactivationLogs.some(
-        l => l.correlationId === q1CorrelationId && (l.status === "PENDING" || l.status === "RINGING")
+        l => l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q1") && (l.status === "PENDING" || l.status === "RINGING")
       );
       const q2Running = reactivationLogs.some(
-        l => l.correlationId === q2CorrelationId && (l.status === "PENDING" || l.status === "RINGING")
+        l => l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q2") && (l.status === "PENDING" || l.status === "RINGING")
       );
       const q3Running = reactivationLogs.some(
-        l => l.correlationId === q3CorrelationId && (l.status === "PENDING" || l.status === "RINGING")
+        l => l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q3") && (l.status === "PENDING" || l.status === "RINGING")
       );
 
       // We check for the strict new correlationId, OR a legacy correlationId whose startedAt date matches the scheduled wave date.
@@ -268,15 +265,15 @@ export async function GET(req: NextRequest) {
       };
 
       const hasQ1Logs = reactivationLogs.some(l => 
-        l.correlationId === q1CorrelationId || 
+        (l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q1")) || 
         (b.q1.failedLeads.some((fl: any) => fl.id === l.leadId) && matchLegacy(l, "-q1", b.q1Time))
       );
       const hasQ2Logs = reactivationLogs.some(l => 
-        l.correlationId === q2CorrelationId || 
+        (l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q2")) || 
         (b.q1.failedLeads.some((fl: any) => fl.id === l.leadId) && matchLegacy(l, "-q2", b.q2Time))
       );
       const hasQ3Logs = reactivationLogs.some(l => 
-        l.correlationId === q3CorrelationId || 
+        (l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q3")) || 
         (b.q1.failedLeads.some((fl: any) => fl.id === l.leadId) && matchLegacy(l, "-q3", b.q3Time))
       );
 
@@ -297,9 +294,9 @@ export async function GET(req: NextRequest) {
         const leadLogs = reactivationLogs.filter(l => l.leadId === lead.id);
 
         // For finding specific logs, try strict match first, fallback to legacy match
-        const q1Log = leadLogs.find(l => l.correlationId === q1CorrelationId) || leadLogs.find(l => matchLegacy(l, "-q1", b.q1Time));
-        const q2Log = leadLogs.find(l => l.correlationId === q2CorrelationId) || leadLogs.find(l => matchLegacy(l, "-q2", b.q2Time));
-        const q3Log = leadLogs.find(l => l.correlationId === q3CorrelationId) || leadLogs.find(l => matchLegacy(l, "-q3", b.q3Time));
+        const q1Log = leadLogs.find(l => l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q1")) || leadLogs.find(l => matchLegacy(l, "-q1", b.q1Time));
+        const q2Log = leadLogs.find(l => l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q2")) || leadLogs.find(l => matchLegacy(l, "-q2", b.q2Time));
+        const q3Log = leadLogs.find(l => l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q3")) || leadLogs.find(l => matchLegacy(l, "-q3", b.q3Time));
 
         const completedInQ1 = q1Log?.status === "COMPLETED" && (q1Log.durationSeconds || 0) > 0;
         const completedInQ2 = q2Log?.status === "COMPLETED" && (q2Log.durationSeconds || 0) > 0;

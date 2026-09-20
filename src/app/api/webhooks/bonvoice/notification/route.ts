@@ -133,16 +133,16 @@ export async function POST(req: Request) {
 
     // 1. Check for existing call logs by callID or eventId
     let existingLogs: any[] = [];
-    let eventId = "";
+    let eventId = data.eventID || data.eventId || data.event_id || data.EventID || data.EventId || "";
     if (callID && typeof callID === "string" && callID.includes("xx")) {
       eventId = callID.split("xx")[0];
     }
 
-    if (callID) {
+    if (callID || eventId) {
       existingLogs = await prisma.callLog.findMany({
         where: {
           OR: [
-            { providerCallId: String(callID) },
+            ...(callID ? [{ providerCallId: String(callID) }] : []),
             ...(eventId ? [{ callLogId: eventId }] : []),
             ...(eventId ? [{ publicId: eventId }] : [])
           ]
