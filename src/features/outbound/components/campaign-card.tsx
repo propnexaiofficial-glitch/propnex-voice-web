@@ -1108,8 +1108,9 @@ export function CampaignCard({
                                 <div className="space-y-1.5 pb-2">
                                   {paginatedLeads.map((lead: any, i: number) => {
                                     const isFailed = lead.isFailed || (wave.data.status === "Completed" && !lead.isCompleted);
+                                    const isRinging = lead.status === "RINGING" || lead.status === "PENDING" || lead.status === "IN-PROGRESS";
                                     return (
-                                    <div key={i} className={cn("flex flex-col gap-1 text-xs border border-border/30 pb-2.5 pt-2.5 px-3 rounded-xl bg-background/50 shadow-sm", lead.isCompleted ? "border-emerald-500/30 bg-emerald-500/5" : isFailed ? "border-red-500/30 bg-red-500/5" : "hover:bg-muted/30")}>
+                                    <div key={i} className={cn("flex flex-col gap-1 text-xs border border-border/30 pb-2.5 pt-2.5 px-3 rounded-xl bg-background/50 shadow-sm transition-colors", lead.isCompleted ? "border-emerald-500/30 bg-emerald-500/5" : isFailed ? "border-red-500/30 bg-red-500/5" : isRinging ? "border-sky-500/40 bg-sky-500/10" : "hover:bg-muted/30")}>
                                       <div className="flex items-start justify-between w-full gap-2">
                                         <div className="flex items-start gap-2 flex-1">
                                           <div className="mt-0.5 shrink-0">
@@ -1117,6 +1118,8 @@ export function CampaignCard({
                                               <CheckCircle2 className="size-4 text-emerald-500" />
                                             ) : isFailed ? (
                                               <X className="size-4 text-red-500" />
+                                            ) : isRinging ? (
+                                              <PhoneOutgoing className="size-4 text-sky-500 animate-pulse" />
                                             ) : (
                                               <Clock className="size-4 text-muted-foreground opacity-50" />
                                             )}
@@ -1132,8 +1135,10 @@ export function CampaignCard({
                                           </div>
                                         </div>
                                       </div>
-                                      <div className={cn("flex flex-col items-center justify-center w-full mt-2 text-xs font-medium py-2 px-3 rounded-lg border text-center", lead.isCompleted ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400" : isFailed ? "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400" : "bg-muted/40 border-border/40 text-muted-foreground")}>
-                                        <span className={cn("text-foreground/90", lead.isCompleted ? "text-emerald-700 dark:text-emerald-400" : isFailed ? "text-red-700 dark:text-red-400" : "")}>Name - {lead.name || "Unknown"}, DID Number - {lead.didNumber !== "Unknown" ? lead.didNumber : "Unknown"}, Ch - {lead.channels || activeHist.channels || 1}</span>
+                                      <div className={cn("flex flex-col items-center justify-center w-full mt-2 text-xs font-medium py-2 px-3 rounded-lg border text-center", lead.isCompleted ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400" : isFailed ? "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400" : isRinging ? "bg-sky-500/10 border-sky-500/20 text-sky-700 dark:text-sky-400" : "bg-muted/40 border-border/40 text-muted-foreground")}>
+                                        <span className={cn("text-foreground/90", lead.isCompleted ? "text-emerald-700 dark:text-emerald-400" : isFailed ? "text-red-700 dark:text-red-400" : isRinging ? "text-sky-700 dark:text-sky-400 font-bold animate-pulse" : "")}>
+                                          {isRinging ? "Calling Now... " : ""}Name - {lead.name || "Unknown"}, DID Number - {lead.didNumber !== "Unknown" ? lead.didNumber : "Unknown"}, Ch - {lead.channels || activeHist.channels || 1}
+                                        </span>
                                       </div>
                                     </div>
                                   )})}
