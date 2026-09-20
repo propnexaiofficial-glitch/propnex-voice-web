@@ -1108,7 +1108,7 @@ export function CampaignCard({
                                 <div className="space-y-1.5 pb-2">
                                   {paginatedLeads.map((lead: any, i: number) => {
                                     const isFailed = lead.isFailed || (wave.data.status === "Completed" && !lead.isCompleted);
-                                    const isRinging = lead.status === "RINGING" || lead.status === "PENDING" || lead.status === "IN-PROGRESS";
+                                    const isRinging = lead.status === "RINGING" || lead.status === "PENDING" || lead.status === "IN-PROGRESS" || lead.status === "QUEUED";
                                     return (
                                     <div key={i} className={cn("flex flex-col gap-1 text-xs border border-border/30 pb-2.5 pt-2.5 px-3 rounded-xl bg-background/50 shadow-sm transition-colors", lead.isCompleted ? "border-emerald-500/30 bg-emerald-500/5" : isFailed ? "border-red-500/30 bg-red-500/5" : isRinging ? "border-sky-500/40 bg-sky-500/10" : "hover:bg-muted/30")}>
                                       <div className="flex items-start justify-between w-full gap-2">
