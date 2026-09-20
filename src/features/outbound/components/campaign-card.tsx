@@ -235,16 +235,40 @@ export function CampaignCard({
                 // Select the first one automatically
                 if (!selectedHistId) setSelectedHistId(res.data[0].id);
               }
-              // Trigger animation if today's Q3 is completed and not shown yet
+              // Trigger animation for each wave independently when they complete
               const todayStr = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(new Date()).replace("Sept", "Sep");
               const todayBucket = res.data.find((h: any) => h.date === todayStr || h.date === todayStr.replace("Sep", "Sept"));
-              if (todayBucket && todayBucket.q3?.status === "Completed") {
-                const shownKey = `reactivation_animation_shown_${todayBucket.id}`;
-                if (!localStorage.getItem(shownKey)) {
-                  localStorage.setItem(shownKey, "true");
-                  window.dispatchEvent(new CustomEvent('triggerReactivationAnimation', {
-                    detail: { title: "Lead Reactivation Completed", subtitle: "All 3 waves finished.", type: "reactivation" }
-                  }));
+              
+              if (todayBucket) {
+                // Wave 1
+                if (todayBucket.q1?.status === "Completed") {
+                  const shownKey = `reactivation_animation_shown_${todayBucket.id}_q1`;
+                  if (!localStorage.getItem(shownKey)) {
+                    localStorage.setItem(shownKey, "true");
+                    window.dispatchEvent(new CustomEvent('triggerReactivationAnimation', {
+                      detail: { title: "Wave 1 Completed", subtitle: "Lead Reactivation Wave 1 finished.", type: "reactivation" }
+                    }));
+                  }
+                }
+                // Wave 2
+                if (todayBucket.q2?.status === "Completed") {
+                  const shownKey = `reactivation_animation_shown_${todayBucket.id}_q2`;
+                  if (!localStorage.getItem(shownKey)) {
+                    localStorage.setItem(shownKey, "true");
+                    window.dispatchEvent(new CustomEvent('triggerReactivationAnimation', {
+                      detail: { title: "Wave 2 Completed", subtitle: "Lead Reactivation Wave 2 finished.", type: "reactivation" }
+                    }));
+                  }
+                }
+                // Wave 3
+                if (todayBucket.q3?.status === "Completed") {
+                  const shownKey = `reactivation_animation_shown_${todayBucket.id}_q3`;
+                  if (!localStorage.getItem(shownKey)) {
+                    localStorage.setItem(shownKey, "true");
+                    window.dispatchEvent(new CustomEvent('triggerReactivationAnimation', {
+                      detail: { title: "Lead Reactivation Completed", subtitle: "All 3 waves finished.", type: "reactivation" }
+                    }));
+                  }
                 }
               }
             }
