@@ -364,6 +364,14 @@ export async function GET(req: NextRequest) {
         b.q3.status = "Completed";
       }
 
+      // STRICT WAVE DEPENDENCY: A wave cannot be Completed/Running if the previous wave is not Completed
+      if (b.q1.status === "Pending" || b.q1.status === "Running") {
+        b.q2.status = "Pending";
+        b.q3.status = "Pending";
+      } else if (b.q2.status === "Pending" || b.q2.status === "Running") {
+        b.q3.status = "Pending";
+      }
+
       // Determine overall campaign status for the sidebar badge
       // Completed = all 3 waves done (or auto-completed because no failed leads remained)
       b.overallStatus =
