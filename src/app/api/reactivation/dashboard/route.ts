@@ -93,7 +93,10 @@ export async function GET(req: NextRequest) {
         status: true,
         correlationId: true,
         durationSeconds: true,
-        startedAt: true
+        startedAt: true,
+        lead: {
+          select: { phone: true }
+        }
       }
     });
 
@@ -291,7 +294,7 @@ export async function GET(req: NextRequest) {
       const q3FinalList: any[] = [];
 
       for (const lead of b.q1.failedLeads) {
-        const leadLogs = reactivationLogs.filter(l => l.leadId === lead.id);
+        const leadLogs = reactivationLogs.filter(l => l.leadId === lead.id || (l.lead?.phone && l.lead.phone === lead.phone));
 
         // For finding specific logs, try strict match first, fallback to legacy match
         const q1Log = leadLogs.find(l => l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q1")) || leadLogs.find(l => matchLegacy(l, "-q1", b.q1Time));
