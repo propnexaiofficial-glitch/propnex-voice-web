@@ -329,6 +329,17 @@ export async function GET(req: NextRequest) {
       const sortWave = (list: any[]) =>
         list.sort((a, b) => (b.isCompleted ? 1 : 0) - (a.isCompleted ? 1 : 0));
 
+      // Override running status if there are unattempted leads AND we haven't missed the window yet
+      if (b.q1.status !== "Running" && q1FinalList.some(l => !l.isAttempted) && !isMissed(b.q1Time) && Date.now() >= b.q1Time.getTime()) {
+        b.q1.status = "Running";
+      }
+      if (b.q2.status !== "Running" && q2FinalList.some(l => !l.isAttempted) && !isMissed(b.q2Time) && Date.now() >= b.q2Time.getTime()) {
+        b.q2.status = "Running";
+      }
+      if (b.q3.status !== "Running" && q3FinalList.some(l => !l.isAttempted) && !isMissed(b.q3Time) && Date.now() >= b.q3Time.getTime()) {
+        b.q3.status = "Running";
+      }
+
       b.q1.failedLeads = sortWave(q1FinalList);
       b.q2.failedLeads = sortWave(q2FinalList);
       b.q3.failedLeads = sortWave(q3FinalList);
