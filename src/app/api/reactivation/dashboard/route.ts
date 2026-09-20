@@ -236,6 +236,8 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    const PENDING_STATUSES = ["PENDING", "RINGING", "IN-PROGRESS", "QUEUED", "DISPATCHING", "QUEUED_AT_PROVIDER", "ANSWERED"];
+
     // Now refine the lists based on actual Reactivation Q1/Q2/Q3 performance
     for (const key of Object.keys(buckets)) {
       const b = buckets[key];
@@ -247,13 +249,13 @@ export async function GET(req: NextRequest) {
 
       // A wave is "Running" if any of its logs are still PENDING/RINGING
       const q1Running = reactivationLogs.some(
-        l => l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q1") && (l.status === "PENDING" || l.status === "RINGING")
+        l => l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q1") && PENDING_STATUSES.includes(l.status?.toUpperCase() || "")
       );
       const q2Running = reactivationLogs.some(
-        l => l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q2") && (l.status === "PENDING" || l.status === "RINGING")
+        l => l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q2") && PENDING_STATUSES.includes(l.status?.toUpperCase() || "")
       );
       const q3Running = reactivationLogs.some(
-        l => l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q3") && (l.status === "PENDING" || l.status === "RINGING")
+        l => l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q3") && PENDING_STATUSES.includes(l.status?.toUpperCase() || "")
       );
 
       // We check for the strict new correlationId, OR a legacy correlationId whose startedAt date matches the scheduled wave date.
@@ -305,29 +307,38 @@ export async function GET(req: NextRequest) {
         const completedInQ2 = q2Log?.status === "COMPLETED" && (q2Log.durationSeconds || 0) > 0;
         const completedInQ3 = q3Log?.status === "COMPLETED" && (q3Log.durationSeconds || 0) > 0;
 
-        // Wave 1 always shows all original leads
-        q1FinalList.push({ ...lead, isCompleted: completedInQ1, isAttempted: !!q1Log, status: q1Log?.status });
-
-        // Real-time transfer: Lead propagates to Q2 instantly if Q1 finished but failed (or if Q1 was completely missed)
-        const isPendingInQ1 = (!q1Log && !isMissed(b.q1Time)) || (q1Log && ["PENDING", "RINGING", "IN-PROGRESS", "QUEUED"].includes(q1Log.status?.toUpperCase() || ""));
+        // Calculate Q1 status
+        const isPendingInQ1 = (!q1Log && !isMissed(b.q1Time)) || (q1Log && PENDING_STATUSES.includes(q1Log.status?.toUpperCase() || ""));
         const failedInQ1 = !isPendingInQ1 && !completedInQ1;
 
-        if (failedInQ1) {
-          q2FinalList.push({ ...lead, isCompleted: completedInQ2, isAttempted: !!q2Log, status: q2Log?.status });
+        // Wave 1 always shows all original leads
+        q1FinalList.push({ ...lead, isCompleted: completedInQ1, isFailed: failedInQ1, isAttempted: !!q1Log, status: q1Log?.status });
 
-          // Real-time transfer: Lead propagates to Q3 instantly if Q2 finished but failed (or if Q2 was completely missed)
-          const isPendingInQ2 = (!q2Log && !isMissed(b.q2Time)) || (q2Log && ["PENDING", "RINGING", "IN-PROGRESS", "QUEUED"].includes(q2Log.status?.toUpperCase() || ""));
+        // Real-time transfer: Lead propagates to Q2 instantly if Q1 finished but failed (or if Q1 was completely missed)
+        if (failedInQ1) {
+          const isPendingInQ2 = (!q2Log && !isMissed(b.q2Time)) || (q2Log && PENDING_STATUSES.includes(q2Log.status?.toUpperCase() || ""));
           const failedInQ2 = !isPendingInQ2 && !completedInQ2;
 
+          q2FinalList.push({ ...lead, isCompleted: completedInQ2, isFailed: failedInQ2, isAttempted: !!q2Log, status: q2Log?.status });
+
+          // Real-time transfer: Lead propagates to Q3 instantly if Q2 finished but failed (or if Q2 was completely missed)
           if (failedInQ2) {
-            q3FinalList.push({ ...lead, isCompleted: completedInQ3, isAttempted: !!q3Log, status: q3Log?.status });
+            const isPendingInQ3 = (!q3Log && !isMissed(b.q3Time)) || (q3Log && PENDING_STATUSES.includes(q3Log.status?.toUpperCase() || ""));
+            const failedInQ3 = !isPendingInQ3 && !completedInQ3;
+
+            q3FinalList.push({ ...lead, isCompleted: completedInQ3, isFailed: failedInQ3, isAttempted: !!q3Log, status: q3Log?.status });
           }
         }
       }
 
-      // Sort each wave: successful calls first, failed/pending last
-      const sortWave = (list: any[]) =>
-        list.sort((a, b) => (b.isCompleted ? 1 : 0) - (a.isCompleted ? 1 : 0));
+      // Sort each wave: successful calls first, ringing/active second, failed third, unattempted last
+      const getLeadScore = (l: any) => {
+        if (l.isCompleted) return 4;
+        if (l.isAttempted && !l.isFailed) return 3; // Ringing/Active
+        if (l.isFailed) return 2;
+        return 1; // Unattempted
+      };
+      const sortWave = (list: any[]) => list.sort((a, b) => getLeadScore(b) - getLeadScore(a));
 
       // Override running status if there are unattempted leads AND we haven't missed the window yet
       if (b.q1.status !== "Running" && q1FinalList.some(l => !l.isAttempted) && !isMissed(b.q1Time) && Date.now() >= b.q1Time.getTime()) {
