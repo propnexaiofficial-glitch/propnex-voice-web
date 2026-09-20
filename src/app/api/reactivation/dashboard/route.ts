@@ -281,8 +281,8 @@ export async function GET(req: NextRequest) {
       );
 
       const nowMs = Date.now();
-      // If a wave is past its scheduled time by more than 1 hour and has no logs, consider it missed/completed
-      const isMissed = (time: Date) => nowMs > time.getTime() + 1 * 60 * 60 * 1000;
+      // If a wave is past its scheduled time by more than 4 hours and has no logs, consider it missed/completed
+      const isMissed = (time: Date) => nowMs > time.getTime() + 4 * 60 * 60 * 1000;
 
       b.q1.status = q1Running ? "Running" : (hasQ1Logs || isMissed(b.q1Time) ? "Completed" : "Pending");
       b.q2.status = q2Running ? "Running" : (hasQ2Logs || isMissed(b.q2Time) ? "Completed" : "Pending");
@@ -306,21 +306,21 @@ export async function GET(req: NextRequest) {
         const completedInQ3 = q3Log?.status === "COMPLETED" && (q3Log.durationSeconds || 0) > 0;
 
         // Wave 1 always shows all original leads
-        q1FinalList.push({ ...lead, isCompleted: completedInQ1, isAttempted: !!q1Log });
+        q1FinalList.push({ ...lead, isCompleted: completedInQ1, isAttempted: !!q1Log, status: q1Log?.status });
 
         // Real-time transfer: Lead propagates to Q2 instantly if Q1 finished but failed (or if Q1 was completely missed)
         const isPendingInQ1 = (!q1Log && !isMissed(b.q1Time)) || (q1Log && ["PENDING", "RINGING", "IN-PROGRESS", "QUEUED"].includes(q1Log.status?.toUpperCase() || ""));
         const failedInQ1 = !isPendingInQ1 && !completedInQ1;
 
         if (failedInQ1) {
-          q2FinalList.push({ ...lead, isCompleted: completedInQ2, isAttempted: !!q2Log });
+          q2FinalList.push({ ...lead, isCompleted: completedInQ2, isAttempted: !!q2Log, status: q2Log?.status });
 
           // Real-time transfer: Lead propagates to Q3 instantly if Q2 finished but failed (or if Q2 was completely missed)
           const isPendingInQ2 = (!q2Log && !isMissed(b.q2Time)) || (q2Log && ["PENDING", "RINGING", "IN-PROGRESS", "QUEUED"].includes(q2Log.status?.toUpperCase() || ""));
           const failedInQ2 = !isPendingInQ2 && !completedInQ2;
 
           if (failedInQ2) {
-            q3FinalList.push({ ...lead, isCompleted: completedInQ3, isAttempted: !!q3Log });
+            q3FinalList.push({ ...lead, isCompleted: completedInQ3, isAttempted: !!q3Log, status: q3Log?.status });
           }
         }
       }
