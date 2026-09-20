@@ -331,15 +331,6 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      // Sort each wave: successful calls first, ringing/active second, failed third, unattempted last
-      const getLeadScore = (l: any) => {
-        if (l.isCompleted) return 4;
-        if (l.isAttempted && !l.isFailed) return 3; // Ringing/Active
-        if (l.isFailed) return 2;
-        return 1; // Unattempted
-      };
-      const sortWave = (list: any[]) => list.sort((a, b) => getLeadScore(b) - getLeadScore(a));
-
       // Override running status if there are unattempted leads AND we haven't missed the window yet
       if (b.q1.status !== "Running" && q1FinalList.some(l => !l.isAttempted) && !isMissed(b.q1Time) && Date.now() >= b.q1Time.getTime()) {
         b.q1.status = "Running";
@@ -351,9 +342,27 @@ export async function GET(req: NextRequest) {
         b.q3.status = "Running";
       }
 
-      b.q1.failedLeads = sortWave(q1FinalList);
-      b.q2.failedLeads = sortWave(q2FinalList);
-      b.q3.failedLeads = sortWave(q3FinalList);
+      // Sort each wave dynamically based on its status
+      const sortWave = (list: any[], waveStatus: string) => {
+        const getScore = (l: any) => {
+          if (waveStatus === "Running") {
+            if (l.isAttempted && !l.isFailed && !l.isCompleted) return 4; // Ringing/Active at top
+            if (l.isCompleted) return 3; // Success second
+            if (l.isFailed) return 2;    // Failed third
+            return 1;                    // Unattempted last
+          }
+          // Default (Completed/Pending)
+          if (l.isCompleted) return 4; // Success at top
+          if (l.isFailed) return 3;    // Failed second
+          if (l.isAttempted && !l.isFailed && !l.isCompleted) return 2; // Shouldn't happen often in completed
+          return 1;
+        };
+        return list.sort((a, b) => getScore(b) - getScore(a));
+      };
+
+      b.q1.failedLeads = sortWave(q1FinalList, b.q1.status);
+      b.q2.failedLeads = sortWave(q2FinalList, b.q2.status);
+      b.q3.failedLeads = sortWave(q3FinalList, b.q3.status);
 
       // If a wave has no pending leads after filtering, auto-complete it
       // (only when the previous wave is already Completed)
