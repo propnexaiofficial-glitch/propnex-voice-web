@@ -1067,69 +1067,34 @@ export function CampaignCard({
                               {(() => {
                                 const total = wave.data.failedLeads.length;
                                 const succeeded = wave.data.failedLeads.filter((l: any) => l.isCompleted).length;
-                                const failed = wave.data.status === "Completed" ? total - succeeded : 0;
-                                const pending = wave.data.status !== "Completed" ? total - succeeded : 0;
+                                const failed = wave.data.status === "Completed" ? total - succeeded : wave.data.failedLeads.filter((l: any) => l.isFailed).length;
+                                const pending = total - succeeded - failed;
                                 return (
                                   <div className="flex items-center justify-between gap-2 text-xs font-medium flex-wrap">
                                     <span className="flex items-center gap-1">
                                       <span className="text-muted-foreground">Total Leads</span>
                                       <span className="bg-muted text-foreground px-2 py-0.5 rounded-full">{total}</span>
                                     </span>
-                                    {wave.data.status === "Completed" ? (
+                                    {wave.data.status === "Completed" || wave.data.status === "Running" ? (
                                       <>
                                         <span className="flex items-center gap-1">
                                           <span className="text-emerald-500/80">Success</span>
                                           <span className="bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full">{succeeded}</span>
-                                                                <span className="flex items-center gap-1">
-                                            <span className="text-red-500/80">Failed</span>
-                                            <span className="bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full">{failed}</span>
-                                          </span>
-                                        </>
-                                      ) : (
-                                        <span className="flex items-center gap-1">
-                                          <span className="text-amber-500/80">Pending</span>
-                                          <span className="bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full">{pending}</span>
                                         </span>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
-                              </div>
-                              
-                              {/* Sub-header Stats */}
-                              <div className="flex flex-col gap-1.5 p-3">
-                                {wave.stage === "Q1" || wave.data.status === "Running" || wave.data.status === "Completed" ? (
-                                  <>
-                                    <div className="flex items-center justify-between text-xs mb-1">
-                                      <span className="text-muted-foreground flex items-center gap-1.5">
-                                        Total Leads
-                                        <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4 bg-muted/50">{wave.data.totalLeads}</Badge>
+                                        <span className="flex items-center gap-1">
+                                          <span className="text-red-500/80">Failed</span>
+                                          <span className="bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full">{failed}</span>
+                                        </span>
+                                      </>
+                                    ) : (
+                                      <span className="flex items-center gap-1">
+                                        <span className="text-amber-500/80">Pending</span>
+                                        <span className="bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full">{pending}</span>
                                       </span>
-                                      <span className="text-emerald-500/80 font-medium flex items-center gap-1.5">
-                                        Success
-                                        <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">{wave.data.completedLeads}</Badge>
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center justify-start text-xs">
-                                      <span className="text-red-400 font-medium flex items-center gap-1.5">
-                                        Failed
-                                        <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4 bg-red-500/10 text-red-400 hover:bg-red-500/20">{wave.data.failedLeads.length}</Badge>
-                                      </span>
-                                    </div>
-                                  </>
-                                ) : (
-                                  <div className="flex items-center justify-between text-xs mb-1">
-                                    <span className="text-muted-foreground flex items-center gap-1.5">
-                                      Total Leads
-                                      <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4 bg-muted/50">{wave.data.totalLeads}</Badge>
-                                    </span>
-                                    <span className="text-amber-500/80 font-medium flex items-center gap-1.5">
-                                      Pending
-                                      <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20">{wave.data.totalLeads}</Badge>
-                                    </span>
+                                    )}
                                   </div>
-                                )}
-                              </div>
+                                );
+                              })()}
                             </div>
                             
                             {/* Wave Leads List */}
@@ -1162,7 +1127,7 @@ export function CampaignCard({
                                           <div className="flex flex-col gap-0.5">
                                             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground opacity-80">
                                               LEAD {(currentPage - 1) * itemsPerPage + i + 1}
-                                              {(wave.stage === "Q1" && lead.originalCallType && lead.originalCallType !== "Lead") ? ` (${lead.originalCallType})` : ""}
+                                              {(wave.stage === "Q1" || wave.data.status === "Running" || wave.data.status === "Completed") && lead.originalCallType && lead.originalCallType !== "Lead" ? ` (${lead.originalCallType})` : ""}
                                             </span>
                                             <span className={cn("font-bold text-[13px] tracking-wide text-foreground break-all", lead.isCompleted && "text-emerald-600 dark:text-emerald-400", isFailed && "text-red-600 dark:text-red-400")}>
                                               {lead.phone}
