@@ -159,6 +159,12 @@ export function UploadCsvModal({
     }
 
     if (phoneColIdx === -1) {
+      // Check if it's actually an Excel file renamed to .csv (ZIP files start with PK)
+      const isBinaryZip = firstRow.length > 0 && String(firstRow[0]).startsWith("PK");
+      if (isBinaryZip) {
+        setError("This file appears to be an Excel document renamed to .csv. Please change the extension to .xlsx and upload again.");
+        return;
+      }
       setError("Could not detect a phone number column in the file.");
       return;
     }
