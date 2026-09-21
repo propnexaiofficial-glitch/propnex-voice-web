@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { mockUser } from "@/data/mock-user";
+
 import { cn } from "@/lib/utils";
 
 function getInitials(name: string) {
@@ -35,24 +35,28 @@ export function UserMenu({ className }: UserMenuProps) {
   const router = useRouter();
   const [userInfo, setUserInfo] = useState({ name: "", email: "" });
 
-  useEffect(() => {
+  const updateUserInfo = () => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser);
-        if (user && user.firstName && user.lastName) {
+        if (user && (user.firstName || user.name)) {
+          const fullName = user.firstName ? `${user.firstName} ${user.lastName || ""}` : user.name;
           setUserInfo({
-            name: `${user.firstName} ${user.lastName}`,
+            name: fullName.trim(),
             email: user.email || "",
           });
           return;
         }
       } catch (e) {}
     }
-    setUserInfo({
-      name: mockUser.name,
-      email: mockUser.email,
-    });
+    setUserInfo({ name: "", email: "" });
+  };
+
+  useEffect(() => {
+    updateUserInfo();
+    window.addEventListener("user-updated", updateUserInfo);
+    return () => window.removeEventListener("user-updated", updateUserInfo);
   }, []);
 
   const handleLogout = () => {

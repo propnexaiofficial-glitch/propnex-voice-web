@@ -179,6 +179,11 @@ function DashboardShellInner({
 
   useEffect(() => {
     const checkState = async () => {
+      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+      if (!token) {
+        window.location.replace("/auth/sign-in");
+        return;
+      }
       let needsRefresh = false;
       try {
         const storedUser = localStorage.getItem("user");
@@ -220,7 +225,7 @@ function DashboardShellInner({
         try {
           const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
           if (!token) {
-            setIsLoading(false);
+            window.location.replace("/auth/sign-in");
             return;
           }
           const response = await fetch(`/api/users/me`, {

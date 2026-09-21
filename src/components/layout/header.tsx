@@ -7,7 +7,7 @@ import { NotificationButton } from "@/components/common/notification-button";
 import { SearchBar } from "@/components/common/search-bar";
 import { ThemeToggle } from "@/components/common/theme-toggle";
 import { UserMenu } from "@/components/common/user-menu";
-import { mockUser } from "@/data/mock-user";
+
 import { cn } from "@/lib/utils";
 
 type DashboardHeaderProps = {
@@ -24,17 +24,23 @@ export function DashboardHeader({
   const [firstName, setFirstName] = useState("");
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const user = JSON.parse(storedUser);
-        if (user && user.firstName) {
-          setFirstName(user.firstName);
-          return;
-        }
-      } catch (e) { }
-    }
-    setFirstName(mockUser.name.split(" ")[0]);
+    const updateFirstName = () => {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          const user = JSON.parse(storedUser);
+          if (user && (user.firstName || user.name)) {
+            setFirstName(user.firstName || user.name.split(" ")[0]);
+            return;
+          }
+        } catch (e) { }
+      }
+      setFirstName("");
+    };
+
+    updateFirstName();
+    window.addEventListener("user-updated", updateFirstName);
+    return () => window.removeEventListener("user-updated", updateFirstName);
   }, []);
 
   return (
