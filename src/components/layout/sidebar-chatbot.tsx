@@ -135,9 +135,14 @@ export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" })
       const companyId = user?.companyId || null;
       const firstName = user?.firstName || "";
       
+      const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || localStorage.getItem("token");
+      
       const res = await fetch("/api/chatbot", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({
           messages: newMessages.map(m => ({ role: m.type === "usr" ? "user" : "model", content: m.text })),
           companyId,
