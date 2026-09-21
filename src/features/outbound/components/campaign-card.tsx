@@ -334,6 +334,39 @@ export function CampaignCard({
     }
   }, [allNumbersSearchQuery, activeTab, searchedPendingLeads.length, searchedSuccessLeads.length, searchedFailedLeads.length]);
 
+  useEffect(() => {
+    if (reactivationSearchQuery && historicalCampaigns.length > 0) {
+      const q = reactivationSearchQuery.toLowerCase();
+      const cleanQ = q.replace(/\D/g, '');
+      
+      const checkLead = (lead: any) => {
+        const cleanPhone = (lead.phone || '').replace(/\D/g, '');
+        const phoneMatch = cleanQ && cleanPhone.includes(cleanQ);
+        const nameMatch = (lead.name || '').toLowerCase().includes(q);
+        return phoneMatch || nameMatch;
+      };
+
+      const hasMatch = (hist: any) => {
+        const q1Match = (hist.q1?.failedLeads || []).some(checkLead);
+        const q2Match = (hist.q2?.failedLeads || []).some(checkLead);
+        const q3Match = (hist.q3?.failedLeads || []).some(checkLead);
+        return q1Match || q2Match || q3Match;
+      };
+
+      const activeHist = historicalCampaigns.find(h => h.id === selectedHistId);
+      if (!activeHist || !hasMatch(activeHist)) {
+        const foundHist = historicalCampaigns.find(hasMatch);
+        if (foundHist && foundHist.id !== selectedHistId) {
+          setSelectedHistId(foundHist.id);
+          if (window.innerWidth < 768) {
+            setTimeout(() => {
+              document.getElementById("reactivation-details")?.scrollIntoView({ behavior: "smooth" });
+            }, 50);
+          }
+        }
+      }
+    }
+  }, [reactivationSearchQuery, historicalCampaigns, selectedHistId]);
 
 
   const pendingSchedules = (displaySchedules || []).filter((s: any) => new Date(s.scheduledAt).getTime() > Date.now());
@@ -538,11 +571,11 @@ export function CampaignCard({
                           <ListChecks className="size-5 text-primary" />
                           All Numbers of {campaign.uploadedFileName || (pendingSchedules[0]?.csvName) || "CSV"}
                         </DialogTitle>
-                        <div className="relative">
+                        <div className="relative mr-6">
                           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                           <input
                             type="text"
-                            placeholder="Search numbers..."
+                            placeholder="Search name or number..."
                             value={allNumbersSearchQuery}
                             onChange={(e) => setAllNumbersSearchQuery(e.target.value)}
                             className="h-9 w-48 md:w-64 rounded-md border border-input bg-background pl-9 pr-4 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
