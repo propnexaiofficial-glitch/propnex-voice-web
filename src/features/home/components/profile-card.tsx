@@ -32,11 +32,11 @@ export function ProfileCard({ className }: ProfileCardProps) {
     : "User";
   const email = user?.email || "—";
   const phone = user?.phone || "—";
-  const companyName = user?.company?.name || user?.companyName || (user?.companyId ? "PropNex AI Technology" : "No Company");
-
   const detailedNumbers: any[] = user?.assignedNumbersDetailed || [];
   const mainNumbers = detailedNumbers.filter((d) => d.isMain);
   const subNumbers = detailedNumbers.filter((d) => !d.isMain);
+
+  const companyName = user?.company?.name || user?.companyName || mainNumbers[0]?.companyName || (user?.companyId ? "PropNex AI Technology" : "No Company");
 
   const groupNumbers = (numbers: any[]) => {
     const grouped: Record<string, { inbound: { number: string; channels: number | null }[], outbound: { number: string; channels: number | null }[] }> = {};
@@ -148,13 +148,30 @@ export function ProfileCard({ className }: ProfileCardProps) {
             </div>
 
             {/* Company */}
-            <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-3 py-2.5 sm:col-span-2">
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
-                <Building2 className="size-4 text-muted-foreground" />
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/20 px-3 py-2.5 sm:col-span-2">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+                  <Building2 className="size-4 text-muted-foreground" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Company</p>
+                  <p className="truncate text-sm font-medium">{companyName}</p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Company</p>
-                <p className="truncate text-sm font-medium">{companyName}</p>
+              
+              <div className="flex flex-col items-end pl-3 ml-auto shrink-0 border-l border-border/50 max-w-[50%]">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Sub-Companies</p>
+                {groupedSubNumbers.length > 0 ? (
+                  <div className="flex flex-col items-end max-h-[40px] overflow-y-auto no-scrollbar pr-1 w-full text-right">
+                    {groupedSubNumbers.map((group, index) => (
+                      <p key={index} className="text-[11px] text-muted-foreground font-medium truncate w-full" title={group.companyName}>
+                        {index + 1}- {group.companyName}
+                      </p>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground italic">None</p>
+                )}
               </div>
             </div>
           </div>
