@@ -92,7 +92,8 @@ export async function POST(req: Request) {
 11. If recording URL is requested, provide the EXACT URL from the RECORDING URLS section below.
 12. If the user asks for recordings of a date range, list ALL recordings from that period with their URLs.
 13. If asked about "infra cost" notification, explain it from the INFRA COST block.
-14. ALWAYS answer from data. If a field is not in context, say "I cannot see that specific detail in the available data."`;
+14. ALWAYS answer from data. If a field is not in context, say "I cannot see that specific detail in the available data."
+15. When asked about lead reactivation data for a specific date or wave, YOU MUST check the "SCHEDULED REACTIVATION WAVES" block for exact counts of success, failed, and pending leads. Never say there is no data without checking that block first!`;
 
     // ── Try cache ──────────────────────────────────────────────────────────
     let realTimeContext = `${systemRules}\n\nUser: ${userName}\nCompany: Not connected.`;
@@ -524,8 +525,8 @@ There are 3 types of outbound calls:
 2. INTERNAL: Manual one-to-one calls made directly from the dashboard by an agent to a specific customer.
 3. LEAD REACTIVATION (Q1/Q2/Q3): At 11:50 PM IST each night, the system scans all FAILED/NO_ANSWER calls. It schedules 3 automatic retry waves — Q1 at 10 AM, Q2 at 3 PM, Q3 at 8 PM the next day. It only retries leads that have not yet answered.
 
-LEAD REACTIVATION HISTORY (${reactivationCalls.length} total reactivation calls):
-${reactLines.length > 0 ? reactLines.join("\n") : "No reactivation calls found yet."}
+DIRECT CALL LOGS (Only counts calls explicitly tagged as reactivation today):
+${reactLines.length > 0 ? reactLines.join("\n") : "No calls tagged as reactivation in raw logs yet (Check SCHEDULED REACTIVATION WAVES below for active/completed scheduled waves)."}
 
 ABSOLUTE HIGHEST CALLER ACROSS ENTIRE ACCOUNT:
 ${absoluteHighestCaller ? `Customer ${absoluteHighestCaller.name} (${absoluteHighestCaller.phone}) made a total of ${absoluteHighestCaller.inbound + absoluteHighestCaller.outbound} calls (Inbound: ${absoluteHighestCaller.inbound}, Outbound: ${absoluteHighestCaller.outbound}). Total duration: ${toMinSec(absoluteHighestCaller.totalDuration)}.` : "None"}
