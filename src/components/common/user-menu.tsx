@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useUserContext } from "@/features/auth/context/user-context";
 
 import { cn } from "@/lib/utils";
 
@@ -33,31 +34,17 @@ type UserMenuProps = {
 
 export function UserMenu({ className }: UserMenuProps) {
   const router = useRouter();
-  const [userInfo, setUserInfo] = useState({ name: "", email: "" });
+  const { user } = useUserContext();
+  
+  const fullName = user
+    ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.name || user.email?.split("@")[0] || "User"
+    : "User";
+  const email = user?.email || "";
 
-  const updateUserInfo = () => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const user = JSON.parse(storedUser);
-        if (user) {
-          const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.name || user.email?.split("@")[0] || "User";
-          setUserInfo({
-            name: fullName.trim(),
-            email: user.email || "",
-          });
-          return;
-        }
-      } catch (e) {}
-    }
-    setUserInfo({ name: "", email: "" });
+  const userInfo = {
+    name: fullName.trim(),
+    email: email,
   };
-
-  useEffect(() => {
-    updateUserInfo();
-    window.addEventListener("user-updated", updateUserInfo);
-    return () => window.removeEventListener("user-updated", updateUserInfo);
-  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");

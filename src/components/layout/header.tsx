@@ -8,6 +8,8 @@ import { SearchBar } from "@/components/common/search-bar";
 import { ThemeToggle } from "@/components/common/theme-toggle";
 import { UserMenu } from "@/components/common/user-menu";
 
+import { useUserContext } from "@/features/auth/context/user-context";
+
 import { cn } from "@/lib/utils";
 
 type DashboardHeaderProps = {
@@ -21,28 +23,11 @@ export function DashboardHeader({
   className,
   isLockedOut,
 }: DashboardHeaderProps) {
-  const [firstName, setFirstName] = useState("");
-
-  useEffect(() => {
-    const updateFirstName = () => {
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        try {
-          const user = JSON.parse(storedUser);
-          if (user) {
-            const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.name || user.email?.split("@")[0] || "User";
-            setFirstName(fullName.split(" ")[0]);
-            return;
-          }
-        } catch (e) { }
-      }
-      setFirstName("");
-    };
-
-    updateFirstName();
-    window.addEventListener("user-updated", updateFirstName);
-    return () => window.removeEventListener("user-updated", updateFirstName);
-  }, []);
+  const { user } = useUserContext();
+  
+  const firstName = user 
+    ? (`${user.firstName || ""} ${user.lastName || ""}`.trim() || user.name || user.email?.split("@")[0] || "User").split(" ")[0]
+    : "User";
 
   return (
     <header
