@@ -38,8 +38,8 @@ export async function GET(req: NextRequest) {
     const now = new Date();
     const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     
-    // Check if account was created in the current calendar month
-    const isNewAccount = targetCompanyRecord?.createdAt ? new Date(targetCompanyRecord.createdAt) >= startOfThisMonth : false;
+    // Check if account was created in the last 30 days
+    const isNewAccount = targetCompanyRecord?.createdAt ? (now.getTime() - new Date(targetCompanyRecord.createdAt).getTime()) < 30 * 24 * 60 * 60 * 1000 : false;
 
 
     let companyIdsToQuery = [];
@@ -58,6 +58,21 @@ export async function GET(req: NextRequest) {
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
+    const hideFailedReactivationsFilter: any = {
+      NOT: {
+        AND: [
+          { correlationId: { isSet: true } },
+          { correlationId: { startsWith: "reactivation-" } },
+          {
+            OR: [
+              { status: { not: "COMPLETED" } },
+              { durationSeconds: 0 }
+            ]
+          }
+        ]
+      }
+    };
+
     const [
       inboundCalls,
       outboundCalls,
@@ -74,7 +89,7 @@ export async function GET(req: NextRequest) {
         where: { companyId: { in: companyIdsToQuery }, direction: "INBOUND", startedAt: { gte: startOfThisMonth } }
       }),
       prisma.callLog.count({
-        where: { companyId: { in: companyIdsToQuery }, direction: "OUTBOUND", startedAt: { gte: startOfThisMonth } }
+        where: { companyId: { in: companyIdsToQuery }, direction: "OUTBOUND", startedAt: { gte: startOfThisMonth }, ...hideFailedReactivationsFilter }
       }),
       prisma.agentLibraryEntry.count(),
       prisma.agentLibraryEntry.count({ where: { isPublished: true } }),
@@ -86,7 +101,7 @@ export async function GET(req: NextRequest) {
         where: { companyId: { in: companyIdsToQuery }, direction: "INBOUND", startedAt: { gte: startOfLastMonth, lte: endOfLastMonth } }
       }),
       prisma.callLog.count({
-        where: { companyId: { in: companyIdsToQuery }, direction: "OUTBOUND", startedAt: { gte: startOfLastMonth, lte: endOfLastMonth } }
+        where: { companyId: { in: companyIdsToQuery }, direction: "OUTBOUND", startedAt: { gte: startOfLastMonth, lte: endOfLastMonth }, ...hideFailedReactivationsFilter }
       }),
       prisma.callLog.aggregate({
         where: { companyId: { in: companyIdsToQuery }, startedAt: { gte: startOfLastMonth, lte: endOfLastMonth } },
@@ -97,7 +112,7 @@ export async function GET(req: NextRequest) {
         _sum: { creditsUsed: true }
       }),
       prisma.callLog.aggregate({
-        where: { companyId: { in: companyIdsToQuery }, direction: "OUTBOUND" },
+        where: { companyId: { in: companyIdsToQuery }, direction: "OUTBOUND", ...hideFailedReactivationsFilter },
         _sum: { creditsUsed: true }
       })
     ]);
@@ -124,11 +139,11 @@ export async function GET(req: NextRequest) {
     
     const availableAgents = totalAgents - assignedAgents;
 
-    const creditsUsedByCalls = callStats._sum.creditsUsed || 0;
-    const finalOutboundCredits = outboundCreditStats._sum.creditsUsed || 0;
+    const creditsUsedByCalls = callStats._sum?.creditsUsed || 0;
+    const finalOutboundCredits = outboundCreditStats._sum?.creditsUsed || 0;
     const finalInboundCredits = Math.max(0, creditsUsed - finalOutboundCredits);
     
-    const pastCreditsUsed = pastCallStats._sum.creditsUsed || 0;
+    const pastCreditsUsed = pastCallStats._sum?.creditsUsed || 0;
 
     const calcTrend = (current: number, past: number) => {
       if (past === 0) return current > 0 ? 100 : 0;
