@@ -40,8 +40,8 @@ export function UserMenu({ className }: UserMenuProps) {
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser);
-        if (user && (user.firstName || user.name)) {
-          const fullName = user.firstName ? `${user.firstName} ${user.lastName || ""}` : user.name;
+        if (user) {
+          const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.name || user.email?.split("@")[0] || "User";
           setUserInfo({
             name: fullName.trim(),
             email: user.email || "",

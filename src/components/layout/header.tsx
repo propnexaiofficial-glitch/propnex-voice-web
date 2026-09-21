@@ -29,8 +29,9 @@ export function DashboardHeader({
       if (storedUser) {
         try {
           const user = JSON.parse(storedUser);
-          if (user && (user.firstName || user.name)) {
-            setFirstName(user.firstName || user.name.split(" ")[0]);
+          if (user) {
+            const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.name || user.email?.split("@")[0] || "User";
+            setFirstName(fullName.split(" ")[0]);
             return;
           }
         } catch (e) { }
