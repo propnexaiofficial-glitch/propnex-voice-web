@@ -18,8 +18,12 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
-  StopCircle,
+  ArrowRight,
   ListChecks,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  StopCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -199,6 +203,8 @@ export function CampaignCard({
   const [wavePages, setWavePages] = useState<Record<string, number>>({});
   const [isCalculating, setIsCalculating] = useState(false);
   const [isDoneChecking, setIsDoneChecking] = useState(false);
+  const [reactivationSearchQuery, setReactivationSearchQuery] = useState("");
+  const [allNumbersSearchQuery, setAllNumbersSearchQuery] = useState("");
 
   // ─── Nightly calculation window detection (11:45 PM – 00:05 AM IST) ───
   useEffect(() => {
@@ -277,14 +283,16 @@ export function CampaignCard({
           .finally(() => setIsHistoricalLoading(false));
       };
 
-      setIsHistoricalLoading(true);
+      if (historicalCampaigns.length === 0) {
+        setIsHistoricalLoading(true);
+      }
       fetchDashboard();
 
       // Poll every 10s for real-time updates as missed/0-sec calls happen in other campaigns
       const interval = setInterval(fetchDashboard, 10000);
       return () => clearInterval(interval);
     }
-  }, [isReactivationCard, leadsModalOpen]);
+  }, [isReactivationCard]);
 
   const todayStr = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(new Date()).replace("Sept", "Sep");
   const todayBucket = historicalCampaigns.find(h => h.date === todayStr || h.date === todayStr.replace("Sep", "Sept"));
@@ -296,6 +304,35 @@ export function CampaignCard({
   const successLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => l.called && !l.isFailed);
   const failedLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => l.called && l.isFailed);
   const invalidLeads = (campaign.leads || []).map((l: any, i: number) => ({ ...l, originalIdx: i })).filter((l: any) => !l.phone || !isValidPhoneNumber(String(l.phone || "")));
+
+  const filterFn = (l: any) => {
+    if (!allNumbersSearchQuery) return true;
+    const q = allNumbersSearchQuery.toLowerCase();
+    const cleanQ = q.replace(/\D/g, '');
+    const cleanPhone = (l.phone || '').replace(/\D/g, '');
+    const phoneMatch = cleanQ && cleanPhone.includes(cleanQ);
+    const nameMatch = (l.name || '').toLowerCase().includes(q);
+    return phoneMatch || nameMatch;
+  };
+
+  const searchedPendingLeads = pendingLeads.filter(filterFn);
+  const searchedSuccessLeads = successLeads.filter(filterFn);
+  const searchedFailedLeads = failedLeads.filter(filterFn);
+  
+  useEffect(() => {
+    if (allNumbersSearchQuery) {
+      if (activeTab === "pending" && searchedPendingLeads.length === 0) {
+        if (searchedSuccessLeads.length > 0) setActiveTab("successful");
+        else if (searchedFailedLeads.length > 0) setActiveTab("failed");
+      } else if (activeTab === "successful" && searchedSuccessLeads.length === 0) {
+        if (searchedPendingLeads.length > 0) setActiveTab("pending");
+        else if (searchedFailedLeads.length > 0) setActiveTab("failed");
+      } else if (activeTab === "failed" && searchedFailedLeads.length === 0) {
+        if (searchedPendingLeads.length > 0) setActiveTab("pending");
+        else if (searchedSuccessLeads.length > 0) setActiveTab("successful");
+      }
+    }
+  }, [allNumbersSearchQuery, activeTab, searchedPendingLeads.length, searchedSuccessLeads.length, searchedFailedLeads.length]);
 
 
 
@@ -496,18 +533,29 @@ export function CampaignCard({
                   </DialogTrigger>
                   <DialogContent className="max-w-4xl w-[90vw] h-[80vh] flex flex-col overflow-hidden bg-background/95 backdrop-blur-xl border-primary/20 p-0 shadow-2xl z-50">
                     <DialogHeader className="p-6 pb-4 border-b border-border/50 bg-muted/10 shrink-0">
-                      <DialogTitle className="text-xl flex items-center gap-2 font-semibold">
-                        <ListChecks className="size-5 text-primary" />
-                        All Numbers of {campaign.uploadedFileName || (pendingSchedules[0]?.csvName) || "CSV"}
-                      </DialogTitle>
+                      <div className="flex items-center justify-between gap-4">
+                        <DialogTitle className="text-xl flex items-center gap-2 font-semibold">
+                          <ListChecks className="size-5 text-primary" />
+                          All Numbers of {campaign.uploadedFileName || (pendingSchedules[0]?.csvName) || "CSV"}
+                        </DialogTitle>
+                        <div className="relative">
+                          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                          <input
+                            type="text"
+                            placeholder="Search numbers..."
+                            value={allNumbersSearchQuery}
+                            onChange={(e) => setAllNumbersSearchQuery(e.target.value)}
+                            className="h-9 w-48 md:w-64 rounded-md border border-input bg-background pl-9 pr-4 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                          />
+                        </div>
+                      </div>
                     </DialogHeader>
                     
                     <div className="flex-1 overflow-y-auto p-6">
                       {(campaign.status === "ready" || campaign.status === "scheduled") && (
                       <div className="space-y-2">
-                        <p className="font-semibold text-sm text-muted-foreground">Pending ({(campaign.leads || []).length} Leads)</p>
-                        {(campaign.leads || [])
-                          .map((l: any, i: number) => ({ ...l, originalIdx: i }))
+                        <p className="font-semibold text-sm text-muted-foreground">Pending ({(searchedPendingLeads || []).length} Leads)</p>
+                        {(searchedPendingLeads || [])
                           .sort((a: any, b: any) => {
                             const aValid = a.phone && isValidPhoneNumber(String(a.phone || ""));
                             const bValid = b.phone && isValidPhoneNumber(String(b.phone || ""));
@@ -517,7 +565,7 @@ export function CampaignCard({
                           })
                           .map((lead: any) => (
                             <LeadRow key={`${lead.phone}-${lead.originalIdx}`} lead={lead} idx={lead.originalIdx} onSave={(newLead) => onEditLead?.(lead.originalIdx, newLead)} onDelete={campaign.status === "ready" ? () => onDeleteLead?.(lead.originalIdx) : undefined} campaignStatus={campaign.status} />
-                        ))}
+                          ))}
                       </div>
                     )}
 
@@ -525,42 +573,42 @@ export function CampaignCard({
                       <div className="space-y-4">
                         <div className="flex items-center gap-1 border-b border-border pb-2">
                           <button onClick={() => setActiveTab("pending")} className={cn("px-3 py-1 text-xs font-medium rounded-full transition-colors", activeTab === "pending" ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/50")}>
-                            Pending ({pendingLeads.length})
+                            Pending ({searchedPendingLeads.length})
                           </button>
                           <button onClick={() => setActiveTab("successful")} className={cn("px-3 py-1 text-xs font-medium rounded-full transition-colors", activeTab === "successful" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground hover:bg-muted/50")}>
-                            Success ({successLeads.length})
+                            Success ({searchedSuccessLeads.length})
                           </button>
                           <button onClick={() => setActiveTab("failed")} className={cn("px-3 py-1 text-xs font-medium rounded-full transition-colors", activeTab === "failed" ? "bg-rose-500/20 text-rose-600" : "text-muted-foreground hover:bg-muted/50")}>
-                            Failed ({failedLeads.length})
+                            Failed ({searchedFailedLeads.length})
                           </button>
                         </div>
                         
-                        {activeTab === "pending" && pendingLeads.length > 0 && (
+                        {activeTab === "pending" && searchedPendingLeads.length > 0 && (
                           <div className="space-y-2">
-                            {pendingLeads.map((lead: any) => (
+                            {searchedPendingLeads.map((lead: any) => (
                               <LeadRow key={`${lead.phone}-${lead.originalIdx}`} lead={lead} idx={lead.originalIdx} onSave={() => {}} campaignStatus={campaign.status} />
                             ))}
                           </div>
                         )}
-                        {activeTab === "pending" && pendingLeads.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No pending leads</p>}
+                        {activeTab === "pending" && searchedPendingLeads.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No pending leads found</p>}
 
-                        {activeTab === "successful" && successLeads.length > 0 && (
+                        {activeTab === "successful" && searchedSuccessLeads.length > 0 && (
                           <div className="space-y-2">
-                            {successLeads.map((lead: any) => (
+                            {searchedSuccessLeads.map((lead: any) => (
                               <LeadRow key={`${lead.phone}-${lead.originalIdx}`} lead={lead} idx={lead.originalIdx} onSave={() => {}} campaignStatus={campaign.status} />
                             ))}
                           </div>
                         )}
-                        {activeTab === "successful" && successLeads.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No successful calls yet</p>}
+                        {activeTab === "successful" && searchedSuccessLeads.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No successful calls found</p>}
 
-                        {activeTab === "failed" && failedLeads.length > 0 && (
+                        {activeTab === "failed" && searchedFailedLeads.length > 0 && (
                           <div className="space-y-2">
-                            {failedLeads.map((lead: any) => (
+                            {searchedFailedLeads.map((lead: any) => (
                               <LeadRow key={`${lead.phone}-${lead.originalIdx}`} lead={lead} idx={lead.originalIdx} onSave={() => {}} campaignStatus={campaign.status} />
                             ))}
                           </div>
                         )}
-                        {activeTab === "failed" && failedLeads.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No failed calls yet</p>}
+                        {activeTab === "failed" && searchedFailedLeads.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No failed calls found</p>}
                       </div>
                     )}
 
@@ -1043,8 +1091,20 @@ export function CampaignCard({
 
               {/* Right Panel: Q1, Q2, Q3 Tracking */}
               <div id="reactivation-details" className="flex-1 bg-background/50 flex flex-col min-w-0 overflow-visible md:overflow-hidden">
-                <div className="p-4 text-xs font-semibold text-muted-foreground tracking-wider uppercase border-b border-border/50 shrink-0">
-                  Reactivation Lifecycle (3 Waves)
+                <div className="p-4 border-b border-border/50 shrink-0 flex items-center justify-between">
+                  <div className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
+                    Reactivation Lifecycle (3 Waves)
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder="Search name or number..."
+                      value={reactivationSearchQuery}
+                      onChange={(e) => setReactivationSearchQuery(e.target.value)}
+                      className="h-8 w-48 md:w-64 rounded-md border border-input bg-background pl-8 pr-3 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                    />
+                  </div>
                 </div>
                 
                 {(() => {
@@ -1059,10 +1119,19 @@ export function CampaignCard({
                           { stage: "Q2", label: activeHist.q2?.label || "Wave 2", data: activeHist.q2 },
                           { stage: "Q3", label: activeHist.q3?.label || "Wave 3", data: activeHist.q3 }
                         ].map((wave, idx) => {
+                          const filteredLeads = (wave.data.failedLeads || []).filter((lead: any) => {
+                            if (!reactivationSearchQuery) return true;
+                            const q = reactivationSearchQuery.toLowerCase();
+                            const cleanQ = q.replace(/\D/g, '');
+                            const cleanPhone = (lead.phone || '').replace(/\D/g, '');
+                            const phoneMatch = cleanQ && cleanPhone.includes(cleanQ);
+                            const nameMatch = (lead.name || '').toLowerCase().includes(q);
+                            return phoneMatch || nameMatch;
+                          });
                           const currentPage = wavePages[`${activeHist.id}-${wave.stage}`] || 1;
                           const itemsPerPage = 10;
-                          const totalPages = Math.max(1, Math.ceil((wave.data.failedLeads?.length || 0) / itemsPerPage));
-                          const paginatedLeads = (wave.data.failedLeads || []).slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+                          const totalPages = Math.max(1, Math.ceil(filteredLeads.length / itemsPerPage));
+                          const paginatedLeads = filteredLeads.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
                           const setWavePage = (page: number) => setWavePages(prev => ({ ...prev, [`${activeHist.id}-${wave.stage}`]: page }));
                           
                           return (
@@ -1084,14 +1153,14 @@ export function CampaignCard({
                                   )}
                                 >
                                   {wave.data.status === "Running" 
-                                    ? `Running ${wave.data.failedLeads.filter((l: any) => l.isAttempted || l.isCompleted).length} / ${wave.data.failedLeads.length}` 
+                                    ? `Running ${filteredLeads.filter((l: any) => l.isAttempted || l.isCompleted).length} / ${filteredLeads.length}` 
                                     : wave.data.status}
                                 </Badge>
                               </div>
                               {(() => {
-                                const total = wave.data.failedLeads.length;
-                                const succeeded = wave.data.failedLeads.filter((l: any) => l.isCompleted).length;
-                                const failed = wave.data.status === "Completed" ? total - succeeded : wave.data.failedLeads.filter((l: any) => l.isFailed).length;
+                                const total = filteredLeads.length;
+                                const succeeded = filteredLeads.filter((l: any) => l.isCompleted).length;
+                                const failed = wave.data.status === "Completed" ? total - succeeded : filteredLeads.filter((l: any) => l.isFailed).length;
                                 const pending = total - succeeded - failed;
                                 return (
                                   <div className="flex items-center justify-between gap-2 text-xs font-medium flex-wrap">
@@ -1123,10 +1192,10 @@ export function CampaignCard({
                             
                             {/* Wave Leads List */}
                             <div className="flex-1 overflow-y-auto p-2">
-                              {wave.data.failedLeads.length === 0 ? (
+                              {filteredLeads.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center text-muted-foreground opacity-50 p-6 text-center">
                                   <ListChecks className="size-8 mb-2 opacity-20" />
-                                  <span className="text-sm">No failed leads mapped to this stage yet.</span>
+                                  <span className="text-sm">No leads found.</span>
                                 </div>
                               ) : (
                                 <div className="space-y-1.5 pb-2">
