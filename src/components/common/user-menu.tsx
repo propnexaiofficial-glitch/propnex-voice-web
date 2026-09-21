@@ -59,7 +59,7 @@ export function UserMenu({ className }: UserMenuProps) {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("access_token");
     localStorage.removeItem("user");
-    router.push("/auth/sign-in");
+    window.location.replace("/auth/sign-in");
   };
 
   return (

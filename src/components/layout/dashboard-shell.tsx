@@ -37,6 +37,15 @@ function DashboardShellInner({
   const [infraCosts, setInfraCosts] = useState<any[]>([]);
 
   useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        window.location.reload();
+      }
+    };
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, []);
+  useEffect(() => {
     if (isBlocked && blockedUntilDate) {
       const timer = setInterval(() => {
         const now = new Date().getTime();

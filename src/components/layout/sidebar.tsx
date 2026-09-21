@@ -103,18 +103,23 @@ export function SidebarNav({ onNavigate, className, isLockedOut }: SidebarNavPro
 }
 
 function SidebarLogout({ className }: { className?: string }) {
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+    window.location.replace("/auth/sign-in");
+  };
+
   return (
     <div className={cn("flex shrink-0 justify-center items-center border-t border-border px-4 py-3", className)}>
       <Button
         variant="ghost"
         size="sm"
-        className="h-8 gap-1.5 px-2.5 text-md text-muted-foreground hover:text-foreground"
-        asChild
+        className="h-8 w-full gap-1.5 px-2.5 text-md text-muted-foreground hover:text-foreground cursor-pointer"
+        onClick={handleLogout}
       >
-        <Link href="/auth/sign-in">
-          <LogOut className="size-3.5" />
-          Log out
-        </Link>
+        <LogOut className="size-3.5" />
+        Log out
       </Button>
     </div>
   );
