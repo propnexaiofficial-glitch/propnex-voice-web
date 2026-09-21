@@ -549,7 +549,7 @@ ${scheduledReactivations.length > 0 ? scheduledReactivations.map((w: any) => {
     }
     return str;
   };
-  return `=== Date: ${w.date} ===\n${f(w.q1, 'Wave 1 (10 AM)')}\n${f(w.q2, 'Wave 2 (3 PM)')}\n${f(w.q3, 'Wave 3 (8 PM)')}`;
+  return `=== Failed Leads From: ${w.date} ===\nThese leads are scheduled for reactivation on: ${w.q1?.scheduled ? w.q1.scheduled.replace(/ \d+ [AP]m/i, '') : "Unknown"}\n${f(w.q1, 'Wave 1 (' + (w.q1?.scheduled || '10 AM') + ')')}\n${f(w.q2, 'Wave 2 (' + (w.q2?.scheduled || '3 PM') + ')')}\n${f(w.q3, 'Wave 3 (' + (w.q3?.scheduled || '8 PM') + ')')}`;
 }).join("\n\n") : "No lead reactivation calls scheduled."}
 
 TOP 50 CUSTOMERS BY TOTAL CALLS (Fallback for generic queries):
