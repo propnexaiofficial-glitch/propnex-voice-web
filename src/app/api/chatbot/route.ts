@@ -394,7 +394,9 @@ export async function POST(req: Request) {
                 const pCalls = rawCallLogs.filter((c: any) => c.phoneNumberId === p.id);
                 const pIn    = pCalls.filter((c: any) => c.direction === "INBOUND").length;
                 const pOut   = pCalls.filter((c: any) => c.direction === "OUTBOUND").length;
-                return `Number: ${p.number} | Label: ${p.label || "Unlabeled"} | Direction: ${p.direction || "Both"} | Channels: ${p.channels ?? "N/A"} | Inbound Calls: ${pIn} | Outbound Calls: ${pOut}`;
+                const pSuccess = pCalls.filter((c: any) => c.status === "COMPLETED" || c.status === "ANSWERED").length;
+                const pFailed = pCalls.filter((c: any) => c.status === "FAILED" || c.status === "MISSED" || c.status === "BUSY" || c.status === "NO_ANSWER" || c.status === "CANCELLED").length;
+                return `Number: ${p.number} | Label: ${p.label || "Unlabeled"} | Direction: ${p.direction || "Both"} | Channels: ${p.channels ?? "N/A"} | Inbound Calls: ${pIn} | Outbound Calls: ${pOut} | Success: ${pSuccess} | Failed: ${pFailed}`;
               }).join("\n")
             : "None configured";
 
@@ -533,11 +535,22 @@ Date: ${dateFmt(earliestInboundCall.startedAt)}, Time: ${timeFmt(earliestInbound
 Customer: ${earliestInboundCall.lead?.phone || "Unknown"}
 Duration: ${toMinSec(earliestInboundCall.durationSeconds)}` : ""}
 
-SCHEDULED REACTIVATION WAVES (Today & Future):
-${scheduledReactivations.length > 0 ? scheduledReactivations.map((w: any) => `Date: ${w.date}
-Wave 1 (10 AM): ${w.q1?.status}, ${w.q1?.failedLeads?.length || 0} calls
-Wave 2 (3 PM): ${w.q2?.status}, ${w.q2?.failedLeads?.length || 0} calls
-Wave 3 (8 PM): ${w.q3?.status}, ${w.q3?.failedLeads?.length || 0} calls`).join("\n\n") : "No lead reactivation calls scheduled."}
+SCHEDULED REACTIVATION WAVES (History, Today & Future):
+${scheduledReactivations.length > 0 ? scheduledReactivations.map((w: any) => {
+  const f = (q: any, lbl: string) => {
+    if (!q) return "";
+    const ls = q.failedLeads || [];
+    const sc = ls.filter((l:any) => l.isCompleted);
+    const fd = ls.filter((l:any) => l.isFailed);
+    const pd = ls.filter((l:any) => !l.isCompleted && !l.isFailed);
+    let str = `${lbl}: ${q.status} | Total: ${ls.length} | Success: ${sc.length} | Failed: ${fd.length} | Pending: ${pd.length}`;
+    if (ls.length > 0) {
+      str += `\n   -> Leads: ` + ls.map((l:any) => `[${l.name} (${l.phone}): ${l.isCompleted ? 'Success' : l.isFailed ? 'Failed' : 'Pending'}]`).join(" ");
+    }
+    return str;
+  };
+  return `=== Date: ${w.date} ===\n${f(w.q1, 'Wave 1 (10 AM)')}\n${f(w.q2, 'Wave 2 (3 PM)')}\n${f(w.q3, 'Wave 3 (8 PM)')}`;
+}).join("\n\n") : "No lead reactivation calls scheduled."}
 
 TOP 50 CUSTOMERS BY TOTAL CALLS (Fallback for generic queries):
 ${topByTotalEnriched.map(c => `Customer: ${c.phone} | Name: ${c.name} | Total: ${c.inbound + c.outbound} (In: ${c.inbound}, Out: ${c.outbound}) | Total Duration: ${toMinSec(c.totalDuration)} | Last Call: ${dateFmt(c.lastCall)}`).join("\n") || "No customer data."}

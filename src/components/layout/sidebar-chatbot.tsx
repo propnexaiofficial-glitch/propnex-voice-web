@@ -157,18 +157,18 @@ export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" })
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let fullResponse = "";
+      
+      // Create a dummy message for streaming
+      const botMsgId = Date.now().toString();
+      setIsTyping(false);
+      setMessages((prev) => [...prev, { id: botMsgId, text: "", type: "bot" }]);
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         fullResponse += decoder.decode(value, { stream: true });
-      }
-      
-      // Stop typing animation and append the full message at once
-      setIsTyping(false);
-      
-      if (fullResponse) {
-        setMessages((prev) => [...prev, { id: Date.now().toString(), text: fullResponse, type: "bot" }]);
+        
+        setMessages((prev) => prev.map(m => m.id === botMsgId ? { ...m, text: fullResponse } : m));
       }
     } catch (error: any) {
       console.error(error);
@@ -575,7 +575,7 @@ export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" })
             </div>
 
             <div className="ch-inp-wrap">
-              <form className="ch-inp" onSubmit={(e) => { e.preventDefault(); handleSend(); }}>
+              <form className="ch-inp" onClick={() => (textareaRef.current as any)?.focus()} onSubmit={(e) => { e.preventDefault(); handleSend(); }}>
                 <input
                   type="text"
                   ref={textareaRef as any}
