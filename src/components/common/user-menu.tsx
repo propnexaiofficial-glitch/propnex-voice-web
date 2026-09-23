@@ -50,7 +50,7 @@ export function UserMenu({ className }: UserMenuProps) {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("access_token");
     localStorage.removeItem("user");
-    window.location.replace("/auth/sign-in");
+    window.location.replace("https://propnexai.com/");
   };
 
   return (
