@@ -37,7 +37,7 @@ export default function FinalCTA() {
               Book a Free Demo Call
             </Link>
             <p className="mt-4 text-xs text-white/40">
-              www.jinnicore.com · Gurgaon, India | Dubai, UAE
+              www.propnexai.com · Gurgaon, India | Dubai, UAE
             </p>
           </div>
         </div>

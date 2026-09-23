@@ -81,7 +81,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
         throw new Error("Company ID not found");
       }
 
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.jinnicore.com";
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
       const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
 
       // Ensure we have a DID number (it defaults to user's assigned numbers, but fallback to one if missing)
@@ -140,7 +140,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
           return;
         }
 
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.jinnicore.com";
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
         const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
 
         // First, fetch initial state via HTTP
@@ -259,7 +259,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
           const companyId = overrideCompanyId || user.companyId || null;
           if (!companyId) return;
 
-          const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.jinnicore.com";
+          const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
           const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
           
           const res = await fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/status?companyId=${companyId}`, {
@@ -322,7 +322,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
       const companyId = overrideCompanyId || user.companyId || null;
 
       if (companyId) {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.jinnicore.com";
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
         const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
 
         await fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/pause`, {
@@ -347,7 +347,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
       const companyId = overrideCompanyId || user.companyId || null;
 
       if (companyId) {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.jinnicore.com";
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
         const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
 
         await fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/resume`, {
@@ -449,7 +449,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
       const companyId = overrideCompanyId || user.companyId || null;
 
       if (companyId) {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.jinnicore.com";
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
         const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
 
         fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/clear`, {
@@ -473,7 +473,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
       const companyId = overrideCompanyId || user.companyId || null;
 
       if (companyId) {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.jinnicore.com";
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
         const pnxToken = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
 
         const response = await fetch(`${apiBase === '/api' ? '' : apiBase}/api/campaign-execution/force-stop`, {

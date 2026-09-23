@@ -384,7 +384,7 @@ export function CampaignCard({
     const user = storedUserStr ? JSON.parse(storedUserStr) : {};
     const email = user.email || user.id || "default";
 
-    const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.jinnicore.com";
+    const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
     
     setIsCheckingLock(true);
     
@@ -429,7 +429,7 @@ export function CampaignCard({
       const email = user.email || user.id || "default";
       const key = companyId ? `last_outbound_number_request_${companyId}` : "last_outbound_number_request";
 
-      const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.jinnicore.com";
+      const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
       const res = await fetch(`${adminBase}/api/number-requests`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

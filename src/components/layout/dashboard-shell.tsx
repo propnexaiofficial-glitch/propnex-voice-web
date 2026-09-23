@@ -120,7 +120,7 @@ function DashboardShellInner({
       if (isWaitingNumber) {
         // Hit the Admin Panel's number-requests API
         // Using the official admin domain
-        const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.jinnicore.com";
+        const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
         res = await fetch(`${adminBase}/api/number-requests`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -181,7 +181,7 @@ function DashboardShellInner({
     const checkState = async () => {
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
       if (!token) {
-        window.location.replace("https://jinnicore.com/");
+        window.location.replace("https://propnexai.com/");
         return;
       }
       let needsRefresh = false;
@@ -225,7 +225,7 @@ function DashboardShellInner({
         try {
           const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
           if (!token) {
-            window.location.replace("https://jinnicore.com/");
+            window.location.replace("https://propnexai.com/");
             return;
           }
           const response = await fetch(`/api/users/me`, {
@@ -279,7 +279,7 @@ function DashboardShellInner({
             localStorage.removeItem("user");
             localStorage.removeItem("accessToken");
             localStorage.removeItem("access_token");
-            window.location.href = "https://jinnicore.com/";
+            window.location.href = "https://propnexai.com/";
           }
         } catch (e) {
           console.error("Instant refresh error:", e);
@@ -367,7 +367,7 @@ function DashboardShellInner({
           localStorage.removeItem("user");
           localStorage.removeItem("accessToken");
           localStorage.removeItem("access_token");
-          window.location.href = "https://jinnicore.com/";
+          window.location.href = "https://propnexai.com/";
         }
       } catch (err) {
         console.error("Polling error:", err);
@@ -459,7 +459,7 @@ function DashboardShellInner({
             localStorage.removeItem("user");
             localStorage.removeItem("accessToken");
             localStorage.removeItem("access_token");
-            window.location.href = "https://jinnicore.com/";
+            window.location.href = "https://propnexai.com/";
           }} className="text-sm text-red-400 hover:text-red-300 mt-4 font-medium transition-colors">
             Sign out
           </button>
@@ -498,7 +498,7 @@ function DashboardShellInner({
             localStorage.removeItem("user");
             localStorage.removeItem("accessToken");
             localStorage.removeItem("access_token");
-            window.location.href = "https://jinnicore.com/";
+            window.location.href = "https://propnexai.com/";
           }} className="text-sm text-red-400 hover:text-red-300 mt-4 font-medium transition-colors">
             Sign out
           </button>
@@ -551,7 +551,7 @@ function DashboardShellInner({
               localStorage.removeItem("user");
               localStorage.removeItem("accessToken");
               localStorage.removeItem("access_token");
-              window.location.href = "https://jinnicore.com/";
+              window.location.href = "https://propnexai.com/";
             }} className="text-sm text-fuchsia-400 hover:text-fuchsia-300">
               Sign out
             </button>

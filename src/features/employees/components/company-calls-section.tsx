@@ -439,7 +439,7 @@ export function CompanyCallsSection({
         const email = user.email || user.id;
         if (!email) { setIsLockChecking(false); return; }
 
-        const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.jinnicore.com";
+        const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
         const res = await fetch(`${adminBase}/api/number-requests?email=${encodeURIComponent(email)}&companyId=${encodeURIComponent(companyId)}&type=${encodeURIComponent(direction.toUpperCase())}`);
         if (res.ok) {
           const data = await res.json();
@@ -466,7 +466,7 @@ export function CompanyCallsSection({
       const user = storedUserStr ? JSON.parse(storedUserStr) : {};
       const email = user.email || user.id || "default";
 
-      const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.jinnicore.com";
+      const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
       const res = await fetch(`${adminBase}/api/number-requests`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
