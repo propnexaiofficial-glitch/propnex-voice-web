@@ -36,7 +36,7 @@ export function ProfileCard({ className }: ProfileCardProps) {
   const mainNumbers = detailedNumbers.filter((d) => d.isMain);
   const subNumbers = detailedNumbers.filter((d) => !d.isMain);
 
-  const companyName = user?.company?.name || user?.companyName || mainNumbers[0]?.companyName || (user?.companyId ? "PropNex AI Technology" : "No Company");
+  const companyName = user?.company?.name || user?.companyName || mainNumbers[0]?.companyName || (user?.companyId ? "Jinnicore Technology" : "No Company");
 
   const groupNumbers = (numbers: any[]) => {
     const grouped: Record<string, { inbound: { number: string; channels: number | null }[], outbound: { number: string; channels: number | null }[] }> = {};

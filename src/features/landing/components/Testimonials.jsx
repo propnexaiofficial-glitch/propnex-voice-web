@@ -38,7 +38,7 @@ const stats = [
 const testimonials = [
   {
     quote:
-      'Propnex AI completely transformed how we handle insurance renewal follow-ups. Their AI Voice Agent called our entire customer base in Gurugram within hours — something our human team would have taken weeks to do. The conversations were natural, professional, and incredibly effective. Our renewal conversion rate shot up dramatically.',
+      'Jinnicore completely transformed how we handle insurance renewal follow-ups. Their AI Voice Agent called our entire customer base in Gurugram within hours — something our human team would have taken weeks to do. The conversations were natural, professional, and incredibly effective. Our renewal conversion rate shot up dramatically.',
     name: 'Rohit Sharma',
     company: 'Grab Your Car',
     detail: 'Insurance Renewal — Gurugram',
@@ -46,7 +46,7 @@ const testimonials = [
   },
   {
     quote:
-      'Working with Propnex AI has been a game-changer for Pinpro. Their comprehensive platform — from the AI Voice Agent to CRM and WhatsApp automation — gave us a complete sales ecosystem we never had before. Our team is now closing deals faster, leads are better qualified, and our brand presence has grown significantly.',
+      'Working with Jinnicore has been a game-changer for Pinpro. Their comprehensive platform — from the AI Voice Agent to CRM and WhatsApp automation — gave us a complete sales ecosystem we never had before. Our team is now closing deals faster, leads are better qualified, and our brand presence has grown significantly.',
     name: 'Ananya Reddy',
     company: 'PINPRO',
     detail: 'Real Estate — Bangalore',
@@ -54,7 +54,7 @@ const testimonials = [
   },
   {
     quote:
-      'We were struggling to manage the volume of international leads coming in for our Dubai properties. Propnex AI\'s Voice Agent changed everything — it qualifies leads in real time, understands buyer intent, and books appointments with serious investors automatically. Our sales team now only speaks with pre-qualified buyers.',
+      'We were struggling to manage the volume of international leads coming in for our Dubai properties. Jinnicore\'s Voice Agent changed everything — it qualifies leads in real time, understands buyer intent, and books appointments with serious investors automatically. Our sales team now only speaks with pre-qualified buyers.',
     name: 'Vikram Mehta',
     company: 'Dubai Real Estate Client',
     detail: 'Luxury Property — Dubai, UAE',
@@ -140,7 +140,7 @@ export default function Testimonials() {
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <div className="reveal-head mb-12 text-center md:mb-16">
           <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
-            Ready to scale? Teams trust PropNex AI.
+            Ready to scale? Teams trust Jinnicore.
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-slate-400">
             Real Indian clients across Real Estate, Insurance & more — in India

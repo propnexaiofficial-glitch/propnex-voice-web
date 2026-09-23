@@ -14,13 +14,13 @@ const docs = [
     body: [
       'Create a PropNex workspace and invite your sales / ops team.',
       'Provision numbers under PropNex Telephony (buy new DIDs or port existing lines).',
-      'Import a PropNex AI agent template (Real Estate, Insurance, EdTech, FinTech, or HealthTech).',
+      'Import a Jinnicore agent template (Real Estate, Insurance, EdTech, FinTech, or HealthTech).',
       'Publish a campaign, connect your CRM webhooks, and place a test call within minutes.',
     ],
   },
   {
     id: 'apis',
-    title: 'PropNex AI APIs',
+    title: 'Jinnicore APIs',
     tag: 'REST API',
     img: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=900&q=80',
     accent: 'from-blue-500/45 via-black/55 to-black/90',

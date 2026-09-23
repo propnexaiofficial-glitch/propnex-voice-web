@@ -89,7 +89,7 @@ export function SignUpPageContent() {
   return (
     <AuthShell
       title="Sign Up"
-      welcomeTitle="Join PropNex AI"
+      welcomeTitle="Join Jinnicore"
       welcomeText="Create your account to access voice agents, campaigns, and analytics. Complete verification to activate your workspace."
     >
       <form className="space-y-3" onSubmit={handleSubmit} noValidate>

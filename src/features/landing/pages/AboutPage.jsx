@@ -43,7 +43,7 @@ const presence = [
   },
   {
     title: 'Dubai, UAE',
-    desc: 'Propnex AI has expanded into the Dubai real estate market — one of the world\'s highest-value property markets. International developers and brokers trust our platform to handle high-value lead qualification across multiple time zones.',
+    desc: 'Jinnicore has expanded into the Dubai real estate market — one of the world\'s highest-value property markets. International developers and brokers trust our platform to handle high-value lead qualification across multiple time zones.',
   },
 ]
 
@@ -52,7 +52,7 @@ export default function AboutPage() {
     <PageShell>
       <PageHero
         eyebrow="Company"
-        title="About PropNex AI"
+        title="About Jinnicore"
         subtitle="India's Most Powerful AI Voice & Automation Platform — trusted by leading companies across Real Estate, Insurance & EdTech in India and Dubai."
         image="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=2000&q=80"
       />
@@ -71,7 +71,7 @@ export default function AboutPage() {
               Our presence
             </p>
             <h2 className="mt-3 text-2xl font-bold text-white md:text-3xl">
-              Propnex AI — Where Artificial Intelligence Meets Real Business Results
+              Jinnicore — Where Artificial Intelligence Meets Real Business Results
             </h2>
             <div className="mt-6 space-y-4">
               {presence.map((p) => (

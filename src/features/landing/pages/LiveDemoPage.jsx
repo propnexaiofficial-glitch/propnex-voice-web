@@ -109,7 +109,7 @@ export default function LiveDemoPage() {
           <h1 className="mt-4 text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
             Talk to a{' '}
             <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
-              PropNex AI Agent
+              Jinnicore Agent
             </span>
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-white/55 md:text-base">
@@ -306,7 +306,7 @@ export default function LiveDemoPage() {
                 Calling {form.name.split(' ')[0]}…
               </h2>
               <p className="relative mt-2 max-w-sm text-sm text-white/55">
-                A PropNex AI agent is dialing{' '}
+                A Jinnicore agent is dialing{' '}
                 <span className="font-semibold text-white/80">{form.phone}</span>
                 . Please keep your phone ready.
               </p>

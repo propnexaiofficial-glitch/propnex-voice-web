@@ -6,7 +6,7 @@ const steps = [
   {
     n: '01',
     title: 'Speak naturally',
-    desc: 'Users talk via web, app, or phone — PropNex AI picks up every word in realtime.',
+    desc: 'Users talk via web, app, or phone — Jinnicore picks up every word in realtime.',
     accent: '#22d3ee',
   },
   {

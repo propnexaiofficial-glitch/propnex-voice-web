@@ -55,5 +55,5 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
   // },
 ];
 
-export const APP_NAME = "PropNex AI";
+export const APP_NAME = "Jinnicore";
 export const APP_TAGLINE = "Voice AI Dashboard";

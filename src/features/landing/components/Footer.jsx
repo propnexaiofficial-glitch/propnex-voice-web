@@ -124,7 +124,7 @@ export default function Footer() {
 
         <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 sm:flex-row">
           <p className="text-xs text-slate-600">
-            © {new Date().getFullYear()} PropNex AI. All rights reserved.
+            © {new Date().getFullYear()} Jinnicore. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <a href="#" className="text-xs font-medium text-slate-500 transition hover:text-white">Instagram</a>

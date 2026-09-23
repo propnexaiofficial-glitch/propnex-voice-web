@@ -26,7 +26,7 @@ export const inboundCalls: CallRecord[] = [
     status: "completed",
     creditsUsed: 8.75,
     transcript: [
-      { speaker: "agent", text: "Good afternoon, PropNex AI assistant speaking.", timestamp: "0:00" },
+      { speaker: "agent", text: "Good afternoon, Jinnicore assistant speaking.", timestamp: "0:00" },
       { speaker: "customer", text: "Can you schedule a viewing for this weekend?", timestamp: "0:06" },
     ],
   },
@@ -66,7 +66,7 @@ export const inboundCalls: CallRecord[] = [
     status: "failed",
     creditsUsed: 5.25,
     transcript: [
-      { speaker: "agent", text: "Hello, this is PropNex AI.", timestamp: "0:00" },
+      { speaker: "agent", text: "Hello, this is Jinnicore.", timestamp: "0:00" },
     ],
   },
   {
@@ -118,7 +118,7 @@ export const inboundCalls: CallRecord[] = [
     status: "completed",
     creditsUsed: 26.25,
     transcript: [
-      { speaker: "agent", text: "Hello, PropNex AI assistant.", timestamp: "0:00" },
+      { speaker: "agent", text: "Hello, Jinnicore assistant.", timestamp: "0:00" },
       { speaker: "customer", text: "What are the latest HDB resale prices in Tampines?", timestamp: "0:08" },
     ],
   },
@@ -157,7 +157,7 @@ export const inboundCalls: CallRecord[] = [
     status: "completed",
     creditsUsed: 15.75,
     transcript: [
-      { speaker: "agent", text: "PropNex AI, how can I help?", timestamp: "0:00" },
+      { speaker: "agent", text: "Jinnicore, how can I help?", timestamp: "0:00" },
       { speaker: "customer", text: "Looking for rental properties under $3000.", timestamp: "0:06" },
     ],
   },
@@ -196,7 +196,7 @@ export const inboundCalls: CallRecord[] = [
     status: "completed",
     creditsUsed: 31.5,
     transcript: [
-      { speaker: "agent", text: "Good morning, PropNex AI assistant.", timestamp: "0:00" },
+      { speaker: "agent", text: "Good morning, Jinnicore assistant.", timestamp: "0:00" },
       { speaker: "customer", text: "I want to compare commercial spaces in CBD.", timestamp: "0:07" },
       { speaker: "agent", text: "I have several options. Let me walk you through them.", timestamp: "0:18" },
     ],

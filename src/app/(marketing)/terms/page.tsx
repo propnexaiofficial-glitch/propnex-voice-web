@@ -24,13 +24,13 @@ export default function TermsPage() {
 
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">1. Agreement to Terms</h2>
           <p className="mb-4">
-            By accessing or using PropNex AI&apos;s website, products, APIs, and services (collectively, the &quot;Services&quot;),
+            By accessing or using Jinnicore&apos;s website, products, APIs, and services (collectively, the &quot;Services&quot;),
             you agree to be bound by these Terms of Service. If you disagree with any part of the terms, you may not access the Services.
           </p>
 
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">2. Description of Service</h2>
           <p className="mb-4">
-            PropNex AI provides an artificial intelligence voice agent platform that enables businesses to automate inbound and outbound phone calls. This includes telephony infrastructure, voice cloning, and AI conversation management tools.
+            Jinnicore provides an artificial intelligence voice agent platform that enables businesses to automate inbound and outbound phone calls. This includes telephony infrastructure, voice cloning, and AI conversation management tools.
           </p>
 
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">3. User Obligations</h2>

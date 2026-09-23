@@ -1,6 +1,6 @@
 export const BRAND_LOGO = {
-  src: "/propnex-logo.png",
+  src: "/jinnicore-logo.svg",
   width: 1024,
   height: 341,
-  alt: "PropNex AI",
+  alt: "Jinnicore",
 } as const;

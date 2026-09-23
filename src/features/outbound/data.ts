@@ -13,7 +13,7 @@ export const outboundCalls: CallRecord[] = [
     status: "completed",
     creditsUsed: 12.25,
     transcript: [
-      { speaker: "agent", text: "Hello, this is PropNex AI calling about your property inquiry.", timestamp: "0:00" },
+      { speaker: "agent", text: "Hello, this is Jinnicore calling about your property inquiry.", timestamp: "0:00" },
       { speaker: "customer", text: "Yes, I'm still interested in the listing.", timestamp: "0:08" },
     ],
   },
