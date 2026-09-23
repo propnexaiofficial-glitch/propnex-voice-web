@@ -23,6 +23,18 @@ export async function POST(req: Request) {
       data: { formType, name, email, phone, company, industry, clients, volume },
     });
 
+    try {
+      await prisma.systemEvent.create({
+        data: {
+          type: "FORM_INFO",
+          title: formType === "DEMO_CALL" ? "New Demo Form" : "New Partner Form",
+          message: `${name} (${email}) submitted the ${formType.replace("_", " ").toLowerCase()}.`,
+        }
+      });
+    } catch (e) {
+      console.error("Failed to log system event", e);
+    }
+
     // 2. Send emails via Google Apps Script webhook
     // The apps_script_emails.js doPost() uses exactly these field names
     const webhookPayload = {

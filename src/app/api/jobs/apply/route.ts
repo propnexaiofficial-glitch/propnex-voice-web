@@ -126,6 +126,18 @@ export async function POST(req: Request) {
       },
     });
 
+    try {
+      await prisma.systemEvent.create({
+        data: {
+          type: "FORM_INFO",
+          title: "New Job Application",
+          message: `${firstName} ${lastName} applied for job ${jobId}.`,
+        }
+      });
+    } catch (e) {
+      console.error("Failed to log system event", e);
+    }
+
     return NextResponse.json({ success: true, data: application });
   } catch (error: any) {
     console.error("Failed to submit job application:", error);
