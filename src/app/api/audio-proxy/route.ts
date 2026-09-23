@@ -40,7 +40,11 @@ export async function GET(req: NextRequest) {
     const arrayBuffer = await upstream.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const totalLength = buffer.length;
-    const contentType = upstream.headers.get("content-type") ?? "audio/mpeg";
+    let contentType = upstream.headers.get("content-type") ?? "audio/mpeg";
+    // Safari strictly rejects audio playback if Content-Type is application/octet-stream
+    if (contentType.includes("application/octet-stream") || contentType.includes("text/html") || contentType.includes("application/json")) {
+      contentType = "audio/mpeg";
+    }
 
     const rangeHeader = req.headers.get("range");
 
