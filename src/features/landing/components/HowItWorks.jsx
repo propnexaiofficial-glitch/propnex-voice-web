@@ -111,7 +111,7 @@ function PipelineVisual() {
       <div className="absolute left-1/2 top-[62%] flex -translate-x-1/2 flex-col items-center">
         <div className="pipe-orb flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400/30 via-violet-500/40 to-fuchsia-500/30 shadow-[0_0_40px_rgba(168,85,247,0.35)] backdrop-blur-md md:h-20 md:w-20">
           <span className="text-[11px] font-bold tracking-tight text-white md:text-xs">
-            PropNex
+            Jinnicore
           </span>
         </div>
         <p className="mt-2 text-[10px] font-medium uppercase tracking-[0.2em] text-white/35">

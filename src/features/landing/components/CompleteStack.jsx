@@ -85,7 +85,7 @@ export default function CompleteStack() {
             href="#pricing"
             className="stack-copy-item mt-10 inline-flex items-center rounded-md border border-white/20 bg-transparent px-4 py-2.5 text-[13px] font-medium text-white transition hover:border-white/40 hover:bg-white/[0.03]"
           >
-            Explore the PropNex Cloud platform
+            Explore the Jinnicore Cloud platform
           </a>
         </div>
 

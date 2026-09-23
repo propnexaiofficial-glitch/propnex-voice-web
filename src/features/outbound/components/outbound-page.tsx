@@ -341,7 +341,7 @@ export function OutboundPageContent() {
     const checkForSubcompanyCompletions = async () => {
       try {
         const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.propnexai.com";
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.jinnicore.com";
         const companiesRes = await fetch(`${apiBase === '/api' ? '' : apiBase}/api/companies`, {
           headers: { Authorization: `Bearer ${token}` }
         });

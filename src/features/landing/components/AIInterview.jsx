@@ -4,7 +4,7 @@ import { Link } from '@/features/landing/lib/router'
 const steps = [
   {
     title: 'Upload job description',
-    desc: 'Drop in the JD — PropNex extracts role requirements, skills, and must-haves.',
+    desc: 'Drop in the JD — Jinnicore extracts role requirements, skills, and must-haves.',
   },
   {
     title: 'Script + rubric generated',
@@ -62,7 +62,7 @@ export default function AIInterview() {
               <span className="gradient-text">voice AI</span>
             </h2>
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/55 md:text-base">
-              Upload a job description → PropNex generates script + rubric → AI
+              Upload a job description → Jinnicore generates script + rubric → AI
               agent conducts the screen → recruiter gets transcript, recording,
               and fit score.
             </p>

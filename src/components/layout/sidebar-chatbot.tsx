@@ -73,8 +73,8 @@ export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" })
         id: "1",
         type: "bot",
         text: name
-          ? `Hello ${name}! 👋 I'm Task Desk, your smart assistant for the Propnex platform.\n\nAsk me anything about your campaigns, agents, analytics, credits, or phone numbers.`
-          : `Hey there! 👋 I'm Task Desk, your smart assistant for the Propnex platform.\n\nAsk me anything about campaigns, agents, analytics, or your dashboard.`
+          ? `Hello ${name}! 👋 I'm Task Desk, your smart assistant for the Jinnicore platform.\n\nAsk me anything about your campaigns, agents, analytics, credits, or phone numbers.`
+          : `Hey there! 👋 I'm Task Desk, your smart assistant for the Jinnicore platform.\n\nAsk me anything about campaigns, agents, analytics, or your dashboard.`
       }]);
     }
   }, [user]);

@@ -138,7 +138,7 @@ export default function LiveDemoPage() {
               <div className="flex flex-1 flex-col p-5 md:p-6">
                 <h2 className="text-xl font-semibold text-white">Call us now</h2>
                 <p className="mt-2 text-sm leading-relaxed text-white/55">
-                  Directly talk with PropNex team and hear a live AI demo.
+                  Directly talk with Jinnicore team and hear a live AI demo.
                 </p>
                 <div className="mt-auto pt-10">
                   <a

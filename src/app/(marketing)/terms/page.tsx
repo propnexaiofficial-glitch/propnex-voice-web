@@ -43,7 +43,7 @@ export default function TermsPage() {
 
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">4. Intellectual Property Rights</h2>
           <p className="mb-4">
-            The Services and their original content, features, and functionality are and will remain the exclusive property of PropNex Technology and its licensors. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of PropNex Technology.
+            The Services and their original content, features, and functionality are and will remain the exclusive property of Jinnicore Technology and its licensors. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of Jinnicore Technology.
           </p>
 
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">5. Termination</h2>
@@ -53,7 +53,7 @@ export default function TermsPage() {
 
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">6. Limitation of Liability</h2>
           <p className="mb-4">
-            In no event shall PropNex Technology, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Services.
+            In no event shall Jinnicore Technology, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Services.
           </p>
           
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">7. Contact Us</h2>

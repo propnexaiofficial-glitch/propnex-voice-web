@@ -12,8 +12,8 @@ const docs = [
     border: 'border-cyan-400/30',
     glow: 'shadow-[0_0_32px_rgba(34,211,238,0.12)]',
     body: [
-      'Create a PropNex workspace and invite your sales / ops team.',
-      'Provision numbers under PropNex Telephony (buy new DIDs or port existing lines).',
+      'Create a Jinnicore workspace and invite your sales / ops team.',
+      'Provision numbers under Jinnicore Telephony (buy new DIDs or port existing lines).',
       'Import a Jinnicore agent template (Real Estate, Insurance, EdTech, FinTech, or HealthTech).',
       'Publish a campaign, connect your CRM webhooks, and place a test call within minutes.',
     ],
@@ -42,9 +42,9 @@ const docs = [
     border: 'border-violet-400/25',
     glow: 'shadow-[0_0_32px_rgba(139,92,246,0.12)]',
     body: [
-      'Install: npm i @propnexai/agent  ·  pip install propnexai',
-      'Import a packaged agent: from propnexai import Agent → Agent.import_("propnex-voice")',
-      'TypeScript: import { PropnexAI } from "@propnexai/agent" then PropnexAI.import("propnex-voice")',
+      'Install: npm i @jinnicore/agent  ·  pip install jinnicore',
+      'Import a packaged agent: from jinnicore import Agent → Agent.import_("jinnicore-voice")',
+      'TypeScript: import { Jinnicore } from "@jinnicore/agent" then Jinnicore.import("jinnicore-voice")',
       'SDKs wrap session start/stop, streaming transcripts, and webhook verification helpers.',
     ],
   },
@@ -65,17 +65,17 @@ const docs = [
   },
   {
     id: 'telephony',
-    title: 'PropNex Telephony',
+    title: 'Jinnicore Telephony',
     tag: 'Calls',
     img: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=900&q=80',
     accent: 'from-teal-500/45 via-black/55 to-black/90',
     border: 'border-teal-400/25',
     glow: 'shadow-[0_0_32px_rgba(45,212,191,0.12)]',
     body: [
-      'PropNex Telephony is the native calling layer — inbound DID routing, outbound dialers, and SIP trunks in one place.',
-      'Provision India / UAE numbers inside the PropNex dashboard (or port existing lines into PropNex Telephony).',
-      'Missed-call callbacks, concurrent dialing, and failover to human queues are handled on PropNex Telephony.',
-      'Connect PropNex Telephony to your CRM via webhooks for dispositions, recordings, and call events.',
+      'Jinnicore Telephony is the native calling layer — inbound DID routing, outbound dialers, and SIP trunks in one place.',
+      'Provision India / UAE numbers inside the Jinnicore dashboard (or port existing lines into Jinnicore Telephony).',
+      'Missed-call callbacks, concurrent dialing, and failover to human queues are handled on Jinnicore Telephony.',
+      'Connect Jinnicore Telephony to your CRM via webhooks for dispositions, recordings, and call events.',
     ],
   },
   {
@@ -178,7 +178,7 @@ export default function DocsPage() {
       <PageHero
         eyebrow="Resources"
         title="Docs Hub"
-        subtitle="APIs, PropNex Telephony, SDKs, and playbooks to ship voice agents fast."
+        subtitle="APIs, Jinnicore Telephony, SDKs, and playbooks to ship voice agents fast."
         image="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=2000&q=80"
       />
 

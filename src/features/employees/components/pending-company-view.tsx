@@ -62,7 +62,7 @@ export function PendingCompanyView({ company }: PendingCompanyViewProps) {
       const user = storedUser ? JSON.parse(storedUser) : {};
 
       const adminBase =
-        process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
+        process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.jinnicore.com";
 
       // Send to the sub-company reminder endpoint which notifies the admin
       // via the Sub-Company Verifications bell (NOT the number-requests area).

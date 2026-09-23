@@ -107,7 +107,7 @@ function SidebarLogout({ className }: { className?: string }) {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("access_token");
     localStorage.removeItem("user");
-    window.location.replace("https://propnexai.com/");
+    window.location.replace("https://jinnicore.com/");
   };
 
   return (

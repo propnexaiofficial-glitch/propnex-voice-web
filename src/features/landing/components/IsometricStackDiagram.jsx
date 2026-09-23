@@ -9,7 +9,7 @@ import gsap from 'gsap'
 const NODES = [
   { id: 'media', label: 'Media server', pos: [-1.2, 0.15, -2.8], tone: '#67e8f9', logo: 'server' },
   { id: 'agent', label: 'Agent server', pos: [1.4, 0.15, -2.6], tone: '#67e8f9', logo: 'agent' },
-  { id: 'cloud', label: 'PropNex Cloud', pos: [0.1, 0.2, -1.4], tone: '#22d3ee', logo: 'cloud', wide: true },
+  { id: 'cloud', label: 'Jinnicore Cloud', pos: [0.1, 0.2, -1.4], tone: '#22d3ee', logo: 'cloud', wide: true },
   { id: 'webrtc', label: 'WebRTC', pos: [-2.2, 0.12, -0.6], tone: '#a5f3fc', logo: 'webrtc' },
   { id: 'sdk', label: 'SDKs', pos: [-3.4, 0.12, 0.6], tone: '#a5f3fc', logo: 'swift' },
   { id: 'io', label: 'I/O', pos: [-4.2, 0.12, 1.8], tone: '#67e8f9', logo: 'mic' },

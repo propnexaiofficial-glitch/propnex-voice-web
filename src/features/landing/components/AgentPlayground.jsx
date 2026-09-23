@@ -9,19 +9,19 @@ const codeTabs = [
   {
     id: 'py',
     label: 'agent.py',
-    code: `from propnexai import Agent
+    code: `from jinnicore import Agent
 
-agent = Agent.import_("propnex-voice")
+agent = Agent.import_("jinnicore-voice")
 agent.connect(realtime=True)
 agent.speak("Namaste, how can I help?")`,
   },
   {
     id: 'tsx',
     label: 'agent.tsx',
-    code: `import { PropnexAI } from "@propnexai/agent"
+    code: `import { Jinnicore } from "@jinnicore/agent"
 
 export function VoiceAgent() {
-  const agent = PropnexAI.import("propnex-voice")
+  const agent = Jinnicore.import("jinnicore-voice")
   return <agent.Preview />
 }`,
   },
@@ -50,7 +50,7 @@ const cards = [
     ),
   },
   {
-    title: 'Deploy to PropNex Cloud',
+    title: 'Deploy to Jinnicore Cloud',
     desc: 'Run your agents on global realtime infrastructure.',
     icon: (
       <>
@@ -68,10 +68,10 @@ function highlightLine(line) {
     .replace(/>/g, '&gt;')
     .replace(/(".*?")/g, "<span class='text-emerald-300'>$1</span>")
     .replace(
-      /\b(from|import|export|function|return|const|Agent|PropnexAI|agent|connect|speak|Preview|realtime)\b/g,
+      /\b(from|import|export|function|return|const|Agent|Jinnicore|agent|connect|speak|Preview|realtime)\b/g,
       "<span class='text-violet-300'>$1</span>",
     )
-    .replace(/(@propnexai\/agent|propnexai)/g, "<span class='text-cyan-300'>$1</span>")
+    .replace(/(@jinnicore\/agent|jinnicore)/g, "<span class='text-cyan-300'>$1</span>")
 }
 
 function TypewriterCode({ code, active }) {

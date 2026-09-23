@@ -11,7 +11,7 @@ export const inboundCalls: CallRecord[] = [
     status: "completed",
     creditsUsed: 17.5,
     transcript: [
-      { speaker: "agent", text: "Hello, thank you for calling PropNex. How can I help you today?", timestamp: "0:00" },
+      { speaker: "agent", text: "Hello, thank you for calling Jinnicore. How can I help you today?", timestamp: "0:00" },
       { speaker: "customer", text: "Hi, I'm interested in a 3-bedroom condo near Orchard.", timestamp: "0:08" },
       { speaker: "agent", text: "Absolutely. I'd be happy to share available listings in that area.", timestamp: "0:15" },
     ],
@@ -51,7 +51,7 @@ export const inboundCalls: CallRecord[] = [
     status: "completed",
     creditsUsed: 22.75,
     transcript: [
-      { speaker: "agent", text: "Welcome to PropNex. How may I assist you?", timestamp: "0:00" },
+      { speaker: "agent", text: "Welcome to Jinnicore. How may I assist you?", timestamp: "0:00" },
       { speaker: "customer", text: "I need information about financing options.", timestamp: "0:10" },
       { speaker: "agent", text: "I can connect you with our mortgage specialist team.", timestamp: "0:22" },
     ],
@@ -93,7 +93,7 @@ export const inboundCalls: CallRecord[] = [
     status: "completed",
     creditsUsed: 19.25,
     transcript: [
-      { speaker: "agent", text: "Thank you for calling PropNex.", timestamp: "0:00" },
+      { speaker: "agent", text: "Thank you for calling Jinnicore.", timestamp: "0:00" },
       { speaker: "customer", text: "I'd like to list my property for sale.", timestamp: "0:05" },
     ],
   },
@@ -211,7 +211,7 @@ export const inboundCalls: CallRecord[] = [
     status: "completed",
     creditsUsed: 7,
     transcript: [
-      { speaker: "agent", text: "Welcome to PropNex. Are you looking to buy or rent?", timestamp: "0:00" },
+      { speaker: "agent", text: "Welcome to Jinnicore. Are you looking to buy or rent?", timestamp: "0:00" },
       { speaker: "customer", text: "I'm looking to buy a condo in the East.", timestamp: "0:08" },
       { speaker: "agent", text: "Great, we have several new launches in that area.", timestamp: "0:14" },
     ],
