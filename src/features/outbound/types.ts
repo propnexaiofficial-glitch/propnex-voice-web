@@ -18,6 +18,7 @@ export type Campaign = {
   selectedDid?: string;
   channels?: number;
   isReactivation?: boolean;
+  pausedBy?: string;
   qStage?: "Q1" | "Q2" | "Q3";
   qStatus?: "Pending" | "Running" | "Completed";
   q1ScheduledAt?: string;

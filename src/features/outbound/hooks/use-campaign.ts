@@ -206,6 +206,7 @@ export function useCampaign(initialState: Campaign = outboundCampaignInitial, ov
               leads: data.leads || [],
               totalContacts: data.totalContacts || 0,
                   isReactivation: data.isReactivation !== undefined ? !!data.isReactivation : prev.isReactivation,
+          pausedBy: data.pausedBy || prev.pausedBy,
                   qStage: data.qStage || prev.qStage,
                   qStatus: data.qStatus || prev.qStatus,
                   q1ScheduledAt: data.q1ScheduledAt || prev.q1ScheduledAt,

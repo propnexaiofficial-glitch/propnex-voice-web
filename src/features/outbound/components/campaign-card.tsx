@@ -725,7 +725,13 @@ export function CampaignCard({
                             ) : (campaign.status === "running" && idx === 0) ? (
                               <span className="text-emerald-500">Running {processedCount} / {campaign.totalContacts}</span>
                             ) : (campaign.status === "paused" && idx === 0) ? (
-                              <span className="text-amber-500">Paused {processedCount} / {campaign.totalContacts}</span>
+                              <span className="text-amber-500">
+                                {campaign.pausedBy === 'campaign' 
+                                  ? `Paused by Campaign (${processedCount} / ${campaign.totalContacts})` 
+                                  : campaign.pausedBy === 'server'
+                                    ? `Paused by Server (${processedCount} / ${campaign.totalContacts})`
+                                    : `Paused ${processedCount} / ${campaign.totalContacts}`}
+                              </span>
                             ) : (
                               <span className="text-emerald-500">Completed</span>
                             )}
