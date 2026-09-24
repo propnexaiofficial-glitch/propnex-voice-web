@@ -7,6 +7,11 @@ export async function GET(req: NextRequest) {
     // Remove port if exists (e.g., localhost:3000 -> localhost)
     const domain = host.split(":")[0];
     
+    // High-end validation: ALWAYS protect the main domain
+    if (domain === "propnexai.com" || domain === "www.propnexai.com") {
+      return NextResponse.json({});
+    }
+    
     // We try exact match first
     let config = await prisma.whiteLabelDomain.findUnique({
       where: { domain },
