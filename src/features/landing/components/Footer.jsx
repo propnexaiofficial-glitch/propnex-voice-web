@@ -94,7 +94,7 @@ import { useBrand } from "@/components/providers/brand-provider";
 
 export default function Footer() {
   const brand = useBrand();
-  const isCustomDomain = !!brand.logoUrl || Object.keys(brand.pagesConfig).length > 0;
+  const isCustomDomain = brand.companyName !== "PropNex AI";
 
   const filteredCols = cols.map(col => {
     return {

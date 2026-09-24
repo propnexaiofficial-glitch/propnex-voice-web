@@ -27,7 +27,7 @@ export default function Navbar() {
   const { pathname } = useLocation()
 
   // Filter links based on brand.pagesConfig. If it's an empty object, assume default (PropNex) which shows all.
-  const isCustomDomain = !!brand.logoUrl || Object.keys(brand.pagesConfig).length > 0;
+  const isCustomDomain = brand.companyName !== "PropNex AI";
   
   const filteredPrimaryLinks = primaryLinks.filter(l => {
     if (!isCustomDomain) return true; // Default
