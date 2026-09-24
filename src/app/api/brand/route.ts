@@ -12,6 +12,14 @@ export async function GET(req: NextRequest) {
       where: { domain },
     });
 
+    // If not found, try adding or removing 'www.'
+    if (!config) {
+      const alternateDomain = domain.startsWith("www.") ? domain.replace("www.", "") : `www.${domain}`;
+      config = await prisma.whiteLabelDomain.findUnique({
+        where: { domain: alternateDomain },
+      });
+    }
+
     // If local dev, just fallback to empty/default for local testing if not found
     if (!config && (domain === "localhost" || domain === "127.0.0.1")) {
       return NextResponse.json({});
