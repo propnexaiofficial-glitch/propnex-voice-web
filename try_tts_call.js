@@ -46,7 +46,7 @@ conn.on('ready', () => {
             autocallType: "4",
             destination: "8851860838",
             legACallerID: "7946350797",
-            speechContent: "Hello, this is a test call from Jinnicore. Your system is working perfectly.",
+            speechContent: "Hello, this is a test call from PropNex AI. Your system is working perfectly.",
             speechLanguage: "ENGLISH",
             legADialAttempts: "1",
             eventID: "pnx" + ts + "t"

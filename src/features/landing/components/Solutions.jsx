@@ -47,7 +47,7 @@ export default function Solutions() {
               One brain. Infinite sales conversations.
             </h3>
             <p className="mb-6 text-slate-400 leading-relaxed">
-              Jinnicore learns your product, pricing, and persona — then runs
+              PropNex AI learns your product, pricing, and persona — then runs
               thousands of concurrent dialogues with the consistency of your best
               closer. Integrate once, scale everywhere.
             </p>

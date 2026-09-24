@@ -28,7 +28,7 @@ export default function FinalCTA() {
             <p className="mx-auto mt-4 max-w-lg text-slate-300">
               Join the growing list of businesses in India and Dubai closing more
               deals, qualifying more leads, and building stronger brands — with
-              the power of Jinnicore.
+              the power of PropNex AI.
             </p>
             <Link
               to="/live-demo"

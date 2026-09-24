@@ -30,7 +30,7 @@ export default function Logo({ size = "nav", className = "", asLink = true }) {
     <Link
       to="/"
       className="inline-flex shrink-0 items-center transition-opacity hover:opacity-90"
-      aria-label="Jinnicore home"
+      aria-label="PropNex AI home"
     >
       {content}
     </Link>

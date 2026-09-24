@@ -109,7 +109,7 @@ export default function LiveDemoPage() {
           <h1 className="mt-4 text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
             Talk to a{' '}
             <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
-              Jinnicore Agent
+              PropNex AI Agent
             </span>
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-white/55 md:text-base">
@@ -138,7 +138,7 @@ export default function LiveDemoPage() {
               <div className="flex flex-1 flex-col p-5 md:p-6">
                 <h2 className="text-xl font-semibold text-white">Call us now</h2>
                 <p className="mt-2 text-sm leading-relaxed text-white/55">
-                  Directly talk with Jinnicore team and hear a live AI demo.
+                  Directly talk with PropNex AI team and hear a live AI demo.
                 </p>
                 <div className="mt-auto pt-10">
                   <a
@@ -306,7 +306,7 @@ export default function LiveDemoPage() {
                 Calling {form.name.split(' ')[0]}…
               </h2>
               <p className="relative mt-2 max-w-sm text-sm text-white/55">
-                A Jinnicore agent is dialing{' '}
+                A PropNex AI agent is dialing{' '}
                 <span className="font-semibold text-white/80">{form.phone}</span>
                 . Please keep your phone ready.
               </p>

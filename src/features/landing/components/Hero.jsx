@@ -114,7 +114,7 @@ export default function Hero() {
           </h1>
 
           <p className="hero-sub mx-auto mt-4 max-w-md text-[15px] leading-relaxed text-white/45 md:mx-0 md:text-base">
-            Jinnicore gives your team always-on AI voice agents that qualify
+            PropNex AI gives your team always-on AI voice agents that qualify
             leads, book appointments, and follow up on every call - so your
             people can focus on closing.
           </p>

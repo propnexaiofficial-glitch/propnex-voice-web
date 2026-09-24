@@ -30,7 +30,7 @@ const sequenceCards = [
       'Your logo & brand colors',
       'Agent names you control',
       'Client-facing dashboards',
-      'Zero Jinnicore branding for end clients',
+      'Zero PropNex AI branding for end clients',
     ],
   },
   {
@@ -387,7 +387,7 @@ export default function PartnerPage() {
               </span>
             </h1>
             <p className="partner-hero-anim mt-4 max-w-xl text-sm leading-relaxed text-white/60 md:text-base">
-              Resell Jinnicore under your own brand and earn recurring revenue —
+              Resell PropNex AI under your own brand and earn recurring revenue —
               no need to build your own voice AI infrastructure.
             </p>
           </div>

@@ -7,7 +7,7 @@ const testimonials = [
     service: 'AI Voice Agent — Insurance Renewal Calling',
     rating: '5.0 / 5.0',
     quote:
-      'Jinnicore completely transformed how we handle insurance renewal follow-ups. Their AI Voice Agent called our entire customer base in Gurugram within hours — something our human team would have taken weeks to do. The conversations were natural, professional, and incredibly effective. Our renewal conversion rate shot up dramatically. Tanishq and his team deliver real, measurable results. We could not be more impressed.',
+      'PropNex AI completely transformed how we handle insurance renewal follow-ups. Their AI Voice Agent called our entire customer base in Gurugram within hours — something our human team would have taken weeks to do. The conversations were natural, professional, and incredibly effective. Our renewal conversion rate shot up dramatically. Tanishq and his team deliver real, measurable results. We could not be more impressed.',
     result:
       'Grab Your Car achieved significantly higher insurance renewal rates in Gurugram — 50,000+ outbound renewal calls managed automatically, zero additional staff, near-instant lead response time.',
     img: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=800&q=80',
@@ -19,7 +19,7 @@ const testimonials = [
     service: 'CRM Software, AI Voice Agent, ProprReel AI, WhatsApp Automation',
     rating: '5.0 / 5.0',
     quote:
-      'Working with Jinnicore has been a game-changer for Pinpro. Their comprehensive platform — from the AI Voice Agent to CRM and WhatsApp automation — gave us a complete sales ecosystem we never had before. Our team is now closing deals faster, leads are better qualified, and our brand presence has grown significantly. ProprReel AI multiplied our social media reach with inquiries we never expected. Tanishq Gupta truly understands what businesses need to grow. Highly recommended!',
+      'Working with PropNex AI has been a game-changer for Pinpro. Their comprehensive platform — from the AI Voice Agent to CRM and WhatsApp automation — gave us a complete sales ecosystem we never had before. Our team is now closing deals faster, leads are better qualified, and our brand presence has grown significantly. ProprReel AI multiplied our social media reach with inquiries we never expected. Tanishq Gupta truly understands what businesses need to grow. Highly recommended!',
     result: null,
     img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80',
     accent: 'from-violet-500/50',
@@ -30,7 +30,7 @@ const testimonials = [
     service: 'AI Voice Agent, Memory Agent, CRM Software, WhatsApp AI Automation',
     rating: '5.0 / 5.0',
     quote:
-      'We were struggling to manage the volume of international leads coming in for our Dubai properties. Jinnicore\'s Voice Agent changed everything — it qualifies leads in real time, understands buyer intent, and books appointments with serious investors automatically. The Memory Agent feature is exceptional — it remembers every previous conversation so every follow-up feels completely personalised. Our sales team now only speaks with pre-qualified, genuinely interested buyers. Deal closure rates have improved significantly since we deployed Jinnicore across our entire lead pipeline. This is the future of real estate sales.',
+      'We were struggling to manage the volume of international leads coming in for our Dubai properties. PropNex AI\'s Voice Agent changed everything — it qualifies leads in real time, understands buyer intent, and books appointments with serious investors automatically. The Memory Agent feature is exceptional — it remembers every previous conversation so every follow-up feels completely personalised. Our sales team now only speaks with pre-qualified, genuinely interested buyers. Deal closure rates have improved significantly since we deployed PropNex AI across our entire lead pipeline. This is the future of real estate sales.',
     result:
       'International property buyers and investors qualified automatically across time zones — with the Memory Agent ensuring every conversation is personalised and every follow-up lands at the right moment.',
     img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80',

@@ -13,7 +13,7 @@ export function Logo({ compact = false, className }: LogoProps) {
   return (
     <Link
       href="/dashboard"
-      aria-label="Jinnicore home"
+      aria-label="PropNex AI home"
       className={cn(
         "inline-flex max-w-full shrink-0 items-center transition-opacity hover:opacity-90",
         className

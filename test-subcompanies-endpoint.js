@@ -7,7 +7,7 @@ async function test() {
     const prisma = new PrismaClient();
     const users = await prisma.user.findMany({ include: { memberships: true } });
     
-    // Find the user for 'Jinnicore' or just the first user
+    // Find the user for 'PropNex AI' or just the first user
     console.log(`Found ${users.length} users in DB.`);
     
     // We will simulate the auth logic inside the backend by just running the Prisma query the backend runs

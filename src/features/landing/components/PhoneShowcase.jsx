@@ -24,7 +24,7 @@ export default function PhoneShowcase() {
             Give your agent a face users love
           </h2>
           <p className="mt-4 max-w-md text-slate-400 leading-relaxed">
-            The Jinnicore phone experience — 3D tilt, fluid orb, and swipeable
+            The PropNex AI phone experience — 3D tilt, fluid orb, and swipeable
             personalities. Pick a voice vibe and start a chat in one tap.
           </p>
           <ul className="mt-8 space-y-3 text-sm text-white/70">

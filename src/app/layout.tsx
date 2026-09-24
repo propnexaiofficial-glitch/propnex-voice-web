@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Jinnicore — Voice AI Platform",
-    template: "%s | Jinnicore",
+    default: "PropNex AI — Voice AI Platform",
+    template: "%s | PropNex AI",
   },
   description:
     "Enterprise voice AI for inbound and outbound calls. Launch agents, run campaigns, and scale with PropNex.",

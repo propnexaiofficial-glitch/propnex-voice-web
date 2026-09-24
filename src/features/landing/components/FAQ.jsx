@@ -4,7 +4,7 @@ import { useStaggerReveal, useReveal } from '../hooks/useReveal'
 
 const faqs = [
   {
-    q: 'How human does Jinnicore sound?',
+    q: 'How human does PropNex AI sound?',
     a: 'Our neural voice models are trained on top-performing sales conversations. Most prospects cannot tell they are speaking with AI — and you can clone your best rep’s tone for brand consistency.',
   },
   {
@@ -40,7 +40,7 @@ export default function FAQ() {
             Common Questions
           </h2>
           <p className="mt-4 text-slate-400">
-            Everything you need to know before launching Jinnicore across your
+            Everything you need to know before launching PropNex AI across your
             revenue org.
           </p>
           <div className="relative mt-10 min-h-[220px] overflow-hidden rounded-2xl border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
