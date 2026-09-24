@@ -61,7 +61,6 @@ export default function TermsPage() {
           
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">7. Contact Us</h2>
           <p className="mb-4">
-          <p className="mb-4">
             If you have any questions about these Terms, please contact us at <a href={`mailto:${supportEmail || 'support@propnexai.com'}`} className="text-emerald-400 hover:underline">{supportEmail || 'support@propnexai.com'}</a>.
           </p>
         </div>
