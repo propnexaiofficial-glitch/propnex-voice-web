@@ -3,7 +3,9 @@
 import { CheckCircle2, Headphones, Mic2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState, useMemo } from "react";
 
+import { cn } from "@/lib/utils";
 import { VoiceCard } from "@/features/agent-library/components/voice-card";
 import { useAgentLibrary } from "@/features/agent-library/hooks/use-agent-library";
 
@@ -29,8 +31,26 @@ function LibraryStat({ label, value, icon: Icon }: LibraryStatProps) {
 
 export function AgentLibraryPageContent() {
   const { agents, assignedCount, totalCount, requestAssign } = useAgentLibrary();
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
   const availableCount = totalCount - assignedCount;
+
+  // Derive unique categories from agents
+  const categories = useMemo(() => {
+    const cats = new Set<string>();
+    agents.forEach(a => {
+      if (a.category) cats.add(a.category);
+    });
+    // Let's also include the ones the user explicitly asked for if they want them, but dynamic is better.
+    // If the backend has slightly different names, dynamic captures them.
+    return ["All", ...Array.from(cats)].sort();
+  }, [agents]);
+
+  // Filter agents based on selected category
+  const filteredAgents = useMemo(() => {
+    if (selectedCategory === "All") return agents;
+    return agents.filter(a => a.category === selectedCategory);
+  }, [agents, selectedCategory]);
 
   return (
     <div className="space-y-5">
@@ -58,14 +78,32 @@ export function AgentLibraryPageContent() {
         <LibraryStat label="Available" value={availableCount} icon={Mic2} />
       </div>
 
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCategory(cat)}
+            className={cn(
+              "whitespace-nowrap rounded-full border px-4 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/50",
+              selectedCategory === cat
+                ? "border-emerald-500 bg-emerald-500/10 text-emerald-400"
+                : "border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+            )}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
       <p className="text-sm text-muted-foreground">
         Showing{" "}
-        <span className="font-medium text-foreground">{agents.length}</span>{" "}
-        voice{agents.length !== 1 ? "s" : ""}
+        <span className="font-medium text-foreground">{filteredAgents.length}</span>{" "}
+        voice{filteredAgents.length !== 1 ? "s" : ""}
+        {selectedCategory !== "All" && ` in ${selectedCategory}`}
       </p>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {agents.map((agent, index) => (
+        {filteredAgents.map((agent, index) => (
           <VoiceCard
             key={agent.id}
             agent={agent}
