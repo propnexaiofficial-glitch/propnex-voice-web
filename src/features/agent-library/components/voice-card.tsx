@@ -71,9 +71,16 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
               <p className="text-sm text-zinc-400">{agent.category}</p>
             </div>
           </div>
-          <Badge className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-none px-3 py-1 font-medium rounded-full">
-            Active
-          </Badge>
+          <div className="flex items-center gap-2">
+            {agent.industryCategory && (
+              <Badge className="bg-zinc-800/50 text-zinc-300 hover:bg-zinc-800/70 border-zinc-700/50 px-3 py-1 font-medium rounded-full">
+                {agent.industryCategory}
+              </Badge>
+            )}
+            <Badge className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-none px-3 py-1 font-medium rounded-full">
+              Active
+            </Badge>
+          </div>
         </div>
 
         <p className="mt-4 text-[15px] leading-relaxed text-zinc-300">

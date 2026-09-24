@@ -39,7 +39,7 @@ export function AgentLibraryPageContent() {
   const categories = useMemo(() => {
     const cats = new Set<string>();
     agents.forEach(a => {
-      if (a.category) cats.add(a.category);
+      if (a.industryCategory) cats.add(a.industryCategory);
     });
     // Let's also include the ones the user explicitly asked for if they want them, but dynamic is better.
     // If the backend has slightly different names, dynamic captures them.
@@ -49,7 +49,7 @@ export function AgentLibraryPageContent() {
   // Filter agents based on selected category
   const filteredAgents = useMemo(() => {
     if (selectedCategory === "All") return agents;
-    return agents.filter(a => a.category === selectedCategory);
+    return agents.filter(a => a.industryCategory === selectedCategory);
   }, [agents, selectedCategory]);
 
   return (

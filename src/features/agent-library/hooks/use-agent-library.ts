@@ -9,6 +9,7 @@ export type AgentEntry = {
   name: string;
   profile: string;
   category: string;
+  industryCategory: string;
   tone: string;
   language: string;
   voice: string;
