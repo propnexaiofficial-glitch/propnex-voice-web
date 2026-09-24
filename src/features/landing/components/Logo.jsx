@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { useBrand } from "@/components/providers/brand-provider";
 import { BRAND_LOGO } from "@/constants/brand";
 import { Link } from "@/features/landing/lib/router";
 
@@ -10,17 +11,16 @@ const sizeClasses = {
 };
 
 export default function Logo({ size = "nav", className = "", asLink = true }) {
+  const brand = useBrand();
   const imageClass = className || sizeClasses[size] || sizeClasses.nav;
 
   const content = (
-    <Image
-      src={BRAND_LOGO.src}
-      alt={BRAND_LOGO.alt}
+    <img
+      src={brand.logoUrl || BRAND_LOGO.src}
+      alt={brand.companyName || BRAND_LOGO.alt}
       width={BRAND_LOGO.width}
       height={BRAND_LOGO.height}
-      priority={size === "nav"}
       className={`h-auto w-auto max-w-full object-contain object-left ${imageClass}`}
-      sizes="(max-width: 768px) 180px, 240px"
     />
   );
 

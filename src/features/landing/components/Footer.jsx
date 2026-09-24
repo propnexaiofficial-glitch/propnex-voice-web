@@ -90,7 +90,28 @@ function FooterLink({ to, children, className }) {
   );
 }
 
+import { useBrand } from "@/components/providers/brand-provider";
+
 export default function Footer() {
+  const brand = useBrand();
+  const isCustomDomain = !!brand.logoUrl || Object.keys(brand.pagesConfig).length > 0;
+
+  const filteredCols = cols.map(col => {
+    return {
+      ...col,
+      links: col.links.filter(l => {
+        if (!isCustomDomain) return true;
+        const key = l.label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        // Default rules: if they have a custom domain but didn't specify some links, hide them by default unless true
+        if (brand.pagesConfig[key] === true) return true;
+        if (col.title === 'Company' && (brand.pagesConfig['company'] === true || brand.pagesConfig['about'] === true)) return true;
+        if (col.title === 'Legal') return true; // Keep legal links
+        // Default to hide for custom domain if not matched, or maybe show?
+        return brand.pagesConfig[key] === true;
+      })
+    };
+  }).filter(col => col.links.length > 0);
+
   return (
     <footer className="border-t border-white/10 pb-10 pt-16">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
@@ -103,7 +124,7 @@ export default function Footer() {
             </p>
           </div>
 
-          {cols.map((c) => (
+          {filteredCols.map((c) => (
             <div key={c.title}>
               <h4 className="mb-4 text-sm font-semibold text-white">{c.title}</h4>
               <ul className="space-y-2.5">
@@ -124,11 +145,19 @@ export default function Footer() {
 
         <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 sm:flex-row">
           <p className="text-xs text-slate-600">
-            © {new Date().getFullYear()} PropNex AI. All rights reserved.
+            © {new Date().getFullYear()} {brand.companyName || "PropNex AI"}. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
-            <a href="#" className="text-xs font-medium text-slate-500 transition hover:text-white">Instagram</a>
-            <a href="https://www.linkedin.com/company/propnex-technology/" target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-slate-500 transition hover:text-white">LinkedIn</a>
+            {brand.instagramUrl ? (
+              <a href={brand.instagramUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-slate-500 transition hover:text-white">Instagram</a>
+            ) : !isCustomDomain ? (
+              <a href="#" className="text-xs font-medium text-slate-500 transition hover:text-white">Instagram</a>
+            ) : null}
+            {brand.linkedinUrl ? (
+              <a href={brand.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-slate-500 transition hover:text-white">LinkedIn</a>
+            ) : !isCustomDomain ? (
+              <a href="https://www.linkedin.com/company/propnex-technology/" target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-slate-500 transition hover:text-white">LinkedIn</a>
+            ) : null}
           </div>
         </div>
       </div>

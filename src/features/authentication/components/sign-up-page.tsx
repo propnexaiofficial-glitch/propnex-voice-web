@@ -12,7 +12,10 @@ import { AuthShell } from "@/features/authentication/components/auth-shell";
 import { AuthSocialButtons } from "@/features/authentication/components/auth-social-buttons";
 import { AUTH_ROUTES } from "@/features/authentication/types";
 
+import { useBrand } from "@/components/providers/brand-provider";
+
 export function SignUpPageContent() {
+  const brand = useBrand();
   const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -89,7 +92,7 @@ export function SignUpPageContent() {
   return (
     <AuthShell
       title="Sign Up"
-      welcomeTitle="Join PropNex AI"
+      welcomeTitle={`Join ${brand.companyName || "PropNex AI"}`}
       welcomeText="Create your account to access voice agents, campaigns, and analytics. Complete verification to activate your workspace."
     >
       <form className="space-y-3" onSubmit={handleSubmit} noValidate>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from '@/features/landing/lib/router'
 import Logo from './Logo'
+import { useBrand } from "@/components/providers/brand-provider";
 
 const primaryLinks = [
   { label: 'Home', to: '/' },
@@ -18,11 +19,31 @@ const companyLinks = [
 ]
 
 export default function Navbar() {
+  const brand = useBrand()
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
   const [companyOpen, setCompanyOpen] = useState(false)
   const companyRef = useRef(null)
   const { pathname } = useLocation()
+
+  // Filter links based on brand.pagesConfig. If it's an empty object, assume default (PropNex) which shows all.
+  const isCustomDomain = !!brand.logoUrl || Object.keys(brand.pagesConfig).length > 0;
+  
+  const filteredPrimaryLinks = primaryLinks.filter(l => {
+    if (!isCustomDomain) return true; // Default
+    const key = l.label.toLowerCase();
+    return brand.pagesConfig[key] === true;
+  });
+
+  const filteredCompanyLinks = companyLinks.filter(l => {
+    if (!isCustomDomain) return true; // Default
+    const key = l.label.toLowerCase().replace(/\s+/g, '-'); // e.g., about-us
+    // Some mapping for standard ones like "Company"
+    if (key === 'about-us' || key === 'customers' || key === 'careers') {
+      return brand.pagesConfig['company'] === true || brand.pagesConfig[key] === true;
+    }
+    return brand.pagesConfig[key] === true;
+  });
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -44,7 +65,7 @@ export default function Navbar() {
     return () => document.removeEventListener('pointerdown', onDoc)
   }, [])
 
-  const companyActive = companyLinks.some((l) => pathname === l.to)
+  const companyActive = filteredCompanyLinks.some((l) => pathname === l.to)
 
   return (
     <header
@@ -58,7 +79,7 @@ export default function Navbar() {
         <Logo />
 
         <ul className="hidden items-center gap-6 lg:flex">
-          {primaryLinks.map((l) => {
+          {filteredPrimaryLinks.map((l) => {
             const active =
               l.to === '/'
                 ? pathname === '/'
@@ -78,7 +99,8 @@ export default function Navbar() {
               </li>
             )
           })}
-          <li className="relative" ref={companyRef}>
+          {filteredCompanyLinks.length > 0 && (
+            <li className="relative" ref={companyRef}>
             <button
               type="button"
               onClick={() => setCompanyOpen((v) => !v)}
@@ -92,7 +114,7 @@ export default function Navbar() {
             </button>
             {companyOpen && (
               <div className="absolute left-1/2 top-full z-50 mt-3 w-48 -translate-x-1/2 rounded-xl border border-white/10 bg-black/95 p-2 shadow-2xl backdrop-blur-xl">
-                {companyLinks.map((l) => (
+                {filteredCompanyLinks.map((l) => (
                   <Link
                     key={l.to}
                     to={l.to}
@@ -105,7 +127,8 @@ export default function Navbar() {
                 ))}
               </div>
             )}
-          </li>
+            </li>
+          )}
         </ul>
 
         <div className="hidden items-center gap-3 md:flex">
@@ -141,7 +164,7 @@ export default function Navbar() {
       {open && (
         <div className="border-t border-white/10 bg-black/95 px-5 py-4 lg:hidden">
           <ul className="flex flex-col gap-1">
-            {[...primaryLinks, ...companyLinks, { label: 'Live demo', to: '/live-demo' }].map(
+            {[...filteredPrimaryLinks, ...filteredCompanyLinks, { label: 'Live demo', to: '/live-demo' }].map(
               (l) => (
                 <li key={l.to + l.label}>
                   <Link
