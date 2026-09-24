@@ -66,6 +66,26 @@ export async function POST(req: Request) {
 
     const jobTitle = jobPosting.title;
 
+    const host = req.headers.get("host") || "";
+    let branding = undefined;
+    if (host) {
+      try {
+        const domainRecord = await prisma.whiteLabelDomain.findFirst({
+          where: { domain: host, isActive: true }
+        });
+        if (domainRecord) {
+          branding = {
+            companyName: domainRecord.companyName,
+            supportEmail: domainRecord.supportEmail,
+            supportPhone: domainRecord.supportPhone,
+            domain: domainRecord.domain
+          };
+        }
+      } catch (err) {
+        console.warn("Could not fetch branding for webhook:", err);
+      }
+    }
+
     // 1. Submit to Apps Script
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2zj_l7vcmiPZKuYqEVdso0apyW3aDJZZWTVTJ1jRrQr8PLGZIH_TzRpTLFskphIwgDQ/exec";
     const scriptPayload = {
@@ -87,7 +107,8 @@ export async function POST(req: Request) {
       agreedToTerms,
       fileData: data.fileData,
       fileName: data.fileName,
-      mimeType: data.mimeType
+      mimeType: data.mimeType,
+      branding: branding
     };
 
     const scriptRes = await fetch(APPS_SCRIPT_URL, {

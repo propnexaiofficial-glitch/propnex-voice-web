@@ -66,6 +66,26 @@ export async function POST(req: NextRequest) {
     }
 
     // Trigger Google Apps Script Webhook for New Registration (Thanks email)
+    const host = req.headers.get("host") || "";
+    let branding = undefined;
+    if (host) {
+      try {
+        const domainRecord = await prisma.whiteLabelDomain.findFirst({
+          where: { domain: host, isActive: true }
+        });
+        if (domainRecord) {
+          branding = {
+            companyName: domainRecord.companyName,
+            supportEmail: domainRecord.supportEmail,
+            supportPhone: domainRecord.supportPhone,
+            domain: domainRecord.domain
+          };
+        }
+      } catch (err) {
+        console.warn("Could not fetch branding for webhook:", err);
+      }
+    }
+
     const WEBHOOK_URL = process.env.APPS_SCRIPT_WEBHOOK_URL || "https://script.google.com/macros/s/AKfycbz2zj_l7vcmiPZKuYqEVdso0apyW3aDJZZWTVTJ1jRrQr8PLGZIH_TzRpTLFskphIwgDQ/exec";
     try {
       await fetch(WEBHOOK_URL, {
@@ -75,6 +95,7 @@ export async function POST(req: NextRequest) {
           type: "new_registration",
           name: `${firstName} ${lastName}`.trim(),
           email: normalizedEmail,
+          branding: branding,
         }),
       });
     } catch (e) {

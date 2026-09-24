@@ -35,6 +35,26 @@ export async function POST(req: Request) {
       console.error("Failed to log system event", e);
     }
 
+    const host = req.headers.get("host") || "";
+    let branding = undefined;
+    if (host) {
+      try {
+        const domainRecord = await prisma.whiteLabelDomain.findFirst({
+          where: { domain: host, isActive: true }
+        });
+        if (domainRecord) {
+          branding = {
+            companyName: domainRecord.companyName,
+            supportEmail: domainRecord.supportEmail,
+            supportPhone: domainRecord.supportPhone,
+            domain: domainRecord.domain
+          };
+        }
+      } catch (err) {
+        console.warn("Could not fetch branding for webhook:", err);
+      }
+    }
+
     // 2. Send emails via Google Apps Script webhook
     // The apps_script_emails.js doPost() uses exactly these field names
     const webhookPayload = {
@@ -46,6 +66,7 @@ export async function POST(req: Request) {
       industry: industry || "",
       clients: clients || "",
       volume: volume || "",
+      branding: branding,
     };
 
     try {

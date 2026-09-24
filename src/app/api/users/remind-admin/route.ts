@@ -61,6 +61,26 @@ export async function POST(req: NextRequest) {
        data: { remindedAt: new Date() }
     });
 
+    const host = request.headers.get("host") || "";
+    let branding = undefined;
+    if (host) {
+      try {
+        const domainRecord = await prisma.whiteLabelDomain.findFirst({
+          where: { domain: host, isActive: true }
+        });
+        if (domainRecord) {
+          branding = {
+            companyName: domainRecord.companyName,
+            supportEmail: domainRecord.supportEmail,
+            supportPhone: domainRecord.supportPhone,
+            domain: domainRecord.domain
+          };
+        }
+      } catch (err) {
+        console.warn("Could not fetch branding for webhook:", err);
+      }
+    }
+
     // Trigger Google Apps Script Webhook
     const WEBHOOK_URL = process.env.APPS_SCRIPT_WEBHOOK_URL || "https://script.google.com/macros/s/AKfycbz2zj_l7vcmiPZKuYqEVdso0apyW3aDJZZWTVTJ1jRrQr8PLGZIH_TzRpTLFskphIwgDQ/exec";
     
@@ -72,6 +92,7 @@ export async function POST(req: NextRequest) {
           type: "reminder_approval",
           name: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "User",
           email: user.email,
+          branding: branding,
         }),
       });
     } catch (webhookErr) {
