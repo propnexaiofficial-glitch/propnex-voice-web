@@ -3,7 +3,10 @@
 import { useEffect } from 'react';
 import PageShell, { PageHero } from "@/features/landing/components/PageShell";
 
+import { useBrand } from "@/components/providers/brand-provider";
+
 export default function TermsPage() {
+  const { companyName, supportEmail } = useBrand();
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
@@ -24,13 +27,13 @@ export default function TermsPage() {
 
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">1. Agreement to Terms</h2>
           <p className="mb-4">
-            By accessing or using PropNex AI&apos;s website, products, APIs, and services (collectively, the &quot;Services&quot;),
+            By accessing or using {companyName}&apos;s website, products, APIs, and services (collectively, the &quot;Services&quot;),
             you agree to be bound by these Terms of Service. If you disagree with any part of the terms, you may not access the Services.
           </p>
 
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">2. Description of Service</h2>
           <p className="mb-4">
-            PropNex AI provides an artificial intelligence voice agent platform that enables businesses to automate inbound and outbound phone calls. This includes telephony infrastructure, voice cloning, and AI conversation management tools.
+            {companyName} provides an artificial intelligence voice agent platform that enables businesses to automate inbound and outbound phone calls. This includes telephony infrastructure, voice cloning, and AI conversation management tools.
           </p>
 
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">3. User Obligations</h2>
@@ -43,7 +46,7 @@ export default function TermsPage() {
 
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">4. Intellectual Property Rights</h2>
           <p className="mb-4">
-            The Services and their original content, features, and functionality are and will remain the exclusive property of PropNex AI Technology and its licensors. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of PropNex AI Technology.
+            The Services and their original content, features, and functionality are and will remain the exclusive property of {companyName} and its licensors. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of {companyName}.
           </p>
 
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">5. Termination</h2>
@@ -53,12 +56,13 @@ export default function TermsPage() {
 
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">6. Limitation of Liability</h2>
           <p className="mb-4">
-            In no event shall PropNex AI Technology, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Services.
+            In no event shall {companyName}, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Services.
           </p>
           
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">7. Contact Us</h2>
           <p className="mb-4">
-            If you have any questions about these Terms, please contact us at support@propnexai.com.
+          <p className="mb-4">
+            If you have any questions about these Terms, please contact us at <a href={`mailto:${supportEmail || 'support@propnexai.com'}`} className="text-emerald-400 hover:underline">{supportEmail || 'support@propnexai.com'}</a>.
           </p>
         </div>
       </div>

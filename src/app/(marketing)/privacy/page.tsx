@@ -3,7 +3,10 @@
 import { useEffect } from 'react';
 import PageShell, { PageHero } from "@/features/landing/components/PageShell";
 
+import { useBrand } from "@/components/providers/brand-provider";
+
 export default function PrivacyPage() {
+  const { companyName, supportEmail } = useBrand();
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
@@ -24,7 +27,7 @@ export default function PrivacyPage() {
 
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">1. Introduction</h2>
           <p className="mb-4">
-            Welcome to PropNex AI. We respect your privacy and are committed to protecting your personal data.
+            Welcome to {companyName}. We respect your privacy and are committed to protecting your personal data.
             This privacy policy will inform you as to how we look after your personal data when you visit our website
             and tell you about your privacy rights and how the law protects you.
           </p>
@@ -64,7 +67,7 @@ export default function PrivacyPage() {
           
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">6. Contact Us</h2>
           <p className="mb-4">
-            If you have any questions about this privacy policy or our privacy practices, please contact us at support@propnexai.com.
+            If you have any questions about this privacy policy or our privacy practices, please contact us at <a href={`mailto:${supportEmail || 'support@propnexai.com'}`} className="text-emerald-400 hover:underline">{supportEmail || 'support@propnexai.com'}</a>.
           </p>
         </div>
       </div>

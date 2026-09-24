@@ -9,6 +9,7 @@ import { EmployeesProvider } from "@/features/employees/context/employees-contex
 import { usePageTitle } from "@/hooks/use-page-title";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
+import { useBrand } from "@/components/providers/brand-provider";
 
 type DashboardShellProps = {
   children: React.ReactNode;
@@ -35,6 +36,7 @@ function DashboardShellInner({
 
   const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
   const [infraCosts, setInfraCosts] = useState<any[]>([]);
+  const { supportEmail, domain } = useBrand();
 
   useEffect(() => {
     const handlePageShow = (event: PageTransitionEvent) => {
@@ -181,7 +183,7 @@ function DashboardShellInner({
     const checkState = async () => {
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
       if (!token) {
-        window.location.replace("https://propnexai.com/");
+        window.location.replace(domain ? `https://${domain}` : "https://propnexai.com/");
         return;
       }
       let needsRefresh = false;
@@ -225,7 +227,7 @@ function DashboardShellInner({
         try {
           const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
           if (!token) {
-            window.location.replace("https://propnexai.com/");
+            window.location.replace(domain ? `https://${domain}` : "https://propnexai.com/");
             return;
           }
           const response = await fetch(`/api/users/me`, {
@@ -279,7 +281,7 @@ function DashboardShellInner({
             localStorage.removeItem("user");
             localStorage.removeItem("accessToken");
             localStorage.removeItem("access_token");
-            window.location.href = "https://propnexai.com/";
+            window.location.href = domain ? `https://${domain}` : "https://propnexai.com/";
           }
         } catch (e) {
           console.error("Instant refresh error:", e);
@@ -367,7 +369,7 @@ function DashboardShellInner({
           localStorage.removeItem("user");
           localStorage.removeItem("accessToken");
           localStorage.removeItem("access_token");
-          window.location.href = "https://propnexai.com/";
+          window.location.href = domain ? `https://${domain}` : "https://propnexai.com/";
         }
       } catch (err) {
         console.error("Polling error:", err);
@@ -459,7 +461,7 @@ function DashboardShellInner({
             localStorage.removeItem("user");
             localStorage.removeItem("accessToken");
             localStorage.removeItem("access_token");
-            window.location.href = "https://propnexai.com/";
+            window.location.href = domain ? `https://${domain}` : "https://propnexai.com/";
           }} className="text-sm text-red-400 hover:text-red-300 mt-4 font-medium transition-colors">
             Sign out
           </button>
@@ -491,14 +493,14 @@ function DashboardShellInner({
               Application Declined
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Your account is blocked for 6 months. For any query contact in this email - <a href="mailto:support@propnexai.com" className="text-red-400 hover:underline">support@propnexai.com</a>
+              Your account is blocked for 6 months. For any query contact in this email - <a href={`mailto:${supportEmail || 'support@propnexai.com'}`} className="text-red-400 hover:underline">{supportEmail || 'support@propnexai.com'}</a>
             </p>
           </div>
           <button onClick={() => {
             localStorage.removeItem("user");
             localStorage.removeItem("accessToken");
             localStorage.removeItem("access_token");
-            window.location.href = "https://propnexai.com/";
+            window.location.href = domain ? `https://${domain}` : "https://propnexai.com/";
           }} className="text-sm text-red-400 hover:text-red-300 mt-4 font-medium transition-colors">
             Sign out
           </button>
@@ -551,7 +553,7 @@ function DashboardShellInner({
               localStorage.removeItem("user");
               localStorage.removeItem("accessToken");
               localStorage.removeItem("access_token");
-              window.location.href = "https://propnexai.com/";
+              window.location.href = domain ? `https://${domain}` : "https://propnexai.com/";
             }} className="text-sm text-fuchsia-400 hover:text-fuchsia-300">
               Sign out
             </button>

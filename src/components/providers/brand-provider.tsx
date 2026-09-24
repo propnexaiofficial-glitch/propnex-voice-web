@@ -8,6 +8,8 @@ export type WhiteLabelConfig = {
   faviconUrl: string | null;
   instagramUrl: string | null;
   linkedinUrl: string | null;
+  supportEmail?: string;
+  supportPhone?: string;
   pagesConfig: Record<string, boolean>;
 };
 
@@ -17,6 +19,8 @@ const defaultBrand: WhiteLabelConfig = {
   faviconUrl: "/favicon.ico",
   instagramUrl: null,
   linkedinUrl: null,
+  supportEmail: "support@propnexai.com",
+  supportPhone: "+91 9889479110",
   pagesConfig: {},
 };
 

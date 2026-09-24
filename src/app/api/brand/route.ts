@@ -35,6 +35,8 @@ export async function GET(req: NextRequest) {
       faviconUrl: config.faviconUrl,
       instagramUrl: config.instagramUrl,
       linkedinUrl: config.linkedinUrl,
+      supportEmail: config.supportEmail,
+      supportPhone: config.supportPhone,
       pagesConfig: config.pagesConfig || {},
     });
   } catch (err) {

@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUserContext } from "@/features/auth/context/user-context";
+import { useBrand } from "@/components/providers/brand-provider";
 
 import { cn } from "@/lib/utils";
 
@@ -35,6 +36,7 @@ type UserMenuProps = {
 export function UserMenu({ className }: UserMenuProps) {
   const router = useRouter();
   const { user } = useUserContext();
+  const { domain } = useBrand();
   
   const fullName = user
     ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.name || user.email?.split("@")[0] || "User"
@@ -50,7 +52,7 @@ export function UserMenu({ className }: UserMenuProps) {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("access_token");
     localStorage.removeItem("user");
-    window.location.replace("https://propnexai.com/");
+    window.location.replace(domain ? `https://${domain}` : "https://propnexai.com/");
   };
 
   return (
