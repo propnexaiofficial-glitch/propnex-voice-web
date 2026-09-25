@@ -286,9 +286,9 @@ export async function GET(req: NextRequest) {
       // If a wave is past its scheduled time by more than 4 hours and has no logs, consider it missed/completed
       const isMissed = (time: Date) => nowMs > time.getTime() + 4 * 60 * 60 * 1000;
 
-      b.q1.status = q1Running ? "Running" : (hasQ1Logs || isMissed(b.q1Time) ? "Completed" : "Pending");
-      b.q2.status = q2Running ? "Running" : (hasQ2Logs || isMissed(b.q2Time) ? "Completed" : "Pending");
-      b.q3.status = q3Running ? "Running" : (hasQ3Logs || isMissed(b.q3Time) ? "Completed" : "Pending");
+      b.q1.status = Date.now() < b.q1Time.getTime() ? "Pending" : (q1Running ? "Running" : (hasQ1Logs || isMissed(b.q1Time) ? "Completed" : "Pending"));
+      b.q2.status = Date.now() < b.q2Time.getTime() ? "Pending" : (q2Running ? "Running" : (hasQ2Logs || isMissed(b.q2Time) ? "Completed" : "Pending"));
+      b.q3.status = Date.now() < b.q3Time.getTime() ? "Pending" : (q3Running ? "Running" : (hasQ3Logs || isMissed(b.q3Time) ? "Completed" : "Pending"));
 
       // Build per-lead outcome lists for each wave
       const q1FinalList: any[] = [];
