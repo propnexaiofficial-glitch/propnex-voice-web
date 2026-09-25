@@ -121,6 +121,8 @@ export async function POST(req: Request) {
       const scriptData = await scriptRes.json();
       if (scriptData.status === "success") {
         resumeUrl = scriptData.message?.resumeUrl || "";
+      } else {
+        console.error("Apps script returned an error:", scriptData.message);
       }
     } catch (e) {
       console.error("Apps script error", e);
