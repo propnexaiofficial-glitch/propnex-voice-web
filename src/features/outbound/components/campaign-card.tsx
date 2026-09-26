@@ -282,6 +282,8 @@ export function CampaignCard({
           })
           .catch(err => console.error("Failed to fetch reactivation dashboard", err))
           .finally(() => setIsHistoricalLoading(false));
+      };
+      
       // Fetch dashboard without triggering loading state UI changes
       fetchDashboard();
 

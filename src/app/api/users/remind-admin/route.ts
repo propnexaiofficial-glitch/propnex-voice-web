@@ -61,12 +61,12 @@ export async function POST(req: NextRequest) {
        data: { remindedAt: new Date() }
     });
 
-    const host = request.headers.get("host") || "";
+    const host = req.headers.get("host") || "";
     let branding = undefined;
     if (host) {
       try {
         const domainRecord = await prisma.whiteLabelDomain.findFirst({
-          where: { domain: host, isActive: true }
+          where: { domain: host, status: "ACTIVE" }
         });
         if (domainRecord) {
           branding = {

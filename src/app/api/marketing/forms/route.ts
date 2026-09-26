@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     if (host) {
       try {
         const domainRecord = await prisma.whiteLabelDomain.findFirst({
-          where: { domain: host, isActive: true }
+          where: { domain: host, status: "ACTIVE" }
         });
         if (domainRecord) {
           branding = {

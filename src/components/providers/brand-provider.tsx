@@ -10,6 +10,7 @@ export type WhiteLabelConfig = {
   linkedinUrl: string | null;
   supportEmail?: string;
   supportPhone?: string;
+  domain?: string;
   pagesConfig: Record<string, boolean>;
 };
 
