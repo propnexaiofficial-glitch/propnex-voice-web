@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect } from "react";
 
 export type WhiteLabelConfig = {
   companyName: string;
@@ -26,72 +26,33 @@ const defaultBrand: WhiteLabelConfig = {
   pagesConfig: {},
 };
 
-const getFullUrl = (url?: string | null) => {
+export const getFullUrl = (url?: string | null) => {
   if (!url) return url;
-  if (url.startsWith("/uploads/")) {
-    const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
-    return `${adminUrl}${url}`;
-  }
   return url;
 };
 
 const BrandContext = createContext<WhiteLabelConfig>(defaultBrand);
 
-export function BrandProvider({ children }: { children: React.ReactNode }) {
-  const [config, setConfig] = useState<WhiteLabelConfig>(defaultBrand);
-  const [isNotFound, setIsNotFound] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  
+export function BrandProvider({ 
+  children,
+  initialConfig,
+  isNotFound
+}: { 
+  children: React.ReactNode;
+  initialConfig: WhiteLabelConfig;
+  isNotFound: boolean;
+}) {
   useEffect(() => {
-    fetch("/api/brand")
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.notFound) {
-          setIsNotFound(true);
-          setIsLoading(false);
-          return;
-        }
-        if (data && data.companyName) {
-          const formattedData = {
-            ...data,
-            logoUrl: getFullUrl(data.logoUrl),
-            faviconUrl: getFullUrl(data.faviconUrl)
-          };
-          setConfig(formattedData);
-          if (formattedData.faviconUrl) {
-            const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
-            if (link) {
-              link.href = formattedData.faviconUrl;
-            } else {
-              const newLink = document.createElement("link");
-              newLink.rel = "icon";
-              newLink.href = formattedData.faviconUrl;
-              document.head.appendChild(newLink);
-            }
-          }
-          if (formattedData.companyName) {
-            const targetTitle = formattedData.tabTitle || formattedData.companyName;
-            document.title = targetTitle;
-            
-            // Force title to remain custom title across Next.js route changes
-            const observer = new MutationObserver(() => {
-              if (document.title !== targetTitle && !document.title.includes(targetTitle)) {
-                document.title = targetTitle;
-              }
-            });
-            const titleNode = document.querySelector("title");
-            if (titleNode) {
-              observer.observe(titleNode, { childList: true });
-            }
-          }
-        }
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setIsLoading(false);
-      });
-  }, []);
+    if (initialConfig.faviconUrl && !isNotFound) {
+      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+      if (!link) {
+        link = document.createElement("link");
+        link.rel = "icon";
+        document.head.appendChild(link);
+      }
+      link.href = initialConfig.faviconUrl;
+    }
+  }, [initialConfig, isNotFound]);
 
   if (isNotFound) {
     return (
@@ -104,13 +65,8 @@ export function BrandProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Prevent flash of PropNex AI content on a custom domain before brand is fetched
-  if (isLoading) {
-    return <div className="min-h-screen bg-black" />; // simple black background while loading
-  }
-
   return (
-    <BrandContext.Provider value={config}>
+    <BrandContext.Provider value={initialConfig}>
       {children}
     </BrandContext.Provider>
   );

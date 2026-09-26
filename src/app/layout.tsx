@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import { ThemeProvider } from "@/features/ui_setup";
 import { BrandProvider } from "@/components/providers/brand-provider";
+import { getBrandConfig } from "@/lib/brand";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,20 +16,27 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "PropNex AI — Voice AI Platform",
-    template: "%s | PropNex AI",
-  },
-  description:
-    "Enterprise voice AI for inbound and outbound calls. Launch agents, run campaigns, and scale with PropNex.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { config, notFound } = await getBrandConfig();
+  if (notFound) {
+    return { title: "Domain Not Configured" };
+  }
+  const titleStr = config.tabTitle || config.companyName;
+  return {
+    title: {
+      default: titleStr,
+      template: `%s | ${titleStr}`,
+    },
+    description: `Enterprise voice AI for inbound and outbound calls. Launch agents, run campaigns, and scale with ${config.companyName}.`,
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { config, notFound } = await getBrandConfig();
   return (
     <html
       lang="en"
@@ -42,7 +50,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <BrandProvider>
+          <BrandProvider initialConfig={config} isNotFound={notFound}>
             {children}
           </BrandProvider>
         </ThemeProvider>
