@@ -56,7 +56,7 @@ export async function getBrandConfig(): Promise<{ config: WhiteLabelConfig; notF
         instagramUrl: config.instagramUrl,
         linkedinUrl: config.linkedinUrl,
         supportEmail: config.supportEmail,
-        supportPhone: config.supportPhone || defaultBrand.supportPhone,
+        supportPhone: config.supportPhone || undefined,
         tabTitle: config.tabTitle || undefined,
         domain: config.domain,
         pagesConfig: (config.pagesConfig as Record<string, boolean>) || {},
