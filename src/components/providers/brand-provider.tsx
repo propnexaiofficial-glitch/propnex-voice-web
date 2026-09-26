@@ -10,6 +10,7 @@ export type WhiteLabelConfig = {
   linkedinUrl: string | null;
   supportEmail?: string;
   supportPhone?: string;
+  tabTitle?: string;
   domain?: string;
   pagesConfig: Record<string, boolean>;
 };
@@ -62,12 +63,13 @@ export function BrandProvider({ children }: { children: React.ReactNode }) {
             }
           }
           if (formattedData.companyName) {
-            document.title = formattedData.companyName;
+            const targetTitle = formattedData.tabTitle || formattedData.companyName;
+            document.title = targetTitle;
             
-            // Force title to remain company name across Next.js route changes
+            // Force title to remain custom title across Next.js route changes
             const observer = new MutationObserver(() => {
-              if (document.title !== formattedData.companyName && !document.title.includes(formattedData.companyName)) {
-                document.title = formattedData.companyName;
+              if (document.title !== targetTitle && !document.title.includes(targetTitle)) {
+                document.title = targetTitle;
               }
             });
             const titleNode = document.querySelector("title");
