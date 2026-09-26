@@ -28,6 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${titleStr}`,
     },
     description: `Enterprise voice AI for inbound and outbound calls. Launch agents, run campaigns, and scale with ${config.companyName}.`,
+    icons: config.faviconUrl ? [{ url: config.faviconUrl }] : undefined,
   };
 }
 
