@@ -230,8 +230,9 @@ export function CampaignCard({
     if (isReactivationCard) {
       const fetchDashboard = () => {
         const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "";
-        fetch("/api/reactivation/dashboard", {
-          headers: { Authorization: `Bearer ${token}` }
+        fetch(`/api/reactivation/dashboard?t=${Date.now()}`, {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store"
         })
           .then(res => res.json())
           .then(res => {
@@ -281,11 +282,7 @@ export function CampaignCard({
           })
           .catch(err => console.error("Failed to fetch reactivation dashboard", err))
           .finally(() => setIsHistoricalLoading(false));
-      };
-
-      if (historicalCampaigns.length === 0) {
-        setIsHistoricalLoading(true);
-      }
+      // Fetch dashboard without triggering loading state UI changes
       fetchDashboard();
 
       // Poll every 10s for real-time updates as missed/0-sec calls happen in other campaigns
