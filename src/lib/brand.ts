@@ -15,6 +15,20 @@ const defaultBrand: WhiteLabelConfig = {
 
 export const getFullUrl = (url?: string | null): string | null => {
   if (!url) return null;
+  
+  // Convert Google Drive view links to direct image links
+  if (url.includes("drive.google.com/file/d/")) {
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) {
+      return `https://drive.google.com/uc?id=${match[1]}`;
+    }
+  }
+
+  // Ensure absolute URLs have a protocol if they aren't relative paths or data URIs
+  if (!url.startsWith("/") && !url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("data:")) {
+    return `https://${url}`;
+  }
+
   return url;
 };
 
