@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Link } from '@/features/landing/lib/router'
 import PageShell, { PageHero, SectionCard } from '../components/PageShell'
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import { useBrand } from '@/components/providers/brand-provider'
 
 const why = [
   {
@@ -21,6 +22,8 @@ const why = [
 ]
 
 export default function CareersPage() {
+  const brand = useBrand() || {};
+  const email = brand.supportEmail || 'careers@propnex.ai';
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(true)
   const [expandedJobId, setExpandedJobId] = useState(null)
@@ -75,10 +78,10 @@ export default function CareersPage() {
                 No open roles right now — check back soon, or send your profile
                 to{' '}
                 <a
-                  href="mailto:careers@propnex.ai"
+                  href={`mailto:${email}`}
                   className="text-cyan-300 hover:underline"
                 >
-                  careers@propnex.ai
+                  {email}
                 </a>
                 .
               </p>

@@ -12,32 +12,6 @@ const trusted = [
   { label: 'HEALTHTECH', icon: 'link' },
 ]
 
-const faqs = [
-  {
-    q: 'How is per-minute pricing calculated?',
-    a: 'Pricing is tailored to your volume — talk to sales on ' +
-      TANISHQ_SALES_DISPLAY +
-      '.',
-  },
-  {
-    q: 'Is there a setup fee?',
-    a: 'Talk to our sales team for details on setup.',
-  },
-  {
-    q: 'Is white labelling available?',
-    a: 'White Labelling is available On Demand across all plans. Talk to sales for agency and partner branding.',
-  },
-  {
-    q: 'How does pay-as-you-go / prepaid work?',
-    a: 'You preload credits. Top up anytime — no monthly commitment.',
-  },
-  {
-    q: 'How do I get Enterprise pricing?',
-    a: 'Call or WhatsApp sales at ' +
-      TANISHQ_SALES_DISPLAY +
-      ' and we will tailor a plan for your volume.',
-  },
-]
 
 function TrustIcon({ type }) {
   const c = 'h-6 w-6 text-violet-300/90'
@@ -91,7 +65,35 @@ function TrustIcon({ type }) {
   )
 }
 
+import { useBrand } from '@/components/providers/brand-provider'
+
 export default function PricingPage() {
+  const brand = useBrand() || {}
+  const salesPhone = brand.supportPhone || TANISHQ_SALES_DISPLAY
+
+  const faqs = [
+    {
+      q: 'How is per-minute pricing calculated?',
+      a: 'Pricing is tailored to your volume — talk to sales on ' + salesPhone + '.',
+    },
+    {
+      q: 'Is there a setup fee?',
+      a: 'Talk to our sales team for details on setup.',
+    },
+    {
+      q: 'Is white labelling available?',
+      a: 'White Labelling is available On Demand across all plans. Talk to sales for agency and partner branding.',
+    },
+    {
+      q: 'How does pay-as-you-go / prepaid work?',
+      a: 'You preload credits. Top up anytime — no monthly commitment.',
+    },
+    {
+      q: 'How do I get Enterprise pricing?',
+      a: 'Call or WhatsApp sales at ' + salesPhone + ' and we will tailor a plan for your volume.',
+    },
+  ]
+
   const [openFaq, setOpenFaq] = useState(0)
   const [selectedPlan, setSelectedPlan] = useState('volume')
 

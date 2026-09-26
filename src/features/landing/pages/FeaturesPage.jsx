@@ -162,7 +162,7 @@ export default function FeaturesPage() {
               Platform features
             </p>
             <h1 className="max-w-3xl text-4xl font-bold tracking-tight md:text-6xl lg:text-[68px]">
-              PropNex<span className="text-cyan-400">AI</span>
+              {brandName}
             </h1>
             <p className="mt-4 max-w-xl text-base text-white/70 md:text-lg">
               Everything your voice agents need — campaigns, orchestration,
