@@ -75,6 +75,7 @@ export default function CareersApplyPage({ jobId }) {
   const [success, setSuccess] = useState(false)
   const [captchaToken, setCaptchaToken] = useState(null)
   const [errorModal, setErrorModal] = useState(null)
+  const [jobDetails, setJobDetails] = useState(null)
   
   // Modal State
   const [modalType, setModalType] = useState(null) // 'terms' or 'privacy'
@@ -82,7 +83,17 @@ export default function CareersApplyPage({ jobId }) {
   // Scroll to top on mount
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [])
+    if (jobId) {
+      fetch(`/api/jobs/${jobId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.job) {
+            setJobDetails(data.job);
+          }
+        })
+        .catch(err => console.error(err));
+    }
+  }, [jobId])
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -261,7 +272,7 @@ export default function CareersApplyPage({ jobId }) {
       <PageHero
         eyebrow="Careers"
         title="Apply Now"
-        subtitle={`Fill out the form below to submit your application.`}
+        subtitle={jobDetails ? `Applying for: ${jobDetails.title} (ID: ${jobDetails.jobId})` : `Fill out the form below to submit your application.`}
         image="https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=2000&q=80"
       />
 
