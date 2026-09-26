@@ -248,12 +248,21 @@ export default function ProductPage() {
               >
                 Explore products
               </a>
-              <Link
-                to="/live-demo"
-                className="rounded-full border border-white/25 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-white/50 hover:bg-white/5"
-              >
-                Book a demo
-              </Link>
+              {brandName === 'PropNex AI' ? (
+                <Link
+                  to="/live-demo"
+                  className="rounded-full border border-white/25 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-white/50 hover:bg-white/5"
+                >
+                  Book a demo
+                </Link>
+              ) : (
+                <Link
+                  to="/auth/sign-up"
+                  className="rounded-full border border-white/25 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-white/50 hover:bg-white/5"
+                >
+                  Get Started
+                </Link>
+              )}
             </div>
           </div>
         </section>
