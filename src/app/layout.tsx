@@ -19,7 +19,10 @@ const geistMono = Geist_Mono({
 export async function generateMetadata(): Promise<Metadata> {
   const { config, notFound } = await getBrandConfig();
   if (notFound) {
-    return { title: "Domain Not Configured" };
+    return { 
+      title: "Domain Not Configured",
+      icons: [{ url: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22/>" }]
+    };
   }
   const titleStr = config.tabTitle || config.companyName;
   return {
