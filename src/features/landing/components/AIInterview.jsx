@@ -1,25 +1,6 @@
 import AuraOrb from './3d/AuraOrb'
 import { Link } from '@/features/landing/lib/router'
-
-const steps = [
-  {
-    title: 'Upload job description',
-    desc: 'Drop in the JD — PropNex AI extracts role requirements, skills, and must-haves.',
-  },
-  {
-    title: 'Script + rubric generated',
-    desc: 'AI builds a screening script and scoring rubric tailored to the role.',
-  },
-  {
-    title: 'AI agent conducts screen',
-    desc: 'Candidates talk to a natural voice agent — anytime, at scale, in parallel.',
-  },
-  {
-    title: 'Recruiter gets results',
-    desc: 'Transcript, recording, and fit score land in one dashboard for review.',
-  },
-]
-
+import { useBrand } from '@/components/providers/brand-provider'
 const benefits = [
   'Parallel screening at scale',
   'Consistent / unbiased scoring',
@@ -34,6 +15,28 @@ const useCases = [
 ]
 
 export default function AIInterview() {
+  const { companyName } = useBrand() || {};
+  const brandName = companyName || 'PropNex AI';
+
+  const steps = [
+    {
+      title: 'Upload job description',
+      desc: `Drop in the JD — ${brandName} extracts role requirements, skills, and must-haves.`,
+    },
+    {
+      title: 'Script + rubric generated',
+      desc: 'AI builds a screening script and scoring rubric tailored to the role.',
+    },
+    {
+      title: 'AI agent conducts screen',
+      desc: 'Candidates talk to a natural voice agent — anytime, at scale, in parallel.',
+    },
+    {
+      title: 'Recruiter gets results',
+      desc: 'Transcript, recording, and fit score land in one dashboard for review.',
+    },
+  ];
+
   return (
     <section
       id="ai-interview"
@@ -62,7 +65,7 @@ export default function AIInterview() {
               <span className="gradient-text">voice AI</span>
             </h2>
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/55 md:text-base">
-              Upload a job description → PropNex AI generates script + rubric → AI
+              Upload a job description → {brandName} generates script + rubric → AI
               agent conducts the screen → recruiter gets transcript, recording,
               and fit score.
             </p>

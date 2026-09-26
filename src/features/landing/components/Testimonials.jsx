@@ -4,6 +4,7 @@ import gsap from 'gsap'
 import { useHeadReveal, useStaggerReveal, useReveal } from '../hooks/useReveal'
 import InteractiveCard from './InteractiveCard'
 import '../css-animations.css'
+import { useBrand } from '@/components/providers/brand-provider'
 
 // Particle positions for CTA background
 const PARTICLES = Array.from({ length: 18 }, (_, i) => ({
@@ -35,33 +36,6 @@ const stats = [
   },
 ]
 
-const testimonials = [
-  {
-    quote:
-      'PropNex AI completely transformed how we handle insurance renewal follow-ups. Their AI Voice Agent called our entire customer base in Gurugram within hours — something our human team would have taken weeks to do. The conversations were natural, professional, and incredibly effective. Our renewal conversion rate shot up dramatically.',
-    name: 'Rohit Sharma',
-    company: 'Grab Your Car',
-    detail: 'Insurance Renewal — Gurugram',
-    rating: '5.0 / 5.0',
-  },
-  {
-    quote:
-      'Working with PropNex AI has been a game-changer for Pinpro. Their comprehensive platform — from the AI Voice Agent to CRM and WhatsApp automation — gave us a complete sales ecosystem we never had before. Our team is now closing deals faster, leads are better qualified, and our brand presence has grown significantly.',
-    name: 'Ananya Reddy',
-    company: 'PINPRO',
-    detail: 'Real Estate — Bangalore',
-    rating: '5.0 / 5.0',
-  },
-  {
-    quote:
-      'We were struggling to manage the volume of international leads coming in for our Dubai properties. PropNex AI\'s Voice Agent changed everything — it qualifies leads in real time, understands buyer intent, and books appointments with serious investors automatically. Our sales team now only speaks with pre-qualified buyers.',
-    name: 'Vikram Mehta',
-    company: 'Dubai Real Estate Client',
-    detail: 'Luxury Property — Dubai, UAE',
-    rating: '5.0 / 5.0',
-  },
-]
-
 function QuoteCard({ t }) {
   return (
     <InteractiveCard className="quote-card flex h-full w-[340px] shrink-0 flex-col justify-between p-6 md:w-[420px]">
@@ -84,6 +58,36 @@ function QuoteCard({ t }) {
 }
 
 export default function Testimonials() {
+  const { companyName } = useBrand() || {};
+  const brandName = companyName || 'PropNex AI';
+
+  const testimonials = [
+    {
+      quote:
+        `${brandName} completely transformed how we handle insurance renewal follow-ups. Their AI Voice Agent called our entire customer base in Gurugram within hours — something our human team would have taken weeks to do. The conversations were natural, professional, and incredibly effective. Our renewal conversion rate shot up dramatically.`,
+      name: 'Rohit Sharma',
+      company: 'Grab Your Car',
+      detail: 'Insurance Renewal — Gurugram',
+      rating: '5.0 / 5.0',
+    },
+    {
+      quote:
+        `Working with ${brandName} has been a game-changer for Pinpro. Their comprehensive platform — from the AI Voice Agent to CRM and WhatsApp automation — gave us a complete sales ecosystem we never had before. Our team is now closing deals faster, leads are better qualified, and our brand presence has grown significantly.`,
+      name: 'Ananya Reddy',
+      company: 'PINPRO',
+      detail: 'Real Estate — Bangalore',
+      rating: '5.0 / 5.0',
+    },
+    {
+      quote:
+        `We were struggling to manage the volume of international leads coming in for our Dubai properties. ${brandName}'s Voice Agent changed everything — it qualifies leads in real time, understands buyer intent, and books appointments with serious investors automatically. Our sales team now only speaks with pre-qualified buyers.`,
+      name: 'Vikram Mehta',
+      company: 'Dubai Real Estate Client',
+      detail: 'Luxury Property — Dubai, UAE',
+      rating: '5.0 / 5.0',
+    },
+  ]
+
   const ref = useRef(null)
   const trackRef = useRef(null)
   useHeadReveal(ref)
@@ -140,7 +144,7 @@ export default function Testimonials() {
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <div className="reveal-head mb-12 text-center md:mb-16">
           <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
-            Ready to scale? Teams trust PropNex AI.
+            Ready to scale? Teams trust {brandName}.
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-slate-400">
             Real Indian clients across Real Estate, Insurance & more — in India

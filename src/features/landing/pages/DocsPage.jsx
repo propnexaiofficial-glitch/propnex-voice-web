@@ -1,8 +1,9 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useParams, useNavigate } from '@/features/landing/lib/router'
 import PageShell, { PageHero } from '../components/PageShell'
+import { useBrand } from '@/components/providers/brand-provider'
 
-const docs = [
+const getDocs = (brandName, brandPackage, brandClass) => [
   {
     id: 'getting-started',
     title: 'Getting Started',
@@ -12,15 +13,15 @@ const docs = [
     border: 'border-cyan-400/30',
     glow: 'shadow-[0_0_32px_rgba(34,211,238,0.12)]',
     body: [
-      'Create a PropNex AI workspace and invite your sales / ops team.',
-      'Provision numbers under PropNex AI Telephony (buy new DIDs or port existing lines).',
-      'Import a PropNex AI agent template (Real Estate, Insurance, EdTech, FinTech, or HealthTech).',
+      `Create a ${brandName} workspace and invite your sales / ops team.`,
+      `Provision numbers under ${brandName} Telephony (buy new DIDs or port existing lines).`,
+      `Import a ${brandName} agent template (Real Estate, Insurance, EdTech, FinTech, or HealthTech).`,
       'Publish a campaign, connect your CRM webhooks, and place a test call within minutes.',
     ],
   },
   {
     id: 'apis',
-    title: 'PropNex AI APIs',
+    title: `${brandName} APIs`,
     tag: 'REST API',
     img: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=900&q=80',
     accent: 'from-blue-500/45 via-black/55 to-black/90',
@@ -42,9 +43,9 @@ const docs = [
     border: 'border-violet-400/25',
     glow: 'shadow-[0_0_32px_rgba(139,92,246,0.12)]',
     body: [
-      'Install: npm i @propnexai/agent  ·  pip install propnexai',
-      'Import a packaged agent: from propnexai import Agent → Agent.import_("propnex-voice")',
-      'TypeScript: import { PropNex AI } from "@propnexai/agent" then PropNex AI.import("propnex-voice")',
+      `Install: npm i @${brandPackage}/agent  ·  pip install ${brandPackage}`,
+      `Import a packaged agent: from ${brandPackage} import Agent → Agent.import_("${brandPackage}-voice")`,
+      `TypeScript: import { ${brandClass} } from "@${brandPackage}/agent" then ${brandClass}.import("${brandPackage}-voice")`,
       'SDKs wrap session start/stop, streaming transcripts, and webhook verification helpers.',
     ],
   },
@@ -65,17 +66,17 @@ const docs = [
   },
   {
     id: 'telephony',
-    title: 'PropNex AI Telephony',
+    title: `${brandName} Telephony`,
     tag: 'Calls',
     img: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=900&q=80',
     accent: 'from-teal-500/45 via-black/55 to-black/90',
     border: 'border-teal-400/25',
     glow: 'shadow-[0_0_32px_rgba(45,212,191,0.12)]',
     body: [
-      'PropNex AI Telephony is the native calling layer — inbound DID routing, outbound dialers, and SIP trunks in one place.',
-      'Provision India / UAE numbers inside the PropNex AI dashboard (or port existing lines into PropNex AI Telephony).',
-      'Missed-call callbacks, concurrent dialing, and failover to human queues are handled on PropNex AI Telephony.',
-      'Connect PropNex AI Telephony to your CRM via webhooks for dispositions, recordings, and call events.',
+      `${brandName} Telephony is the native calling layer — inbound DID routing, outbound dialers, and SIP trunks in one place.`,
+      `Provision India / UAE numbers inside the ${brandName} dashboard (or port existing lines into ${brandName} Telephony).`,
+      `Missed-call callbacks, concurrent dialing, and failover to human queues are handled on ${brandName} Telephony.`,
+      `Connect ${brandName} Telephony to your CRM via webhooks for dispositions, recordings, and call events.`,
     ],
   },
   {
@@ -152,6 +153,13 @@ function DocNavItem({ doc, active, onSelect }) {
 }
 
 export default function DocsPage() {
+  const { companyName } = useBrand() || {};
+  const brandName = companyName || 'PropNex AI';
+  const brandPackage = brandName.toLowerCase().replace(/\s+/g, '');
+  const brandClass = brandName.replace(/\s+/g, '');
+  
+  const docs = useMemo(() => getDocs(brandName, brandPackage, brandClass), [brandName, brandPackage, brandClass]);
+
   const { section } = useParams()
   const navigate = useNavigate()
   const initial = docs.find((d) => d.id === section)?.id ?? docs[0].id
@@ -178,7 +186,7 @@ export default function DocsPage() {
       <PageHero
         eyebrow="Resources"
         title="Docs Hub"
-        subtitle="APIs, PropNex AI Telephony, SDKs, and playbooks to ship voice agents fast."
+        subtitle={`APIs, ${brandName} Telephony, SDKs, and playbooks to ship voice agents fast.`}
         image="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=2000&q=80"
       />
 

@@ -4,77 +4,25 @@ import { useSimulatedSpeaking } from './3d/Visualizers'
 import InteractiveCard from './InteractiveCard'
 import { useStaggerReveal } from '../hooks/useReveal'
 import { useVisibility } from '../../../hooks/useVisibility'
+import { useBrand } from '@/components/providers/brand-provider'
 
-const codeTabs = [
-  {
-    id: 'py',
-    label: 'agent.py',
-    code: `from propnexai import Agent
-
-agent = Agent.import_("propnex-voice")
-agent.connect(realtime=True)
-agent.speak("Namaste, how can I help?")`,
-  },
-  {
-    id: 'tsx',
-    label: 'agent.tsx',
-    code: `import { PropNex AI } from "@propnexai/agent"
-
-export function VoiceAgent() {
-  const agent = PropNex AI.import("propnex-voice")
-  return <agent.Preview />
-}`,
-  },
-]
-
-const cards = [
-  {
-    title: 'Voice AI quickstart',
-    desc: 'Build a simple voice agent with Python or Node.js in less than 10 minutes.',
-    icon: (
-      <path d="M3 12c2-4 4-4 6 0s4 4 6 0 4-4 6 0" stroke="currentColor" strokeWidth="1.7" fill="none" strokeLinecap="round" />
-    ),
-  },
-  {
-    title: 'Voice agent starter apps',
-    desc: 'Bring your agent to life through a web or mobile app.',
-    icon: (
-      <path d="M4 6h16v12H4zM8 18h8" stroke="currentColor" strokeWidth="1.7" fill="none" strokeLinejoin="round" />
-    ),
-  },
-  {
-    title: 'Integrate with telephony',
-    desc: 'Enable your voice agent to make or take phone calls.',
-    icon: (
-      <path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25c1.1.37 2.3.57 3.5.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.2.2 2.4.57 3.5a1 1 0 01-.25 1L6.6 10.8z" stroke="currentColor" strokeWidth="1.6" fill="none" />
-    ),
-  },
-  {
-    title: 'Deploy to PropNex AI Cloud',
-    desc: 'Run your agents on global realtime infrastructure.',
-    icon: (
-      <>
-        <path d="M18 18H7a4 4 0 01-.5-8 5.5 5.5 0 0110.3-1.7A3.5 3.5 0 0118 18z" stroke="currentColor" strokeWidth="1.6" fill="none" />
-        <path d="M12 11v4M10 13h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      </>
-    ),
-  },
-]
-
-function highlightLine(line) {
+function highlightLine(line, brandName = 'PropNex AI') {
+  const brandNameRegex = new RegExp(`\\\\b(${brandName})\\\\b`, 'g');
+  const packageRegex = new RegExp(`(@${brandName.toLowerCase().replace(/\\s+/g, '')}\\\\/agent|${brandName.toLowerCase().replace(/\\s+/g, '')})`, 'g');
   return line
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/(".*?")/g, "<span class='text-emerald-300'>$1</span>")
     .replace(
-      /\b(from|import|export|function|return|const|Agent|PropNex AI|agent|connect|speak|Preview|realtime)\b/g,
+      /\b(from|import|export|function|return|const|Agent|agent|connect|speak|Preview|realtime)\b/g,
       "<span class='text-violet-300'>$1</span>",
     )
-    .replace(/(@propnexai\/agent|propnexai)/g, "<span class='text-cyan-300'>$1</span>")
+    .replace(brandNameRegex, "<span class='text-violet-300'>$1</span>")
+    .replace(packageRegex, "<span class='text-cyan-300'>$1</span>")
 }
 
-function TypewriterCode({ code, active }) {
+function TypewriterCode({ code, active, brandName }) {
   const [shown, setShown] = useState('')
   const [done, setDone] = useState(false)
 
@@ -129,7 +77,7 @@ function TypewriterCode({ code, active }) {
               className="min-w-0 flex-1"
               dangerouslySetInnerHTML={{
                 __html:
-                  (highlightLine(line) || '&nbsp;') +
+                  (highlightLine(line, brandName) || '&nbsp;') +
                   (i === lines.length - 1 && !done
                     ? '<span class="ml-0.5 inline-block h-[1em] w-[7px] animate-pulse bg-cyan-300/90 align-middle"></span>'
                     : ''),
@@ -143,6 +91,67 @@ function TypewriterCode({ code, active }) {
 }
 
 export default function AgentPlayground() {
+  const { companyName } = useBrand() || {};
+  const brandName = companyName || 'PropNex AI';
+  const brandPackage = brandName.toLowerCase().replace(/\s+/g, '');
+  const brandClass = brandName.replace(/\s+/g, '');
+
+  const codeTabs = [
+    {
+      id: 'py',
+      label: 'agent.py',
+      code: `from ${brandPackage} import Agent
+
+agent = Agent.import_("${brandPackage}-voice")
+agent.connect(realtime=True)
+agent.speak("Namaste, how can I help?")`,
+    },
+    {
+      id: 'tsx',
+      label: 'agent.tsx',
+      code: `import { ${brandClass} } from "@${brandPackage}/agent"
+
+export function VoiceAgent() {
+  const agent = ${brandClass}.import("${brandPackage}-voice")
+  return <agent.Preview />
+}`,
+    },
+  ]
+
+  const cards = [
+    {
+      title: 'Voice AI quickstart',
+      desc: 'Build a simple voice agent with Python or Node.js in less than 10 minutes.',
+      icon: (
+        <path d="M3 12c2-4 4-4 6 0s4 4 6 0 4-4 6 0" stroke="currentColor" strokeWidth="1.7" fill="none" strokeLinecap="round" />
+      ),
+    },
+    {
+      title: 'Voice agent starter apps',
+      desc: 'Bring your agent to life through a web or mobile app.',
+      icon: (
+        <path d="M4 6h16v12H4zM8 18h8" stroke="currentColor" strokeWidth="1.7" fill="none" strokeLinejoin="round" />
+      ),
+    },
+    {
+      title: 'Integrate with telephony',
+      desc: 'Enable your voice agent to make or take phone calls.',
+      icon: (
+        <path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.25c1.1.37 2.3.57 3.5.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.2.2 2.4.57 3.5a1 1 0 01-.25 1L6.6 10.8z" stroke="currentColor" strokeWidth="1.6" fill="none" />
+      ),
+    },
+    {
+      title: `Deploy to ${brandName} Cloud`,
+      desc: 'Run your agents on global realtime infrastructure.',
+      icon: (
+        <>
+          <path d="M18 18H7a4 4 0 01-.5-8 5.5 5.5 0 0110.3-1.7A3.5 3.5 0 0118 18z" stroke="currentColor" strokeWidth="1.6" fill="none" />
+          <path d="M12 11v4M10 13h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </>
+      ),
+    },
+  ]
+
   const [tab, setTab] = useState('py')
   const { ref, isVisible } = useVisibility('100px')
   const speaking = useSimulatedSpeaking(3200)
@@ -179,7 +188,7 @@ export default function AgentPlayground() {
                   </button>
                 ))}
               </div>
-              <TypewriterCode key={tab} code={active.code} active={isVisible} />
+              <TypewriterCode key={tab} code={active.code} active={isVisible} brandName={brandName} />
             </div>
 
             {/* Compact elegant 3D preview */}

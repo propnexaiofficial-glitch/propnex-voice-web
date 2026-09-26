@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from 'react'
 import { Link } from '@/features/landing/lib/router'
+import { useBrand } from '@/components/providers/brand-provider'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -128,6 +129,8 @@ const industries = [
 ]
 
 export default function ProductPage() {
+  const { companyName } = useBrand() || {};
+  const brandName = companyName || 'PropNex AI';
   const ref = useRef(null)
 
   useEffect(() => {
@@ -263,7 +266,7 @@ export default function ProductPage() {
                 Core Offerings
               </p>
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-                PropNex AI <span className="gradient-text">Products & Services</span>
+                {brandName} <span className="gradient-text">Products & Services</span>
               </h2>
             </div>
 
@@ -383,7 +386,7 @@ export default function ProductPage() {
           <div className="relative mx-auto max-w-3xl px-5 text-center md:px-8">
             <h2 className="text-3xl font-bold tracking-tight md:text-5xl">
               Transform your enterprise{' '}
-              <span className="gradient-text">with PropNex AI.</span>
+              <span className="gradient-text">with {brandName}.</span>
             </h2>
             <p className="mx-auto mt-4 max-w-lg text-slate-400">
               Deploy intelligent voice agents, build custom CRM software, and automate your entire financial operations today.

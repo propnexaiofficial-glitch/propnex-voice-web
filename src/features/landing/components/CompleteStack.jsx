@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { useStaggerReveal } from '../hooks/useReveal'
 import IsometricStackDiagram from './IsometricStackDiagram'
+import { useBrand } from '@/components/providers/brand-provider'
 
 const features = [
   {
@@ -36,6 +37,8 @@ const features = [
 ]
 
 export default function CompleteStack() {
+  const { companyName } = useBrand() || {};
+  const brandName = companyName || 'PropNex AI';
   const ref = useRef(null)
 
   useStaggerReveal(ref, '.stack-copy-item', { stagger: 0.07 })
@@ -85,7 +88,7 @@ export default function CompleteStack() {
             href="#pricing"
             className="stack-copy-item mt-10 inline-flex items-center rounded-md border border-white/20 bg-transparent px-4 py-2.5 text-[13px] font-medium text-white transition hover:border-white/40 hover:bg-white/[0.03]"
           >
-            Explore the PropNex AI Cloud platform
+            Explore the {brandName} Cloud platform
           </a>
         </div>
 

@@ -39,11 +39,18 @@ const BrandContext = createContext<WhiteLabelConfig>(defaultBrand);
 
 export function BrandProvider({ children }: { children: React.ReactNode }) {
   const [config, setConfig] = useState<WhiteLabelConfig>(defaultBrand);
+  const [isNotFound, setIsNotFound] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     fetch("/api/brand")
       .then(res => res.json())
       .then(data => {
+        if (data && data.notFound) {
+          setIsNotFound(true);
+          setIsLoading(false);
+          return;
+        }
         if (data && data.companyName) {
           const formattedData = {
             ...data,
@@ -78,9 +85,29 @@ export function BrandProvider({ children }: { children: React.ReactNode }) {
             }
           }
         }
+        setIsLoading(false);
       })
-      .catch(console.error);
+      .catch((err) => {
+        console.error(err);
+        setIsLoading(false);
+      });
   }, []);
+
+  if (isNotFound) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-black text-white px-4 text-center">
+        <h1 className="text-4xl font-bold mb-2">404 - Domain Not Configured</h1>
+        <p className="text-white/60 mb-8 max-w-md">
+          This domain is not currently configured or active on our platform. Please contact the platform administrator to finish the setup.
+        </p>
+      </div>
+    );
+  }
+
+  // Prevent flash of PropNex AI content on a custom domain before brand is fetched
+  if (isLoading) {
+    return <div className="min-h-screen bg-black" />; // simple black background while loading
+  }
 
   return (
     <BrandContext.Provider value={config}>

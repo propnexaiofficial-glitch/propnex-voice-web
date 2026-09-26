@@ -5,10 +5,11 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input'
 import 'react-phone-number-input/style.css'
 import PageShell from '../components/PageShell'
+import { useBrand } from '@/components/providers/brand-provider'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const sequenceCards = [
+const getSequenceCards = (brandName) => [
   {
     tag: 'Who',
     title: 'Who this is for',
@@ -30,7 +31,7 @@ const sequenceCards = [
       'Your logo & brand colors',
       'Agent names you control',
       'Client-facing dashboards',
-      'Zero PropNex AI branding for end clients',
+      `Zero ${brandName} branding for end clients`,
     ],
   },
   {
@@ -222,6 +223,10 @@ function StepIcon({ type }) {
 }
 
 export default function PartnerPage() {
+  const { companyName } = useBrand() || {};
+  const brandName = companyName || 'PropNex AI';
+  const sequenceCards = getSequenceCards(brandName);
+
   const ref = useRef(null)
   const [form, setForm] = useState(emptyForm)
   const [sent, setSent] = useState(false)
@@ -387,7 +392,7 @@ export default function PartnerPage() {
               </span>
             </h1>
             <p className="partner-hero-anim mt-4 max-w-xl text-sm leading-relaxed text-white/60 md:text-base">
-              Resell PropNex AI under your own brand and earn recurring revenue —
+              Resell {brandName} under your own brand and earn recurring revenue —
               no need to build your own voice AI infrastructure.
             </p>
           </div>

@@ -4,6 +4,7 @@ import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import HeroScene from './3d/HeroScene'
 import { useSimulatedSpeaking } from './3d/Visualizers'
+import { useBrand } from '@/components/providers/brand-provider'
 
 const typedLines = [
   'agent.connect({ realtime: true })',
@@ -75,6 +76,8 @@ function MiniBars({ active }) {
 }
 
 export default function Hero() {
+  const { companyName } = useBrand() || {};
+  const brandName = companyName || 'PropNex AI';
   const ref = useRef(null)
   const speaking = useSimulatedSpeaking(3800)
 
@@ -114,7 +117,7 @@ export default function Hero() {
           </h1>
 
           <p className="hero-sub mx-auto mt-4 max-w-md text-[15px] leading-relaxed text-white/45 md:mx-0 md:text-base">
-            PropNex AI gives your team always-on AI voice agents that qualify
+            {brandName} gives your team always-on AI voice agents that qualify
             leads, book appointments, and follow up on every call - so your
             people can focus on closing.
           </p>

@@ -2,8 +2,11 @@ import { useRef } from 'react'
 import { Link } from '@/features/landing/lib/router'
 import AuraOrb from './3d/AuraOrb'
 import { useReveal, useStaggerReveal } from '../hooks/useReveal'
+import { useBrand } from '@/components/providers/brand-provider'
 
 export default function FinalCTA() {
+  const { companyName } = useBrand() || {};
+  const brandName = companyName || 'PropNex AI';
   const ref = useRef(null)
   useReveal(ref, '.cta-inner')
   useStaggerReveal(ref, '.cta-copy > *', { stagger: 0.1 })
@@ -28,7 +31,7 @@ export default function FinalCTA() {
             <p className="mx-auto mt-4 max-w-lg text-slate-300">
               Join the growing list of businesses in India and Dubai closing more
               deals, qualifying more leads, and building stronger brands — with
-              the power of PropNex AI.
+              the power of {brandName}.
             </p>
             <Link
               to="/live-demo"
@@ -37,7 +40,7 @@ export default function FinalCTA() {
               Book a Free Demo Call
             </Link>
             <p className="mt-4 text-xs text-white/40">
-              www.propnexai.com · Gurgaon, India | Dubai, UAE
+              {brandName} · Gurgaon, India | Dubai, UAE
             </p>
           </div>
         </div>

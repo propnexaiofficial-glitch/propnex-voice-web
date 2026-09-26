@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import AuraOrb from './3d/AuraOrb'
 import InteractiveCard from './InteractiveCard'
 import { useHeadReveal, useStaggerReveal } from '../hooks/useReveal'
+import { useBrand } from '@/components/providers/brand-provider'
 
 const smallCards = [
   {
@@ -22,6 +23,8 @@ const smallCards = [
 ]
 
 export default function Solutions() {
+  const { companyName } = useBrand() || {};
+  const brandName = companyName || 'PropNex AI';
   const ref = useRef(null)
   useHeadReveal(ref)
   useStaggerReveal(ref, '.sol-card', { stagger: 0.1 })
@@ -47,7 +50,7 @@ export default function Solutions() {
               One brain. Infinite sales conversations.
             </h3>
             <p className="mb-6 text-slate-400 leading-relaxed">
-              PropNex AI learns your product, pricing, and persona — then runs
+              {brandName} learns your product, pricing, and persona — then runs
               thousands of concurrent dialogues with the consistency of your best
               closer. Integrate once, scale everywhere.
             </p>

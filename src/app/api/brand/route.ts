@@ -25,13 +25,12 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // If local dev, just fallback to empty/default for local testing if not found
-    if (!config && (domain === "localhost" || domain === "127.0.0.1")) {
+    if (!config && (domain === "localhost" || domain === "127.0.0.1" || domain.includes("propnex"))) {
       return NextResponse.json({});
     }
 
     if (!config) {
-      return NextResponse.json({});
+      return NextResponse.json({ notFound: true });
     }
 
     return NextResponse.json({

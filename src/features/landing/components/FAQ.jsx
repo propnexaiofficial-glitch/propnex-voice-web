@@ -1,10 +1,11 @@
 import { useRef, useState } from 'react'
 import InteractiveCard from './InteractiveCard'
 import { useStaggerReveal, useReveal } from '../hooks/useReveal'
+import { useBrand } from '@/components/providers/brand-provider'
 
-const faqs = [
+const getFaqs = (brandName) => [
   {
-    q: 'How human does PropNex AI sound?',
+    q: `How human does ${brandName} sound?`,
     a: 'Our neural voice models are trained on top-performing sales conversations. Most prospects cannot tell they are speaking with AI — and you can clone your best rep’s tone for brand consistency.',
   },
   {
@@ -26,6 +27,9 @@ const faqs = [
 ]
 
 export default function FAQ() {
+  const { companyName } = useBrand() || {};
+  const brandName = companyName || 'PropNex AI';
+  const faqs = getFaqs(brandName);
   const ref = useRef(null)
   const [open, setOpen] = useState(0)
 
@@ -40,7 +44,7 @@ export default function FAQ() {
             Common Questions
           </h2>
           <p className="mt-4 text-slate-400">
-            Everything you need to know before launching PropNex AI across your
+            Everything you need to know before launching {brandName} across your
             revenue org.
           </p>
           <div className="relative mt-10 min-h-[220px] overflow-hidden rounded-2xl border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">

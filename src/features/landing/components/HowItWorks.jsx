@@ -1,12 +1,14 @@
 import { useRef } from 'react'
 import InteractiveCard from './InteractiveCard'
+import InteractiveCard from './InteractiveCard'
 import { useHeadReveal, useStaggerReveal } from '../hooks/useReveal'
+import { useBrand } from '@/components/providers/brand-provider'
 
-const steps = [
+const getSteps = (brandName) => [
   {
     n: '01',
     title: 'Speak naturally',
-    desc: 'Users talk via web, app, or phone — PropNex AI picks up every word in realtime.',
+    desc: `Users talk via web, app, or phone — ${brandName} picks up every word in realtime.`,
     accent: '#22d3ee',
   },
   {
@@ -29,7 +31,7 @@ const steps = [
   },
 ]
 
-function PipelineVisual() {
+function PipelineVisual({ brandName }) {
   const ref = useRef(null)
 
   const nodes = [
@@ -110,8 +112,8 @@ function PipelineVisual() {
       {/* Center badge */}
       <div className="absolute left-1/2 top-[62%] flex -translate-x-1/2 flex-col items-center">
         <div className="pipe-orb flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400/30 via-violet-500/40 to-fuchsia-500/30 shadow-[0_0_40px_rgba(168,85,247,0.35)] backdrop-blur-md md:h-20 md:w-20">
-          <span className="text-[11px] font-bold tracking-tight text-white md:text-xs">
-            PropNex AI
+          <span className="text-[11px] font-bold tracking-tight text-white md:text-xs text-center leading-tight">
+            {brandName}
           </span>
         </div>
         <p className="mt-2 text-[10px] font-medium uppercase tracking-[0.2em] text-white/35">
@@ -123,6 +125,9 @@ function PipelineVisual() {
 }
 
 export default function HowItWorks() {
+  const { companyName } = useBrand() || {};
+  const brandName = companyName || 'PropNex AI';
+  const steps = getSteps(brandName);
   const ref = useRef(null)
   useHeadReveal(ref, '.how-head')
   useStaggerReveal(ref, '.how-card', { stagger: 0.1 })
@@ -193,7 +198,7 @@ export default function HowItWorks() {
 
           {/* Animated pipeline visual */}
           <div className="relative">
-            <PipelineVisual />
+            <PipelineVisual brandName={brandName} />
           </div>
         </div>
       </div>

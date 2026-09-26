@@ -7,6 +7,7 @@ import { UploadCloud, CheckCircle, Loader2, X, AlertCircle } from 'lucide-react'
 import { countryCodes, allCountries } from '../data/countries'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import ReCAPTCHA from 'react-google-recaptcha'
+import { useBrand } from '@/components/providers/brand-provider'
 
 // Convert file to Base64
 const toBase64 = (file) =>
@@ -47,6 +48,8 @@ const AutoResizeTextarea = ({ className, ...props }) => {
 };
 
 export default function CareersApplyPage({ jobId }) {
+  const { companyName } = useBrand() || {};
+  const brandName = companyName || 'PropNex AI';
   const router = useRouter()
   
   const recaptchaRef = useRef(null)
@@ -588,15 +591,15 @@ export default function CareersApplyPage({ jobId }) {
             <div className="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar text-white/70 text-sm space-y-4">
               {modalType === 'terms' ? (
                 <>
-                  <p>Welcome to PropNex AI.</p>
+                  <p>Welcome to {brandName}.</p>
                   <p>By applying to a position with us, you agree to provide accurate, current, and complete information during the application process. You are responsible for ensuring that your resume and any other documents submitted are truthful and reflect your own work and qualifications.</p>
                   <p>We reserve the right to verify any information provided. Any false statements or misrepresentations may result in disqualification from consideration or immediate termination of employment if discovered after hire.</p>
-                  <p>Applying to a role does not guarantee an interview or an offer of employment. PropNex AI retains the sole discretion to determine candidates who best meet the needs of the position.</p>
+                  <p>Applying to a role does not guarantee an interview or an offer of employment. {brandName} retains the sole discretion to determine candidates who best meet the needs of the position.</p>
                 </>
               ) : (
                 <>
                   <p>Your privacy and data security are our top priorities.</p>
-                  <p><strong>1. Data Collection:</strong> We collect personal data such as your name, contact details, resume, and employment history for the sole purpose of evaluating your candidacy for open roles at PropNex AI.</p>
+                  <p><strong>1. Data Collection:</strong> We collect personal data such as your name, contact details, resume, and employment history for the sole purpose of evaluating your candidacy for open roles at {brandName}.</p>
                   <p><strong>2. Data Usage:</strong> Your data will be accessed exclusively by our HR and recruitment teams. We may use your phone number and email to contact you via SMS, calls, or emails regarding interview scheduling and application updates.</p>
                   <p><strong>3. Data Security:</strong> We employ industry-standard encryption and security measures to protect your application data from unauthorized access, alteration, or destruction.</p>
                   <p><strong>4. Data Retention:</strong> If your application is unsuccessful, we may retain your profile in our secure talent pool for up to 12 months to contact you regarding future opportunities, unless you explicitly request us to delete your data sooner.</p>

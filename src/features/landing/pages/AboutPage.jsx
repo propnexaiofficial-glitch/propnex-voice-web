@@ -1,5 +1,6 @@
 import { Suspense, lazy } from 'react'
 import PageShell, { PageHero, SectionCard } from '../components/PageShell'
+import { useBrand } from '@/components/providers/brand-provider'
 
 const HeroScene = lazy(() => import('../components/3d/HeroScene'))
 
@@ -36,23 +37,27 @@ const team = [
   },
 ]
 
-const presence = [
+const getPresence = (brandName) => [
   {
     title: 'Gurgaon, India',
     desc: 'Established clientage across the top real estate channel partners and brokerages in Gurgaon — India\'s most competitive property market. AI agents are actively qualifying leads, booking site visits, and closing deals daily.',
   },
   {
     title: 'Dubai, UAE',
-    desc: 'PropNex AI has expanded into the Dubai real estate market — one of the world\'s highest-value property markets. International developers and brokers trust our platform to handle high-value lead qualification across multiple time zones.',
+    desc: `${brandName} has expanded into the Dubai real estate market — one of the world\'s highest-value property markets. International developers and brokers trust our platform to handle high-value lead qualification across multiple time zones.`,
   },
 ]
 
 export default function AboutPage() {
+  const { companyName } = useBrand() || {};
+  const brandName = companyName || 'PropNex AI';
+  const presence = getPresence(brandName);
+
   return (
     <PageShell>
       <PageHero
         eyebrow="Company"
-        title="About PropNex AI"
+        title={`About ${brandName}`}
         subtitle="India's Most Powerful AI Voice & Automation Platform — trusted by leading companies across Real Estate, Insurance & EdTech in India and Dubai."
         image="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=2000&q=80"
       />
@@ -71,7 +76,7 @@ export default function AboutPage() {
               Our presence
             </p>
             <h2 className="mt-3 text-2xl font-bold text-white md:text-3xl">
-              PropNex AI — Where Artificial Intelligence Meets Real Business Results
+              {brandName} — Where Artificial Intelligence Meets Real Business Results
             </h2>
             <div className="mt-6 space-y-4">
               {presence.map((p) => (

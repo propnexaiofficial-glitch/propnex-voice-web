@@ -1,8 +1,11 @@
 import { useRef } from 'react'
 import PhoneCarousel from './PhoneCarousel'
 import { useReveal } from '../hooks/useReveal'
+import { useBrand } from '@/components/providers/brand-provider'
 
 export default function PhoneShowcase() {
+  const { companyName } = useBrand() || {};
+  const brandName = companyName || 'PropNex AI';
   const ref = useRef(null)
 
   useReveal(ref, '.reveal')
@@ -24,7 +27,7 @@ export default function PhoneShowcase() {
             Give your agent a face users love
           </h2>
           <p className="mt-4 max-w-md text-slate-400 leading-relaxed">
-            The PropNex AI phone experience — 3D tilt, fluid orb, and swipeable
+            The {brandName} phone experience — 3D tilt, fluid orb, and swipeable
             personalities. Pick a voice vibe and start a chat in one tap.
           </p>
           <ul className="mt-8 space-y-3 text-sm text-white/70">

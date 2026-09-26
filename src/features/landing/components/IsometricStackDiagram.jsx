@@ -4,6 +4,7 @@ import { Html, Line, Grid, Float } from '@react-three/drei'
 import * as THREE from 'three'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
+import { useBrand } from '@/components/providers/brand-provider'
 
 /** Isometric-ish layout matching LiveKit stack diagram */
 const NODES = [
@@ -250,7 +251,7 @@ function Connector({ a, b }) {
   )
 }
 
-function StackNode({ node }) {
+function StackNode({ node, brandName }) {
   const mesh = useRef()
   const w = node.chip ? 1.15 : node.wide ? 0.45 : 0.32
   const d = node.chip ? 0.85 : 0.28
@@ -320,7 +321,7 @@ function StackNode({ node }) {
             }`}
             style={{ fontSize: '12px', lineHeight: 1.25 }}
           >
-            {node.label}
+            {node.label === 'PropNex AI Cloud' ? `${brandName} Cloud` : node.label}
           </span>
         </div>
       </Html>
@@ -339,7 +340,7 @@ function CameraRig() {
   return null
 }
 
-function Scene() {
+function Scene({ brandName }) {
   return (
     <>
       <CameraRig />
@@ -397,7 +398,7 @@ function Scene() {
 
       <Float speed={0.8} rotationIntensity={0} floatIntensity={0.15}>
         {NODES.map((n) => (
-          <StackNode key={n.id} node={n} />
+          <StackNode key={n.id} node={n} brandName={brandName} />
         ))}
       </Float>
     </>
@@ -405,6 +406,8 @@ function Scene() {
 }
 
 export default function IsometricStackDiagram() {
+  const { companyName } = useBrand() || {};
+  const brandName = companyName || 'PropNex AI';
   const wrap = useRef(null)
 
   useGSAP(
@@ -440,7 +443,7 @@ export default function IsometricStackDiagram() {
         }}
       >
         <Suspense fallback={null}>
-          <Scene />
+          <Scene brandName={brandName} />
         </Suspense>
       </Canvas>
     </div>
