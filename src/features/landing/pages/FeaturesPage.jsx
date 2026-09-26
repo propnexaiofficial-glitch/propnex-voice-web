@@ -6,6 +6,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import InteractiveCard from '../components/InteractiveCard'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import { useBrand } from '@/components/providers/brand-provider'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -70,6 +71,8 @@ const features = [
 ]
 
 export default function FeaturesPage() {
+  const { companyName } = useBrand() || {};
+  const brandName = companyName || 'PropNex AI';
   const ref = useRef(null)
 
   useEffect(() => {
