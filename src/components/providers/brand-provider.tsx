@@ -24,6 +24,15 @@ const defaultBrand: WhiteLabelConfig = {
   pagesConfig: {},
 };
 
+const getFullUrl = (url?: string | null) => {
+  if (!url) return url;
+  if (url.startsWith("/uploads/")) {
+    const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.propnexai.com";
+    return `${adminUrl}${url}`;
+  }
+  return url;
+};
+
 const BrandContext = createContext<WhiteLabelConfig>(defaultBrand);
 
 export function BrandProvider({ children }: { children: React.ReactNode }) {
@@ -34,20 +43,36 @@ export function BrandProvider({ children }: { children: React.ReactNode }) {
       .then(res => res.json())
       .then(data => {
         if (data && data.companyName) {
-          setConfig(data);
-          if (data.faviconUrl) {
+          const formattedData = {
+            ...data,
+            logoUrl: getFullUrl(data.logoUrl),
+            faviconUrl: getFullUrl(data.faviconUrl)
+          };
+          setConfig(formattedData);
+          if (formattedData.faviconUrl) {
             const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
             if (link) {
-              link.href = data.faviconUrl;
+              link.href = formattedData.faviconUrl;
             } else {
               const newLink = document.createElement("link");
               newLink.rel = "icon";
-              newLink.href = data.faviconUrl;
+              newLink.href = formattedData.faviconUrl;
               document.head.appendChild(newLink);
             }
           }
-          if (data.companyName) {
-            document.title = document.title.replace("PropNex AI", data.companyName);
+          if (formattedData.companyName) {
+            document.title = formattedData.companyName;
+            
+            // Force title to remain company name across Next.js route changes
+            const observer = new MutationObserver(() => {
+              if (document.title !== formattedData.companyName && !document.title.includes(formattedData.companyName)) {
+                document.title = formattedData.companyName;
+              }
+            });
+            const titleNode = document.querySelector("title");
+            if (titleNode) {
+              observer.observe(titleNode, { childList: true });
+            }
           }
         }
       })
