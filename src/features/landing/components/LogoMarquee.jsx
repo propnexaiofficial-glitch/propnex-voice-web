@@ -21,7 +21,12 @@ function ClientItem({ name, industry }) {
   )
 }
 
+import { useBrand } from "@/components/providers/brand-provider";
+
 export default function LogoMarquee() {
+  const brand = useBrand();
+  if (brand.companyName !== "PropNex AI") return null;
+
   const doubled = [...clients, ...clients, ...clients]
   return (
     <section className="relative border-y border-white/5 py-10 md:py-12">

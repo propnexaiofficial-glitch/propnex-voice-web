@@ -124,17 +124,19 @@ export default function Hero() {
 
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3 md:justify-start">
             <Link
-              to="/live-demo"
+              to="/auth/sign-up"
               className="hero-cta btn-primary rounded-full px-7 py-3 text-sm md:text-[15px]"
             >
               Start building
             </Link>
-            <Link
-              to="/live-demo"
-              className="hero-cta btn-ghost rounded-full px-7 py-3 text-sm md:text-[15px]"
-            >
-              Live Demo
-            </Link>
+            {brand.companyName === "PropNex AI" && (
+              <Link
+                to="/live-demo"
+                className="hero-cta btn-ghost rounded-full px-7 py-3 text-sm md:text-[15px]"
+              >
+                Live Demo
+              </Link>
+            )}
           </div>
 
           <div className="flex justify-center md:justify-start">

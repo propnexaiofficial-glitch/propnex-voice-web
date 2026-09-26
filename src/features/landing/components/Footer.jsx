@@ -97,16 +97,20 @@ export default function Footer() {
   const isCustomDomain = brand.companyName !== "PropNex AI";
 
   const filteredCols = cols.map(col => {
+    // If it's the "Company" column and it's a custom domain, hide the entire column
+    if (isCustomDomain && col.title === 'Company') {
+      return { ...col, links: [] };
+    }
+
     return {
       ...col,
       links: col.links.filter(l => {
+        if (isCustomDomain && l.label === 'Live Demo') return false;
+        if (isCustomDomain && l.label === 'Partners') return false;
         if (!isCustomDomain) return true;
         const key = l.label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        // Default rules: if they have a custom domain but didn't specify some links, hide them by default unless true
         if (brand.pagesConfig[key] === true) return true;
-        if (col.title === 'Company' && (brand.pagesConfig['company'] === true || brand.pagesConfig['about'] === true)) return true;
-        if (col.title === 'Legal') return true; // Keep legal links
-        // Default to hide for custom domain if not matched, or maybe show?
+        if (col.title === 'Legal') return true; 
         return brand.pagesConfig[key] === true;
       })
     };

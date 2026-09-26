@@ -30,12 +30,14 @@ export default function Navbar() {
   const isCustomDomain = brand.companyName !== "PropNex AI";
   
   const filteredPrimaryLinks = primaryLinks.filter(l => {
+    if (isCustomDomain && l.label === 'Partners') return false;
     if (!isCustomDomain) return true; // Default
     const key = l.label.toLowerCase();
     return brand.pagesConfig[key] === true;
   });
 
   const filteredCompanyLinks = companyLinks.filter(l => {
+    if (isCustomDomain) return false;
     if (!isCustomDomain) return true; // Default
     const key = l.label.toLowerCase().replace(/\s+/g, '-'); // e.g., about-us
     // Some mapping for standard ones like "Company"
@@ -132,12 +134,14 @@ export default function Navbar() {
         </ul>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Link
-            to="/live-demo"
-            className="rounded-full border border-white/15 px-3.5 py-2 text-[12px] font-semibold text-white/80 transition hover:border-white/30 hover:text-white"
-          >
-            Live demo
-          </Link>
+          {!isCustomDomain && (
+            <Link
+              to="/live-demo"
+              className="rounded-full border border-white/15 px-3.5 py-2 text-[12px] font-semibold text-white/80 transition hover:border-white/30 hover:text-white"
+            >
+              Live demo
+            </Link>
+          )}
           <Link
             to="/auth/sign-up"
             className="rounded-full bg-cyan-400 px-4 py-2 text-[13px] font-semibold text-black shadow-[0_0_24px_rgba(34,211,238,0.25)] transition hover:bg-cyan-300 active:scale-[0.97]"
@@ -164,7 +168,7 @@ export default function Navbar() {
       {open && (
         <div className="border-t border-white/10 bg-black/95 px-5 py-4 lg:hidden">
           <ul className="flex flex-col gap-1">
-            {[...filteredPrimaryLinks, ...filteredCompanyLinks, { label: 'Live demo', to: '/live-demo' }].map(
+            {[...filteredPrimaryLinks, ...filteredCompanyLinks, ...(!isCustomDomain ? [{ label: 'Live demo', to: '/live-demo' }] : [])].map(
               (l) => (
                 <li key={l.to + l.label}>
                   <Link
