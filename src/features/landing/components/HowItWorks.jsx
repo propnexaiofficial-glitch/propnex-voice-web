@@ -1,6 +1,5 @@
 import { useRef } from 'react'
 import InteractiveCard from './InteractiveCard'
-import InteractiveCard from './InteractiveCard'
 import { useHeadReveal, useStaggerReveal } from '../hooks/useReveal'
 import { useBrand } from '@/components/providers/brand-provider'
 
