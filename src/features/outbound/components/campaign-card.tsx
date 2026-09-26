@@ -237,9 +237,9 @@ export function CampaignCard({
           .then(res => {
             if (res.data) {
               setHistoricalCampaigns(res.data);
-              if (res.data.length > 0 && (!selectedHistId || leadsModalOpen)) {
-                // Select the first one automatically
-                if (!selectedHistId) setSelectedHistId(res.data[0].id);
+              if (res.data.length > 0) {
+                // Select the first one automatically if none is selected
+                setSelectedHistId(prev => prev || res.data[0].id);
               }
               // Trigger animation for each wave independently when they complete
               const todayStr = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(new Date()).replace("Sept", "Sep");
@@ -1012,7 +1012,10 @@ export function CampaignCard({
       {/* Lead Info Modal */}
       <Dialog open={leadsModalOpen} onOpenChange={setLeadsModalOpen}>
         {isReactivationCard ? (
-          <DialogContent className="max-w-6xl w-[95vw] h-[85vh] p-0 flex flex-col overflow-hidden bg-background/95 backdrop-blur-xl border-primary/20">
+          <DialogContent 
+            onOpenAutoFocus={(e) => e.preventDefault()}
+            className="max-w-6xl w-[95vw] h-[85vh] p-0 flex flex-col overflow-hidden bg-background/95 backdrop-blur-xl border-primary/20"
+          >
             <DialogHeader className="p-6 pb-4 border-b border-border/50 bg-muted/20 shrink-0">
               <DialogTitle className="flex items-center gap-2 text-xl">
                 <ListChecks className="size-6 text-primary" />
