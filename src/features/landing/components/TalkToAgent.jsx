@@ -1,8 +1,14 @@
 import { Link } from '@/features/landing/lib/router'
 import AuraOrb from './3d/AuraOrb'
+import { useBrand } from '@/components/providers/brand-provider'
 
 /** Floating CTA — opens dedicated Live Demo page */
 export default function TalkToAgent() {
+  const brand = useBrand()
+  if (brand?.companyName && brand.companyName !== 'PropNex AI') {
+    return null
+  }
+
   return (
     <Link
       to="/live-demo"

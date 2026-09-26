@@ -31,6 +31,7 @@ export default function Navbar() {
   
   const filteredPrimaryLinks = primaryLinks.filter(l => {
     if (isCustomDomain && l.label === 'Partners') return false;
+    if (isCustomDomain && l.label === 'Home') return true;
     if (!isCustomDomain) return true; // Default
     const key = l.label.toLowerCase();
     return brand.pagesConfig[key] === true;
