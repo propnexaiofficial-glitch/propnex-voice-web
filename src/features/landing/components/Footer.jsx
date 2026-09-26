@@ -97,7 +97,6 @@ export default function Footer() {
   const isCustomDomain = brand.companyName !== "PropNex AI";
 
   const filteredCols = cols.map(col => {
-    // If it's the "Company" column and it's a custom domain, hide the entire column
     if (isCustomDomain && col.title === 'Company') {
       return { ...col, links: [] };
     }
@@ -105,21 +104,38 @@ export default function Footer() {
     return {
       ...col,
       links: col.links.filter(l => {
-        if (isCustomDomain && l.label === 'Live Demo') return false;
-        if (isCustomDomain && l.label === 'Partners') return false;
         if (!isCustomDomain) return true;
-        const key = l.label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        if (brand.pagesConfig[key] === true) return true;
-        if (col.title === 'Legal') return true; 
+        if (col.title === 'Legal') return true;
+        
+        if (col.title === 'Resources') {
+          return brand.pagesConfig['docs'] === true;
+        }
+
+        if (l.label === 'Live Demo') return false;
+        if (l.label === 'Partners') return false;
+        if (l.label === 'AI Interview') return true;
+        
+        if (l.label === 'Pricing') return brand.pagesConfig['pricing'] === true;
+
+        let key = l.label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        if (key === 'products-services') key = 'product';
+
         return brand.pagesConfig[key] === true;
       })
     };
   }).filter(col => col.links.length > 0);
 
+  const gridClass = {
+    1: "md:grid-cols-[1.3fr_1fr]",
+    2: "md:grid-cols-[1.3fr_repeat(2,1fr)]",
+    3: "md:grid-cols-[1.3fr_repeat(3,1fr)]",
+    4: "md:grid-cols-[1.3fr_repeat(4,1fr)]",
+  }[filteredCols.length] || "md:grid-cols-[1.3fr_repeat(4,1fr)]";
+
   return (
     <footer className="border-t border-white/10 pb-10 pt-16">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
-        <div className="grid gap-10 md:grid-cols-[1.3fr_repeat(4,1fr)]">
+        <div className={`grid gap-10 ${gridClass}`}>
           <div>
             <Logo size="footer" />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-500">
