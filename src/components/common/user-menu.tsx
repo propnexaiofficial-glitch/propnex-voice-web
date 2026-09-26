@@ -52,7 +52,7 @@ export function UserMenu({ className }: UserMenuProps) {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("access_token");
     localStorage.removeItem("user");
-    window.location.replace(domain ? `https://${domain}` : "https://propnexai.com/");
+    window.location.replace("/");
   };
 
   return (

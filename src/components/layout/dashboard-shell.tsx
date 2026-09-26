@@ -183,7 +183,7 @@ function DashboardShellInner({
     const checkState = async () => {
       const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
       if (!token) {
-        window.location.replace(domain ? `https://${domain}` : "https://propnexai.com/");
+        window.location.replace("/");
         return;
       }
       let needsRefresh = false;
@@ -227,7 +227,7 @@ function DashboardShellInner({
         try {
           const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
           if (!token) {
-            window.location.replace(domain ? `https://${domain}` : "https://propnexai.com/");
+            window.location.replace("/");
             return;
           }
           const response = await fetch(`/api/users/me`, {
@@ -281,7 +281,7 @@ function DashboardShellInner({
             localStorage.removeItem("user");
             localStorage.removeItem("accessToken");
             localStorage.removeItem("access_token");
-            window.location.href = domain ? `https://${domain}` : "https://propnexai.com/";
+            window.location.href = "/";
           }
         } catch (e) {
           console.error("Instant refresh error:", e);
@@ -369,7 +369,7 @@ function DashboardShellInner({
           localStorage.removeItem("user");
           localStorage.removeItem("accessToken");
           localStorage.removeItem("access_token");
-          window.location.href = domain ? `https://${domain}` : "https://propnexai.com/";
+          window.location.href = "/";
         }
       } catch (err) {
         console.error("Polling error:", err);
@@ -461,7 +461,7 @@ function DashboardShellInner({
             localStorage.removeItem("user");
             localStorage.removeItem("accessToken");
             localStorage.removeItem("access_token");
-            window.location.href = domain ? `https://${domain}` : "https://propnexai.com/";
+            window.location.href = "/";
           }} className="text-sm text-red-400 hover:text-red-300 mt-4 font-medium transition-colors">
             Sign out
           </button>
@@ -500,7 +500,7 @@ function DashboardShellInner({
             localStorage.removeItem("user");
             localStorage.removeItem("accessToken");
             localStorage.removeItem("access_token");
-            window.location.href = domain ? `https://${domain}` : "https://propnexai.com/";
+            window.location.href = "/";
           }} className="text-sm text-red-400 hover:text-red-300 mt-4 font-medium transition-colors">
             Sign out
           </button>
@@ -553,7 +553,7 @@ function DashboardShellInner({
               localStorage.removeItem("user");
               localStorage.removeItem("accessToken");
               localStorage.removeItem("access_token");
-              window.location.href = domain ? `https://${domain}` : "https://propnexai.com/";
+              window.location.href = "/";
             }} className="text-sm text-fuchsia-400 hover:text-fuchsia-300">
               Sign out
             </button>
