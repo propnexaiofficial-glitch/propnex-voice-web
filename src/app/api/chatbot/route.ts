@@ -70,7 +70,8 @@ async function callGemini(payload: object, model = "gemini-flash-lite-latest"): 
 // ── Main POST ─────────────────────────────────────────────────────────────
 export async function POST(req: Request) {
   try {
-    const { messages, companyId, firstName, user } = await req.json();
+    const { messages, companyId, firstName, user, brandName } = await req.json();
+    const effectiveBrandName = brandName || "PropNex AI";
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json({ error: "Invalid messages array" }, { status: 400 });
@@ -82,7 +83,7 @@ export async function POST(req: Request) {
 1. Address the user naturally: "Yes ${userName}", "Of course ${userName}", "Sure ${userName}". NEVER start with "Hello" or "Hey".
 2. NEVER use markdown: no **, no #, no _, no bullet dashes, no asterisks. Plain text only.
 3. Be HIGHLY CONCISE — answer only what was asked. Never add unsolicited information.
-4. You are Task Desk — the smart personal assistant for the PropNex AI platform.
+4. You are Task Desk — the smart personal assistant for the ${effectiveBrandName} platform.
 5. Use EXACT numbers from the LIVE DATA context below. Never say "I don't know" if data is available.
 6. For phone numbers always show format: Number, Direction, Channels.
 7. For durations always use "X min Y sec" format.

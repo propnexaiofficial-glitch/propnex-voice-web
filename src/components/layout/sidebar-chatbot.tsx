@@ -150,7 +150,8 @@ export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" })
           messages: newMessages.map(m => ({ role: m.type === "usr" ? "user" : "model", content: m.text })),
           companyId,
           firstName,
-          user
+          user,
+          brandName
         })
       });
 
