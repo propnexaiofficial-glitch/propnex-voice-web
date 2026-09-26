@@ -33,12 +33,21 @@ export default function FinalCTA() {
               deals, qualifying more leads, and building stronger brands — with
               the power of {brandName}.
             </p>
-            <Link
-              to="/live-demo"
-              className="btn-primary mt-8 inline-flex rounded-full px-10 py-4 text-base"
-            >
-              Book a Free Demo Call
-            </Link>
+            {brandName === 'PropNex AI' ? (
+              <Link
+                to="/live-demo"
+                className="btn-primary mt-8 inline-flex rounded-full px-10 py-4 text-base"
+              >
+                Book a Free Demo Call
+              </Link>
+            ) : (
+              <Link
+                to="/auth/sign-up"
+                className="btn-primary mt-8 inline-flex rounded-full px-10 py-4 text-base"
+              >
+                Get Started
+              </Link>
+            )}
             <p className="mt-4 text-xs text-white/40">
               {brandName} · Gurgaon, India | Dubai, UAE
             </p>

@@ -69,12 +69,14 @@ import { useBrand } from '@/components/providers/brand-provider'
 
 export default function PricingPage() {
   const brand = useBrand() || {}
-  const salesPhone = brand.supportPhone || TANISHQ_SALES_DISPLAY
+  const salesPhone = brand.supportPhone || null
 
   const faqs = [
     {
       q: 'How is per-minute pricing calculated?',
-      a: 'Pricing is tailored to your volume — talk to sales on ' + salesPhone + '.',
+      a: salesPhone 
+        ? 'Pricing is tailored to your volume — talk to sales on ' + salesPhone + '.'
+        : 'Pricing is tailored to your volume — talk to sales.',
     },
     {
       q: 'Is there a setup fee?',
@@ -90,7 +92,9 @@ export default function PricingPage() {
     },
     {
       q: 'How do I get Enterprise pricing?',
-      a: 'Call or WhatsApp sales at ' + salesPhone + ' and we will tailor a plan for your volume.',
+      a: salesPhone
+        ? 'Call or WhatsApp sales at ' + salesPhone + ' and we will tailor a plan for your volume.'
+        : 'Contact sales and we will tailor a plan for your volume.',
     },
   ]
 
@@ -211,12 +215,21 @@ export default function PricingPage() {
             <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
               Still have questions?
             </h2>
-            <a
-              href={TANISHQ_SALES_TEL}
-              className="mt-8 inline-flex rounded-full bg-violet-300 px-7 py-3 text-sm font-semibold text-black transition hover:bg-violet-200 active:scale-[0.98]"
-            >
-              Talk to sales · {TANISHQ_SALES_DISPLAY}
-            </a>
+            {salesPhone ? (
+              <a
+                href={`tel:${salesPhone.replace(/\s+/g, '')}`}
+                className="mt-8 inline-flex rounded-full bg-violet-300 px-7 py-3 text-sm font-semibold text-black transition hover:bg-violet-200 active:scale-[0.98]"
+              >
+                Talk to sales · {salesPhone}
+              </a>
+            ) : (
+              <Link
+                to="/#contact"
+                className="mt-8 inline-flex rounded-full bg-violet-300 px-7 py-3 text-sm font-semibold text-black transition hover:bg-violet-200 active:scale-[0.98]"
+              >
+                Contact us
+              </Link>
+            )}
           </div>
 
           <p className="mx-auto mt-8 max-w-3xl text-center text-sm leading-relaxed text-white/40">

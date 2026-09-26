@@ -1,6 +1,7 @@
 import { Link } from '@/features/landing/lib/router'
 import { plans, planThemes } from '../../data/pricingPlans'
 import { CheckIcon, PlanIcon } from './PlanIcons'
+import { useBrand } from '@/components/providers/brand-provider'
 
 export default function PricingPlansGrid({
   interactive = false,
@@ -9,6 +10,9 @@ export default function PricingPlansGrid({
   linkCtaToSignUp = false,
   cardClassName = '',
 }) {
+  const brand = useBrand() || {}
+  const salesPhone = brand.supportPhone || null
+
   return (
     <div className="grid gap-4 md:grid-cols-3 md:gap-4">
       {plans.map((plan) => {
@@ -46,29 +50,48 @@ export default function PricingPlansGrid({
             <ul
               className={`space-y-2 ${plan.context ? 'mt-2' : 'mt-4'} flex-1`}
             >
-              {plan.features.map((f) => (
-                <li
-                  key={f}
-                  className="flex items-start gap-2 text-[12px] leading-snug text-white/75 md:text-[13px]"
-                >
-                  <CheckIcon
-                    className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${theme.check}`}
-                  />
-                  {f}
-                </li>
-              ))}
+              {plan.features.map((f) => {
+                let text = f
+                if (text.startsWith('Talk to sales')) {
+                  if (!salesPhone) return null
+                  text = `Talk to sales — ${salesPhone}`
+                }
+                return (
+                  <li
+                    key={f}
+                    className="flex items-start gap-2 text-[12px] leading-snug text-white/75 md:text-[13px]"
+                  >
+                    <CheckIcon
+                      className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${theme.check}`}
+                    />
+                    {text}
+                  </li>
+                )
+              })}
             </ul>
 
             {plan.ctaHref ? (
-              <a
-                href={plan.ctaHref}
-                className={`mt-5 block w-full rounded-full py-2.5 text-center text-[13px] font-semibold transition active:scale-[0.98] ${
-                  plan.popular ? theme.btn : theme.btnIdle
-                }`}
-                onClick={(e) => e.stopPropagation()}
-              >
-                {plan.cta}
-              </a>
+              salesPhone ? (
+                <a
+                  href={`tel:${salesPhone.replace(/\s+/g, '')}`}
+                  className={`mt-5 block w-full rounded-full py-2.5 text-center text-[13px] font-semibold transition active:scale-[0.98] ${
+                    plan.popular ? theme.btn : theme.btnIdle
+                  }`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {plan.cta}
+                </a>
+              ) : (
+                <Link
+                  to="/#contact"
+                  className={`mt-5 block w-full rounded-full py-2.5 text-center text-[13px] font-semibold transition active:scale-[0.98] ${
+                    plan.popular ? theme.btn : theme.btnIdle
+                  }`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Contact us
+                </Link>
+              )
             ) : linkCtaToSignUp ? (
               <Link
                 to="/auth/sign-up"
