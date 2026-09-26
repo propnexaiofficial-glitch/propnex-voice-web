@@ -129,7 +129,7 @@ export default function Hero() {
             >
               Start building
             </Link>
-            {brand.companyName === "PropNex AI" && (
+            {brandName === "PropNex AI" && (
               <Link
                 to="/live-demo"
                 className="hero-cta btn-ghost rounded-full px-7 py-3 text-sm md:text-[15px]"
