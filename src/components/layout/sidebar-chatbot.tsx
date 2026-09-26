@@ -5,6 +5,7 @@ import { Send, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import { useUserContext } from "@/features/auth/context/user-context";
+import { useBrand } from "@/components/providers/brand-provider";
 
 type Message = {
   id: string;
@@ -30,6 +31,8 @@ export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" })
   
   const pathname = usePathname();
   const { user } = useUserContext();
+  const brand = useBrand();
+  const brandName = brand?.companyName || "PropNex AI";
 
   const greetingSet = useRef(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -73,8 +76,8 @@ export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" })
         id: "1",
         type: "bot",
         text: name
-          ? `Hello ${name}! 👋 I'm Task Desk, your smart assistant for the PropNex AI platform.\n\nAsk me anything about your campaigns, agents, analytics, credits, or phone numbers.`
-          : `Hey there! 👋 I'm Task Desk, your smart assistant for the PropNex AI platform.\n\nAsk me anything about campaigns, agents, analytics, or your dashboard.`
+          ? `Hello ${name}! 👋 I'm Task Desk, your smart assistant for the ${brandName} platform.\n\nAsk me anything about your campaigns, agents, analytics, credits, or phone numbers.`
+          : `Hey there! 👋 I'm Task Desk, your smart assistant for the ${brandName} platform.\n\nAsk me anything about campaigns, agents, analytics, or your dashboard.`
       }]);
     }
   }, [user]);
