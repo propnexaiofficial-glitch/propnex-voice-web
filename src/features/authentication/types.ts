@@ -14,5 +14,6 @@ export const AUTH_ROUTES = {
   verifyEmail: "/auth/verify-email",
   verifyOtp: "/auth/verify-otp",
   resetPassword: "/auth/reset-password",
+  forgotPassword: "/auth/forgot-password",
   dashboard: "/dashboard",
 } as const;
