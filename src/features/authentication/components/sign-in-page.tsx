@@ -91,7 +91,7 @@ export function SignInPageContent() {
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      router.push(AUTH_ROUTES.dashboard);
+      router.replace(AUTH_ROUTES.dashboard);
     } catch (err: any) {
       const responseData = err.response?.data;
       const errorMsg = responseData?.message 

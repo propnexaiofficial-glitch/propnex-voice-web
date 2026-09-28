@@ -124,7 +124,7 @@ export function ResetPasswordPageContent() {
 
       localStorage.removeItem("reset_email");
       localStorage.removeItem("reset_otp");
-      router.push(AUTH_ROUTES.signIn + "?reset=success");
+      router.replace(AUTH_ROUTES.signIn + "?reset=success");
     } catch (error) {
       setMessage("Failed to connect. Please try again.");
     } finally {

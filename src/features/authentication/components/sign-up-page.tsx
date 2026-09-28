@@ -96,7 +96,7 @@ export function SignUpPageContent() {
         return;
       }
 
-      router.push(AUTH_ROUTES.signIn);
+      router.replace(AUTH_ROUTES.signIn);
     } catch (err: any) {
       const responseData = err.response?.data;
       const errorMsg = responseData?.message

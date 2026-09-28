@@ -91,7 +91,7 @@ export function VerifyOtpPageContent() {
         const data = await res.json();
         if (!res.ok) { setMessage(data.message || "Invalid OTP"); return; }
         localStorage.setItem("reset_otp", otp);
-        router.push(copy.next);
+        router.replace(copy.next);
       } catch { setMessage("Failed to verify OTP."); }
       finally { setLoading(false); }
 
@@ -124,7 +124,7 @@ export function VerifyOtpPageContent() {
         localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("access_token", data.access_token);
         localStorage.setItem("user", JSON.stringify(data.user));
-        router.push(copy.next);
+        router.replace(copy.next);
       } catch { setMessage("Failed to verify login OTP."); }
       finally { setLoading(false); }
 
@@ -143,7 +143,7 @@ export function VerifyOtpPageContent() {
         localStorage.setItem("access_token", data.access_token);
         localStorage.setItem("user", JSON.stringify(data.user));
         setMessage("Account verified! Redirecting...");
-        setTimeout(() => router.push(copy.next), 300);
+        setTimeout(() => router.replace(copy.next), 300);
       } catch { setMessage("Failed to verify signup OTP."); }
       finally { setLoading(false); }
     } else {
@@ -239,7 +239,7 @@ export function VerifyOtpPageContent() {
               <button
                 type="button"
                 title="Edit email address"
-                onClick={() => router.push(copy.editRoute)}
+                onClick={() => router.replace(copy.editRoute)}
                 style={{
                   width: 28, height: 28, borderRadius: "50%",
                   border: "1px solid rgba(255,255,255,0.15)",
