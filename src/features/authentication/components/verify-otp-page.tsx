@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Pencil, Mail, CheckCircle2 } from "lucide-react";
+import { Pencil, Mail, CheckCircle2, Loader2, SendHorizonal } from "lucide-react";
 
 import { AuthShell } from "@/features/authentication/components/auth-shell";
 import { OtpInput } from "@/features/authentication/components/otp-input";
@@ -54,6 +54,9 @@ export function VerifyOtpPageContent() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
+  const [resendMsg, setResendMsg] = useState("");
   const [cooldown, setCooldown] = useState(60);
 
   // Load email from localStorage on mount
@@ -149,33 +152,49 @@ export function VerifyOtpPageContent() {
   }
 
   async function handleResend() {
-    if (cooldown > 0) return;
-    if (purpose === "password-reset") {
-      if (!email) { setMessage("Session expired."); return; }
-      setLoading(true);
-      try {
-        const res = await fetch("/api/users/forgot-password", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, domainUrl: window.location.origin }),
-        });
-        if (res.ok) { setMessage(`OTP resent to ${email}`); setCooldown(60); }
-        else { const d = await res.json(); setMessage(d.message || "Failed to resend OTP."); }
-      } catch { setMessage("Failed to connect."); }
-      finally { setLoading(false); }
-    } else if (purpose === "login-verification" || purpose === "signup-verification") {
-      if (!email) { setMessage("Session expired."); return; }
-      setLoading(true);
-      try {
-        const res = await fetch("/api/users/resend-otp", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, purpose, domainUrl: window.location.origin }),
-        });
-        if (res.ok) { setMessage(`OTP resent to ${email}`); setCooldown(60); }
-        else { const d = await res.json(); setMessage(d.message || "Failed to resend OTP."); }
-      } catch { setMessage("Failed to connect."); }
-      finally { setLoading(false); }
+    if (cooldown > 0 || resending) return;
+
+    setResending(true);
+    setResendStatus("sending");
+    setResendMsg("Sending OTP...");
+
+    const endpoint = purpose === "password-reset" ? "/api/users/forgot-password" : "/api/users/resend-otp";
+    if (!email) {
+      setResendStatus("error");
+      setResendMsg("Session expired. Please go back and try again.");
+      setResending(false);
+      return;
+    }
+
+    try {
+      const body = purpose === "password-reset"
+        ? { email, domainUrl: window.location.origin }
+        : { email, purpose, domainUrl: window.location.origin };
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (res.ok) {
+        setResendStatus("success");
+        setResendMsg(`✓ OTP sent to ${email} successfully`);
+        setCooldown(60);
+        // Auto-clear success message after 4s
+        setTimeout(() => { setResendStatus("idle"); setResendMsg(""); }, 4000);
+      } else {
+        const d = await res.json();
+        setResendStatus("error");
+        setResendMsg(d.message || "Failed to resend OTP. Try again.");
+        setTimeout(() => { setResendStatus("idle"); setResendMsg(""); }, 4000);
+      }
+    } catch {
+      setResendStatus("error");
+      setResendMsg("Connection failed. Check your internet and try again.");
+      setTimeout(() => { setResendStatus("idle"); setResendMsg(""); }, 4000);
+    } finally {
+      setResending(false);
     }
   }
 
@@ -259,15 +278,45 @@ export function VerifyOtpPageContent() {
         </button>
       </form>
 
-      <div className="mt-5 space-y-3 text-center">
+      <div className="mt-5 space-y-4 text-center">
+
+        {/* Resend status toast */}
+        {resendMsg && (
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            padding: "7px 14px", borderRadius: 8,
+            background: resendStatus === "success" ? "rgba(52,211,153,0.1)" : resendStatus === "error" ? "rgba(239,68,68,0.1)" : "rgba(217,70,239,0.08)",
+            border: `1px solid ${resendStatus === "success" ? "rgba(52,211,153,0.3)" : resendStatus === "error" ? "rgba(239,68,68,0.3)" : "rgba(217,70,239,0.3)"}`,
+            transition: "all 0.3s",
+          }}>
+            {resendStatus === "sending" && <Loader2 size={12} style={{ color: "rgb(217,70,239)", animation: "spin 1s linear infinite" }} />}
+            {resendStatus === "success" && <CheckCircle2 size={12} style={{ color: "rgb(52,211,153)" }} />}
+            <span style={{ fontSize: 11, color: resendStatus === "success" ? "rgb(52,211,153)" : resendStatus === "error" ? "rgb(239,68,68)" : "rgb(217,70,239)" }}>
+              {resendMsg}
+            </span>
+          </div>
+        )}
+
+        {/* Resend button */}
         <button
           type="button"
           onClick={handleResend}
-          disabled={cooldown > 0 || loading}
-          className={`text-xs transition ${cooldown > 0 ? "text-white/30 cursor-not-allowed" : "text-fuchsia-300 hover:text-fuchsia-200 hover:underline"}`}
+          disabled={cooldown > 0 || resending || loading}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            fontSize: 12, transition: "all 0.2s",
+            color: cooldown > 0 ? "rgba(255,255,255,0.25)" : resending ? "rgba(217,70,239,0.7)" : "rgb(217,70,239)",
+            cursor: cooldown > 0 || resending ? "not-allowed" : "pointer",
+            background: "none", border: "none", padding: 0,
+          }}
         >
-          {cooldown > 0 ? `Resend OTP in ${cooldown}s` : "Resend OTP"}
+          {resending
+            ? <><Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} /> Sending...</>
+            : cooldown > 0
+              ? `Resend OTP in ${cooldown}s`
+              : <><SendHorizonal size={12} /> Resend OTP</>}
         </button>
+
         <p className="text-xs text-white/55">
           <Link href={AUTH_ROUTES.signIn} className="text-fuchsia-300 hover:text-fuchsia-200">
             Back to Sign In
