@@ -24,8 +24,14 @@ export async function POST(req: NextRequest) {
     if (!email?.trim()) {
       return NextResponse.json({ message: "Email is required" }, { status: 400 });
     }
-    if (!password || password.length < 6) {
-      return NextResponse.json({ message: "Password must be at least 6 characters" }, { status: 400 });
+    if (!password) {
+      return NextResponse.json({ message: "Password is required" }, { status: 400 });
+    }
+    
+    // Strict password policy: min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 symbol
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return NextResponse.json({ message: "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a symbol." }, { status: 400 });
     }
     if (password !== confirmPassword) {
       return NextResponse.json({ message: "Passwords do not match" }, { status: 400 });

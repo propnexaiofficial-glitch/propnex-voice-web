@@ -10,22 +10,40 @@ import { AUTH_ROUTES } from "@/features/authentication/types";
 
 type ResetStep = "email" | "new-password";
 
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
 export function ResetPasswordPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const step = (searchParams.get("step") as ResetStep) ?? "email";
-  
+
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-
   const [emailError, setEmailError] = useState("");
   const [confirmChange, setConfirmChange] = useState(false);
+
+  // Password state for new-password step
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const checks = {
+    length: newPassword.length >= 8,
+    upper: /[A-Z]/.test(newPassword),
+    lower: /[a-z]/.test(newPassword),
+    number: /\d/.test(newPassword),
+    symbol: /[\W_]/.test(newPassword),
+  };
+  const passedCount = Object.values(checks).filter(Boolean).length;
+  const isStrong = passedCount === 5;
+  const strengthLabel = passedCount <= 2 ? "Weak" : passedCount === 3 ? "Fair" : passedCount === 4 ? "Good" : "Strong \u2713";
+  const strengthColor = passedCount <= 2 ? "text-red-400" : passedCount === 3 ? "text-amber-400" : passedCount === 4 ? "text-yellow-300" : "text-emerald-400";
+  const barColor = passedCount <= 2 ? "bg-red-500" : passedCount === 3 ? "bg-amber-500" : passedCount === 4 ? "bg-yellow-400" : "bg-emerald-400";
 
   async function handleEmailSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setMessage("");
     setEmailError("");
-    
+
     if (!confirmChange) {
       setMessage("Please confirm you want to change your password.");
       return;
@@ -33,7 +51,7 @@ export function ResetPasswordPageContent() {
 
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
-    
+
     if (!email) {
       setEmailError("Email is required");
       return;
@@ -44,14 +62,11 @@ export function ResetPasswordPageContent() {
       const res = await fetch("/api/users/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          email,
-          domainUrl: window.location.origin
-        }),
+        body: JSON.stringify({ email, domainUrl: window.location.origin }),
       });
 
       const data = await res.json();
-      
+
       if (!res.ok) {
         if (data.message && data.message.toLowerCase().includes("not found")) {
           setEmailError(data.message);
@@ -61,7 +76,6 @@ export function ResetPasswordPageContent() {
         return;
       }
 
-      // Save email to local storage so verify-otp can use it
       localStorage.setItem("reset_email", email);
       router.push(`${AUTH_ROUTES.verifyOtp}?purpose=password-reset`);
     } catch (error) {
@@ -74,11 +88,12 @@ export function ResetPasswordPageContent() {
   async function handlePasswordSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setMessage("");
-    
-    const formData = new FormData(e.currentTarget);
-    const newPassword = formData.get("newPassword") as string;
-    const confirmPassword = formData.get("confirmPassword") as string;
-    
+
+    if (!PASSWORD_REGEX.test(newPassword)) {
+      setMessage("Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a symbol.");
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       setMessage("Passwords do not match.");
       return;
@@ -97,16 +112,11 @@ export function ResetPasswordPageContent() {
       const res = await fetch("/api/users/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          email, 
-          otp, 
-          newPassword,
-          domainUrl: window.location.origin
-        }),
+        body: JSON.stringify({ email, otp, newPassword, domainUrl: window.location.origin }),
       });
 
       const data = await res.json();
-      
+
       if (!res.ok) {
         setMessage(data.message || "Failed to reset password.");
         return;
@@ -114,7 +124,6 @@ export function ResetPasswordPageContent() {
 
       localStorage.removeItem("reset_email");
       localStorage.removeItem("reset_otp");
-      
       router.push(AUTH_ROUTES.signIn + "?reset=success");
     } catch (error) {
       setMessage("Failed to connect. Please try again.");
@@ -128,33 +137,95 @@ export function ResetPasswordPageContent() {
       <AuthShell
         title="Reset Password"
         welcomeTitle="Set a new password"
-        welcomeText="Your OTP has been verified. Enter a new password for your registered account."
+        welcomeText="Your OTP has been verified. Enter a strong new password for your account."
       >
         <form className="space-y-4" onSubmit={handlePasswordSubmit}>
-          <AuthField
-            label="New password"
-            name="newPassword"
-            type="password"
-            placeholder="New password"
-            autoComplete="new-password"
-            required
-            disabled={loading}
-          />
-          <AuthField
-            label="Confirm new password"
-            name="confirmPassword"
-            type="password"
-            placeholder="Confirm new password"
-            autoComplete="new-password"
-            required
-            disabled={loading}
-          />
+          {/* New password + live strength meter */}
+          <div className="space-y-2">
+            <AuthField
+              label="New password"
+              name="newPassword"
+              type="password"
+              placeholder="New password"
+              autoComplete="new-password"
+              required
+              disabled={loading}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            {newPassword.length > 0 && (
+              <div style={{ borderRadius: "1rem", border: "1px solid rgba(217,70,239,0.25)", background: "rgba(217,70,239,0.05)", padding: "0.85rem 1.25rem" }} className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className="flex gap-1 flex-1">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div
+                        key={i}
+                        className={`h-1 flex-1 rounded-full transition-all duration-300 ${passedCount >= i ? barColor : "bg-white/10"}`}
+                      />
+                    ))}
+                  </div>
+                  <span className={`text-xs font-semibold shrink-0 ${strengthColor}`}>{strengthLabel}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-0.5">
+                  {[
+                    { key: "length", label: "8+ characters" },
+                    { key: "upper",  label: "Uppercase (A\u2013Z)" },
+                    { key: "lower",  label: "Lowercase (a\u2013z)" },
+                    { key: "number", label: "Number (0\u20139)" },
+                    { key: "symbol", label: "Symbol (!@#$...)" },
+                  ].map(({ key, label }) => {
+                    const ok = (checks as any)[key];
+                    return (
+                      <div key={key} className={`flex items-center gap-1.5 text-[11px] transition-colors ${ok ? "text-emerald-400" : "text-white/35"}`}>
+                        {ok ? (
+                          <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                        ) : (
+                          <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="9" /></svg>
+                        )}
+                        {label}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Confirm password */}
+          <div className="space-y-1">
+            <AuthField
+              label="Confirm new password"
+              name="confirmPassword"
+              type="password"
+              placeholder="Confirm new password"
+              autoComplete="new-password"
+              required
+              disabled={loading}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+            {newPassword && confirmPassword && (
+              <div className="flex justify-center pt-1">
+                {newPassword === confirmPassword ? (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-medium text-emerald-400">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    Passwords match
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-[11px] font-medium text-red-400">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    Passwords do not match
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {message && (
-            <p className="text-center text-xs text-fuchsia-300">{message}</p>
+            <p className="text-center text-xs text-red-400">{message}</p>
           )}
 
-          <button type="submit" className="auth-btn-primary" disabled={loading}>
+          <button type="submit" className="auth-btn-primary" disabled={loading || !isStrong}>
             {loading ? "Updating..." : "Update Password"}
           </button>
         </form>
@@ -200,7 +271,9 @@ export function ResetPasswordPageContent() {
         </div>
 
         {message && (
-          <p className="text-center text-xs text-fuchsia-300">{message}</p>
+          <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-center text-xs text-red-400">
+            {message}
+          </div>
         )}
 
         <button type="submit" className="auth-btn-primary disabled:opacity-50" disabled={loading || !confirmChange}>

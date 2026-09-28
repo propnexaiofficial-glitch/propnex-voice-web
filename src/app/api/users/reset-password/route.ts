@@ -12,6 +12,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
 
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return NextResponse.json({ message: "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a symbol." }, { status: 400 });
+    }
+
     const normalizedEmail = email.toLowerCase().trim();
 
     const user = await prisma.user.findUnique({
