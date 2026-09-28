@@ -354,6 +354,7 @@ enum SystemEventType {
   COMPANY_CREATED
   JOB_POSTED
   FORM_INFO
+  USER_PASSWORD_CHANGED
 }
 
 enum SupportRequestReason {
