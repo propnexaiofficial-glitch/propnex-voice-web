@@ -95,21 +95,18 @@ export function SignInPageContent() {
   return (
     <AuthShell title="Login">
       <form className="space-y-4" onSubmit={handleSubmit} noValidate>
-        <div>
-          <label className="mb-2 block text-sm font-medium text-white/90">Email address</label>
-          <input
-            className="w-full rounded-md border border-white/20 bg-white/5 p-3 text-sm text-white focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500 disabled:opacity-50"
-            name="email"
-            type="email"
-            placeholder="Email address"
-            autoComplete="email"
-            disabled={submitting}
-            required
-            value={emailValue}
-            onChange={(e) => setEmailValue(e.target.value)}
-          />
-          {errors.email && <p className="mt-1 text-xs text-red-400">{errors.email}</p>}
-        </div>
+        <AuthField
+          label="Email address"
+          name="email"
+          type="email"
+          placeholder="Email address"
+          autoComplete="email"
+          disabled={submitting}
+          required
+          value={emailValue}
+          onChange={(e: any) => setEmailValue(e.target.value)}
+          error={errors.email}
+        />
 
         <AuthField
           label="Password"
