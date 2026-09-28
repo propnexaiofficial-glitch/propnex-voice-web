@@ -24,6 +24,12 @@ export const getFullUrl = (url?: string | null): string | null => {
     }
   }
 
+  // If the admin uploaded a file, it gets saved to the admin panel's server.
+  // We must prefix it with the admin domain so white-label domains can load it!
+  if (url.startsWith("/uploads/")) {
+    return `https://admin.propnexai.com${url}`;
+  }
+
   // Ensure absolute URLs have a protocol if they aren't relative paths or data URIs
   if (!url.startsWith("/") && !url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("data:")) {
     return `https://${url}`;
