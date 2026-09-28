@@ -18,14 +18,26 @@ export function ResetPasswordPageContent() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [emailError, setEmailError] = useState("");
+  const [confirmChange, setConfirmChange] = useState(false);
+
   async function handleEmailSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setMessage("");
+    setEmailError("");
     
+    if (!confirmChange) {
+      setMessage("Please confirm you want to change your password.");
+      return;
+    }
+
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     
-    if (!email) return;
+    if (!email) {
+      setEmailError("Email is required");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -41,7 +53,11 @@ export function ResetPasswordPageContent() {
       const data = await res.json();
       
       if (!res.ok) {
-        setMessage(data.message || "Something went wrong.");
+        if (data.message && data.message.toLowerCase().includes("not found")) {
+          setEmailError(data.message);
+        } else {
+          setMessage(data.message || "Something went wrong.");
+        }
         return;
       }
 
@@ -167,13 +183,27 @@ export function ResetPasswordPageContent() {
           autoComplete="email"
           required
           disabled={loading}
+          error={emailError}
         />
+
+        <div className="flex flex-col gap-1">
+          <label className="flex items-center gap-2 text-sm text-white/80">
+            <input
+              type="checkbox"
+              checked={confirmChange}
+              onChange={(e) => setConfirmChange(e.target.checked)}
+              className="size-4 rounded border-white/60 accent-fuchsia-500"
+              disabled={loading}
+            />
+            I want to change my password
+          </label>
+        </div>
 
         {message && (
           <p className="text-center text-xs text-fuchsia-300">{message}</p>
         )}
 
-        <button type="submit" className="auth-btn-primary" disabled={loading}>
+        <button type="submit" className="auth-btn-primary disabled:opacity-50" disabled={loading || !confirmChange}>
           {loading ? "Sending..." : "Send Reset OTP"}
         </button>
       </form>

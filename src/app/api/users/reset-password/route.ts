@@ -36,6 +36,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "OTP has expired" }, { status: 400 });
     }
 
+    if (user.passwordHash) {
+      const isSamePassword = await bcrypt.compare(newPassword, user.passwordHash);
+      if (isSamePassword) {
+        return NextResponse.json({ message: "Password is the same as the previous one and cannot be used" }, { status: 400 });
+      }
+    }
+
     const passwordHash = await bcrypt.hash(newPassword, 10);
 
     await prisma.user.update({

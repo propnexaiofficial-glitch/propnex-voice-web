@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
     const accessToken = jwt.sign(
       { sub: user.id, email: user.email },
       JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "365d" }
     );
 
     return NextResponse.json({

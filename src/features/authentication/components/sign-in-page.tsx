@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 import { AuthField } from "@/features/authentication/components/auth-field";
@@ -15,6 +15,19 @@ export function SignInPageContent() {
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+
+  const [emailValue, setEmailValue] = useState("");
+  const [trustedEmails, setTrustedEmails] = useState<string[]>([]);
+
+  // Load trusted emails on mount
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("trusted_emails") || "[]");
+      setTrustedEmails(stored);
+    } catch (e) {}
+  }, []);
+
+  const isCurrentEmailTrusted = trustedEmails.includes(emailValue.toLowerCase());
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -40,12 +53,7 @@ export function SignInPageContent() {
     setSubmitting(true);
 
     try {
-      let trustedEmails: string[] = [];
-      try {
-        trustedEmails = JSON.parse(localStorage.getItem("trusted_emails") || "[]");
-      } catch (e) {}
-
-      const isTrusted = rememberMe && trustedEmails.includes(email);
+      const isTrusted = isCurrentEmailTrusted || (rememberMe && !trustedEmails.includes(email));
 
       const response = await axios.post(`/api/users/signin`, {
         email,
@@ -87,16 +95,22 @@ export function SignInPageContent() {
   return (
     <AuthShell title="Login">
       <form className="space-y-4" onSubmit={handleSubmit} noValidate>
-        <AuthField
-          label="Email address"
-          name="email"
-          type="email"
-          placeholder="Email address"
-          autoComplete="email"
-          disabled={submitting}
-          error={errors.email}
-          required
-        />
+        <div>
+          <label className="mb-2 block text-sm font-medium text-white/90">Email address</label>
+          <input
+            className="w-full rounded-md border border-white/20 bg-white/5 p-3 text-sm text-white focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500 disabled:opacity-50"
+            name="email"
+            type="email"
+            placeholder="Email address"
+            autoComplete="email"
+            disabled={submitting}
+            required
+            value={emailValue}
+            onChange={(e) => setEmailValue(e.target.value)}
+          />
+          {errors.email && <p className="mt-1 text-xs text-red-400">{errors.email}</p>}
+        </div>
+
         <AuthField
           label="Password"
           name="password"
@@ -108,21 +122,30 @@ export function SignInPageContent() {
           required
         />
 
-        <div className="flex flex-col gap-1">
-          <label className="flex items-center gap-2 text-sm text-white/80">
-            <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              className="size-4 rounded border-white/60 accent-fuchsia-500"
-              disabled={submitting}
-            />
-            Remember me
-          </label>
-          <span className="text-[10px] text-white/40 ml-6">
-            Save this device to skip OTP verification for future logins.
-          </span>
-        </div>
+        {!isCurrentEmailTrusted && (
+          <div className="flex flex-col gap-1">
+            <label className="flex items-center gap-2 text-sm text-white/80">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="size-4 rounded border-white/60 accent-fuchsia-500"
+                disabled={submitting}
+              />
+              Remember me
+            </label>
+            <span className="text-[10px] text-white/40 ml-6">
+              Save this device to skip OTP verification for future logins.
+            </span>
+          </div>
+        )}
+
+        {isCurrentEmailTrusted && (
+          <div className="flex items-center gap-2 text-sm text-fuchsia-400">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            Device remembered for this email
+          </div>
+        )}
 
         {errors.root && (
           <p className="text-center text-xs text-red-400">{errors.root}</p>
