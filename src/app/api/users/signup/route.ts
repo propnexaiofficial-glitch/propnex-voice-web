@@ -79,6 +79,7 @@ export async function POST(req: NextRequest) {
 
     const host = req.headers.get("host") || "";
     let domainUrl = "https://propnexai.com";
+    let branding = undefined;
     if (host) {
       try {
         const domainRecord = await prisma.whiteLabelDomain.findFirst({
@@ -86,27 +87,31 @@ export async function POST(req: NextRequest) {
         });
         if (domainRecord) {
           domainUrl = "https://" + domainRecord.domain;
+          branding = {
+            companyName: domainRecord.companyName,
+            supportEmail: domainRecord.supportEmail,
+            supportPhone: domainRecord.supportPhone,
+            domain: domainRecord.domain
+          };
         }
       } catch (err) {}
     }
 
     const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_WEBHOOK_URL || "https://script.google.com/macros/s/AKfycbz2zj_l7vcmiPZKuYqEVdso0apyW3aDJZZWTVTJ1jRrQr8PLGZIH_TzRpTLFskphIwgDQ/exec";
     
-    try {
-      await fetch(APPS_SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "signup_otp",
-          userEmail: userToUse.email,
-          userName: userToUse.firstName || "User",
-          otp: otp,
-          domainUrl: domainUrl
-        }),
-      });
-    } catch (e) {
-      console.warn(`Webhook signup_otp failed: ${e}`);
-    }
+    // Trigger Google Apps Script Webhook - NON BLOCKING
+    fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "signup_otp",
+        userEmail: userToUse.email,
+        userName: userToUse.firstName || "User",
+        otp: otp,
+        domainUrl: domainUrl,
+        branding: branding
+      }),
+    }).catch(e => console.warn(`Webhook signup_otp failed: ${e}`));
 
     return NextResponse.json({ message: "OTP required", requireOtp: true }, { status: 201 });
   } catch (err: any) {

@@ -35,8 +35,28 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Send OTP via Apps Script
-    await fetch(APPS_SCRIPT_URL, {
+    const host = req.headers.get("host") || "";
+    let domainUrl = "https://propnexai.com";
+    let branding = undefined;
+    if (host) {
+      try {
+        const domainRecord = await prisma.whiteLabelDomain.findFirst({
+          where: { domain: host, status: "ACTIVE" }
+        });
+        if (domainRecord) {
+          domainUrl = "https://" + domainRecord.domain;
+          branding = {
+            companyName: domainRecord.companyName,
+            supportEmail: domainRecord.supportEmail,
+            supportPhone: domainRecord.supportPhone,
+            domain: domainRecord.domain
+          };
+        }
+      } catch (err) {}
+    }
+
+    // Send OTP via Apps Script - NON BLOCKING
+    fetch(APPS_SCRIPT_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -44,9 +64,10 @@ export async function POST(req: NextRequest) {
         userEmail: user.email,
         userName: user.firstName || "User",
         otp: otp,
-        domainUrl: domainUrl || "https://propnexai.com"
+        domainUrl: domainUrl || "https://propnexai.com",
+        branding: branding
       })
-    });
+    }).catch(e => console.warn(`Webhook password_reset_otp failed: ${e}`));
 
     return NextResponse.json({ message: "OTP sent" }, { status: 200 });
   } catch (err: any) {

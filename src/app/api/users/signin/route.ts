@@ -60,22 +60,42 @@ export async function POST(req: NextRequest) {
         data: { resetPasswordOtp: otp, resetPasswordExpires: expires }
       });
 
-      const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2zj_l7vcmiPZKuYqEVdso0apyW3aDJZZWTVTJ1jRrQr8PLGZIH_TzRpTLFskphIwgDQ/exec";
-      try {
-        await fetch(APPS_SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "login_otp",
-            userEmail: user.email,
-            userName: user.firstName || "User",
-            otp: otp,
-            domainUrl: domainUrl || "https://propnexai.com"
-          })
-        });
-      } catch (err) {
-        console.error("Failed to send login OTP:", err);
+      const host = req.headers.get("host") || "";
+      let domainUrl = "https://propnexai.com";
+      let branding = undefined;
+
+      if (host) {
+        try {
+          const domainRecord = await prisma.whiteLabelDomain.findFirst({
+            where: { domain: host, status: "ACTIVE" }
+          });
+          if (domainRecord) {
+            domainUrl = "https://" + domainRecord.domain;
+            branding = {
+              companyName: domainRecord.companyName,
+              supportEmail: domainRecord.supportEmail,
+              supportPhone: domainRecord.supportPhone,
+              domain: domainRecord.domain
+            };
+          }
+        } catch (err) {}
       }
+
+
+      const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2zj_l7vcmiPZKuYqEVdso0apyW3aDJZZWTVTJ1jRrQr8PLGZIH_TzRpTLFskphIwgDQ/exec";
+      // Trigger Google Apps Script Webhook - NON BLOCKING
+      fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "login_otp",
+          userEmail: user.email,
+          userName: user.firstName || "User",
+          otp: otp,
+          domainUrl: domainUrl || "https://propnexai.com",
+          branding: branding
+        })
+      }).catch(err => console.error("Failed to send login OTP:", err));
 
       return NextResponse.json({ message: "OTP required", requireOtp: true }, { status: 200 });
     }
