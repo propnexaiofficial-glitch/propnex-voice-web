@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
 
     await (prisma as any).systemEvent.create({
       data: {
-        type: "USER_EDITED", // Or whatever fits best
+        type: "USER_PASSWORD_CHANGED",
         title: "Password Changed",
         message: `${user.email} changed their password via domain ${domain}`,
         companyId: companyId,
