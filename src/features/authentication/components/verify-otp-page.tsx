@@ -198,10 +198,6 @@ export function VerifyOtpPageContent() {
     }
   }
 
-  const maskedEmail = email
-    ? email.replace(/^(.{2})(.*)(@.*)$/, (_, a, b, c) => a + "*".repeat(Math.max(b.length - 1, 2)) + c)
-    : "";
-
   return (
     <AuthShell
       title={copy.title}
@@ -238,7 +234,7 @@ export function VerifyOtpPageContent() {
                 background: "rgba(217,70,239,0.08)",
               }}>
                 <CheckCircle2 size={13} style={{ color: "rgb(52,211,153)", flexShrink: 0 }} />
-                <span className="text-sm font-semibold text-white/90 tracking-wide">{maskedEmail}</span>
+                <span className="text-sm font-semibold text-white/90 tracking-wide">{email}</span>
               </div>
               <button
                 type="button"
