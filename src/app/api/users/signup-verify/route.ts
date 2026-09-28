@@ -76,26 +76,22 @@ export async function POST(req: NextRequest) {
       } catch (err) {}
     }
 
-    // Trigger Google Apps Script Webhook for New Registration (Thanks email)
-    try {
-      await fetch(APPS_SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "new_registration",
-          name: `${activatedUser.firstName} ${activatedUser.lastName}`.trim(),
-          email: normalizedEmail,
-          branding: branding,
-        }),
-      });
-    } catch (e) {
-      console.warn(`Webhook new_registration failed: ${e}`);
-    }
+    // Trigger Google Apps Script Webhook for New Registration (Thanks email) - NON BLOCKING
+    fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "new_registration",
+        name: `${activatedUser.firstName} ${activatedUser.lastName}`.trim(),
+        email: normalizedEmail,
+        branding: branding,
+      }),
+    }).catch(e => console.warn(`Webhook new_registration failed: ${e}`));
 
     const accessToken = jwt.sign(
       { sub: activatedUser.id, email: activatedUser.email },
       JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "365d" }
     );
 
     return NextResponse.json({

@@ -150,7 +150,7 @@ export function VerifyOtpPageContent() {
         localStorage.setItem("user", JSON.stringify(data.user));
 
         setMessage("Account verified! Redirecting...");
-        setTimeout(() => router.push(copy.next), 1500);
+        setTimeout(() => router.push(copy.next), 300);
       } catch (error) {
         setMessage("Failed to verify signup OTP.");
       } finally {
