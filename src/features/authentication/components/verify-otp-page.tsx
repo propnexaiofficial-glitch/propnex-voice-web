@@ -22,7 +22,7 @@ const purposeCopy: Record<OtpPurpose, { title: string; heading: string; subtext:
     title: "Reset Password",
     heading: "Check your email",
     subtext: "We sent a 6-digit password reset code to",
-    editRoute: AUTH_ROUTES.forgotPassword,
+    editRoute: AUTH_ROUTES.resetPassword,
     emailKey: "reset_email",
     next: `${AUTH_ROUTES.resetPassword}?step=new-password`,
   },
