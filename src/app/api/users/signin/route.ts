@@ -50,7 +50,21 @@ export async function POST(req: NextRequest) {
 
     const { trusted, domainUrl } = body as { trusted?: boolean, domainUrl?: string };
 
-    if (!trusted) {
+    // If a global force-logout was triggered, ignore the trusted flag and always require OTP
+    let effectiveTrusted = trusted;
+    try {
+      const globalLogoutSetting = await (prisma as any).globalSetting.findUnique({
+        where: { key: "global_logout_at" }
+      });
+      if (globalLogoutSetting?.value) {
+        // Force OTP for everyone after a global logout — trusted device status is reset
+        effectiveTrusted = false;
+      }
+    } catch (e) {
+      // If setting doesn't exist yet, proceed normally
+    }
+
+    if (!effectiveTrusted) {
       // Generate OTP
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const expires = new Date(Date.now() + 10 * 60 * 1000);

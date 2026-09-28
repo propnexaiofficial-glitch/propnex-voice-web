@@ -278,9 +278,12 @@ function DashboardShellInner({
               }
             }
           } else if (response.status === 401) {
+            // Clear ALL auth data including trusted device memory
             localStorage.removeItem("user");
             localStorage.removeItem("accessToken");
             localStorage.removeItem("access_token");
+            localStorage.removeItem("trusted_emails");
+            localStorage.removeItem("login_remember_me");
             window.location.href = "/";
           }
         } catch (e) {
