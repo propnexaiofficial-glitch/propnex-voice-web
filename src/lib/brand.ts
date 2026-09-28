@@ -6,7 +6,7 @@ const defaultBrand: WhiteLabelConfig = {
   companyName: "PropNex AI",
   logoUrl: "/propnex-logo.png",
   faviconUrl: "/favicon.ico",
-  instagramUrl: null,
+  instagramUrl: "https://www.instagram.com/propnexai?stkn=Ym96dTE1MjJjcHg1",
   linkedinUrl: null,
   supportEmail: "support@propnexai.com",
   supportPhone: "+91 9889479110",
