@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     });
 
     const host = req.headers.get("host") || "";
-    let domainUrl = "https://propnexai.com";
+    let finalDomainUrl = domainUrl || "https://propnexai.com";
     let branding = undefined;
     if (host) {
       try {
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
           where: { domain: host, status: "ACTIVE" }
         });
         if (domainRecord) {
-          domainUrl = "https://" + domainRecord.domain;
+          finalDomainUrl = "https://" + domainRecord.domain;
           branding = {
             companyName: domainRecord.companyName,
             supportEmail: domainRecord.supportEmail,
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
         userEmail: user.email,
         userName: user.firstName || "User",
         otp: otp,
-        domainUrl: domainUrl || "https://propnexai.com",
+        domainUrl: finalDomainUrl,
         branding: branding
       })
     }).catch(e => console.warn(`Webhook password_reset_otp failed: ${e}`));
