@@ -24,10 +24,10 @@ export const getFullUrl = (url?: string | null): string | null => {
     }
   }
 
-  // If the admin uploaded a file, it gets saved to the admin panel's server.
-  // We must prefix it with the admin domain so white-label domains can load it!
+  // Next.js doesn't serve files added to the public folder at runtime.
+  // We route /uploads/ to our dynamic /api/uploads/ route to serve them properly.
   if (url.startsWith("/uploads/")) {
-    return `https://admin.propnexai.com${url}`;
+    return `/api${url}`;
   }
 
   // Ensure absolute URLs have a protocol if they aren't relative paths or data URIs
