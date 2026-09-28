@@ -53,7 +53,7 @@ export function SignInPageContent() {
     setSubmitting(true);
 
     try {
-      const isTrusted = isCurrentEmailTrusted || (rememberMe && !trustedEmails.includes(email));
+      const isTrusted = isCurrentEmailTrusted;
 
       // Get the timestamp when this device was trusted (from trusted_devices)
       let trustedAt: string | null = null;
