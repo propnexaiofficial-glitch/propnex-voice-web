@@ -14,18 +14,97 @@ export function ResetPasswordPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const step = (searchParams.get("step") as ResetStep) ?? "email";
+  
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleEmailSubmit(e: React.FormEvent) {
+  async function handleEmailSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setMessage("");
-    router.push(`${AUTH_ROUTES.verifyOtp}?purpose=password-reset`);
+    
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    
+    if (!email) return;
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/users/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          email,
+          domainUrl: window.location.origin
+        }),
+      });
+
+      const data = await res.json();
+      
+      if (!res.ok) {
+        setMessage(data.message || "Something went wrong.");
+        return;
+      }
+
+      // Save email to local storage so verify-otp can use it
+      localStorage.setItem("reset_email", email);
+      router.push(`${AUTH_ROUTES.verifyOtp}?purpose=password-reset`);
+    } catch (error) {
+      setMessage("Failed to connect. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function handlePasswordSubmit(e: React.FormEvent) {
+  async function handlePasswordSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setMessage("");
-    router.push(AUTH_ROUTES.signIn);
+    
+    const formData = new FormData(e.currentTarget);
+    const newPassword = formData.get("newPassword") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
+    
+    if (newPassword !== confirmPassword) {
+      setMessage("Passwords do not match.");
+      return;
+    }
+
+    const email = localStorage.getItem("reset_email");
+    const otp = localStorage.getItem("reset_otp");
+
+    if (!email || !otp) {
+      setMessage("Session expired. Please restart the process.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/users/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          email, 
+          otp, 
+          newPassword,
+          domainUrl: window.location.origin
+        }),
+      });
+
+      const data = await res.json();
+      
+      if (!res.ok) {
+        setMessage(data.message || "Failed to reset password.");
+        return;
+      }
+
+      localStorage.removeItem("reset_email");
+      localStorage.removeItem("reset_otp");
+      
+      router.push(AUTH_ROUTES.signIn + "?reset=success");
+    } catch (error) {
+      setMessage("Failed to connect. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (step === "new-password") {
@@ -43,6 +122,7 @@ export function ResetPasswordPageContent() {
             placeholder="New password"
             autoComplete="new-password"
             required
+            disabled={loading}
           />
           <AuthField
             label="Confirm new password"
@@ -51,14 +131,15 @@ export function ResetPasswordPageContent() {
             placeholder="Confirm new password"
             autoComplete="new-password"
             required
+            disabled={loading}
           />
 
           {message && (
             <p className="text-center text-xs text-fuchsia-300">{message}</p>
           )}
 
-          <button type="submit" className="auth-btn-primary">
-            Update Password
+          <button type="submit" className="auth-btn-primary" disabled={loading}>
+            {loading ? "Updating..." : "Update Password"}
           </button>
         </form>
 
@@ -85,14 +166,15 @@ export function ResetPasswordPageContent() {
           placeholder="Registered email address"
           autoComplete="email"
           required
+          disabled={loading}
         />
 
         {message && (
           <p className="text-center text-xs text-fuchsia-300">{message}</p>
         )}
 
-        <button type="submit" className="auth-btn-primary">
-          Send Reset OTP
+        <button type="submit" className="auth-btn-primary" disabled={loading}>
+          {loading ? "Sending..." : "Send Reset OTP"}
         </button>
       </form>
 
