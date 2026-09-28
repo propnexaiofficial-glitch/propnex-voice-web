@@ -48,17 +48,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Your account has been suspended. Please contact support." }, { status: 403 });
     }
 
-    const { trusted, domainUrl } = body as { trusted?: boolean, domainUrl?: string };
+    const { trusted, trustedAt, domainUrl } = body as { trusted?: boolean; trustedAt?: string; domainUrl?: string };
 
-    // If a global force-logout was triggered, ignore the trusted flag and always require OTP
+    // If a global force-logout was triggered, check if the device trust was granted AFTER the logout
+    // Only require OTP if the trust predates the force-logout (or no trustedAt timestamp was sent)
     let effectiveTrusted = trusted;
     try {
       const globalLogoutSetting = await (prisma as any).globalSetting.findUnique({
         where: { key: "global_logout_at" }
       });
       if (globalLogoutSetting?.value) {
-        // Force OTP for everyone after a global logout — trusted device status is reset
-        effectiveTrusted = false;
+        const globalLogoutAt = new Date(globalLogoutSetting.value);
+        if (!trustedAt || new Date(trustedAt) <= globalLogoutAt) {
+          // Device trust predates the force-logout → require OTP again
+          effectiveTrusted = false;
+        }
+        // else: trustedAt > globalLogoutAt → user already re-authenticated via OTP after the logout → allow bypass
       }
     } catch (e) {
       // If setting doesn't exist yet, proceed normally

@@ -106,10 +106,17 @@ export function VerifyOtpPageContent() {
 
         const rememberMe = localStorage.getItem("login_remember_me");
         if (rememberMe === "true") {
-          let trusted: string[] = [];
-          try { trusted = JSON.parse(localStorage.getItem("trusted_emails") || "[]"); } catch {}
-          if (!trusted.includes(email)) trusted.push(email);
-          localStorage.setItem("trusted_emails", JSON.stringify(trusted));
+          // Store trust as { email, trustedAt } so server can verify it was granted AFTER any force-logout
+          let trusted: { email: string; trustedAt: string }[] = [];
+          try { trusted = JSON.parse(localStorage.getItem("trusted_devices") || "[]"); } catch {}
+          trusted = trusted.filter(t => t.email !== email); // remove old entry for this email
+          trusted.push({ email, trustedAt: new Date().toISOString() });
+          localStorage.setItem("trusted_devices", JSON.stringify(trusted));
+          // Keep legacy trusted_emails for backward compat
+          let trustedEmails: string[] = [];
+          try { trustedEmails = JSON.parse(localStorage.getItem("trusted_emails") || "[]"); } catch {}
+          if (!trustedEmails.includes(email)) trustedEmails.push(email);
+          localStorage.setItem("trusted_emails", JSON.stringify(trustedEmails));
         }
         localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("access_token", data.access_token);

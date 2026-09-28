@@ -283,6 +283,7 @@ function DashboardShellInner({
             localStorage.removeItem("accessToken");
             localStorage.removeItem("access_token");
             localStorage.removeItem("trusted_emails");
+            localStorage.removeItem("trusted_devices");
             localStorage.removeItem("login_remember_me");
             window.location.href = "/";
           }

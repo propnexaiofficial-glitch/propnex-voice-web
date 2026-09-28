@@ -55,10 +55,21 @@ export function SignInPageContent() {
     try {
       const isTrusted = isCurrentEmailTrusted || (rememberMe && !trustedEmails.includes(email));
 
+      // Get the timestamp when this device was trusted (from trusted_devices)
+      let trustedAt: string | null = null;
+      if (isTrusted) {
+        try {
+          const devices: { email: string; trustedAt: string }[] = JSON.parse(localStorage.getItem("trusted_devices") || "[]");
+          const device = devices.find(d => d.email === email.toLowerCase());
+          trustedAt = device?.trustedAt || null;
+        } catch {}
+      }
+
       const response = await axios.post(`/api/users/signin`, {
         email,
         password,
         trusted: isTrusted,
+        trustedAt,   // ISO timestamp — server verifies this is AFTER any force-logout
         domainUrl: window.location.origin,
       });
 
