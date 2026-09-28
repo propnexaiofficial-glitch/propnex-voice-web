@@ -12,7 +12,7 @@ import { AUTH_ROUTES } from "@/features/authentication/types";
 
 export function SignInPageContent() {
   const router = useRouter();
-  const [rememberMe, setRememberMe] = useState(true);
+  const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -40,12 +40,32 @@ export function SignInPageContent() {
     setSubmitting(true);
 
     try {
+      let trustedEmails: string[] = [];
+      try {
+        trustedEmails = JSON.parse(localStorage.getItem("trusted_emails") || "[]");
+      } catch (e) {}
+
+      const isTrusted = rememberMe && trustedEmails.includes(email);
+
       const response = await axios.post(`/api/users/signin`, {
         email,
         password,
+        trusted: isTrusted,
+        domainUrl: window.location.origin,
       });
 
       const data = response.data;
+
+      if (data.requireOtp) {
+        localStorage.setItem("login_email", email);
+        if (rememberMe) {
+          localStorage.setItem("login_remember_me", "true");
+        } else {
+          localStorage.removeItem("login_remember_me");
+        }
+        router.push(`${AUTH_ROUTES.verifyOtp}?purpose=login-verification`);
+        return;
+      }
 
       // Store tokens and user profile
       localStorage.setItem("accessToken", data.accessToken);
@@ -88,16 +108,21 @@ export function SignInPageContent() {
           required
         />
 
-        <label className="flex items-center gap-2 text-sm text-white/80">
-          <input
-            type="checkbox"
-            checked={rememberMe}
-            onChange={(e) => setRememberMe(e.target.checked)}
-            className="size-4 rounded border-white/60 accent-fuchsia-500"
-            disabled={submitting}
-          />
-          Remember me
-        </label>
+        <div className="flex flex-col gap-1">
+          <label className="flex items-center gap-2 text-sm text-white/80">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="size-4 rounded border-white/60 accent-fuchsia-500"
+              disabled={submitting}
+            />
+            Remember me
+          </label>
+          <span className="text-[10px] text-white/40 ml-6">
+            Save this device to skip OTP verification for future logins.
+          </span>
+        </div>
 
         {errors.root && (
           <p className="text-center text-xs text-red-400">{errors.root}</p>

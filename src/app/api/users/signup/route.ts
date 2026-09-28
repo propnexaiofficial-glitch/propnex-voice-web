@@ -36,9 +36,26 @@ export async function POST(req: NextRequest) {
     const passwordHash = await bcrypt.hash(password, 10);
     const clerkUserId = `local_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
-    let newUser;
-    try {
-      newUser = await prisma.user.create({
+    let userToUse;
+    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    
+    if (existingUser) {
+      if (existingUser.status === "ACTIVE" || existingUser.status === "SUSPENDED") {
+        return NextResponse.json({ message: "Email already registered" }, { status: 409 });
+      }
+      
+      // Update existing deactivated user
+      userToUse = await prisma.user.update({
+        where: { email: normalizedEmail },
+        data: {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          phone: phone || null,
+          passwordHash,
+        }
+      });
+    } else {
+      userToUse = await prisma.user.create({
         data: {
           email: normalizedEmail,
           firstName: firstName.trim(),
@@ -46,83 +63,52 @@ export async function POST(req: NextRequest) {
           phone: phone || null,
           passwordHash,
           clerkUserId,
-          status: "ACTIVE",
+          status: "DEACTIVATED",
         } as any,
       });
-    } catch (e: any) {
-      if (e.code === 'P2002') {
-        return NextResponse.json({ message: "Email already registered" }, { status: 409 });
-      }
-      throw e;
     }
 
-    // Create PendingApproval so admin panel gets notified
-    try {
-      await prisma.pendingApproval.create({
-        data: { email: normalizedEmail },
-      });
-    } catch (e) {
-      console.warn(`PendingApproval creation skipped: ${e}`);
-    }
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = new Date(Date.now() + 10 * 60 * 1000);
 
-    // Trigger Google Apps Script Webhook for New Registration (Thanks email)
+    await prisma.user.update({
+      where: { id: userToUse.id },
+      data: { resetPasswordOtp: otp, resetPasswordExpires: expires }
+    });
+
     const host = req.headers.get("host") || "";
-    let branding = undefined;
+    let domainUrl = "https://propnexai.com";
     if (host) {
       try {
         const domainRecord = await prisma.whiteLabelDomain.findFirst({
           where: { domain: host, status: "ACTIVE" }
         });
         if (domainRecord) {
-          branding = {
-            companyName: domainRecord.companyName,
-            supportEmail: domainRecord.supportEmail,
-            supportPhone: domainRecord.supportPhone,
-            domain: domainRecord.domain
-          };
+          domainUrl = "https://" + domainRecord.domain;
         }
-      } catch (err) {
-        console.warn("Could not fetch branding for webhook:", err);
-      }
+      } catch (err) {}
     }
 
-    const WEBHOOK_URL = process.env.APPS_SCRIPT_WEBHOOK_URL || "https://script.google.com/macros/s/AKfycbz2zj_l7vcmiPZKuYqEVdso0apyW3aDJZZWTVTJ1jRrQr8PLGZIH_TzRpTLFskphIwgDQ/exec";
+    const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_WEBHOOK_URL || "https://script.google.com/macros/s/AKfycbz2zj_l7vcmiPZKuYqEVdso0apyW3aDJZZWTVTJ1jRrQr8PLGZIH_TzRpTLFskphIwgDQ/exec";
+    
     try {
-      await fetch(WEBHOOK_URL, {
+      await fetch(APPS_SCRIPT_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type: "new_registration",
-          name: `${firstName} ${lastName}`.trim(),
-          email: normalizedEmail,
-          branding: branding,
+          type: "signup_otp",
+          userEmail: userToUse.email,
+          userName: userToUse.firstName || "User",
+          otp: otp,
+          domainUrl: domainUrl
         }),
       });
     } catch (e) {
-      console.warn(`Webhook new_registration failed: ${e}`);
+      console.warn(`Webhook signup_otp failed: ${e}`);
     }
-    const accessToken = jwt.sign(
-      { sub: newUser.id, email: newUser.email },
-      JWT_SECRET,
-      { expiresIn: "1d" }
-    );
 
-    return NextResponse.json(
-      {
-        accessToken,
-        access_token: accessToken,
-        user: {
-          id: newUser.id,
-          firstName: newUser.firstName,
-          lastName: newUser.lastName,
-          email: newUser.email,
-          phone: (newUser as any).phone,
-          companyId: null,
-          contractId: null,
-        },
-      },
-      { status: 201 }
-    );
+    return NextResponse.json({ message: "OTP required", requireOtp: true }, { status: 201 });
   } catch (err: any) {
     console.error("POST /api/users/signup failed:", err);
     return NextResponse.json({ message: err.message || "Internal server error" }, { status: 500 });

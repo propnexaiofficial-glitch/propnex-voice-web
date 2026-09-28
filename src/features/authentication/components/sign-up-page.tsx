@@ -67,7 +67,7 @@ export function SignUpPageContent() {
     setSubmitting(true);
 
     try {
-      await axios.post(`/api/users/signup`, {
+      const response = await axios.post(`/api/users/signup`, {
         firstName,
         lastName,
         email,
@@ -76,6 +76,11 @@ export function SignUpPageContent() {
         confirmPassword,
       });
 
+      if (response.data?.requireOtp) {
+        localStorage.setItem("signup_email", email);
+        router.push(`${AUTH_ROUTES.verifyOtp}?purpose=signup-verification`);
+        return;
+      }
 
       router.push(AUTH_ROUTES.signIn);
     } catch (err: any) {

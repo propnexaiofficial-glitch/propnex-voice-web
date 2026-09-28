@@ -19,6 +19,16 @@ const purposeCopy: Record<OtpPurpose, { title: string; text: string; next: strin
     text: "Enter the password-reset OTP sent to your registered email.",
     next: `${AUTH_ROUTES.resetPassword}?step=new-password`,
   },
+  "login-verification": {
+    title: "Verify Login",
+    text: "Enter the login OTP sent to your registered email.",
+    next: AUTH_ROUTES.dashboard,
+  },
+  "signup-verification": {
+    title: "Verify Email",
+    text: "Enter the OTP sent to your email to activate your account.",
+    next: AUTH_ROUTES.signIn,
+  }
 };
 
 export function VerifyOtpPageContent() {
@@ -75,8 +85,78 @@ export function VerifyOtpPageContent() {
       } finally {
         setLoading(false);
       }
+    } else if (purpose === "login-verification") {
+      const email = localStorage.getItem("login_email");
+      if (!email) {
+        setMessage("Session expired.");
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const res = await fetch("/api/users/signin-verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, otp }),
+        });
+        
+        const data = await res.json();
+        if (!res.ok) {
+          setMessage(data.message || "Invalid OTP");
+          return;
+        }
+
+        const rememberMe = localStorage.getItem("login_remember_me");
+        if (rememberMe === "true") {
+          let trusted = [];
+          try { trusted = JSON.parse(localStorage.getItem("trusted_emails") || "[]"); } catch (e) {}
+          if (!trusted.includes(email)) trusted.push(email);
+          localStorage.setItem("trusted_emails", JSON.stringify(trusted));
+        }
+
+        localStorage.setItem("accessToken", data.accessToken);
+        localStorage.setItem("access_token", data.access_token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        
+        router.push(copy.next);
+      } catch (error) {
+        setMessage("Failed to verify login OTP.");
+      } finally {
+        setLoading(false);
+      }
+    } else if (purpose === "signup-verification") {
+      const email = localStorage.getItem("signup_email");
+      if (!email) {
+        setMessage("Session expired.");
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const res = await fetch("/api/users/signup-verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, otp, domainUrl: window.location.origin }),
+        });
+        
+        const data = await res.json();
+        if (!res.ok) {
+          setMessage(data.message || "Invalid OTP");
+          return;
+        }
+
+        localStorage.setItem("accessToken", data.accessToken);
+        localStorage.setItem("access_token", data.access_token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+
+        setMessage("Account verified! Redirecting...");
+        setTimeout(() => router.push(copy.next), 1500);
+      } catch (error) {
+        setMessage("Failed to verify signup OTP.");
+      } finally {
+        setLoading(false);
+      }
     } else {
-      // Logic for email-verification if any
       router.push(copy.next);
     }
   }
@@ -97,6 +177,33 @@ export function VerifyOtpPageContent() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, domainUrl: window.location.origin }),
+        });
+        
+        if (res.ok) {
+          setMessage("OTP resent. Please check your registered email.");
+          setCooldown(60);
+        } else {
+          const data = await res.json();
+          setMessage(data.message || "Failed to resend OTP.");
+        }
+      } catch (error) {
+        setMessage("Failed to connect.");
+      } finally {
+        setLoading(false);
+      }
+    } else if (purpose === "login-verification" || purpose === "signup-verification") {
+      const email = localStorage.getItem(purpose === "login-verification" ? "login_email" : "signup_email");
+      if (!email) {
+        setMessage("Session expired.");
+        return;
+      }
+      
+      setLoading(true);
+      try {
+        const res = await fetch("/api/users/resend-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, purpose, domainUrl: window.location.origin }),
         });
         
         if (res.ok) {

@@ -6,7 +6,7 @@ export type AuthField = {
   autoComplete?: string;
 };
 
-export type OtpPurpose = "email-verification" | "password-reset";
+export type OtpPurpose = "email-verification" | "password-reset" | "login-verification" | "signup-verification";
 
 export const AUTH_ROUTES = {
   signIn: "/auth/sign-in",

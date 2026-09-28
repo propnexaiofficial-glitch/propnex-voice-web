@@ -48,6 +48,38 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Your account has been suspended. Please contact support." }, { status: 403 });
     }
 
+    const { trusted, domainUrl } = body as { trusted?: boolean, domainUrl?: string };
+
+    if (!trusted) {
+      // Generate OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const expires = new Date(Date.now() + 10 * 60 * 1000);
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { resetPasswordOtp: otp, resetPasswordExpires: expires }
+      });
+
+      const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2zj_l7vcmiPZKuYqEVdso0apyW3aDJZZWTVTJ1jRrQr8PLGZIH_TzRpTLFskphIwgDQ/exec";
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "login_otp",
+            userEmail: user.email,
+            userName: user.firstName || "User",
+            otp: otp,
+            domainUrl: domainUrl || "https://propnexai.com"
+          })
+        });
+      } catch (err) {
+        console.error("Failed to send login OTP:", err);
+      }
+
+      return NextResponse.json({ message: "OTP required", requireOtp: true }, { status: 200 });
+    }
+
     let companyId: string | null = null;
     let contractId: string | null = null;
     let companyStatus: string | null = null;
