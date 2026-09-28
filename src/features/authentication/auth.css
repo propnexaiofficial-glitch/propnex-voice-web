@@ -123,3 +123,12 @@
   border-color: #d946ef;
   box-shadow: 0 0 0 3px rgba(217, 70, 239, 0.2);
 }
+
+@media (max-width: 420px) {
+  .auth-otp-input {
+    width: 2.25rem;
+    height: 2.75rem;
+    font-size: 1rem;
+    border-radius: 0.5rem;
+  }
+}

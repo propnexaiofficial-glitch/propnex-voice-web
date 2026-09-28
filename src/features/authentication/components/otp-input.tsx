@@ -32,7 +32,7 @@ export function OtpInput({ length = 6, value, onChange }: OtpInputProps) {
   }
 
   return (
-    <div className="flex justify-center gap-2">
+    <div className="flex justify-center gap-1 sm:gap-2">
       {Array.from({ length }).map((_, index) => (
         <input
           key={index}

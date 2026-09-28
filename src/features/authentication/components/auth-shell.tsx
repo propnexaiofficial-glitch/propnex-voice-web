@@ -40,8 +40,8 @@ export function AuthShell({
           <p className="text-sm leading-relaxed text-white/75">{welcomeText}</p>
         </div>
 
-        <div className="mx-auto w-full max-w-md">
-          <div className="auth-form-box rounded-sm bg-black/40 px-8 py-10 backdrop-blur-sm">
+        <div className="mx-auto w-full max-w-[28rem]">
+          <div className="auth-form-box rounded-sm bg-black/40 px-5 py-8 sm:px-8 sm:py-10 backdrop-blur-sm">
             <h2 className="mb-8 text-center text-2xl font-semibold">{title}</h2>
             {children}
           </div>

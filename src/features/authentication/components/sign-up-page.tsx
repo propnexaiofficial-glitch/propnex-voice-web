@@ -164,7 +164,7 @@ export function SignUpPageContent() {
                 <span className={`text-xs font-semibold shrink-0 ${strengthColor}`}>{strengthLabel}</span>
               </div>
               {/* Rule checklist */}
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-0.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 pt-0.5">
                 {[
                   { key: "length", label: "8+ characters" },
                   { key: "upper",  label: "Uppercase (A\u2013Z)" },
