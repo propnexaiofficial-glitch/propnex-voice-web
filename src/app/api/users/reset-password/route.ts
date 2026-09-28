@@ -72,8 +72,8 @@ export async function POST(req: NextRequest) {
       }
     }).catch((e: any) => console.error("Failed to log system event", e));
 
-    // Send Success Email
-    await fetch(APPS_SCRIPT_URL, {
+    // Send Success Email - NON BLOCKING
+    fetch(APPS_SCRIPT_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
         userName: user.firstName || "User",
         domainUrl: domainUrl || "https://propnexai.com"
       })
-    });
+    }).catch(e => console.warn(`Webhook password_changed_success failed: ${e}`));
 
     return NextResponse.json({ message: "Password updated successfully" }, { status: 200 });
   } catch (err: any) {
