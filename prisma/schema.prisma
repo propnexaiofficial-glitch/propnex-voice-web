@@ -1960,3 +1960,11 @@ model OtpLog {
   @@index([type])
 }
 
+// Global settings — used for platform-wide controls like force logout
+model GlobalSetting {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  key       String   @unique  // e.g. "global_logout_at"
+  value     String            // ISO timestamp or other value
+  updatedAt DateTime @updatedAt
+}
+

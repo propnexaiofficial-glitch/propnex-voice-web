@@ -1,30 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import prisma from "@/lib/prisma";
-
-const JWT_SECRET = process.env.JWT_SECRET || "propnex_secret_jwt_key_2026_key";
+import { validateToken } from "@/lib/validate-token";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    const token = authHeader.split(" ")[1];
-    let decoded: any;
-    try {
-      decoded = jwt.verify(token, JWT_SECRET);
-    } catch (err) {
-      return NextResponse.json({ message: "Invalid token" }, { status: 401 });
-    }
-
-    const userId = decoded.sub || decoded.id;
-    if (!userId) {
-      return NextResponse.json({ message: "Invalid token payload" }, { status: 401 });
-    }
+    const result = await validateToken(req.headers.get("authorization"));
+    if (result instanceof NextResponse) return result;
+    const { userId } = result;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
