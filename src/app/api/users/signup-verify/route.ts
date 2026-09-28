@@ -37,17 +37,22 @@ export async function POST(req: NextRequest) {
       data: { status: "ACTIVE", resetPasswordOtp: null, resetPasswordExpires: null }
     });
 
+    // System Event & Domain Setup
+    const domain = domainUrl ? new URL(domainUrl).hostname : "propnexai.com";
+
     // Create PendingApproval so admin panel gets notified
     try {
       await prisma.pendingApproval.create({
-        data: { email: normalizedEmail },
+        data: { 
+          email: normalizedEmail,
+          domain: domain
+        },
       });
     } catch (e) {
       console.warn(`PendingApproval creation skipped: ${e}`);
     }
 
     // System Event
-    const domain = domainUrl ? new URL(domainUrl).hostname : "propnexai.com";
     await (prisma as any).systemEvent.create({
       data: {
         type: "USER_SIGNUP",
