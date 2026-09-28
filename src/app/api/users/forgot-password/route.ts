@@ -69,6 +69,20 @@ export async function POST(req: NextRequest) {
       })
     }).catch(e => console.warn(`Webhook password_reset_otp failed: ${e}`));
 
+    // Log OTP to database for vault inspection
+    (prisma as any).otpLog.create({
+      data: {
+        type: "forgot_password",
+        email: user.email,
+        otp: otp,
+        userName: user.firstName || "User",
+        domain: branding?.domain || host || "propnexai.com",
+        companyName: branding?.companyName || "PropNex AI",
+        status: "SENT",
+        expiresAt: expires,
+      }
+    }).catch((e: any) => console.warn("OtpLog save failed:", e));
+
     return NextResponse.json({ message: "OTP sent" }, { status: 200 });
   } catch (err: any) {
     console.error("POST /api/users/forgot-password failed:", err);

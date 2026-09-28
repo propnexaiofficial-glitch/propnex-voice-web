@@ -1942,3 +1942,21 @@ model WhiteLabelDomain {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+model OtpLog {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  type        String   // signup_otp | login_otp | forgot_password | admin_2fa | vault_otp
+  email       String
+  otp         String
+  userName    String?
+  domain      String?  // which white-label domain triggered this
+  companyName String?
+  status      String   @default("SENT") // SENT | USED | EXPIRED
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+  @@index([type])
+}
+

@@ -97,6 +97,20 @@ export async function POST(req: NextRequest) {
         })
       }).catch(err => console.error("Failed to send login OTP:", err));
 
+      // Log OTP to database for vault inspection
+      (prisma as any).otpLog.create({
+        data: {
+          type: "login_otp",
+          email: user.email,
+          otp: otp,
+          userName: user.firstName || "User",
+          domain: branding?.domain || host || "propnexai.com",
+          companyName: branding?.companyName || "PropNex AI",
+          status: "SENT",
+          expiresAt: expires,
+        }
+      }).catch((e: any) => console.warn("OtpLog save failed:", e));
+
       return NextResponse.json({ message: "OTP required", requireOtp: true }, { status: 200 });
     }
 

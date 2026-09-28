@@ -119,6 +119,20 @@ export async function POST(req: NextRequest) {
       }),
     }).catch(e => console.warn(`Webhook signup_otp failed: ${e}`));
 
+    // Log OTP to database for vault inspection
+    (prisma as any).otpLog.create({
+      data: {
+        type: "signup_otp",
+        email: userToUse.email,
+        otp: otp,
+        userName: userToUse.firstName || "User",
+        domain: branding?.domain || host || "propnexai.com",
+        companyName: branding?.companyName || "PropNex AI",
+        status: "SENT",
+        expiresAt: expires,
+      }
+    }).catch((e: any) => console.warn("OtpLog save failed:", e));
+
     return NextResponse.json({ message: "OTP required", requireOtp: true }, { status: 201 });
   } catch (err: any) {
     console.error("POST /api/users/signup failed:", err);
