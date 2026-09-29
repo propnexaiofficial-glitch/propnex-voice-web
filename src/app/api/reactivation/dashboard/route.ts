@@ -296,18 +296,24 @@ export async function GET(req: NextRequest) {
 
       // Determine wave status properly:
       // - Future (time not reached) → Pending
-      // - Running (time reached, calls in progress) → Running
+      // - Running AND within 2h of scheduled time → Running (calls actively in progress)
+      // - Running BUT > 2h past scheduled time → Completed (webhook may have been missed, calls are done)
       // - Has any logs OR time window missed → Completed
       // - Time past but no logs yet (within 4h window) → still Pending/Running
+
+      // A wave that has been "Running" for more than 2 hours is stale — webhooks were missed
+      // Normal calls complete in seconds-to-minutes, not hours
+      const isStaleRunning = (time: Date) => nowMs > time.getTime() + 2 * 60 * 60 * 1000;
+
       b.q1.status = Date.now() < b.q1Time.getTime()
         ? "Pending"
-        : (q1Running ? "Running" : ((hasQ1Attempted || isMissed(b.q1Time)) ? "Completed" : "Pending"));
+        : ((q1Running && !isStaleRunning(b.q1Time)) ? "Running" : ((hasQ1Attempted || isMissed(b.q1Time)) ? "Completed" : "Pending"));
       b.q2.status = Date.now() < b.q2Time.getTime()
         ? "Pending"
-        : (q2Running ? "Running" : ((hasQ2Attempted || isMissed(b.q2Time)) ? "Completed" : "Pending"));
+        : ((q2Running && !isStaleRunning(b.q2Time)) ? "Running" : ((hasQ2Attempted || isMissed(b.q2Time)) ? "Completed" : "Pending"));
       b.q3.status = Date.now() < b.q3Time.getTime()
         ? "Pending"
-        : (q3Running ? "Running" : ((hasQ3Attempted || isMissed(b.q3Time)) ? "Completed" : "Pending"));
+        : ((q3Running && !isStaleRunning(b.q3Time)) ? "Running" : ((hasQ3Attempted || isMissed(b.q3Time)) ? "Completed" : "Pending"));
 
       // Build per-lead outcome lists for each wave
       const q1FinalList: any[] = [];
