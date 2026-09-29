@@ -269,26 +269,45 @@ export async function GET(req: NextRequest) {
         return logDate === expectedDate;
       };
 
-      const hasQ1Logs = reactivationLogs.some(l => 
-        (l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q1")) || 
-        (b.q1.failedLeads.some((fl: any) => fl.id === l.leadId) && matchLegacy(l, "-q1", b.q1Time))
-      );
-      const hasQ2Logs = reactivationLogs.some(l => 
-        (l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q2")) || 
-        (b.q1.failedLeads.some((fl: any) => fl.id === l.leadId) && matchLegacy(l, "-q2", b.q2Time))
-      );
-      const hasQ3Logs = reactivationLogs.some(l => 
-        (l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q3")) || 
-        (b.q1.failedLeads.some((fl: any) => fl.id === l.leadId) && matchLegacy(l, "-q3", b.q3Time))
-      );
-
       const nowMs = Date.now();
-      // If a wave is past its scheduled time by more than 4 hours and has no logs, consider it missed/completed
+      // A wave is "missed" if it's more than 4 hours past its scheduled time with no logs
       const isMissed = (time: Date) => nowMs > time.getTime() + 4 * 60 * 60 * 1000;
 
-      b.q1.status = Date.now() < b.q1Time.getTime() ? "Pending" : (q1Running ? "Running" : (hasQ1Logs || isMissed(b.q1Time) ? "Completed" : "Pending"));
-      b.q2.status = Date.now() < b.q2Time.getTime() ? "Pending" : (q2Running ? "Running" : (hasQ2Logs || isMissed(b.q2Time) ? "Completed" : "Pending"));
-      b.q3.status = Date.now() < b.q3Time.getTime() ? "Pending" : (q3Running ? "Running" : (hasQ3Logs || isMissed(b.q3Time) ? "Completed" : "Pending"));
+      // A wave is "Completed" if:
+      // 1. It has ANY reactivation logs (meaning calls were fired, regardless of success/fail), OR
+      // 2. Its scheduled time is more than 4 hours past (missed window) — treat as done
+      // A wave is still "Pending" only if its scheduled time hasn't arrived yet AND no logs exist yet.
+      const hasQ1Attempted = reactivationLogs.some(l =>
+        (l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q1")) ||
+        (b.q1.failedLeads.some((fl: any) => fl.id === l.leadId) && matchLegacy(l, "-q1", b.q1Time))
+      );
+      const hasQ2Attempted = reactivationLogs.some(l =>
+        (l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q2")) ||
+        (b.q1.failedLeads.some((fl: any) => fl.id === l.leadId) && matchLegacy(l, "-q2", b.q2Time))
+      );
+      const hasQ3Attempted = reactivationLogs.some(l =>
+        (l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q3")) ||
+        (b.q1.failedLeads.some((fl: any) => fl.id === l.leadId) && matchLegacy(l, "-q3", b.q3Time))
+      );
+      // Aliases for backward compat with per-lead logic below
+      const hasQ1Logs = hasQ1Attempted;
+      const hasQ2Logs = hasQ2Attempted;
+      const hasQ3Logs = hasQ3Attempted;
+
+      // Determine wave status properly:
+      // - Future (time not reached) → Pending
+      // - Running (time reached, calls in progress) → Running
+      // - Has any logs OR time window missed → Completed
+      // - Time past but no logs yet (within 4h window) → still Pending/Running
+      b.q1.status = Date.now() < b.q1Time.getTime()
+        ? "Pending"
+        : (q1Running ? "Running" : ((hasQ1Attempted || isMissed(b.q1Time)) ? "Completed" : "Pending"));
+      b.q2.status = Date.now() < b.q2Time.getTime()
+        ? "Pending"
+        : (q2Running ? "Running" : ((hasQ2Attempted || isMissed(b.q2Time)) ? "Completed" : "Pending"));
+      b.q3.status = Date.now() < b.q3Time.getTime()
+        ? "Pending"
+        : (q3Running ? "Running" : ((hasQ3Attempted || isMissed(b.q3Time)) ? "Completed" : "Pending"));
 
       // Build per-lead outcome lists for each wave
       const q1FinalList: any[] = [];
