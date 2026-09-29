@@ -303,7 +303,7 @@ export async function GET(req: NextRequest) {
 
       // A wave that has been "Running" for more than 2 hours is stale — webhooks were missed
       // Normal calls complete in seconds-to-minutes, not hours
-      const isStaleRunning = (time: Date) => nowMs > time.getTime() + 2 * 60 * 60 * 1000;
+      const isStaleRunning = (time: Date) => nowMs > time.getTime() + 30 * 60 * 1000;
 
       b.q1.status = Date.now() < b.q1Time.getTime()
         ? "Pending"
@@ -361,14 +361,15 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      // Override running status if there are unattempted leads AND we haven't missed the window yet
-      if (b.q1.status !== "Running" && q1FinalList.some(l => !l.isAttempted) && !isMissed(b.q1Time) && Date.now() >= b.q1Time.getTime()) {
+      // Override running status if there are unattempted leads AND we are within the 30-minute dispatch window
+      const isDispatching = (time: Date) => Date.now() >= time.getTime() && Date.now() < time.getTime() + 30 * 60 * 1000;
+      if (b.q1.status !== "Running" && q1FinalList.some(l => !l.isAttempted) && isDispatching(b.q1Time)) {
         b.q1.status = "Running";
       }
-      if (b.q2.status !== "Running" && q2FinalList.some(l => !l.isAttempted) && !isMissed(b.q2Time) && Date.now() >= b.q2Time.getTime()) {
+      if (b.q2.status !== "Running" && q2FinalList.some(l => !l.isAttempted) && isDispatching(b.q2Time)) {
         b.q2.status = "Running";
       }
-      if (b.q3.status !== "Running" && q3FinalList.some(l => !l.isAttempted) && !isMissed(b.q3Time) && Date.now() >= b.q3Time.getTime()) {
+      if (b.q3.status !== "Running" && q3FinalList.some(l => !l.isAttempted) && isDispatching(b.q3Time)) {
         b.q3.status = "Running";
       }
 
