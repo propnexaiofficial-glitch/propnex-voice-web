@@ -199,7 +199,8 @@ export function CampaignCard({
   const [leadsModalOpen, setLeadsModalOpen] = useState(false);
   const [selectedHistId, setSelectedHistId] = useState<string | null>(null);
   const [historicalCampaigns, setHistoricalCampaigns] = useState<any[]>([]);
-  const [isHistoricalLoading, setIsHistoricalLoading] = useState(false);
+  const isReactivationCard = campaign.id === "camp-001" || campaign.isReactivation || campaign.name?.includes("Lead Reactivation");
+  const [isHistoricalLoading, setIsHistoricalLoading] = useState(!!isReactivationCard);
   const [wavePages, setWavePages] = useState<Record<string, number>>({});
   const [isCalculating, setIsCalculating] = useState(false);
   const [isDoneChecking, setIsDoneChecking] = useState(false);
@@ -224,7 +225,6 @@ export function CampaignCard({
     return () => clearInterval(t);
   }, []);
 
-  const isReactivationCard = campaign.id === "camp-001" || campaign.isReactivation || campaign.name?.includes("Lead Reactivation");
 
   useEffect(() => {
     if (isReactivationCard) {
@@ -683,7 +683,7 @@ export function CampaignCard({
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">
                 {isReactivationCard
-                  ? `Automatically re-engage failed leads across 3 follow-up waves. (${totalReactivationLeads} total failed leads today)`
+                  ? (isHistoricalLoading ? "Automatically re-engage failed leads across 3 follow-up waves. (Loading total failed leads...)" : `Automatically re-engage failed leads across 3 follow-up waves. (${totalReactivationLeads} total failed leads today)`)
                   : !hasOutboundNumber 
                     ? "Please request an outbound number from the admin to launch campaigns." 
                     : "Upload a CSV contact list to prepare your next outbound campaign."}
