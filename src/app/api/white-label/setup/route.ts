@@ -67,7 +67,12 @@ export async function POST(req: Request) {
             type: "white_label_received",
             email: supportEmail,
             userName: body.name || "User",
-            domain: domain
+            domain: domain,
+            companyName: companyName,
+            supportPhone: supportPhone || "N/A",
+            instagramUrl: instagramUrl || "N/A",
+            linkedinUrl: linkedinUrl || "N/A",
+            tabTitle: tabTitle || companyName
           })
         });
       } catch (err) {
