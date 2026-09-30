@@ -21,29 +21,59 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "This domain is already registered or pending." }, { status: 400 });
     }
 
-    const newDomain = await prisma.whiteLabelDomain.create({
-      data: {
-        domain,
-        companyName,
-        tabTitle: tabTitle || companyName,
+    // Check if there is a placeholder invite for this email
+    const placeholder = await prisma.whiteLabelDomain.findFirst({
+      where: {
         supportEmail,
-        supportPhone: supportPhone || "",
-        logoUrl,
-        faviconUrl,
-        instagramUrl: instagramUrl || "",
-        linkedinUrl: linkedinUrl || "",
         status: "PENDING",
-        pagesConfig: JSON.stringify({
-          features: true,
-          product: true,
-          pricing: true,
-          docs: true,
-          dashboard: true,
-          submittedViaForm: true,
-          userName: body.name || "User"
-        })
+        domain: { startsWith: "pending-" }
       }
     });
+
+    let newDomain;
+    const pagesConfigPayload = JSON.stringify({
+      features: true,
+      product: true,
+      pricing: true,
+      docs: true,
+      dashboard: true,
+      submittedViaForm: true,
+      userName: body.name || "User"
+    });
+
+    if (placeholder) {
+      newDomain = await prisma.whiteLabelDomain.update({
+        where: { id: placeholder.id },
+        data: {
+          domain,
+          companyName,
+          tabTitle: tabTitle || companyName,
+          supportEmail,
+          supportPhone: supportPhone || "",
+          logoUrl,
+          faviconUrl,
+          instagramUrl: instagramUrl || "",
+          linkedinUrl: linkedinUrl || "",
+          pagesConfig: pagesConfigPayload
+        }
+      });
+    } else {
+      newDomain = await prisma.whiteLabelDomain.create({
+        data: {
+          domain,
+          companyName,
+          tabTitle: tabTitle || companyName,
+          supportEmail,
+          supportPhone: supportPhone || "",
+          logoUrl,
+          faviconUrl,
+          instagramUrl: instagramUrl || "",
+          linkedinUrl: linkedinUrl || "",
+          status: "PENDING",
+          pagesConfig: pagesConfigPayload
+        }
+      });
+    }
 
     try {
       await prisma.systemEvent.create({
