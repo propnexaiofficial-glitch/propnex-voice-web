@@ -229,7 +229,9 @@ export default function WhiteLabelSetupPage() {
                       <Eye className="w-5 h-5" />
                     </button>
                   </div>
-                  <p className="text-xs text-zinc-500 mt-1">Make sure you have added a CNAME record pointing to cname.propnexai.com</p>
+                  <p className="text-xs text-zinc-500 mt-1">
+                    Make sure you have added a CNAME record pointing to cname.propnexai.com according to our <a href="https://drive.google.com/file/d/1d7T85dRtt-ll0qKtNPoKF8EXWRt5Yzsf/view?usp=sharing" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">PDF Guide</a>.
+                  </p>
                 </div>
                 
                 <div className="space-y-1.5">

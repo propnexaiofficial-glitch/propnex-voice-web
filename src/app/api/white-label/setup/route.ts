@@ -38,7 +38,9 @@ export async function POST(req: Request) {
           product: true,
           pricing: true,
           docs: true,
-          dashboard: true
+          dashboard: true,
+          submittedViaForm: true,
+          userName: body.name || "User"
         })
       }
     });
