@@ -216,9 +216,12 @@ export async function GET(req: NextRequest) {
           }
         }
 
-        const originalCallType = call.campaignId || (call.correlationId && call.correlationId.startsWith("camp-")) 
-          ? "Campaign" 
-          : "Internal";
+        const originalCallType =
+          call.campaignId || (call.correlationId && call.correlationId.startsWith("camp-"))
+            ? "Campaign"
+            : call.leadId && !call.campaignId && !call.correlationId
+            ? "Lead"
+            : "Internal";
 
         const numStillActive2 = call.phoneNumber !== null;
         const didToShow2  = numStillActive2 ? (call.phoneNumber!.number) : fallbackNumber;
@@ -270,12 +273,12 @@ export async function GET(req: NextRequest) {
       };
 
       const nowMs = Date.now();
-      // A wave is "missed" if it's more than 4 hours past its scheduled time with no logs
-      const isMissed = (time: Date) => nowMs > time.getTime() + 4 * 60 * 60 * 1000;
+      // A wave is "missed" if it's more than 2 hours past its scheduled time with no logs
+      const isMissed = (time: Date) => nowMs > time.getTime() + 2 * 60 * 60 * 1000;
 
       // A wave is "Completed" if:
       // 1. It has ANY reactivation logs (meaning calls were fired, regardless of success/fail), OR
-      // 2. Its scheduled time is more than 4 hours past (missed window) — treat as done
+      // 2. Its scheduled time is more than 2 hours past (missed window) — treat as done
       // A wave is still "Pending" only if its scheduled time hasn't arrived yet AND no logs exist yet.
       const hasQ1Attempted = reactivationLogs.some(l =>
         (l.correlationId?.startsWith(correlationPrefix) && l.correlationId?.endsWith("-q1")) ||

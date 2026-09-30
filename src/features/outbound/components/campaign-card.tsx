@@ -1118,7 +1118,7 @@ export function CampaignCard({
                         <div className="flex items-center justify-between mt-0.5">
                           <div className="text-xs font-medium text-red-400 flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
-                            Total Failed Calls - {totalFailed} (Campaign - {hist.q1.failedLeads?.filter((l: any) => l.originalCallType === "Campaign").length || 0} , Internal - {totalFailed - (hist.q1.failedLeads?.filter((l: any) => l.originalCallType === "Campaign").length || 0)})
+                            Total Failed Calls - {totalFailed} (Campaign - {hist.q1.failedLeads?.filter((l: any) => l.originalCallType === "Campaign").length || 0} , Lead - {hist.q1.failedLeads?.filter((l: any) => l.originalCallType === "Lead").length || 0} , Internal - {totalFailed - (hist.q1.failedLeads?.filter((l: any) => l.originalCallType === "Campaign" || l.originalCallType === "Lead").length || 0)})
                           </div>
                         </div>
                       </div>
@@ -1260,7 +1260,7 @@ export function CampaignCard({
                                           <div className="flex flex-col gap-0.5">
                                             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground opacity-80">
                                               LEAD {(currentPage - 1) * itemsPerPage + i + 1}
-                                              {(wave.stage === "Q1" || wave.data.status === "Running" || wave.data.status === "Completed") && lead.originalCallType && lead.originalCallType !== "Lead" ? ` (${lead.originalCallType})` : ""}
+                                              {(wave.stage === "Q1" || wave.data.status === "Running" || wave.data.status === "Completed") && lead.originalCallType ? ` (${lead.originalCallType})` : ""}
                                             </span>
                                             <span className={cn("font-bold text-[13px] tracking-wide text-foreground break-all", lead.isCompleted && "text-emerald-600 dark:text-emerald-400", isFailed && "text-red-600 dark:text-red-400")}>
                                               {lead.phone}
