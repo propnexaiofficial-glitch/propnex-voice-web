@@ -212,9 +212,13 @@ export default function WhiteLabelSetupPage() {
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white mb-4 leading-tight">
             Brand it as<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">your own.</span>
           </h1>
-          <p className="text-zinc-400 max-w-lg mx-auto text-base leading-relaxed">
+          <p className="text-zinc-400 max-w-lg mx-auto text-base leading-relaxed mb-6">
             Completely rebrand the PropNex AI platform with your logo, domain, and identity. Your clients will only ever see your brand.
           </p>
+          <a href="https://drive.google.com/file/d/1d7T85dRtt-ll0qKtNPoKF8EXWRt5Yzsf/view?usp=sharing" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 text-sm font-medium transition-colors bg-cyan-500/10 hover:bg-cyan-500/20 px-4 py-2 rounded-full border border-cyan-500/20">
+            <FileText className="w-4 h-4" />
+            View Domain Setup Guide (PDF)
+          </a>
         </motion.div>
 
         {/* Step Indicator */}
