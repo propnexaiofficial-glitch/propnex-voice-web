@@ -167,7 +167,7 @@ export default function WhiteLabelSetupPage() {
             <img
               src="/propnex-logo.png"
               alt="PropNex AI"
-              className="h-7 w-auto object-contain"
+              className="h-10 sm:h-11 w-auto object-contain"
             />
             <span className="text-white font-semibold text-lg tracking-tight hidden">
               Propnex <span className="text-cyan-400">ai</span>
