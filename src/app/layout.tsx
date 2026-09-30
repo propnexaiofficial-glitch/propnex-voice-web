@@ -6,6 +6,11 @@ import { BrandProvider } from "@/components/providers/brand-provider";
 import { getBrandConfig } from "@/lib/brand";
 import "./globals.css";
 
+// This app reads request headers (for white-label domain detection), so all
+// routes must be dynamically rendered — not statically pre-built.
+export const dynamic = "force-dynamic";
+
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

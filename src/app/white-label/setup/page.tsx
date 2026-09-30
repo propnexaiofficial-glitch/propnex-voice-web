@@ -437,4 +437,3 @@ export default function WhiteLabelSetupPage() {
   );
 }
 
-  const [step, setStep] = useState(1);
