@@ -15,6 +15,7 @@ export default function WhiteLabelSetupPage() {
   const [expectedOtp, setExpectedOtp] = useState("");
   const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const errorRef = useRef<HTMLDivElement>(null);
   const [resendCountdown, setResendCountdown] = useState(0);
   const [successCountdown, setSuccessCountdown] = useState(10);
 
@@ -60,6 +61,15 @@ export default function WhiteLabelSetupPage() {
     }
     return () => clearInterval(timer);
   }, [success, successCountdown]);
+
+  useEffect(() => {
+    if (error && errorRef.current) {
+      // Small timeout to allow the AnimatePresence to render the element first
+      setTimeout(() => {
+        errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+    }
+  }, [error]);
 
   const enteredOtp = otpDigits.join("");
 
@@ -271,7 +281,7 @@ export default function WhiteLabelSetupPage() {
         {/* Error */}
         <AnimatePresence>
           {error && (
-            <motion.div initial={{ opacity: 0, height: 0, marginBottom: 0 }} animate={{ opacity: 1, height: "auto", marginBottom: 16 }} exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+            <motion.div ref={errorRef} initial={{ opacity: 0, height: 0, marginBottom: 0 }} animate={{ opacity: 1, height: "auto", marginBottom: 16 }} exit={{ opacity: 0, height: 0, marginBottom: 0 }}
               className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl flex items-start gap-2">
               <AlertCircle className="w-5 h-5 text-red-500 shrink-0" /> <span className="pt-0.5">{error}</span>
             </motion.div>
@@ -412,6 +422,9 @@ export default function WhiteLabelSetupPage() {
                           {field === "logoUrl" ? "Main Logo" : "Favicon"} <span className="text-red-400">*</span>
                         </span>
                       </label>
+                      <p className="text-xs text-zinc-500 pb-1">
+                        Provide an image URL or click the upload button to select a file directly. Supported formats: JPG, PNG, SVG, WEBP (Max size: 5MB).
+                      </p>
                       
                       <div className="flex gap-2">
                         <input type="text" name={field} value={formData[field]} onChange={handleInputChange}
