@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, CheckCircle2, Building, Globe, Mail, Phone, Link as LinkIcon, Image as ImageIcon, Loader2, Eye, KeyRound, ArrowRight, ArrowLeft, FileText, Shield } from "lucide-react";
+import { Upload, CheckCircle2, Building, Globe, Mail, Phone, Link as LinkIcon, Image as ImageIcon, Loader2, Eye, KeyRound, ArrowRight, ArrowLeft, FileText, Shield, AlertCircle } from "lucide-react";
 
 export default function WhiteLabelSetupPage() {
   const [step, setStep] = useState(1);
@@ -157,7 +157,7 @@ export default function WhiteLabelSetupPage() {
   return (
     <div className="min-h-screen bg-[#050505] text-white relative overflow-x-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-[url('https://propnexai.com/hero-bg.jpg')] bg-cover bg-center opacity-10 pointer-events-none" />
+      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-[0.04] pointer-events-none" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-blue-600/15 blur-[160px] rounded-full pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[600px] h-[400px] bg-cyan-500/8 blur-[120px] rounded-full pointer-events-none" />
 
@@ -230,7 +230,7 @@ export default function WhiteLabelSetupPage() {
           {error && (
             <motion.div initial={{ opacity: 0, height: 0, marginBottom: 0 }} animate={{ opacity: 1, height: "auto", marginBottom: 16 }} exit={{ opacity: 0, height: 0, marginBottom: 0 }}
               className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl flex items-start gap-2">
-              <span className="text-red-500 mt-0.5">âš </span> {error}
+              <AlertCircle className="w-5 h-5 text-red-500 shrink-0" /> <span className="pt-0.5">{error}</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -264,11 +264,6 @@ export default function WhiteLabelSetupPage() {
                       <Eye className="w-4 h-4" />
                     </button>
                   </div>
-                  <p className="text-xs text-zinc-600 flex items-center gap-1.5 mt-1">
-                    <FileText className="w-3 h-3 text-cyan-500" />
-                    Add CNAME â†’ cname.propnexai.com first.{" "}
-                    <a href="https://drive.google.com/file/d/1d7T85dRtt-ll0qKtNPoKF8EXWRt5Yzsf/view?usp=sharing" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">PDF Guide</a>
-                  </p>
                 </div>
 
                 {/* Company Name */}
@@ -435,13 +430,11 @@ export default function WhiteLabelSetupPage() {
           </AnimatePresence>
         </motion.div>
 
-        {/* PDF Guide hint */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-6 text-center">
-          <a href="https://drive.google.com/file/d/1d7T85dRtt-ll0qKtNPoKF8EXWRt5Yzsf/view?usp=sharing" target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-zinc-500 hover:text-cyan-400 text-sm transition-colors">
-            <FileText className="w-4 h-4" />
-            Need help with DNS? View the Setup PDF Guide â†’
-          </a>
+        {/* Footer */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-8 text-center pb-8">
+          <p className="text-zinc-600 text-sm">
+            &copy; 2026 PropNex AI. All rights reserved.
+          </p>
         </motion.div>
       </main>
     </div>
