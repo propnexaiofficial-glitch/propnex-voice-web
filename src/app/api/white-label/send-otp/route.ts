@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
@@ -38,6 +39,21 @@ export async function POST(req: Request) {
       console.error("Failed to send OTP via GAS webhook:", err);
       return NextResponse.json({ error: "Failed to communicate with the email server." }, { status: 500 });
     }
+
+    // Log OTP to database for vault inspection
+    const expires = new Date(Date.now() + 10 * 60 * 1000);
+    (prisma as any).otpLog.create({
+      data: {
+        type: "white_label_otp",
+        email: email,
+        otp: otp,
+        userName: name || "User",
+        domain: "propnexai.com",
+        companyName: "PropNex AI White Label",
+        status: "SENT",
+        expiresAt: expires,
+      }
+    }).catch((e: any) => console.warn("OtpLog save failed:", e));
 
     // Return the expected OTP to the frontend so it can verify the user input
     return NextResponse.json({ success: true, otp });
