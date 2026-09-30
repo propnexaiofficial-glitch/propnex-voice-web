@@ -15,6 +15,8 @@ export default function WhiteLabelSetupPage() {
   const [expectedOtp, setExpectedOtp] = useState("");
   const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const [successCountdown, setSuccessCountdown] = useState(10);
 
   const [formData, setFormData] = useState({
     domain: "",
@@ -37,6 +39,24 @@ export default function WhiteLabelSetupPage() {
       setUserName(name);
     }
   }, []);
+
+  useEffect(() => {
+    let timer: any;
+    if (resendCountdown > 0) {
+      timer = setInterval(() => setResendCountdown((prev) => prev - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCountdown]);
+
+  useEffect(() => {
+    let timer: any;
+    if (success && successCountdown > 0) {
+      timer = setInterval(() => setSuccessCountdown((prev) => prev - 1), 1000);
+    } else if (success && successCountdown === 0) {
+      window.location.href = "https://www.propnexai.com";
+    }
+    return () => clearInterval(timer);
+  }, [success, successCountdown]);
 
   const enteredOtp = otpDigits.join("");
 
@@ -113,7 +133,7 @@ export default function WhiteLabelSetupPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setExpectedOtp(data.otp); setOtpSent(true); setStep(3);
+        setExpectedOtp(data.otp); setOtpSent(true); setStep(3); setResendCountdown(60);
       } else {
         setError(data.error || "Failed to send OTP.");
       }
@@ -166,6 +186,9 @@ export default function WhiteLabelSetupPage() {
           </p>
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-sm text-zinc-500">
             Our team will review your DNS records, validate your assets, and activate your domain. Please ensure your CNAME records remain correctly configured.
+          </div>
+          <div className="mt-6 text-sm font-medium text-zinc-400">
+            Redirecting to PropNex AI in <span className="text-cyan-400">{successCountdown}s</span>...
           </div>
         </motion.div>
       </div>
@@ -455,9 +478,9 @@ export default function WhiteLabelSetupPage() {
                     className="text-zinc-400 hover:text-white text-sm font-medium px-3 py-2 rounded-lg hover:bg-zinc-800 transition-all flex items-center gap-1.5">
                     <ArrowLeft className="w-4 h-4" /> Back to Branding
                   </button>
-                  <button onClick={requestOtp} disabled={loading}
-                    className="text-cyan-400 hover:text-cyan-300 text-sm font-medium px-3 py-2 rounded-lg hover:bg-zinc-800 transition-all">
-                    Resend Code
+                  <button onClick={requestOtp} disabled={loading || resendCountdown > 0}
+                    className={`text-sm font-medium px-3 py-2 rounded-lg transition-all ${resendCountdown > 0 ? 'text-zinc-600 cursor-not-allowed' : 'text-cyan-400 hover:text-cyan-300 hover:bg-zinc-800'}`}>
+                    {resendCountdown > 0 ? `Resend Code (${resendCountdown}s)` : "Resend Code"}
                   </button>
                 </div>
               </motion.div>
