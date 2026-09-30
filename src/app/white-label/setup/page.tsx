@@ -154,7 +154,7 @@ export default function WhiteLabelSetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#050505] text-white relative overflow-x-hidden flex flex-col">
       {/* Background */}
       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-[0.04] pointer-events-none" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-blue-600/15 blur-[160px] rounded-full pointer-events-none" />
@@ -182,7 +182,7 @@ export default function WhiteLabelSetupPage() {
       </nav>
 
       {/* Main Content */}
-      <main className="relative z-10 max-w-2xl mx-auto px-4 py-10 sm:py-16">
+      <main className="relative z-10 max-w-2xl mx-auto px-4 py-10 sm:py-16 flex-1 w-full">
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-center mb-10">
@@ -424,13 +424,21 @@ export default function WhiteLabelSetupPage() {
           </AnimatePresence>
         </motion.div>
 
-        {/* Footer */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-8 text-center pb-8">
-          <p className="text-zinc-600 text-sm">
+      </main>
+
+      {/* Footer */}
+      <footer className="relative z-10 w-full border-t border-zinc-800/60 bg-[#0a0a0a]/80 backdrop-blur-md mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-zinc-500 text-sm">
             &copy; 2026 PropNex AI. All rights reserved.
           </p>
-        </motion.div>
-      </main>
+          <div className="flex items-center gap-6 text-sm text-zinc-500">
+            <a href="https://propnexai.com/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Privacy Policy</a>
+            <a href="https://propnexai.com/terms" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Terms of Service</a>
+            <a href="https://propnexai.com/security" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Security</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
