@@ -176,7 +176,7 @@ export default function WhiteLabelSetupPage() {
           <div className="flex items-center gap-2 bg-zinc-900/60 border border-zinc-700/50 rounded-full px-4 py-1.5">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             <span className="text-zinc-300 text-sm font-medium">{userName}</span>
-            {userEmail && <span className="text-zinc-500 text-sm hidden sm:inline">Â· {userEmail}</span>}
+            {userEmail && <span className="text-zinc-500 text-sm hidden sm:inline">&bull; {userEmail}</span>}
           </div>
         </div>
       </nav>
