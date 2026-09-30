@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Send it to GAS Webhook
-    const webhookUrl = process.env.GAS_WEBHOOK_URL;
+    const webhookUrl = process.env.GAS_WEBHOOK_URL || process.env.APPS_SCRIPT_WEBHOOK_URL;
     
     if (!webhookUrl) {
       console.error("GAS_WEBHOOK_URL is missing from environment variables.");
