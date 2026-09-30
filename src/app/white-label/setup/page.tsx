@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Upload, CheckCircle2, Building, Globe, Mail, Phone, Link as LinkIcon, Image as ImageIcon, Loader2, Eye, KeyRound } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Upload, CheckCircle2, Building, Globe, Mail, Phone, Link as LinkIcon, Image as ImageIcon, Loader2, Eye, KeyRound, ArrowRight, ArrowLeft, FileText, Shield } from "lucide-react";
 
 export default function WhiteLabelSetupPage() {
   const [step, setStep] = useState(1);
@@ -13,7 +13,8 @@ export default function WhiteLabelSetupPage() {
   const [userEmail, setUserEmail] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [expectedOtp, setExpectedOtp] = useState("");
-  const [enteredOtp, setEnteredOtp] = useState("");
+  const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const [formData, setFormData] = useState({
     domain: "",
@@ -34,11 +35,34 @@ export default function WhiteLabelSetupPage() {
       const name = params.get("name") || "User";
       setUserEmail(email);
       setUserName(name);
-      if (email) {
-        setFormData(prev => ({ ...prev, supportEmail: email }));
-      }
+      if (email) setFormData(prev => ({ ...prev, supportEmail: email }));
     }
   }, []);
+
+  const enteredOtp = otpDigits.join("");
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return;
+    const newDigits = [...otpDigits];
+    newDigits[index] = value.slice(-1);
+    setOtpDigits(newDigits);
+    if (value && index < 5) otpRefs.current[index + 1]?.focus();
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === "Backspace" && !otpDigits[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (pasted.length === 6) {
+      setOtpDigits(pasted.split(""));
+      otpRefs.current[5]?.focus();
+    }
+    e.preventDefault();
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -47,14 +71,9 @@ export default function WhiteLabelSetupPage() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: "logoUrl" | "faviconUrl") => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        alert("File size must be less than 2MB");
-        return;
-      }
+      if (file.size > 2 * 1024 * 1024) { setError("File size must be less than 2MB"); return; }
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({ ...formData, [field]: reader.result as string });
-      };
+      reader.onloadend = () => setFormData({ ...formData, [field]: reader.result as string });
       reader.readAsDataURL(file);
     }
   };
@@ -62,22 +81,17 @@ export default function WhiteLabelSetupPage() {
   const nextStep = () => {
     if (step === 1) {
       if (!formData.domain || !formData.companyName || !formData.supportEmail) {
-        setError("Please fill in the required fields (Domain, Company Name, Email).");
-        return;
+        setError("Please fill in all required fields (Domain, Company Name, Email)."); return;
       }
-      setError("");
-      setStep(2);
+      setError(""); setStep(2);
     }
   };
 
   const requestOtp = async () => {
     if (!formData.logoUrl || !formData.faviconUrl) {
-      setError("Please upload both a Logo and a Favicon.");
-      return;
+      setError("Please upload both a Logo and a Favicon."); return;
     }
-    setError("");
-    setLoading(true);
-
+    setError(""); setLoading(true);
     try {
       const res = await fetch("/api/white-label/send-otp", {
         method: "POST",
@@ -86,71 +100,54 @@ export default function WhiteLabelSetupPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setExpectedOtp(data.otp);
-        setOtpSent(true);
-        setStep(3);
+        setExpectedOtp(data.otp); setOtpSent(true); setStep(3);
       } else {
         setError(data.error || "Failed to send OTP.");
       }
-    } catch (err) {
-      setError("Failed to send OTP. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    } catch { setError("Failed to send OTP. Please try again."); }
+    finally { setLoading(false); }
   };
 
   const submitForm = async () => {
     if (enteredOtp !== expectedOtp) {
-      setError("Invalid OTP. Please check your email and try again.");
-      return;
+      setError("Invalid OTP. Please check your email and try again."); return;
     }
-
-    setError("");
-    setLoading(true);
-
+    setError(""); setLoading(true);
     try {
       const res = await fetch("/api/white-label/setup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...formData, name: userName })
       });
-
-      if (res.ok) {
-        setSuccess(true);
-      } else {
-        const data = await res.json();
-        setError(data.error || "Something went wrong.");
-      }
-    } catch (err) {
-      setError("Failed to submit. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+      if (res.ok) { setSuccess(true); }
+      else { const data = await res.json(); setError(data.error || "Something went wrong."); }
+    } catch { setError("Failed to submit. Please try again."); }
+    finally { setLoading(false); }
   };
+
+  const steps = [
+    { num: 1, label: "Basic Info", icon: Building },
+    { num: 2, label: "Branding", icon: ImageIcon },
+    { num: 3, label: "Verify", icon: Shield },
+  ];
 
   if (success) {
     return (
-      <div className="fixed inset-0 z-50 bg-black text-white flex items-center justify-center p-4">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }} 
-          animate={{ opacity: 1, scale: 1 }} 
-          className="max-w-md w-full bg-zinc-950 border border-zinc-800 rounded-2xl p-8 text-center shadow-2xl"
-        >
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring" }}
-            className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6"
-          >
-            <CheckCircle2 className="h-10 w-10 text-green-500" />
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://propnexai.com/hero-bg.jpg')] bg-cover bg-center opacity-10" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-cyan-500/10 blur-[150px] rounded-full pointer-events-none" />
+        <motion.div initial={{ opacity: 0, scale: 0.8, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 200, damping: 20 }}
+          className="max-w-md w-full bg-zinc-950/90 backdrop-blur-2xl border border-zinc-800 rounded-3xl p-10 text-center shadow-2xl relative z-10">
+          <motion.div initial={{ scale: 0, rotate: -180 }} animate={{ scale: 1, rotate: 0 }} transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+            className="w-24 h-24 bg-green-500/20 border border-green-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="h-12 w-12 text-green-400" />
           </motion.div>
-          <h2 className="text-2xl font-bold mb-4">Submission Successful!</h2>
-          <p className="text-zinc-400 mb-6">
-            Your white-label setup details have been securely transmitted to our administrative team. 
-            You will receive a confirmation email shortly. We will review your details, verify your DNS records, and activate your domain.
+          <h2 className="text-3xl font-bold text-white mb-3">Submission Received!</h2>
+          <p className="text-zinc-400 mb-4 leading-relaxed">
+            Your white-label branding details have been securely submitted to our team. You will receive a confirmation email shortly.
           </p>
-          <div className="text-sm text-zinc-500">
-            If you haven't yet, please ensure your CNAME records are configured correctly.
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-sm text-zinc-500">
+            Our team will review your DNS records, validate your assets, and activate your domain. Please ensure your CNAME records remain correctly configured.
           </div>
         </motion.div>
       </div>
@@ -158,231 +155,286 @@ export default function WhiteLabelSetupPage() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#050505] text-white flex items-center justify-center p-4 overflow-y-auto">
-      {/* Background gradients */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-600/20 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-0 left-1/4 w-[500px] h-[300px] bg-purple-600/10 blur-[100px] rounded-full pointer-events-none" />
-      
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }} 
-        animate={{ opacity: 1, y: 0 }} 
-        className="max-w-3xl w-full relative z-10 my-auto py-10"
-      >
-        <div className="text-center mb-8">
-          <img src="https://propnexai.com/icon.png" alt="PropNex AI" className="h-16 mx-auto mb-6" onError={(e) => e.currentTarget.style.display = 'none'} />
-          
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-3 text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400">
-            White Label Platform Setup
-          </h1>
-          <p className="text-zinc-400 max-w-2xl mx-auto mb-4">
-            Welcome to the PropNex AI White Labelling feature. Completely rebrand our powerful AI voice technology as your own. 
-            Your clients will see your logo, your domain, and your brand identity across the entire dashboard.
-          </p>
-          
-          <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-2 rounded-full text-sm font-medium">
-            <Globe className="w-4 h-4" />
-            Hello, {userName} ({userEmail || "No email provided"})
+    <div className="min-h-screen bg-[#050505] text-white relative overflow-x-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-[url('https://propnexai.com/hero-bg.jpg')] bg-cover bg-center opacity-10 pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-blue-600/15 blur-[160px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[600px] h-[400px] bg-cyan-500/8 blur-[120px] rounded-full pointer-events-none" />
+
+      {/* Navbar */}
+      <nav className="relative z-50 border-b border-zinc-800/60 bg-black/40 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src="https://propnexai.com/icon.png" alt="PropNex AI" className="h-8 w-8" onError={(e) => e.currentTarget.style.display = 'none'} />
+            <span className="text-white font-semibold text-lg tracking-tight">Propnex <span className="text-cyan-400">ai</span></span>
+          </div>
+          <div className="flex items-center gap-2 bg-zinc-900/60 border border-zinc-700/50 rounded-full px-4 py-1.5">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+            <span className="text-zinc-300 text-sm font-medium">{userName}</span>
+            {userEmail && <span className="text-zinc-500 text-sm hidden sm:inline">Â· {userEmail}</span>}
           </div>
         </div>
+      </nav>
 
-        <div className="bg-zinc-900/60 backdrop-blur-xl border border-zinc-800 rounded-2xl p-6 md:p-8 shadow-2xl">
-          {/* Progress Steps */}
-          <div className="flex items-center justify-between mb-8 relative px-4">
-            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-zinc-800 -z-10 -translate-y-1/2" />
-            <div className="absolute top-1/2 left-0 h-0.5 bg-blue-500 -z-10 -translate-y-1/2 transition-all duration-500" style={{ width: step === 1 ? '0%' : step === 2 ? '50%' : '100%' }} />
-            
-            <div className="flex flex-col items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${step >= 1 ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400'}`}>1</div>
-              <span className="text-xs mt-2 font-medium text-zinc-300">Basic Info</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${step >= 2 ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400'}`}>2</div>
-              <span className="text-xs mt-2 font-medium text-zinc-300">Branding</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${step >= 3 ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400'}`}>3</div>
-              <span className="text-xs mt-2 font-medium text-zinc-300">Verify</span>
-            </div>
+      {/* Main Content */}
+      <main className="relative z-10 max-w-2xl mx-auto px-4 py-10 sm:py-16">
+
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest mb-5">
+            <Shield className="w-3.5 h-3.5" />
+            White Label Platform Setup
           </div>
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white mb-4 leading-tight">
+            Brand it as<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">your own.</span>
+          </h1>
+          <p className="text-zinc-400 max-w-lg mx-auto text-base leading-relaxed">
+            Completely rebrand the PropNex AI platform with your logo, domain, and identity. Your clients will only ever see your brand.
+          </p>
+        </motion.div>
 
+        {/* Step Indicator */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex items-center justify-between mb-8 relative">
+          {/* Progress line */}
+          <div className="absolute top-5 left-[2rem] right-[2rem] h-0.5 bg-zinc-800 z-0" />
+          <div className="absolute top-5 left-[2rem] h-0.5 bg-gradient-to-r from-cyan-500 to-blue-500 z-0 transition-all duration-700"
+            style={{ width: step === 1 ? "0%" : step === 2 ? "50%" : "100%" }} />
+          {steps.map((s) => {
+            const Icon = s.icon;
+            const isActive = step === s.num;
+            const isDone = step > s.num;
+            return (
+              <div key={s.num} className="flex flex-col items-center gap-2 z-10">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${isDone ? "bg-cyan-500 border-cyan-500" : isActive ? "bg-blue-600 border-blue-500 shadow-lg shadow-blue-500/40" : "bg-zinc-900 border-zinc-700"}`}>
+                  {isDone ? <CheckCircle2 className="w-5 h-5 text-white" /> : <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-zinc-500"}`} />}
+                </div>
+                <span className={`text-xs font-semibold transition-colors ${isActive ? "text-white" : isDone ? "text-cyan-400" : "text-zinc-500"}`}>{s.label}</span>
+              </div>
+            );
+          })}
+        </motion.div>
+
+        {/* Error */}
+        <AnimatePresence>
           {error && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3 rounded-lg mb-6">
-              {error}
+            <motion.div initial={{ opacity: 0, height: 0, marginBottom: 0 }} animate={{ opacity: 1, height: "auto", marginBottom: 16 }} exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl flex items-start gap-2">
+              <span className="text-red-500 mt-0.5">âš </span> {error}
             </motion.div>
           )}
+        </AnimatePresence>
 
-          <div className="overflow-hidden">
-            <motion.div
-              animate={{ x: step === 1 ? '0%' : step === 2 ? '-33.33%' : '-66.66%' }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="flex w-[300%]"
-            >
-              {/* STEP 1: Basic Info */}
-              <div className="w-1/3 px-2 space-y-5">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-zinc-300 flex items-center justify-between">
-                    <span className="flex items-center gap-2"><Globe className="w-4 h-4 text-blue-400" /> Domain Name *</span>
-                  </label>
-                  <div className="flex gap-2">
-                    <input type="text" name="domain" value={formData.domain} onChange={handleInputChange} placeholder="e.g. platform.yourcompany.com" className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors" />
-                    <button type="button" onClick={() => formData.domain && window.open(`https://${formData.domain}`, '_blank')} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 rounded-lg transition-colors flex items-center justify-center" title="Preview Domain">
-                      <Eye className="w-5 h-5" />
-                    </button>
-                  </div>
-                  <p className="text-xs text-zinc-500 mt-1">
-                    Make sure you have added a CNAME record pointing to cname.propnexai.com according to our <a href="https://drive.google.com/file/d/1d7T85dRtt-ll0qKtNPoKF8EXWRt5Yzsf/view?usp=sharing" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">PDF Guide</a>.
-                  </p>
+        {/* Form Card */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+          className="bg-zinc-950/80 backdrop-blur-2xl border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden">
+
+          <AnimatePresence mode="wait">
+
+            {/* STEP 1: Basic Info */}
+            {step === 1 && (
+              <motion.div key="step1" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3 }} className="p-6 sm:p-8 space-y-5">
+                <div>
+                  <h2 className="text-xl font-bold text-white mb-1">Basic Information</h2>
+                  <p className="text-zinc-500 text-sm">Tell us about your domain and company.</p>
                 </div>
-                
+
+                {/* Domain */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                    <Building className="w-4 h-4 text-blue-400" /> Company Name *
+                    <Globe className="w-4 h-4 text-cyan-400" /> Domain Name <span className="text-red-400">*</span>
                   </label>
-                  <input type="text" name="companyName" value={formData.companyName} onChange={handleInputChange} placeholder="e.g. Acme Corp" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors" />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-blue-400" /> Support Email *
-                    </label>
-                    <input type="email" name="supportEmail" value={formData.supportEmail} onChange={handleInputChange} placeholder="support@yourcompany.com" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-blue-400" /> Support Phone
-                    </label>
-                    <input type="text" name="supportPhone" value={formData.supportPhone} onChange={handleInputChange} placeholder="+1 234 567 890" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors" />
-                  </div>
-                </div>
-
-                <div className="pt-4 flex justify-end">
-                  <button onClick={nextStep} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg transition-colors flex items-center gap-2">
-                    Next Step <CheckCircle2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* STEP 2: Branding */}
-              <div className="w-1/3 px-2 space-y-5">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-zinc-300">Tab Title (Browser Tab)</label>
-                  <input type="text" name="tabTitle" value={formData.tabTitle} onChange={handleInputChange} placeholder="e.g. Acme Dashboard" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors" />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {/* Logo Upload */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                      <ImageIcon className="w-4 h-4 text-blue-400" /> Main Logo *
-                    </label>
-                    <div className="relative group rounded-lg border-2 border-dashed border-zinc-700 hover:border-blue-500 transition-colors bg-zinc-950 flex flex-col items-center justify-center p-6 h-32 overflow-hidden">
-                      <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, "logoUrl")} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                      {formData.logoUrl ? (
-                        <img src={formData.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
-                      ) : (
-                        <div className="text-center">
-                          <Upload className="w-6 h-6 text-zinc-500 mx-auto mb-2 group-hover:text-blue-400 transition-colors" />
-                          <span className="text-xs text-zinc-500">Upload Logo</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Favicon Upload */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                      <ImageIcon className="w-4 h-4 text-blue-400" /> Favicon *
-                    </label>
-                    <div className="relative group rounded-lg border-2 border-dashed border-zinc-700 hover:border-blue-500 transition-colors bg-zinc-950 flex flex-col items-center justify-center p-6 h-32 overflow-hidden">
-                      <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, "faviconUrl")} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                      {formData.faviconUrl ? (
-                        <img src={formData.faviconUrl} alt="Favicon" className="max-h-full max-w-full object-contain" />
-                      ) : (
-                        <div className="text-center">
-                          <Upload className="w-6 h-6 text-zinc-500 mx-auto mb-2 group-hover:text-blue-400 transition-colors" />
-                          <span className="text-xs text-zinc-500">Upload Favicon</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                      <LinkIcon className="w-4 h-4 text-blue-400" /> Instagram (Optional)
-                    </label>
-                    <input type="url" name="instagramUrl" value={formData.instagramUrl} onChange={handleInputChange} placeholder="https://instagram.com/..." className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                      <LinkIcon className="w-4 h-4 text-blue-400" /> LinkedIn (Optional)
-                    </label>
-                    <input type="url" name="linkedinUrl" value={formData.linkedinUrl} onChange={handleInputChange} placeholder="https://linkedin.com/..." className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors" />
-                  </div>
-                </div>
-
-                <div className="pt-4 flex justify-between">
-                  <button onClick={() => setStep(1)} className="text-zinc-400 hover:text-white font-medium px-4 py-2.5 transition-colors">
-                    Back
-                  </button>
-                  <button onClick={requestOtp} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-2.5 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                    {loading ? (
-                      <><Loader2 className="w-4 h-4 animate-spin" /> Preparing...</>
-                    ) : (
-                      <>Verify Email <Mail className="w-4 h-4" /></>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* STEP 3: OTP Verification */}
-              <div className="w-1/3 px-2 space-y-5">
-                <div className="text-center py-6">
-                  <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <KeyRound className="w-8 h-8 text-blue-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Check Your Email</h3>
-                  <p className="text-zinc-400 mb-6 max-w-md mx-auto">
-                    We've sent a one-time verification code to <strong>{formData.supportEmail}</strong>. 
-                    Please enter the code below to finalize your white label setup.
-                  </p>
-                  
-                  <div className="max-w-xs mx-auto space-y-4">
-                    <input 
-                      type="text" 
-                      value={enteredOtp} 
-                      onChange={(e) => setEnteredOtp(e.target.value)} 
-                      placeholder="Enter 6-digit OTP" 
-                      className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3 text-center text-xl tracking-[0.5em] font-mono text-white focus:outline-none focus:border-blue-500 transition-colors" 
-                      maxLength={6}
-                    />
-                    
-                    <button onClick={submitForm} disabled={loading || enteredOtp.length < 4} className="w-full bg-green-600 hover:bg-green-700 text-white font-medium px-8 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                      {loading ? (
-                        <><Loader2 className="w-4 h-4 animate-spin" /> Verifying & Submitting...</>
-                      ) : (
-                        <>Complete Setup <CheckCircle2 className="w-5 h-5" /></>
-                      )}
+                  <div className="flex gap-2">
+                    <input type="text" name="domain" value={formData.domain} onChange={handleInputChange}
+                      placeholder="e.g. platform.yourcompany.com"
+                      className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white text-sm placeholder-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+                    <button type="button" onClick={() => formData.domain && window.open(`https://${formData.domain}`, '_blank')}
+                      title="Preview Domain"
+                      className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-400 hover:text-white px-3 rounded-xl transition-all flex items-center justify-center">
+                      <Eye className="w-4 h-4" />
                     </button>
                   </div>
+                  <p className="text-xs text-zinc-600 flex items-center gap-1.5 mt-1">
+                    <FileText className="w-3 h-3 text-cyan-500" />
+                    Add CNAME â†’ cname.propnexai.com first.{" "}
+                    <a href="https://drive.google.com/file/d/1d7T85dRtt-ll0qKtNPoKF8EXWRt5Yzsf/view?usp=sharing" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">PDF Guide</a>
+                  </p>
                 </div>
 
-                <div className="pt-4 flex justify-between">
-                  <button onClick={() => setStep(2)} className="text-zinc-400 hover:text-white font-medium px-4 py-2.5 transition-colors">
-                    Back to Branding
+                {/* Company Name */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
+                    <Building className="w-4 h-4 text-cyan-400" /> Company Name <span className="text-red-400">*</span>
+                  </label>
+                  <input type="text" name="companyName" value={formData.companyName} onChange={handleInputChange}
+                    placeholder="e.g. Acme Corp"
+                    className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white text-sm placeholder-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+                </div>
+
+                {/* Support Email + Phone */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-cyan-400" /> Support Email <span className="text-red-400">*</span>
+                    </label>
+                    <input type="email" name="supportEmail" value={formData.supportEmail} onChange={handleInputChange}
+                      placeholder="support@company.com"
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white text-sm placeholder-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-cyan-400" /> Support Phone
+                    </label>
+                    <input type="text" name="supportPhone" value={formData.supportPhone} onChange={handleInputChange}
+                      placeholder="+1 234 567 890"
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white text-sm placeholder-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button onClick={nextStep}
+                    className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold px-8 py-3 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:scale-[1.02]">
+                    Next Step <ArrowRight className="w-4 h-4" />
                   </button>
-                  <button onClick={requestOtp} disabled={loading} className="text-blue-400 hover:text-blue-300 font-medium px-4 py-2.5 transition-colors">
+                </div>
+              </motion.div>
+            )}
+
+            {/* STEP 2: Branding */}
+            {step === 2 && (
+              <motion.div key="step2" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3 }} className="p-6 sm:p-8 space-y-5">
+                <div>
+                  <h2 className="text-xl font-bold text-white mb-1">Branding Assets</h2>
+                  <p className="text-zinc-500 text-sm">Upload your logo, favicon, and social links.</p>
+                </div>
+
+                {/* Tab Title */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-zinc-300">Browser Tab Title</label>
+                  <input type="text" name="tabTitle" value={formData.tabTitle} onChange={handleInputChange}
+                    placeholder="e.g. Acme Dashboard"
+                    className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white text-sm placeholder-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+                </div>
+
+                {/* Logo + Favicon */}
+                <div className="grid grid-cols-2 gap-4">
+                  {(["logoUrl", "faviconUrl"] as const).map((field) => (
+                    <div key={field} className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4 text-cyan-400" />
+                        {field === "logoUrl" ? "Main Logo" : "Favicon"} <span className="text-red-400">*</span>
+                      </label>
+                      <label className="relative group rounded-xl border-2 border-dashed border-zinc-700 hover:border-cyan-500 transition-all bg-zinc-900 flex flex-col items-center justify-center h-28 overflow-hidden cursor-pointer">
+                        <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, field)} className="hidden" />
+                        {formData[field] ? (
+                          <img src={formData[field]} alt={field} className="max-h-full max-w-full object-contain p-2" />
+                        ) : (
+                          <div className="text-center p-4">
+                            <Upload className="w-6 h-6 text-zinc-600 group-hover:text-cyan-400 mx-auto mb-1.5 transition-colors" />
+                            <span className="text-xs text-zinc-600 group-hover:text-zinc-400 transition-colors">Click to upload</span>
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Social Links */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    { name: "instagramUrl", label: "Instagram", placeholder: "https://instagram.com/..." },
+                    { name: "linkedinUrl", label: "LinkedIn", placeholder: "https://linkedin.com/..." },
+                  ].map((field) => (
+                    <div key={field.name} className="space-y-1.5">
+                      <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
+                        <LinkIcon className="w-4 h-4 text-cyan-400" /> {field.label} <span className="text-zinc-600 text-xs">(optional)</span>
+                      </label>
+                      <input type="url" name={field.name} value={(formData as any)[field.name]} onChange={handleInputChange}
+                        placeholder={field.placeholder}
+                        className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white text-sm placeholder-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-between pt-2">
+                  <button onClick={() => setStep(1)}
+                    className="text-zinc-400 hover:text-white font-medium px-4 py-3 rounded-xl hover:bg-zinc-800 transition-all flex items-center gap-2">
+                    <ArrowLeft className="w-4 h-4" /> Back
+                  </button>
+                  <button onClick={requestOtp} disabled={loading}
+                    className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold px-8 py-3 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none">
+                    {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending OTP...</> : <>Verify Email <Mail className="w-4 h-4" /></>}
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* STEP 3: OTP Verify */}
+            {step === 3 && (
+              <motion.div key="step3" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3 }} className="p-6 sm:p-8">
+                <div className="text-center mb-8">
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
+                    className="w-20 h-20 bg-blue-500/20 border border-blue-500/30 rounded-full flex items-center justify-center mx-auto mb-5">
+                    <KeyRound className="w-10 h-10 text-blue-400" />
+                  </motion.div>
+                  <h2 className="text-2xl font-bold text-white mb-2">Check Your Email</h2>
+                  <p className="text-zinc-400 text-sm max-w-sm mx-auto">
+                    We sent a 6-digit verification code to{" "}
+                    <span className="text-white font-semibold">{formData.supportEmail}</span>
+                  </p>
+                </div>
+
+                {/* OTP Boxes */}
+                <div className="flex justify-center gap-3 mb-6" onPaste={handleOtpPaste}>
+                  {otpDigits.map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={(el) => { otpRefs.current[index] = el; }}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      className={`w-12 h-14 text-center text-xl font-bold rounded-xl border-2 bg-zinc-900 text-white outline-none transition-all duration-200
+                        ${digit ? "border-cyan-500 shadow-sm shadow-cyan-500/30" : "border-zinc-700 focus:border-cyan-500 focus:shadow-sm focus:shadow-cyan-500/20"}`}
+                    />
+                  ))}
+                </div>
+
+                <div className="space-y-3">
+                  <button onClick={submitForm} disabled={loading || enteredOtp.length < 6}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-semibold px-8 py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/20 hover:shadow-green-500/40 hover:scale-[1.01] disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none">
+                    {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Verifying & Submitting...</> : <><CheckCircle2 className="w-5 h-5" /> Complete Setup</>}
+                  </button>
+                </div>
+
+                <div className="flex justify-between mt-4">
+                  <button onClick={() => setStep(2)}
+                    className="text-zinc-400 hover:text-white text-sm font-medium px-3 py-2 rounded-lg hover:bg-zinc-800 transition-all flex items-center gap-1.5">
+                    <ArrowLeft className="w-4 h-4" /> Back to Branding
+                  </button>
+                  <button onClick={requestOtp} disabled={loading}
+                    className="text-cyan-400 hover:text-cyan-300 text-sm font-medium px-3 py-2 rounded-lg hover:bg-zinc-800 transition-all">
                     Resend Code
                   </button>
                 </div>
-              </div>
+              </motion.div>
+            )}
 
-            </motion.div>
-          </div>
-        </div>
-      </motion.div>
+          </AnimatePresence>
+        </motion.div>
+
+        {/* PDF Guide hint */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-6 text-center">
+          <a href="https://drive.google.com/file/d/1d7T85dRtt-ll0qKtNPoKF8EXWRt5Yzsf/view?usp=sharing" target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-zinc-500 hover:text-cyan-400 text-sm transition-colors">
+            <FileText className="w-4 h-4" />
+            Need help with DNS? View the Setup PDF Guide â†’
+          </a>
+        </motion.div>
+      </main>
     </div>
   );
 }
+
+  const [step, setStep] = useState(1);
