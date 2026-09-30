@@ -30,6 +30,9 @@ export default function WhiteLabelSetupPage() {
     faviconUrl: ""
   });
 
+  const [cnameChecked, setCnameChecked] = useState(false);
+  const [consentChecked, setConsentChecked] = useState(false);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
@@ -284,6 +287,35 @@ export default function WhiteLabelSetupPage() {
             {/* STEP 1: Basic Info */}
             {step === 1 && (
               <motion.div key="step1" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3 }} className="p-6 sm:p-8 space-y-5">
+                <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-xl p-5 mb-2">
+                  <h3 className="text-cyan-400 font-semibold flex items-center gap-2 mb-2 text-sm uppercase tracking-wider">
+                    <Globe className="w-4 h-4" /> Step 1: DNS Configuration
+                  </h3>
+                  <p className="text-sm text-zinc-300 leading-relaxed mb-4">
+                    To connect your domain to the platform, you must add the following <strong className="text-white">CNAME</strong> record to your domain's DNS settings.
+                  </p>
+                  <div className="bg-zinc-950/50 rounded-lg p-4 text-sm border border-zinc-800 space-y-3">
+                    <div className="flex items-center justify-between border-b border-zinc-800/50 pb-3">
+                      <span className="text-zinc-400 font-medium">Type:</span>
+                      <span className="text-white font-mono bg-zinc-800 px-2 py-0.5 rounded">CNAME</span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-800/50 pb-3 gap-2">
+                      <span className="text-zinc-400 font-medium">Name (Host):</span>
+                      <div className="text-right">
+                        <span className="text-white font-mono bg-zinc-800 px-2 py-0.5 rounded">@</span>
+                        <div className="text-xs text-zinc-500 mt-1 italic">If your system doesn't allow @ for CNAME, use <span className="font-mono bg-zinc-800 px-1 py-0.5 rounded text-zinc-400 not-italic">www</span></div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-zinc-400 font-medium">Value (Target):</span>
+                      <span className="text-cyan-400 font-mono bg-cyan-500/10 px-2 py-0.5 rounded">cname.vercel-dns.com</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-zinc-500 mt-4 flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 text-cyan-500/50" /> Please read the <a href="https://drive.google.com/file/d/1d7T85dRtt-ll0qKtNPoKF8EXWRt5Yzsf/view?usp=sharing" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">PDF setup guide</a> for detailed instructions.
+                  </p>
+                </div>
+
                 <div>
                   <h2 className="text-xl font-bold text-white mb-1">Basic Information</h2>
                   <p className="text-zinc-500 text-sm">Tell us about your domain and company.</p>
@@ -419,14 +451,30 @@ export default function WhiteLabelSetupPage() {
                     </div>
                   ))}
                 </div>
+                <div className="space-y-3 mt-8 p-5 bg-zinc-900/40 border border-zinc-800/80 rounded-xl">
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <div className="relative flex items-center justify-center mt-0.5">
+                      <input type="checkbox" className="peer appearance-none w-5 h-5 border-2 border-zinc-600 rounded bg-zinc-900 checked:bg-cyan-500 checked:border-cyan-500 transition-all cursor-pointer" checked={cnameChecked} onChange={(e) => setCnameChecked(e.target.checked)} />
+                      <CheckCircle2 className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
+                    </div>
+                    <span className="text-sm text-zinc-300 group-hover:text-zinc-200 transition-colors">I confirm that I have completed the CNAME DNS configuration for my domain.</span>
+                  </label>
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <div className="relative flex items-center justify-center mt-0.5">
+                      <input type="checkbox" className="peer appearance-none w-5 h-5 border-2 border-zinc-600 rounded bg-zinc-900 checked:bg-cyan-500 checked:border-cyan-500 transition-all cursor-pointer" checked={consentChecked} onChange={(e) => setConsentChecked(e.target.checked)} />
+                      <CheckCircle2 className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
+                    </div>
+                    <span className="text-sm text-zinc-300 group-hover:text-zinc-200 transition-colors">I authorize the PropNex Admin team to review and deploy these branding assets.</span>
+                  </label>
+                </div>
 
-                <div className="flex justify-between pt-2">
+                <div className="flex justify-between pt-6 mt-6 border-t border-zinc-800/50">
                   <button onClick={() => setStep(1)}
                     className="text-zinc-400 hover:text-white font-medium px-4 py-3 rounded-xl hover:bg-zinc-800 transition-all flex items-center gap-2">
                     <ArrowLeft className="w-4 h-4" /> Back
                   </button>
-                  <button onClick={requestOtp} disabled={loading}
-                    className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold px-8 py-3 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none">
+                  <button onClick={requestOtp} disabled={loading || !cnameChecked || !consentChecked}
+                    className={`font-semibold px-8 py-3 rounded-xl transition-all flex items-center gap-2 shadow-lg ${(!cnameChecked || !consentChecked) ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed shadow-none' : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-blue-500/20 hover:shadow-blue-500/40 hover:scale-[1.02]'}`}>
                     {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending OTP...</> : <>Verify Email <Mail className="w-4 h-4" /></>}
                   </button>
                 </div>
