@@ -79,8 +79,15 @@ export default function WhiteLabelSetupPage() {
 
   const nextStep = () => {
     if (step === 1) {
-      if (!formData.domain || !formData.companyName || !formData.supportEmail) {
-        setError("Please fill in all required fields (Domain, Company Name, Email)."); return;
+      if (!formData.domain || !formData.companyName || !formData.supportEmail || !formData.supportPhone) {
+        setError("Please fill in all required fields (Domain, Company Name, Email, Phone)."); return;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.supportEmail)) {
+        setError("Please enter a valid support email address."); return;
+      }
+      if (formData.supportPhone.replace(/\D/g, '').length !== 10) {
+        setError("Please enter a valid 10-digit Indian phone number."); return;
       }
       setError(""); setStep(2);
     }
@@ -88,7 +95,14 @@ export default function WhiteLabelSetupPage() {
 
   const requestOtp = async () => {
     if (!formData.logoUrl || !formData.faviconUrl) {
-      setError("Please upload both a Logo and a Favicon."); return;
+      setError("Please provide both a Logo and a Favicon (via URL or upload)."); return;
+    }
+    if (!formData.instagramUrl || !formData.linkedinUrl) {
+      setError("Please provide both Instagram and LinkedIn URLs."); return;
+    }
+    const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+    if (!urlRegex.test(formData.instagramUrl) || !urlRegex.test(formData.linkedinUrl)) {
+      setError("Please enter valid URLs for Instagram and LinkedIn."); return;
     }
     setError(""); setLoading(true);
     try {
@@ -116,7 +130,12 @@ export default function WhiteLabelSetupPage() {
       const res = await fetch("/api/white-label/setup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, userEmail, name: userName })
+        body: JSON.stringify({ 
+          ...formData, 
+          supportPhone: `+91${formData.supportPhone.replace(/\D/g, '')}`, // Ensure +91 prefix
+          userEmail, 
+          name: userName 
+        })
       });
       if (res.ok) { setSuccess(true); }
       else { const data = await res.json(); setError(data.error || "Something went wrong."); }
@@ -282,11 +301,20 @@ export default function WhiteLabelSetupPage() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-cyan-400" /> Support Phone
+                      <Phone className="w-4 h-4 text-cyan-400" /> Support Phone <span className="text-red-400">*</span>
                     </label>
-                    <input type="text" name="supportPhone" value={formData.supportPhone} onChange={handleInputChange}
-                      placeholder="+1 234 567 890"
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white text-sm placeholder-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+                    <div className="flex bg-zinc-900 border border-zinc-700 rounded-xl overflow-hidden focus-within:border-cyan-500 focus-within:ring-1 focus-within:ring-cyan-500/30 transition-all">
+                      <div className="bg-zinc-800/50 border-r border-zinc-700 px-3 flex items-center justify-center gap-2 text-white font-medium select-none">
+                        <span>🇮🇳</span>
+                        <span>+91</span>
+                      </div>
+                      <input type="tel" name="supportPhone" value={formData.supportPhone} onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                          setFormData({ ...formData, supportPhone: val });
+                        }}
+                        placeholder="10-digit number"
+                        className="flex-1 bg-transparent px-4 py-3 text-white text-sm placeholder-zinc-600 focus:outline-none" />
+                    </div>
                   </div>
                 </div>
 
@@ -316,24 +344,34 @@ export default function WhiteLabelSetupPage() {
                 </div>
 
                 {/* Logo + Favicon */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {(["logoUrl", "faviconUrl"] as const).map((field) => (
                     <div key={field} className="space-y-2">
-                      <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                        <ImageIcon className="w-4 h-4 text-cyan-400" />
-                        {field === "logoUrl" ? "Main Logo" : "Favicon"} <span className="text-red-400">*</span>
+                      <label className="text-sm font-medium text-zinc-300 flex items-center justify-between gap-2">
+                        <span className="flex items-center gap-2">
+                          <ImageIcon className="w-4 h-4 text-cyan-400" />
+                          {field === "logoUrl" ? "Main Logo" : "Favicon"} <span className="text-red-400">*</span>
+                        </span>
                       </label>
-                      <label className="relative group rounded-xl border-2 border-dashed border-zinc-700 hover:border-cyan-500 transition-all bg-zinc-900 flex flex-col items-center justify-center h-28 overflow-hidden cursor-pointer">
-                        <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, field)} className="hidden" />
-                        {formData[field] ? (
-                          <img src={formData[field]} alt={field} className="max-h-full max-w-full object-contain p-2" />
-                        ) : (
-                          <div className="text-center p-4">
-                            <Upload className="w-6 h-6 text-zinc-600 group-hover:text-cyan-400 mx-auto mb-1.5 transition-colors" />
-                            <span className="text-xs text-zinc-600 group-hover:text-zinc-400 transition-colors">Click to upload</span>
-                          </div>
-                        )}
-                      </label>
+                      
+                      <div className="flex gap-2">
+                        <input type="text" name={field} value={formData[field]} onChange={handleInputChange}
+                          placeholder="Paste image URL here"
+                          className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white text-sm placeholder-zinc-600 focus:outline-none focus:border-cyan-500 transition-all" />
+                        
+                        <label className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 hover:text-white px-3 rounded-xl transition-all flex items-center justify-center cursor-pointer" title="Upload File">
+                          <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, field)} className="hidden" />
+                          <Upload className="w-4 h-4" />
+                        </label>
+                      </div>
+
+                      {formData[field] && (
+                        <div className="mt-2 rounded-xl border border-zinc-800 bg-zinc-900/50 flex items-center justify-center h-24 overflow-hidden p-2">
+                          <img src={formData[field]} alt={field} className="max-h-full max-w-full object-contain" onError={(e) => {
+                            (e.target as HTMLImageElement).src = ''; // Clear broken images
+                          }} />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -346,7 +384,7 @@ export default function WhiteLabelSetupPage() {
                   ].map((field) => (
                     <div key={field.name} className="space-y-1.5">
                       <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                        <LinkIcon className="w-4 h-4 text-cyan-400" /> {field.label} <span className="text-zinc-600 text-xs">(optional)</span>
+                        <LinkIcon className="w-4 h-4 text-cyan-400" /> {field.label} <span className="text-red-400">*</span>
                       </label>
                       <input type="url" name={field.name} value={(formData as any)[field.name]} onChange={handleInputChange}
                         placeholder={field.placeholder}
@@ -435,7 +473,6 @@ export default function WhiteLabelSetupPage() {
           <div className="flex items-center gap-6 text-sm text-zinc-500">
             <a href="https://propnexai.com/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Privacy Policy</a>
             <a href="https://propnexai.com/terms" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Terms of Service</a>
-            <a href="https://propnexai.com/security" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Security</a>
           </div>
         </div>
       </footer>
