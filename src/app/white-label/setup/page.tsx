@@ -1,14 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Upload, CheckCircle2, Building, Globe, Mail, Phone, Link as LinkIcon, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Upload, CheckCircle2, Building, Globe, Mail, Phone, Link as LinkIcon, Image as ImageIcon, Loader2, Eye, KeyRound } from "lucide-react";
 
 export default function WhiteLabelSetupPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [userName, setUserName] = useState("User");
+  const [userEmail, setUserEmail] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [expectedOtp, setExpectedOtp] = useState("");
+  const [enteredOtp, setEnteredOtp] = useState("");
 
   const [formData, setFormData] = useState({
     domain: "",
@@ -21,6 +26,19 @@ export default function WhiteLabelSetupPage() {
     logoUrl: "",
     faviconUrl: ""
   });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const email = params.get("email") || "";
+      const name = params.get("name") || "User";
+      setUserEmail(email);
+      setUserName(name);
+      if (email) {
+        setFormData(prev => ({ ...prev, supportEmail: email }));
+      }
+    }
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -52,7 +70,7 @@ export default function WhiteLabelSetupPage() {
     }
   };
 
-  const submitForm = async () => {
+  const requestOtp = async () => {
     if (!formData.logoUrl || !formData.faviconUrl) {
       setError("Please upload both a Logo and a Favicon.");
       return;
@@ -61,10 +79,40 @@ export default function WhiteLabelSetupPage() {
     setLoading(true);
 
     try {
+      const res = await fetch("/api/white-label/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.supportEmail, name: userName })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setExpectedOtp(data.otp);
+        setOtpSent(true);
+        setStep(3);
+      } else {
+        setError(data.error || "Failed to send OTP.");
+      }
+    } catch (err) {
+      setError("Failed to send OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitForm = async () => {
+    if (enteredOtp !== expectedOtp) {
+      setError("Invalid OTP. Please check your email and try again.");
+      return;
+    }
+
+    setError("");
+    setLoading(true);
+
+    try {
       const res = await fetch("/api/white-label/setup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({ ...formData, name: userName })
       });
 
       if (res.ok) {
@@ -82,7 +130,7 @@ export default function WhiteLabelSetupPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 bg-black text-white flex items-center justify-center p-4">
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }} 
           animate={{ opacity: 1, scale: 1 }} 
@@ -99,7 +147,7 @@ export default function WhiteLabelSetupPage() {
           <h2 className="text-2xl font-bold mb-4">Submission Successful!</h2>
           <p className="text-zinc-400 mb-6">
             Your white-label setup details have been securely transmitted to our administrative team. 
-            We will review your details, verify your DNS records, and activate your domain shortly.
+            You will receive a confirmation email shortly. We will review your details, verify your DNS records, and activate your domain.
           </p>
           <div className="text-sm text-zinc-500">
             If you haven't yet, please ensure your CNAME records are configured correctly.
@@ -110,7 +158,7 @@ export default function WhiteLabelSetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-[#050505] text-white flex items-center justify-center p-4 overflow-y-auto">
       {/* Background gradients */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-600/20 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-0 left-1/4 w-[500px] h-[300px] bg-purple-600/10 blur-[100px] rounded-full pointer-events-none" />
@@ -118,18 +166,30 @@ export default function WhiteLabelSetupPage() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }} 
         animate={{ opacity: 1, y: 0 }} 
-        className="max-w-2xl w-full relative z-10"
+        className="max-w-3xl w-full relative z-10 my-auto py-10"
       >
-        <div className="text-center mb-10">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">White Label Platform Setup</h1>
-          <p className="text-zinc-400">Complete the details below to deploy your custom branded platform.</p>
+        <div className="text-center mb-8">
+          <img src="https://propnexai.com/icon.png" alt="PropNex AI" className="h-16 mx-auto mb-6" onError={(e) => e.currentTarget.style.display = 'none'} />
+          
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-3 text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400">
+            White Label Platform Setup
+          </h1>
+          <p className="text-zinc-400 max-w-2xl mx-auto mb-4">
+            Welcome to the PropNex AI White Labelling feature. Completely rebrand our powerful AI voice technology as your own. 
+            Your clients will see your logo, your domain, and your brand identity across the entire dashboard.
+          </p>
+          
+          <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-2 rounded-full text-sm font-medium">
+            <Globe className="w-4 h-4" />
+            Hello, {userName} ({userEmail || "No email provided"})
+          </div>
         </div>
 
-        <div className="bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 rounded-2xl p-6 md:p-8 shadow-2xl">
+        <div className="bg-zinc-900/60 backdrop-blur-xl border border-zinc-800 rounded-2xl p-6 md:p-8 shadow-2xl">
           {/* Progress Steps */}
-          <div className="flex items-center justify-between mb-8 relative">
+          <div className="flex items-center justify-between mb-8 relative px-4">
             <div className="absolute top-1/2 left-0 w-full h-0.5 bg-zinc-800 -z-10 -translate-y-1/2" />
-            <div className="absolute top-1/2 left-0 h-0.5 bg-blue-500 -z-10 -translate-y-1/2 transition-all duration-500" style={{ width: step === 2 ? '100%' : '0%' }} />
+            <div className="absolute top-1/2 left-0 h-0.5 bg-blue-500 -z-10 -translate-y-1/2 transition-all duration-500" style={{ width: step === 1 ? '0%' : step === 2 ? '50%' : '100%' }} />
             
             <div className="flex flex-col items-center">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${step >= 1 ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400'}`}>1</div>
@@ -137,7 +197,11 @@ export default function WhiteLabelSetupPage() {
             </div>
             <div className="flex flex-col items-center">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${step >= 2 ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400'}`}>2</div>
-              <span className="text-xs mt-2 font-medium text-zinc-300">Branding Assets</span>
+              <span className="text-xs mt-2 font-medium text-zinc-300">Branding</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${step >= 3 ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400'}`}>3</div>
+              <span className="text-xs mt-2 font-medium text-zinc-300">Verify</span>
             </div>
           </div>
 
@@ -149,18 +213,23 @@ export default function WhiteLabelSetupPage() {
 
           <div className="overflow-hidden">
             <motion.div
-              animate={{ x: step === 1 ? 0 : '-100%' }}
+              animate={{ x: step === 1 ? '0%' : step === 2 ? '-33.33%' : '-66.66%' }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="flex"
-              style={{ width: '200%' }}
+              className="flex w-[300%]"
             >
               {/* STEP 1: Basic Info */}
-              <div className="w-1/2 pr-4 space-y-5">
+              <div className="w-1/3 px-2 space-y-5">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-blue-400" /> Domain Name *
+                  <label className="text-sm font-medium text-zinc-300 flex items-center justify-between">
+                    <span className="flex items-center gap-2"><Globe className="w-4 h-4 text-blue-400" /> Domain Name *</span>
                   </label>
-                  <input type="text" name="domain" value={formData.domain} onChange={handleInputChange} placeholder="e.g. platform.yourcompany.com" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors" />
+                  <div className="flex gap-2">
+                    <input type="text" name="domain" value={formData.domain} onChange={handleInputChange} placeholder="e.g. platform.yourcompany.com" className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors" />
+                    <button type="button" onClick={() => formData.domain && window.open(`https://${formData.domain}`, '_blank')} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 rounded-lg transition-colors flex items-center justify-center" title="Preview Domain">
+                      <Eye className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <p className="text-xs text-zinc-500 mt-1">Make sure you have added a CNAME record pointing to cname.propnexai.com</p>
                 </div>
                 
                 <div className="space-y-1.5">
@@ -193,7 +262,7 @@ export default function WhiteLabelSetupPage() {
               </div>
 
               {/* STEP 2: Branding */}
-              <div className="w-1/2 pl-4 space-y-5">
+              <div className="w-1/3 px-2 space-y-5">
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-zinc-300">Tab Title (Browser Tab)</label>
                   <input type="text" name="tabTitle" value={formData.tabTitle} onChange={handleInputChange} placeholder="e.g. Acme Dashboard" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors" />
@@ -256,15 +325,58 @@ export default function WhiteLabelSetupPage() {
                   <button onClick={() => setStep(1)} className="text-zinc-400 hover:text-white font-medium px-4 py-2.5 transition-colors">
                     Back
                   </button>
-                  <button onClick={submitForm} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-2.5 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <button onClick={requestOtp} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-2.5 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                     {loading ? (
-                      <><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</>
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Preparing...</>
                     ) : (
-                      <>Submit Details <CheckCircle2 className="w-4 h-4" /></>
+                      <>Verify Email <Mail className="w-4 h-4" /></>
                     )}
                   </button>
                 </div>
               </div>
+
+              {/* STEP 3: OTP Verification */}
+              <div className="w-1/3 px-2 space-y-5">
+                <div className="text-center py-6">
+                  <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <KeyRound className="w-8 h-8 text-blue-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Check Your Email</h3>
+                  <p className="text-zinc-400 mb-6 max-w-md mx-auto">
+                    We've sent a one-time verification code to <strong>{formData.supportEmail}</strong>. 
+                    Please enter the code below to finalize your white label setup.
+                  </p>
+                  
+                  <div className="max-w-xs mx-auto space-y-4">
+                    <input 
+                      type="text" 
+                      value={enteredOtp} 
+                      onChange={(e) => setEnteredOtp(e.target.value)} 
+                      placeholder="Enter 6-digit OTP" 
+                      className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3 text-center text-xl tracking-[0.5em] font-mono text-white focus:outline-none focus:border-blue-500 transition-colors" 
+                      maxLength={6}
+                    />
+                    
+                    <button onClick={submitForm} disabled={loading || enteredOtp.length < 4} className="w-full bg-green-600 hover:bg-green-700 text-white font-medium px-8 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                      {loading ? (
+                        <><Loader2 className="w-4 h-4 animate-spin" /> Verifying & Submitting...</>
+                      ) : (
+                        <>Complete Setup <CheckCircle2 className="w-5 h-5" /></>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex justify-between">
+                  <button onClick={() => setStep(2)} className="text-zinc-400 hover:text-white font-medium px-4 py-2.5 transition-colors">
+                    Back to Branding
+                  </button>
+                  <button onClick={requestOtp} disabled={loading} className="text-blue-400 hover:text-blue-300 font-medium px-4 py-2.5 transition-colors">
+                    Resend Code
+                  </button>
+                </div>
+              </div>
+
             </motion.div>
           </div>
         </div>

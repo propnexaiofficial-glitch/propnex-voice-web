@@ -55,6 +55,24 @@ export async function POST(req: Request) {
       console.error("Failed to log system event", e);
     }
 
+    const webhookUrl = process.env.GAS_WEBHOOK_URL;
+    if (webhookUrl) {
+      try {
+        await fetch(webhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "white_label_received",
+            email: supportEmail,
+            userName: body.name || "User",
+            domain: domain
+          })
+        });
+      } catch (err) {
+        console.error("Failed to trigger GAS webhook for received:", err);
+      }
+    }
+
     return NextResponse.json({ success: true, domain: newDomain });
   } catch (error: any) {
     console.error("White label setup error:", error);
