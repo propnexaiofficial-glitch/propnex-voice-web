@@ -35,7 +35,6 @@ export default function WhiteLabelSetupPage() {
       const name = params.get("name") || "User";
       setUserEmail(email);
       setUserName(name);
-      if (email) setFormData(prev => ({ ...prev, supportEmail: email }));
     }
   }, []);
 
@@ -96,7 +95,7 @@ export default function WhiteLabelSetupPage() {
       const res = await fetch("/api/white-label/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: formData.supportEmail, name: userName })
+        body: JSON.stringify({ email: userEmail, name: userName })
       });
       const data = await res.json();
       if (res.ok) {
@@ -117,7 +116,7 @@ export default function WhiteLabelSetupPage() {
       const res = await fetch("/api/white-label/setup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, name: userName })
+        body: JSON.stringify({ ...formData, userEmail, name: userName })
       });
       if (res.ok) { setSuccess(true); }
       else { const data = await res.json(); setError(data.error || "Something went wrong."); }
@@ -380,7 +379,7 @@ export default function WhiteLabelSetupPage() {
                   <h2 className="text-2xl font-bold text-white mb-2">Check Your Email</h2>
                   <p className="text-zinc-400 text-sm max-w-sm mx-auto">
                     We sent a 6-digit verification code to{" "}
-                    <span className="text-white font-semibold">{formData.supportEmail}</span>
+                    <span className="text-white font-semibold">{userEmail}</span>
                   </p>
                 </div>
 

@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { domain, companyName, tabTitle, supportEmail, supportPhone, logoUrl, faviconUrl, instagramUrl, linkedinUrl } = body;
+    const { domain, companyName, tabTitle, supportEmail, userEmail, supportPhone, logoUrl, faviconUrl, instagramUrl, linkedinUrl } = body;
 
     if (!domain || !companyName || !supportEmail || !logoUrl || !faviconUrl) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     // Check if there is a placeholder invite for this email
     const placeholder = await prisma.whiteLabelDomain.findFirst({
       where: {
-        supportEmail,
+        supportEmail: userEmail || supportEmail, // Find by userEmail, fallback to supportEmail for safety
         status: "PENDING",
         domain: { startsWith: "pending-" }
       }
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             type: "white_label_received",
-            email: supportEmail,
+            email: userEmail || supportEmail, // Send confirmation to the actual user
             userName: body.name || "User",
             domain: domain,
             companyName: companyName,
