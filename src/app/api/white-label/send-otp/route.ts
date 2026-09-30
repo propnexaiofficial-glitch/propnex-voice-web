@@ -5,7 +5,7 @@ export async function POST(req: Request) {
     const { email, name } = await req.json();
 
     if (!email) {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 });
+      return NextResponse.json({ error: "Email is required. Access this page via your email link." }, { status: 400 });
     }
 
     // Generate a 6-digit OTP
@@ -13,23 +13,30 @@ export async function POST(req: Request) {
 
     // Send it to GAS Webhook
     const webhookUrl = process.env.GAS_WEBHOOK_URL;
-    if (webhookUrl) {
-      try {
-        await fetch(webhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "white_label_otp",
-            email: email,
-            userName: name || "User",
-            otp: otp
-          })
-        });
-      } catch (err) {
-        console.error("Failed to send OTP via GAS webhook:", err);
+    
+    if (!webhookUrl) {
+      console.error("GAS_WEBHOOK_URL is missing from environment variables.");
+      return NextResponse.json({ error: "Server Configuration Error: GAS_WEBHOOK_URL is missing." }, { status: 500 });
+    }
+
+    try {
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "white_label_otp",
+          email: email,
+          userName: name || "User",
+          otp: otp
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`GAS returned status ${response.status}`);
       }
-    } else {
-      console.warn("GAS_WEBHOOK_URL not set in propnex-voice-web");
+    } catch (err) {
+      console.error("Failed to send OTP via GAS webhook:", err);
+      return NextResponse.json({ error: "Failed to communicate with the email server." }, { status: 500 });
     }
 
     // Return the expected OTP to the frontend so it can verify the user input
