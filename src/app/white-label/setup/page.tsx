@@ -150,7 +150,7 @@ export default function WhiteLabelSetupPage() {
           <div className="overflow-hidden">
             <motion.div
               animate={{ x: step === 1 ? 0 : '-100%' }}
-              transition={{ tension: 300, friction: 30 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="flex"
               style={{ width: '200%' }}
             >

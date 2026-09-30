@@ -1,4 +1,4 @@
-import { NextResponse } from "next";
+import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -42,6 +42,18 @@ export async function POST(req: Request) {
         })
       }
     });
+
+    try {
+      await prisma.systemEvent.create({
+        data: {
+          type: "FORM_INFO",
+          title: "New White Label Submission",
+          message: `${companyName} (${domain}) submitted their branding details.`,
+        }
+      });
+    } catch (e) {
+      console.error("Failed to log system event", e);
+    }
 
     return NextResponse.json({ success: true, domain: newDomain });
   } catch (error: any) {

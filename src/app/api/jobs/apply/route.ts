@@ -154,7 +154,7 @@ export async function POST(req: Request) {
         data: {
           type: "FORM_INFO",
           title: "New Job Application",
-          message: `${firstName} ${lastName} applied for job ${jobId}.`,
+          message: `${firstName} ${lastName} applied for job "${jobTitle}" (ID: ${jobId}). Application ID: ${application.id}`,
         }
       });
     } catch (e) {
