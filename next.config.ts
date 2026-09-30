@@ -21,22 +21,22 @@ const nextConfig: NextConfig = {
         // Only proxy webhook which has no local implementation.
         {
           source: "/api/webhook/:path*",
-          destination: "http://200.234.34.240:3002/api/webhook/:path*",
+          destination: "http://YOUR_SERVER_IP:3002/api/webhook/:path*",
         },
         // Proxy specific user routes that don't have local implementations
         {
           source: "/api/users/remind-admin",
-          destination: "http://200.234.34.240:3002/api/users/remind-admin",
+          destination: "http://YOUR_SERVER_IP:3002/api/users/remind-admin",
         },
         {
           source: "/api/users/request-number",
-          destination: "http://200.234.34.240:3002/api/users/request-number",
+          destination: "http://YOUR_SERVER_IP:3002/api/users/request-number",
         },
       ],
       fallback: [
         {
           source: "/api/:path*",
-          destination: "http://200.234.34.240:3002/api/:path*",
+          destination: "http://YOUR_SERVER_IP:3002/api/:path*",
         },
       ],
     };

@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     const { adminSecret } = await req.json();
 
     // Simple secret check — only the admin knows this
-    const expectedSecret = process.env.ADMIN_FORCE_LOGOUT_SECRET || "Propnexai@123";
+    const expectedSecret = process.env.ADMIN_FORCE_LOGOUT_SECRET || "YOUR_PASSWORD";
     if (adminSecret !== expectedSecret) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }

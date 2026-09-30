@@ -1,0 +1,51 @@
+import { NextResponse } from "next";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const { domain, companyName, tabTitle, supportEmail, supportPhone, logoUrl, faviconUrl, instagramUrl, linkedinUrl } = body;
+
+    if (!domain || !companyName || !supportEmail || !logoUrl || !faviconUrl) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // Check if domain already exists
+    const existing = await prisma.whiteLabelDomain.findUnique({
+      where: { domain }
+    });
+
+    if (existing) {
+      return NextResponse.json({ error: "This domain is already registered or pending." }, { status: 400 });
+    }
+
+    const newDomain = await prisma.whiteLabelDomain.create({
+      data: {
+        domain,
+        companyName,
+        tabTitle: tabTitle || companyName,
+        supportEmail,
+        supportPhone: supportPhone || "",
+        logoUrl,
+        faviconUrl,
+        instagramUrl: instagramUrl || "",
+        linkedinUrl: linkedinUrl || "",
+        status: "PENDING",
+        pagesConfig: JSON.stringify({
+          features: true,
+          product: true,
+          pricing: true,
+          docs: true,
+          dashboard: true
+        })
+      }
+    });
+
+    return NextResponse.json({ success: true, domain: newDomain });
+  } catch (error: any) {
+    console.error("White label setup error:", error);
+    return NextResponse.json({ error: "Failed to submit white label setup" }, { status: 500 });
+  }
+}

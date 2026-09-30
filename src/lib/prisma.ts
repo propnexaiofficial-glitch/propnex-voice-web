@@ -7,7 +7,7 @@ const globalForPrisma = globalThis as unknown as {
 const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    datasourceUrl: process.env.DATABASE_URL || "mongodb://propnex_admin:Propnexai%40123@200.234.34.240:27017/propnex?authSource=admin&replicaSet=rs0",
+    datasourceUrl: process.env.DATABASE_URL || "mongodb://propnex_admin:Propnexai%40123@YOUR_SERVER_IP:27017/propnex?authSource=admin&replicaSet=rs0",
     log: process.env.NODE_ENV === "development" ? ["error"] : ["error"],
   });
 
