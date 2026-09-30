@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -165,8 +165,19 @@ export default function WhiteLabelSetupPage() {
       <nav className="relative z-50 border-b border-zinc-800/60 bg-black/40 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="https://propnexai.com/icon.png" alt="PropNex AI" className="h-8 w-8" onError={(e) => e.currentTarget.style.display = 'none'} />
-            <span className="text-white font-semibold text-lg tracking-tight">Propnex <span className="text-cyan-400">ai</span></span>
+            <img
+              src="https://propnexai.com/logo.svg"
+              alt="PropNex AI"
+              className="h-7 w-auto"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                const el = e.currentTarget.nextElementSibling as HTMLElement;
+                if (el) el.style.display = 'block';
+              }}
+            />
+            <span className="text-white font-semibold text-lg tracking-tight" style={{ display: 'none' }}>
+              Propnex <span className="text-cyan-400">ai</span>
+            </span>
           </div>
           <div className="flex items-center gap-2 bg-zinc-900/60 border border-zinc-700/50 rounded-full px-4 py-1.5">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
