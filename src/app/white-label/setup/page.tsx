@@ -166,16 +166,11 @@ export default function WhiteLabelSetupPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
-              src="https://propnexai.com/logo.svg"
+              src="/propnex-logo.png"
               alt="PropNex AI"
-              className="h-7 w-auto"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                const el = e.currentTarget.nextElementSibling as HTMLElement;
-                if (el) el.style.display = 'block';
-              }}
+              className="h-7 w-auto object-contain"
             />
-            <span className="text-white font-semibold text-lg tracking-tight" style={{ display: 'none' }}>
+            <span className="text-white font-semibold text-lg tracking-tight hidden">
               Propnex <span className="text-cyan-400">ai</span>
             </span>
           </div>
