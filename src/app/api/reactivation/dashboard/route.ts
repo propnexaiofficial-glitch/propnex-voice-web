@@ -341,7 +341,7 @@ export async function GET(req: NextRequest) {
         const completedInQ3 = q3Log?.status === "COMPLETED" && (q3Log.durationSeconds || 0) > 0;
 
         // Calculate Q1 status
-        const isPendingInQ1 = (!q1Log && !isMissed(b.q1Time)) || (q1Log && PENDING_STATUSES.includes(q1Log.status?.toUpperCase() || ""));
+        const isPendingInQ1 = (b.q1.status !== "Completed" && !q1Log && !isMissed(b.q1Time)) || (q1Log && PENDING_STATUSES.includes(q1Log.status?.toUpperCase() || ""));
         const failedInQ1 = !isPendingInQ1 && !completedInQ1;
 
         // Wave 1 always shows all original leads
@@ -349,14 +349,14 @@ export async function GET(req: NextRequest) {
 
         // Real-time transfer: Lead propagates to Q2 instantly if Q1 finished but failed (or if Q1 was completely missed)
         if (failedInQ1) {
-          const isPendingInQ2 = (!q2Log && !isMissed(b.q2Time)) || (q2Log && PENDING_STATUSES.includes(q2Log.status?.toUpperCase() || ""));
+          const isPendingInQ2 = (b.q2.status !== "Completed" && !q2Log && !isMissed(b.q2Time)) || (q2Log && PENDING_STATUSES.includes(q2Log.status?.toUpperCase() || ""));
           const failedInQ2 = !isPendingInQ2 && !completedInQ2;
 
           q2FinalList.push({ ...lead, isCompleted: completedInQ2, isFailed: failedInQ2, isAttempted: !!q2Log, status: q2Log?.status });
 
           // Real-time transfer: Lead propagates to Q3 instantly if Q2 finished but failed (or if Q2 was completely missed)
           if (failedInQ2) {
-            const isPendingInQ3 = (!q3Log && !isMissed(b.q3Time)) || (q3Log && PENDING_STATUSES.includes(q3Log.status?.toUpperCase() || ""));
+            const isPendingInQ3 = (b.q3.status !== "Completed" && !q3Log && !isMissed(b.q3Time)) || (q3Log && PENDING_STATUSES.includes(q3Log.status?.toUpperCase() || ""));
             const failedInQ3 = !isPendingInQ3 && !completedInQ3;
 
             q3FinalList.push({ ...lead, isCompleted: completedInQ3, isFailed: failedInQ3, isAttempted: !!q3Log, status: q3Log?.status });
