@@ -307,6 +307,7 @@ export async function GET(req: NextRequest) {
       // A wave that has been "Running" for more than 2 hours is stale — webhooks were missed
       // Normal calls complete in seconds-to-minutes, not hours
       const isStaleRunning = (time: Date) => nowMs > time.getTime() + 30 * 60 * 1000;
+      const isDispatching = (time: Date) => Date.now() >= time.getTime() && Date.now() < time.getTime() + 30 * 60 * 1000;
 
       b.q1.status = Date.now() < b.q1Time.getTime()
         ? "Pending"
@@ -339,9 +340,8 @@ export async function GET(req: NextRequest) {
         const completedInQ1 = q1Log?.status === "COMPLETED" && (q1Log.durationSeconds || 0) > 0;
         const completedInQ2 = q2Log?.status === "COMPLETED" && (q2Log.durationSeconds || 0) > 0;
         const completedInQ3 = q3Log?.status === "COMPLETED" && (q3Log.durationSeconds || 0) > 0;
-
         // Calculate Q1 status
-        const isPendingInQ1 = (b.q1.status !== "Completed" && !q1Log && !isMissed(b.q1Time)) || (q1Log && PENDING_STATUSES.includes(q1Log.status?.toUpperCase() || ""));
+        const isPendingInQ1 = (b.q1.status !== "Completed" && !q1Log && !isMissed(b.q1Time)) || (isDispatching(b.q1Time) && !q1Log) || (q1Log && PENDING_STATUSES.includes(q1Log.status?.toUpperCase() || ""));
         const failedInQ1 = !isPendingInQ1 && !completedInQ1;
 
         // Wave 1 always shows all original leads
@@ -349,14 +349,14 @@ export async function GET(req: NextRequest) {
 
         // Real-time transfer: Lead propagates to Q2 instantly if Q1 finished but failed (or if Q1 was completely missed)
         if (failedInQ1) {
-          const isPendingInQ2 = (b.q2.status !== "Completed" && !q2Log && !isMissed(b.q2Time)) || (q2Log && PENDING_STATUSES.includes(q2Log.status?.toUpperCase() || ""));
+          const isPendingInQ2 = (b.q2.status !== "Completed" && !q2Log && !isMissed(b.q2Time)) || (isDispatching(b.q2Time) && !q2Log) || (q2Log && PENDING_STATUSES.includes(q2Log.status?.toUpperCase() || ""));
           const failedInQ2 = !isPendingInQ2 && !completedInQ2;
 
           q2FinalList.push({ ...lead, isCompleted: completedInQ2, isFailed: failedInQ2, isAttempted: !!q2Log, status: q2Log?.status });
 
           // Real-time transfer: Lead propagates to Q3 instantly if Q2 finished but failed (or if Q2 was completely missed)
           if (failedInQ2) {
-            const isPendingInQ3 = (b.q3.status !== "Completed" && !q3Log && !isMissed(b.q3Time)) || (q3Log && PENDING_STATUSES.includes(q3Log.status?.toUpperCase() || ""));
+            const isPendingInQ3 = (b.q3.status !== "Completed" && !q3Log && !isMissed(b.q3Time)) || (isDispatching(b.q3Time) && !q3Log) || (q3Log && PENDING_STATUSES.includes(q3Log.status?.toUpperCase() || ""));
             const failedInQ3 = !isPendingInQ3 && !completedInQ3;
 
             q3FinalList.push({ ...lead, isCompleted: completedInQ3, isFailed: failedInQ3, isAttempted: !!q3Log, status: q3Log?.status });
@@ -365,7 +365,6 @@ export async function GET(req: NextRequest) {
       }
 
       // Override running status if there are unattempted leads AND we are within the 30-minute dispatch window
-      const isDispatching = (time: Date) => Date.now() >= time.getTime() && Date.now() < time.getTime() + 30 * 60 * 1000;
       if (b.q1.status !== "Running" && q1FinalList.some(l => !l.isAttempted) && isDispatching(b.q1Time)) {
         b.q1.status = "Running";
       }
