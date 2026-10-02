@@ -55,25 +55,25 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.04 }}
       className={cn(
-        "group flex flex-col overflow-hidden rounded-[20px] bg-[#161719] ring-1 ring-white/5 text-white transition-all duration-200"
+        "group flex flex-col overflow-hidden rounded-[20px] bg-white dark:bg-[#161719] ring-1 ring-black/5 dark:ring-white/5 text-zinc-900 dark:text-white transition-all duration-200"
       )}
     >
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-4">
-            <Avatar className="size-14 rounded-2xl border-none bg-[#24252A]">
-              <AvatarFallback className="rounded-2xl bg-[#24252A] text-base font-bold text-white">
+            <Avatar className="size-14 rounded-2xl border-none bg-zinc-100 dark:bg-[#24252A]">
+              <AvatarFallback className="rounded-2xl bg-zinc-100 dark:bg-[#24252A] text-base font-bold text-zinc-900 dark:text-white">
                 {getInitials(agent.name)}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="text-lg font-bold tracking-tight text-white">{agent.name}</h3>
-              <p className="text-sm text-zinc-400">{agent.category}</p>
+              <h3 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">{agent.name}</h3>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">{agent.category}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {agent.industryCategory && (
-              <Badge className="bg-zinc-800/50 text-zinc-300 hover:bg-zinc-800/70 border-zinc-700/50 px-3 py-1 font-medium rounded-full">
+              <Badge className="bg-zinc-100 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700/50 px-3 py-1 font-medium rounded-full">
                 {agent.industryCategory}
               </Badge>
             )}
@@ -83,32 +83,32 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
           </div>
         </div>
 
-        <p className="mt-4 text-[15px] leading-relaxed text-zinc-300">
+        <p className="mt-4 text-[15px] leading-relaxed text-zinc-600 dark:text-zinc-300">
           {agent.profile}
         </p>
 
         <div className="mt-4 grid grid-cols-2 gap-2">
-          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 transition-colors hover:bg-white/[0.04]">
+          <div className="rounded-xl border border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] p-3 transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04]">
             <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">TONE</p>
-            <p className="mt-1 text-sm font-semibold text-zinc-100">{agent.tone || "Professional"}</p>
+            <p className="mt-1 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{agent.tone || "Professional"}</p>
           </div>
-          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 transition-colors hover:bg-white/[0.04]">
+          <div className="rounded-xl border border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] p-3 transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04]">
             <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">LANGUAGE</p>
-            <p className="mt-1 text-sm font-semibold text-zinc-100">{agent.language || "English"}</p>
+            <p className="mt-1 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{agent.language || "English"}</p>
           </div>
-          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 transition-colors hover:bg-white/[0.04]">
+          <div className="rounded-xl border border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] p-3 transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04]">
             <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">VOICE</p>
-            <p className="mt-1 text-sm font-semibold text-zinc-100">{agent.voice || "Female"}</p>
+            <p className="mt-1 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{agent.voice || "Female"}</p>
           </div>
-          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 transition-colors hover:bg-white/[0.04]">
+          <div className="rounded-xl border border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] p-3 transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04]">
             <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">BEST FOR</p>
-            <p className="mt-1 truncate text-sm font-semibold text-zinc-100">{agent.bestFor || "Inbound calls"}</p>
+            <p className="mt-1 truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">{agent.bestFor || "Inbound calls"}</p>
           </div>
         </div>
       </div>
 
       <div className="px-5 pb-5 pt-0">
-        <div className="mb-3 flex items-center gap-2 text-sm font-medium text-zinc-400">
+        <div className="mb-3 flex items-center gap-2 text-sm font-medium text-zinc-500 dark:text-zinc-400">
           <Volume2 className="size-4" />
           <span>Voice preview</span>
         </div>
@@ -124,10 +124,10 @@ export function VoiceCard({ agent, index = 0, onAssign }: VoiceCardProps) {
             isAssigned
               ? "bg-transparent border border-[#00d084] text-[#00d084] cursor-default hover:bg-[#00d084]/10 hover:shadow-[0_0_15px_rgba(0,208,132,0.2)]"
               : showNotification
-                ? "bg-white/10 border border-white/20 text-white/70 cursor-default"
+                ? "bg-black/10 dark:bg-white/10 border border-black/20 dark:border-white/20 text-black/70 dark:text-white/70 cursor-default"
                 : loading
-                  ? "bg-white/80 text-black/60 cursor-wait"
-                  : "bg-white text-black cursor-pointer hover:bg-zinc-100 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-[0.98]"
+                  ? "bg-black/80 dark:bg-white/80 text-white/60 dark:text-black/60 cursor-wait"
+                  : "bg-black dark:bg-white text-white dark:text-black cursor-pointer hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-[0.98]"
           )}
           onClick={handleAssignClick}
           disabled={loading || showNotification}

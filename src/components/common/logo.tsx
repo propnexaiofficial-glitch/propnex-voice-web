@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 import { useBrand } from "@/components/providers/brand-provider";
 import { BRAND_LOGO } from "@/constants/brand";
@@ -12,6 +14,18 @@ type LogoProps = {
 
 export function Logo({ compact = false, className }: LogoProps) {
   const brand = useBrand();
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  let logoSrc = brand.logoUrl || BRAND_LOGO.src;
+  
+  if (mounted && resolvedTheme === "light" && logoSrc === "/propnex-logo.png") {
+    logoSrc = "/propnex-logo-black.png";
+  }
 
   return (
     <Link
@@ -23,7 +37,7 @@ export function Logo({ compact = false, className }: LogoProps) {
       )}
     >
       <img
-        src={brand.logoUrl || BRAND_LOGO.src}
+        src={logoSrc}
         alt={brand.companyName || BRAND_LOGO.alt}
         width={BRAND_LOGO.width}
         height={BRAND_LOGO.height}
