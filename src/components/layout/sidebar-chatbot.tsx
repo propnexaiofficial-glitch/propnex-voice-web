@@ -258,6 +258,13 @@ export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" })
           --td-tag-bg: rgba(0,0,0,0.04);
           --td-tag-hover: rgba(0,0,0,0.08);
           --td-shadow: rgba(0,0,0,0.1);
+          --td-hover-border: rgba(0,0,0,0.3);
+          --td-hover-shadow: 0 16px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+          --td-ring-2: rgba(0,0,0,0.04);
+          --td-ring-3: rgba(0,0,0,0.02);
+          --td-glow: rgba(0,0,0,0.1);
+          --td-scan: rgba(0,0,0,0.2);
+          --td-bubble-arrow: rgba(0,0,0,0.15);
         }
         .dark {
           --td-bg: #111113;
@@ -276,6 +283,13 @@ export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" })
           --td-tag-bg: rgba(255,255,255,0.04);
           --td-tag-hover: rgba(255,255,255,0.11);
           --td-shadow: rgba(0,0,0,0.8);
+          --td-hover-border: rgba(255,255,255,0.4);
+          --td-hover-shadow: 0 16px 40px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.1);
+          --td-ring-2: rgba(255,255,255,0.06);
+          --td-ring-3: rgba(255,255,255,0.03);
+          --td-glow: rgba(255,255,255,0.35);
+          --td-scan: rgba(255,255,255,0.8);
+          --td-bubble-arrow: rgba(255,255,255,0.13);
         }
 
         /*  ROUND FAB WIDGET  */
@@ -289,13 +303,13 @@ export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" })
           z-index:99999
         }
         .fab-bubble.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
-        .fab-bubble::after{content:'';position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:rgba(255,255,255,.13)}
+        .fab-bubble::after{content:'';position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--td-bubble-arrow)}
         .fab-bubble::before{content:'';position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--td-fab);z-index:1}
         
         .fab{position:relative;width:56px;height:56px;cursor:pointer}
         .fab-ring{position:absolute;inset:-6px;border-radius:50%;border:1px solid var(--td-ring);animation:ring-expand 3s ease-out infinite}
-        .fab-ring:nth-child(2){inset:-12px;animation-delay:.8s;border-color:rgba(255,255,255,.06)}
-        .fab-ring:nth-child(3){inset:-20px;animation-delay:1.6s;border-color:rgba(255,255,255,.03)}
+        .fab-ring:nth-child(2){inset:-12px;animation-delay:.8s;border-color:var(--td-ring-2)}
+        .fab-ring:nth-child(3){inset:-20px;animation-delay:1.6s;border-color:var(--td-ring-3)}
         @keyframes ring-expand{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.3)}}
         
         .fab-circle{
@@ -310,14 +324,14 @@ export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" })
         }
         .fab-wrap:hover .fab-circle{
           transform:scale(1.15) translateY(-4px);
-          border-color:rgba(255,255,255,.4);
-          box-shadow:0 16px 40px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.1);
+          border-color:var(--td-hover-border);
+          box-shadow:var(--td-hover-shadow);
         }
         @keyframes fab-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
         
         .fab-glow{
           position:absolute;inset:-2px;border-radius:50%;
-          background:conic-gradient(from var(--a,0deg),transparent 60%,rgba(255,255,255,.35),transparent 80%);
+          background:conic-gradient(from var(--a,0deg),transparent 60%,var(--td-glow),transparent 80%);
           animation:conic-spin 4s linear infinite;
           z-index:1;
         }
@@ -330,7 +344,7 @@ export function SidebarChatbot({ mode = "window" }: { mode?: "fab" | "window" })
         @keyframes icon-pulse{0%,100%{transform:scale(1) rotate(0deg)}25%{transform:scale(1.1) rotate(-3deg)}75%{transform:scale(1.05) rotate(3deg)}}
         @keyframes icon-wiggle{0%,100%{transform:scale(1.15) rotate(0deg)}25%{transform:scale(1.25) rotate(-15deg)}75%{transform:scale(1.25) rotate(15deg)}}
         
-        .fab-scan{position:absolute;left:8px;right:8px;height:1.5px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.8),transparent);border-radius:2px;animation:fab-scan 2.5s ease-in-out infinite;z-index:4}
+        .fab-scan{position:absolute;left:8px;right:8px;height:1.5px;background:linear-gradient(90deg,transparent,var(--td-scan),transparent);border-radius:2px;animation:fab-scan 2.5s ease-in-out infinite;z-index:4}
         @keyframes fab-scan{0%{top:10px;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:44px;opacity:0}}
         
         .fab-hand{position:absolute;bottom:-2px;right:-2px;font-size:16px;transform-origin:70% 80%;animation:hand 2.2s ease-in-out infinite;z-index:5;filter:drop-shadow(0 2px 5px rgba(0,0,0,.6))}
