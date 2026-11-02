@@ -9,6 +9,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
+  HardHat,
   ShieldCheck,
   FileText,
   AlertTriangle,
@@ -848,8 +849,12 @@ export default function AIAutomationPage() {
               onWheel={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-lg">
-                  {modalMode === "authorization" ? "🛡️" : "⚙️"}
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
+                  {modalMode === "authorization" ? (
+                    <ShieldCheck className="h-5 w-5 text-cyan-400" />
+                  ) : (
+                    <HardHat className="h-5 w-5 text-cyan-400" />
+                  )}
                 </span>
                 <div>
                   <h3 className="text-lg font-bold text-white sm:text-xl">
