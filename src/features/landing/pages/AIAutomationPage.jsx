@@ -37,6 +37,13 @@ import {
   BrainCircuit,
   Binary,
   Check,
+  Loader2,
+  Send,
+  MessageSquare,
+  User,
+  Mail,
+  Phone,
+  Briefcase,
 } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -146,7 +153,25 @@ const automationBlueprint = [
 export default function AIAutomationPage() {
   const brand = useBrand();
   const isCustomDomain = brand?.companyName && brand.companyName !== "PropNex AI";
+  
+  // Modals state
   const [selectedSystemForModal, setSelectedSystemForModal] = useState(null);
+  const [consultModalOpen, setConsultModalOpen] = useState(false);
+
+  // Consultation Form state
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    company: "",
+    industry: "Healthcare & Clinical",
+    requirement: "",
+    timeline: "Immediate (< 1 Month)",
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [formError, setFormError] = useState("");
+
   const containerRef = useRef(null);
 
   // Strictly block white-label custom domains: immediately redirect to root
@@ -156,9 +181,9 @@ export default function AIAutomationPage() {
     }
   }, [isCustomDomain]);
 
-  // Lock scroll when info modal is open
+  // Lock scroll when either modal is open
   useEffect(() => {
-    if (selectedSystemForModal) {
+    if (selectedSystemForModal || consultModalOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
@@ -166,16 +191,74 @@ export default function AIAutomationPage() {
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [selectedSystemForModal]);
+  }, [selectedSystemForModal, consultModalOpen]);
 
   // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === "Escape") setSelectedSystemForModal(null);
+      if (e.key === "Escape") {
+        setSelectedSystemForModal(null);
+        setConsultModalOpen(false);
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // Form submission handler
+  const handleConsultSubmit = async (e) => {
+    e.preventDefault();
+    setFormError("");
+
+    if (!formData.name.trim() || !formData.email.trim() || !formData.phone.trim() || !formData.requirement.trim()) {
+      setFormError("Please fill in your name, email, phone number, and project requirement.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/marketing/forms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          formType: "ENGINEER",
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          company: formData.company.trim(),
+          industry: formData.industry,
+          clients: formData.requirement.trim(), // saved to clients in DB
+          volume: formData.timeline,            // saved to volume in DB
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSubmitted(true);
+      } else {
+        setFormError(data.error || "Failed to submit request. Please try again.");
+      }
+    } catch (err) {
+      setFormError("A network error occurred. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const resetConsultForm = () => {
+    setSubmitted(false);
+    setFormError("");
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      company: "",
+      industry: "Healthcare & Clinical",
+      requirement: "",
+      timeline: "Immediate (< 1 Month)",
+    });
+    setConsultModalOpen(false);
+  };
 
   // GSAP Animations matching ProductPage and FeaturesPage
   useGSAP(
@@ -263,12 +346,13 @@ export default function AIAutomationPage() {
               >
                 Explore Systems
               </a>
-              <a
-                href="#how-we-build"
+              <button
+                type="button"
+                onClick={() => setConsultModalOpen(true)}
                 className="rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
               >
-                How We Automate
-              </a>
+                Book an AI Consultation
+              </button>
             </div>
           </div>
         </section>
@@ -470,12 +554,13 @@ export default function AIAutomationPage() {
                   We design custom computer vision, LLM reasoning pipelines, and API actions for your specific enterprise software stack.
                 </p>
               </div>
-              <Link
-                to="/live-demo"
+              <button
+                type="button"
+                onClick={() => setConsultModalOpen(true)}
                 className="shrink-0 rounded-xl bg-cyan-400 px-5 py-2.5 text-xs sm:text-sm font-semibold text-black transition hover:bg-cyan-300 active:scale-95 shadow-[0_0_20px_rgba(34,211,238,0.25)]"
               >
                 Request Custom AI Blueprint
-              </Link>
+              </button>
             </div>
           </div>
         </section>
@@ -523,33 +608,25 @@ export default function AIAutomationPage() {
         <section className="relative mx-auto max-w-7xl px-5 pt-8 pb-16 md:px-8">
           <div className="rounded-3xl border border-white/10 bg-gradient-to-r from-cyan-950/40 via-black to-blue-950/40 p-8 text-center sm:p-12">
             <h3 className="text-2xl font-bold text-white sm:text-4xl">
-              Ready to deploy custom AI Automation?
+              Have a Custom AI Automation Requirement?
             </h3>
             <p className="mx-auto mt-3 max-w-xl text-sm text-white/70 sm:text-base">
-              Explore the live Smile Clinic Clinical Decision Support platform now, or consult with our engineering team to automate your specific business processes.
+              From regulated healthcare workflows to multi-agent enterprise task automation, our AI engineers design bespoke systems that scale seamlessly.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
-              <a
-                href={aiAutomationSystems[0].tryNowUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-6 py-3 text-sm font-semibold text-black transition hover:bg-cyan-300 shadow-[0_0_24px_rgba(34,211,238,0.25)]"
-              >
-                <span>Launch Smile Clinic Live</span>
-                <ExternalLink className="h-4 w-4" />
-              </a>
-              <Link
-                to="/live-demo"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+              <button
+                type="button"
+                onClick={() => setConsultModalOpen(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-6 py-3 text-sm font-semibold text-black transition hover:bg-cyan-300 shadow-[0_0_24px_rgba(34,211,238,0.25)] active:scale-95"
               >
                 Book an Engineering Consultation
-              </Link>
+              </button>
             </div>
           </div>
         </section>
       </main>
 
-      {/* HORIZONTAL WIDE LANDSCAPE POPUP MODAL (OPENED BY "VIEW INFO") */}
+      {/* 1. HORIZONTAL WIDE LANDSCAPE POPUP MODAL (OPENED BY "VIEW INFO") */}
       {selectedSystemForModal && (
         <div
           role="dialog"
@@ -756,6 +833,271 @@ export default function AIAutomationPage() {
                   <span>Try Now</span>
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2. HORIZONTAL ENGINEERING CONSULTATION POPUP MODAL */}
+      {consultModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-6"
+        >
+          {/* Enhanced Backdrop with deep blur */}
+          <div
+            className="fixed inset-0 bg-black/85 backdrop-blur-2xl transition-opacity"
+            onClick={resetConsultForm}
+          />
+
+          {/* Modal Container: Wide Horizontal Layout matching page aesthetic */}
+          <div className="relative w-full max-w-5xl max-h-[92vh] overflow-hidden rounded-3xl border border-cyan-500/25 bg-gradient-to-br from-[#070f1e]/98 via-black/98 to-[#050b14]/98 shadow-[0_0_60px_rgba(34,211,238,0.2)] backdrop-blur-2xl flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-white/10 px-6 py-4 sm:px-8 bg-white/[0.02]">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-lg">
+                  ⚙️
+                </span>
+                <div>
+                  <h3 className="text-lg font-bold text-white sm:text-xl">
+                    Book an AI Engineering Consultation
+                  </h3>
+                  <p className="text-xs text-white/60">
+                    Bespoke Autonomous Architecture & System Design
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={resetConsultForm}
+                className="rounded-xl border border-white/10 bg-white/5 p-2 text-white/70 transition hover:bg-white/10 hover:text-white"
+                aria-label="Close modal"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Modal Body: Horizontal 2-Column Split Pane */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 sm:p-8 overflow-y-auto flex-1">
+              {/* Left Column (5 cols): Architecture Studio Overview */}
+              <div className="lg:col-span-5 flex flex-col justify-between space-y-6 border-b lg:border-b-0 lg:border-r border-white/10 pb-6 lg:pb-0 lg:pr-6">
+                <div className="space-y-4">
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-950/40 px-3 py-1 text-[11px] font-medium text-cyan-300">
+                    <Sparkles className="h-3 w-3 text-cyan-400" />
+                    PropNex AI Architecture Studio
+                  </div>
+
+                  <h4 className="text-2xl font-bold tracking-tight text-white">
+                    Let's Engineer Your Vision
+                  </h4>
+
+                  <p className="text-xs sm:text-sm leading-relaxed text-white/75">
+                    Speak directly with our senior AI architects. We take your business workflows, proprietary datasets, and decision rules to engineer deterministic, production-grade autonomous systems.
+                  </p>
+
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-start gap-2.5 text-xs text-white/80">
+                      <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-cyan-500/10 text-cyan-400">
+                        <Check className="h-3.5 w-3.5" />
+                      </div>
+                      <span><strong>Feasibility Blueprint:</strong> We map inputs, models, and outputs for your exact operational stack.</span>
+                    </div>
+
+                    <div className="flex items-start gap-2.5 text-xs text-white/80">
+                      <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-cyan-500/10 text-cyan-400">
+                        <Check className="h-3.5 w-3.5" />
+                      </div>
+                      <span><strong>Zero-Leakage Security:</strong> Built with HIPAA, SOC-2, and cryptographic audit compliance.</span>
+                    </div>
+
+                    <div className="flex items-start gap-2.5 text-xs text-white/80">
+                      <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-cyan-500/10 text-cyan-400">
+                        <Check className="h-3.5 w-3.5" />
+                      </div>
+                      <span><strong>24-Hour Review:</strong> Our senior engineering team reviews every request within 24 hours.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-xs text-white/60">
+                  <span className="font-semibold text-white">Direct Engineering Channel:</span> Submissions automatically notify our lead architects and are logged in the PropNex Platform Admin Vault.
+                </div>
+              </div>
+
+              {/* Right Column (7 cols): Consultation Form / Confirmation */}
+              <div className="lg:col-span-7 flex flex-col justify-center">
+                {submitted ? (
+                  <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-8 text-center space-y-4">
+                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shadow-[0_0_24px_rgba(16,185,129,0.2)]">
+                      <CheckCircle2 className="h-8 w-8" />
+                    </div>
+                    <h4 className="text-xl font-bold text-white">Consultation Request Received!</h4>
+                    <p className="text-xs sm:text-sm text-white/80 leading-relaxed max-w-md mx-auto">
+                      Thank you, <strong className="text-white">{formData.name}</strong>. Our senior AI architects have received your requirements, and a confirmation email has been dispatched to <strong className="text-cyan-300">{formData.email}</strong>.
+                    </p>
+                    <p className="text-xs text-white/60">
+                      We will review your specifications and contact you at <strong className="text-white">{formData.phone}</strong> within 24 hours to schedule your architecture call.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={resetConsultForm}
+                      className="mt-4 rounded-xl bg-cyan-400 px-6 py-2.5 text-xs font-semibold text-black transition hover:bg-cyan-300"
+                    >
+                      Done
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleConsultSubmit} className="space-y-4">
+                    {formError && (
+                      <div className="rounded-xl border border-rose-500/30 bg-rose-950/30 p-3 text-xs text-rose-300">
+                        {formError}
+                      </div>
+                    )}
+
+                    {/* Name & Email Row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-white/70 mb-1">
+                          Full Name <span className="text-rose-400">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          placeholder="e.g. Dr. Alex Mercer"
+                          className="w-full rounded-xl border border-white/15 bg-white/5 px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-white/70 mb-1">
+                          Work Email <span className="text-rose-400">*</span>
+                        </label>
+                        <input
+                          type="email"
+                          required
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          placeholder="alex@organization.com"
+                          className="w-full rounded-xl border border-white/15 bg-white/5 px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Phone & Company Row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-white/70 mb-1">
+                          Phone / WhatsApp <span className="text-rose-400">*</span>
+                        </label>
+                        <input
+                          type="tel"
+                          required
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          placeholder="+91 98765 43210"
+                          className="w-full rounded-xl border border-white/15 bg-white/5 px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-white/70 mb-1">
+                          Company / Practice Name
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.company}
+                          onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                          placeholder="e.g. Mercer Dental Network"
+                          className="w-full rounded-xl border border-white/15 bg-white/5 px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Industry & Timeline Row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-white/70 mb-1">
+                          Industry / Domain
+                        </label>
+                        <select
+                          value={formData.industry}
+                          onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                          className="w-full rounded-xl border border-white/15 bg-slate-900 px-3.5 py-2.5 text-xs text-white focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                        >
+                          <option value="Healthcare & Clinical">Healthcare & Clinical Pharmacology</option>
+                          <option value="Real Estate & PropTech">Real Estate & PropTech</option>
+                          <option value="Finance & FinTech">Finance & Accounting</option>
+                          <option value="Legal & Compliance">Legal & Compliance</option>
+                          <option value="E-Commerce & Retail">E-Commerce & Retail</option>
+                          <option value="Logistics & Supply Chain">Logistics & Supply Chain</option>
+                          <option value="Enterprise SaaS">Enterprise SaaS & Operations</option>
+                          <option value="Other">Other Industry</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-white/70 mb-1">
+                          Target Launch Timeline
+                        </label>
+                        <select
+                          value={formData.timeline}
+                          onChange={(e) => setFormData({ ...formData, timeline: e.target.value })}
+                          className="w-full rounded-xl border border-white/15 bg-slate-900 px-3.5 py-2.5 text-xs text-white focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                        >
+                          <option value="Immediate (< 1 Month)">Immediate (&lt; 1 Month)</option>
+                          <option value="1–3 Months">1–3 Months</option>
+                          <option value="3–6 Months">3–6 Months</option>
+                          <option value="Exploring & R&D">Exploring &amp; R&amp;D</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* What do you want to build? */}
+                    <div>
+                      <label className="block text-xs font-medium text-white/70 mb-1">
+                        What do you want to build or automate? <span className="text-rose-400">*</span>
+                      </label>
+                      <textarea
+                        required
+                        rows={3}
+                        value={formData.requirement}
+                        onChange={(e) => setFormData({ ...formData, requirement: e.target.value })}
+                        placeholder="Describe your workflow, source inputs (e.g. handwritten slips, PDF reports, phone calls, databases), and what decisions or actions the AI should automate..."
+                        className="w-full rounded-xl border border-white/15 bg-white/5 p-3 text-xs text-white placeholder-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 resize-none"
+                      />
+                    </div>
+
+                    {/* Submit Button */}
+                    <div className="pt-2 flex items-center justify-between">
+                      <span className="text-[11px] text-white/50">
+                        🔒 Confidential &bull; Protected under NDA
+                      </span>
+
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-6 py-2.5 text-xs font-semibold text-black transition hover:bg-cyan-300 disabled:opacity-50 active:scale-95 shadow-[0_0_20px_rgba(34,211,238,0.3)]"
+                      >
+                        {submitting ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <span>Submitting...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Submit Engineering Request</span>
+                            <Send className="h-3.5 w-3.5" />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
             </div>
           </div>

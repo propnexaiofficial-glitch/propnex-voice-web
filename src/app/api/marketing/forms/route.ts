@@ -14,22 +14,45 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    if (formType !== "DEMO_CALL" && formType !== "PARTNER_APP") {
+    const effectiveFormType =
+      formType === "ENGINEERING_CONSULTATION" || formType === "ENGINEER"
+        ? "ENGINEER"
+        : formType;
+
+    if (
+      effectiveFormType !== "DEMO_CALL" &&
+      effectiveFormType !== "PARTNER_APP" &&
+      effectiveFormType !== "ENGINEER"
+    ) {
       return NextResponse.json({ error: "Invalid form type" }, { status: 400 });
     }
 
     // 1. Save to database
     const formSubmission = await prisma.formSubmission.create({
-      data: { formType, name, email, phone, company, industry, clients, volume },
+      data: {
+        formType: effectiveFormType,
+        name,
+        email,
+        phone,
+        company,
+        industry,
+        clients,
+        volume,
+      },
     });
 
     try {
       await prisma.systemEvent.create({
         data: {
           type: "FORM_INFO",
-          title: formType === "DEMO_CALL" ? "New Demo Form" : "New Partner Form",
-          message: `${name} (${email}) submitted the ${formType.replace("_", " ").toLowerCase()}.`,
-        }
+          title:
+            effectiveFormType === "ENGINEER"
+              ? "New Engineering Consultation Request"
+              : effectiveFormType === "DEMO_CALL"
+              ? "New Demo Form"
+              : "New Partner Form",
+          message: `${name} (${email}) submitted the ${effectiveFormType.replace("_", " ").toLowerCase()}.`,
+        },
       });
     } catch (e) {
       console.error("Failed to log system event", e);
@@ -40,14 +63,14 @@ export async function POST(req: Request) {
     if (host) {
       try {
         const domainRecord = await prisma.whiteLabelDomain.findFirst({
-          where: { domain: host, status: "ACTIVE" }
+          where: { domain: host, status: "ACTIVE" },
         });
         if (domainRecord) {
           branding = {
             companyName: domainRecord.companyName,
             supportEmail: domainRecord.supportEmail,
             supportPhone: domainRecord.supportPhone,
-            domain: domainRecord.domain
+            domain: domainRecord.domain,
           };
         }
       } catch (err) {
@@ -56,9 +79,13 @@ export async function POST(req: Request) {
     }
 
     // 2. Send emails via Google Apps Script webhook
-    // The apps_script_emails.js doPost() uses exactly these field names
     const webhookPayload = {
-      type: formType === "DEMO_CALL" ? "demo_call_submit" : "partner_app_submit",
+      type:
+        effectiveFormType === "ENGINEER"
+          ? "engineering_consultation_submit"
+          : effectiveFormType === "DEMO_CALL"
+          ? "demo_call_submit"
+          : "partner_app_submit",
       name,
       email,
       phone,
@@ -66,6 +93,8 @@ export async function POST(req: Request) {
       industry: industry || "",
       clients: clients || "",
       volume: volume || "",
+      requirement: clients || "",
+      timeline: volume || "",
       branding: branding,
     };
 
