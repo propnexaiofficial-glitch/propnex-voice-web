@@ -7,6 +7,7 @@ const primaryLinks = [
   { label: 'Home', to: '/' },
   { label: 'Features', to: '/features' },
   { label: 'Product', to: '/product' },
+  { label: 'AI Automation', to: '/ai-automation' },
   { label: 'Pricing', to: '/pricing' },
   { label: 'Partners', to: '/partners' },
   { label: 'Docs', to: '/docs' },
@@ -30,7 +31,7 @@ export default function Navbar() {
   const isCustomDomain = brand.companyName !== "PropNex AI";
   
   const filteredPrimaryLinks = primaryLinks.filter(l => {
-    if (isCustomDomain && l.label === 'Partners') return false;
+    if (isCustomDomain && (l.label === 'Partners' || l.label === 'AI Automation')) return false;
     if (isCustomDomain && l.label === 'Home') return true;
     if (!isCustomDomain) return true; // Default
     const key = l.label.toLowerCase();

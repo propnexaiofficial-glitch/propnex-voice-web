@@ -9,6 +9,7 @@ const cols = [
     title: 'Product',
     links: [
       { label: 'Products & Services', to: '/product' },
+      { label: 'AI Automation', to: '/ai-automation' },
       { label: 'Features', to: '/features' },
       { label: 'AI Interview', to: '/#ai-interview' },
       { label: 'Live Demo', to: '/live-demo' },
@@ -112,6 +113,7 @@ export default function Footer() {
         }
 
         if (l.label === 'Live Demo') return false;
+        if (l.label === 'AI Automation') return false;
         if (l.label === 'Partners') return false;
         if (l.label === 'AI Interview') return true;
         
