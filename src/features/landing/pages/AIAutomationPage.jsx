@@ -156,16 +156,25 @@ export default function AIAutomationPage() {
     }
   }, [isCustomDomain]);
 
-  // Lock scroll when either modal is open
+  // Strictly block background scrolling when either modal is active
   useEffect(() => {
     if (selectedSystemForModal || consultModalOpen) {
+      const originalBodyOverflow = document.body.style.overflow;
+      const originalHtmlOverflow = document.documentElement.style.overflow;
+      const originalBodyOverscroll = document.body.style.overscrollBehavior;
+
       document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overscrollBehavior = "contain";
+      document.documentElement.style.overscrollBehavior = "contain";
+
+      return () => {
+        document.body.style.overflow = originalBodyOverflow || "";
+        document.documentElement.style.overflow = originalHtmlOverflow || "";
+        document.body.style.overscrollBehavior = originalBodyOverscroll || "";
+        document.documentElement.style.overscrollBehavior = "";
+      };
     }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
   }, [selectedSystemForModal, consultModalOpen]);
 
   // Close on Escape key
@@ -567,18 +576,30 @@ export default function AIAutomationPage() {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 overscroll-contain"
+          onWheel={(e) => e.stopPropagation()}
         >
           {/* Enhanced Backdrop with deep blur */}
           <div
-            className="fixed inset-0 bg-black/85 backdrop-blur-2xl transition-opacity"
+            className="fixed inset-0 bg-black/85 backdrop-blur-2xl transition-opacity overscroll-contain"
             onClick={() => setSelectedSystemForModal(null)}
+            onWheel={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onTouchMove={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
           />
 
           {/* Modal Container: Wide Horizontal Layout matching page aesthetic */}
-          <div className="relative w-full max-w-6xl max-h-[90vh] overflow-hidden rounded-3xl border border-white/20 bg-gradient-to-br from-[#070f1e]/95 via-black/95 to-[#050b14]/95 shadow-[0_0_60px_rgba(34,211,238,0.15)] backdrop-blur-2xl flex flex-col">
+          <div className="relative w-full max-w-6xl max-h-[90vh] overflow-hidden rounded-3xl border border-white/20 bg-gradient-to-br from-[#070f1e]/95 via-black/95 to-[#050b14]/95 shadow-[0_0_60px_rgba(34,211,238,0.15)] backdrop-blur-2xl flex flex-col overscroll-contain">
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-white/10 px-6 py-4 sm:px-8 bg-white/[0.02]">
+            <div
+              className="flex items-center justify-between border-b border-white/10 px-6 py-4 sm:px-8 bg-white/[0.02]"
+              onWheel={(e) => e.stopPropagation()}
+            >
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-xl">
                   🦷
@@ -609,7 +630,10 @@ export default function AIAutomationPage() {
             </div>
 
             {/* Modal Body: Horizontal 2-Column Split Pane */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 sm:p-8 overflow-y-auto flex-1">
+            <div
+              className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 sm:p-8 overflow-y-auto flex-1 overscroll-contain"
+              onWheel={(e) => e.stopPropagation()}
+            >
               {/* Left Pane (lg:col-span-5): Identity, Preview & Actions */}
               <div className="lg:col-span-5 flex flex-col justify-between space-y-5 border-b lg:border-b-0 lg:border-r border-white/10 pb-6 lg:pb-0 lg:pr-6">
                 <div>
@@ -747,7 +771,10 @@ export default function AIAutomationPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex flex-wrap items-center justify-between border-t border-white/10 px-6 py-4 bg-white/[0.02]">
+            <div
+              className="flex flex-wrap items-center justify-between border-t border-white/10 px-6 py-4 bg-white/[0.02]"
+              onWheel={(e) => e.stopPropagation()}
+            >
               <span className="text-xs text-white/50">
                 Smile Clinic CDS &bull; Live Production System
               </span>
@@ -780,18 +807,30 @@ export default function AIAutomationPage() {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-6"
+          className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-6 overscroll-contain"
+          onWheel={(e) => e.stopPropagation()}
         >
           {/* Enhanced Backdrop with deep blur */}
           <div
-            className="fixed inset-0 bg-black/85 backdrop-blur-2xl transition-opacity"
+            className="fixed inset-0 bg-black/85 backdrop-blur-2xl transition-opacity overscroll-contain"
             onClick={resetConsultForm}
+            onWheel={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onTouchMove={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
           />
 
           {/* Modal Container: Wide Horizontal Layout matching page aesthetic */}
-          <div className="relative w-full max-w-5xl max-h-[92vh] overflow-hidden rounded-3xl border border-cyan-500/25 bg-gradient-to-br from-[#070f1e]/98 via-black/98 to-[#050b14]/98 shadow-[0_0_60px_rgba(34,211,238,0.2)] backdrop-blur-2xl flex flex-col">
+          <div className="relative w-full max-w-5xl max-h-[92vh] overflow-hidden rounded-3xl border border-cyan-500/25 bg-gradient-to-br from-[#070f1e]/98 via-black/98 to-[#050b14]/98 shadow-[0_0_60px_rgba(34,211,238,0.2)] backdrop-blur-2xl flex flex-col overscroll-contain">
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-white/10 px-6 py-4 sm:px-8 bg-white/[0.02]">
+            <div
+              className="flex items-center justify-between border-b border-white/10 px-6 py-4 sm:px-8 bg-white/[0.02]"
+              onWheel={(e) => e.stopPropagation()}
+            >
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-lg">
                   ⚙️
@@ -817,7 +856,10 @@ export default function AIAutomationPage() {
             </div>
 
             {/* Modal Body: Horizontal 2-Column Split Pane */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 sm:p-8 overflow-y-auto flex-1">
+            <div
+              className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 sm:p-8 overflow-y-auto flex-1 overscroll-contain"
+              onWheel={(e) => e.stopPropagation()}
+            >
               {/* Left Column (5 cols): Architecture Studio Overview */}
               <div className="lg:col-span-5 flex flex-col justify-between space-y-6 border-b lg:border-b-0 lg:border-r border-white/10 pb-6 lg:pb-0 lg:pr-6">
                 <div className="space-y-4">
