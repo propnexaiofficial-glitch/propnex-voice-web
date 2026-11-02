@@ -59,7 +59,6 @@ const aiAutomationSystems = [
     status: "Live Production",
     heroImage: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1600&q=80",
     prescriptionImage: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=1600&q=80",
-    tryNowUrl: "https://prescription-dentalclinic.pages.dev/",
     compliance: ["HIPAA Compliant", "SHA-256 Notary Seal", "IST Audit Trail"],
     elevatorPitch: `Smile Clinic is a HIPAA-compliant, real-time Clinical Decision Support (CDS) platform designed for dental practices to eliminate adverse drug events. By integrating AI-driven computer vision and clinical pharmacology models, the system extracts handwritten or digital prescription slips, cross-screens medications against patient history and organ clearance thresholds (renal/hepatic), and detects critical drug-drug and dental anesthetic/vasoconstrictor interactions. When high-risk hazards are flagged, clinicians can instantaneously dispatch certified consultation directives to prescribing doctors with dual attachments (the clinical decision report and original prescription) and an immutable cryptographic audit trail.`,
     capabilities: [
@@ -132,6 +131,25 @@ export default function AIAutomationPage() {
   // Modals state
   const [selectedSystemForModal, setSelectedSystemForModal] = useState(null);
   const [consultModalOpen, setConsultModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("consultation"); // "consultation" | "authorization"
+
+  const handleTryNowClick = (system) => {
+    setSelectedSystemForModal(null);
+    setModalMode("authorization");
+    setFormData((prev) => ({
+      ...prev,
+      industry: system?.category?.includes("Healthcare") ? "Healthcare & Clinical" : prev.industry,
+      requirement: system
+        ? `Requesting authorized production credentials & sandbox access to evaluate ${system.name} (${system.subtitle}).`
+        : prev.requirement,
+    }));
+    setConsultModalOpen(true);
+  };
+
+  const handleConsultClick = () => {
+    setModalMode("consultation");
+    setConsultModalOpen(true);
+  };
 
   // Consultation Form state
   const [formData, setFormData] = useState({
@@ -241,6 +259,7 @@ export default function AIAutomationPage() {
       requirement: "",
       timeline: "Immediate (< 1 Month)",
     });
+    setModalMode("consultation");
     setConsultModalOpen(false);
   };
 
@@ -332,7 +351,7 @@ export default function AIAutomationPage() {
               </a>
               <button
                 type="button"
-                onClick={() => setConsultModalOpen(true)}
+                onClick={handleConsultClick}
                 className="rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 Book an AI Consultation
@@ -464,18 +483,17 @@ export default function AIAutomationPage() {
                         <span>View Info</span>
                       </button>
 
-                      <a
-                        href={system.tryNowUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
+                        onClick={() => handleTryNowClick(system)}
                         className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-6 py-3 text-sm font-semibold text-black shadow-[0_0_30px_rgba(34,211,238,0.35)] transition duration-200 hover:brightness-110 active:scale-95"
                       >
                         <span>Try Now</span>
-                        <ExternalLink className="h-4 w-4 text-black" />
-                      </a>
+                        <ShieldCheck className="h-4 w-4 text-black" />
+                      </button>
 
                       <span className="text-xs text-white/50">
-                        Live System Portal &bull; Free Access
+                        Restricted Live Portal &bull; Authorization Required
                       </span>
                     </div>
                   </div>
@@ -540,7 +558,7 @@ export default function AIAutomationPage() {
               </div>
               <button
                 type="button"
-                onClick={() => setConsultModalOpen(true)}
+                onClick={handleConsultClick}
                 className="shrink-0 rounded-xl bg-cyan-400 px-5 py-2.5 text-xs sm:text-sm font-semibold text-black transition hover:bg-cyan-300 active:scale-95 shadow-[0_0_20px_rgba(34,211,238,0.25)]"
               >
                 Request Custom AI Blueprint
@@ -561,7 +579,7 @@ export default function AIAutomationPage() {
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <button
                 type="button"
-                onClick={() => setConsultModalOpen(true)}
+                onClick={handleConsultClick}
                 className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-6 py-3 text-sm font-semibold text-black transition hover:bg-cyan-300 shadow-[0_0_24px_rgba(34,211,238,0.25)] active:scale-95"
               >
                 Book an Engineering Consultation
@@ -688,17 +706,16 @@ export default function AIAutomationPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-bold text-white">Experience Smile Clinic</p>
-                      <p className="text-[10px] text-white/60">Live production deployment ready for demo</p>
+                      <p className="text-[10px] text-white/60">Controlled deployment &bull; Authorization required</p>
                     </div>
-                    <a
-                      href={selectedSystemForModal.tryNowUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-lg bg-cyan-400 px-3 py-1.5 text-xs font-semibold text-black transition hover:bg-cyan-300 shadow-sm"
+                    <button
+                      type="button"
+                      onClick={() => handleTryNowClick(selectedSystemForModal)}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-400 px-3 py-1.5 text-xs font-semibold text-black transition hover:bg-cyan-300 shadow-sm active:scale-95"
                     >
                       <span>Try Now</span>
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
+                      <ShieldCheck className="h-3.5 w-3.5 text-black" />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -787,15 +804,14 @@ export default function AIAutomationPage() {
                 >
                   Close
                 </button>
-                <a
-                  href={selectedSystemForModal.tryNowUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={() => handleTryNowClick(selectedSystemForModal)}
                   className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-5 py-2 text-xs font-semibold text-black shadow-md transition hover:brightness-110 active:scale-95"
                 >
                   <span>Try Now</span>
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
+                  <ShieldCheck className="h-3.5 w-3.5 text-black" />
+                </button>
               </div>
             </div>
           </div>
@@ -833,14 +849,18 @@ export default function AIAutomationPage() {
             >
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-lg">
-                  ⚙️
+                  {modalMode === "authorization" ? "🛡️" : "⚙️"}
                 </span>
                 <div>
                   <h3 className="text-lg font-bold text-white sm:text-xl">
-                    Book an AI Engineering Consultation
+                    {modalMode === "authorization"
+                      ? "System Authorization & Evaluation Access"
+                      : "Book an AI Engineering Consultation"}
                   </h3>
                   <p className="text-xs text-white/60">
-                    Bespoke Autonomous Architecture & System Design
+                    {modalMode === "authorization"
+                      ? "Verified Credentials Required for Live Production Systems"
+                      : "Bespoke Autonomous Architecture & System Design"}
                   </p>
                 </div>
               </div>
@@ -860,20 +880,33 @@ export default function AIAutomationPage() {
               className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 sm:p-8 overflow-y-auto flex-1 overscroll-contain"
               onWheel={(e) => e.stopPropagation()}
             >
-              {/* Left Column (5 cols): Architecture Studio Overview */}
+              {/* Left Column (5 cols): Architecture Studio Overview / Authorization Overview */}
               <div className="lg:col-span-5 flex flex-col justify-between space-y-6 border-b lg:border-b-0 lg:border-r border-white/10 pb-6 lg:pb-0 lg:pr-6">
                 <div className="space-y-4">
                   <div className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-950/40 px-3 py-1 text-[11px] font-medium text-cyan-300">
-                    <Sparkles className="h-3 w-3 text-cyan-400" />
-                    PropNex AI Architecture Studio
+                    {modalMode === "authorization" ? (
+                      <>
+                        <ShieldCheck className="h-3 w-3 text-cyan-400" />
+                        Live System Clearance Protocol
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-3 w-3 text-cyan-400" />
+                        PropNex AI Architecture Studio
+                      </>
+                    )}
                   </div>
 
                   <h4 className="text-2xl font-bold tracking-tight text-white">
-                    Let's Engineer Your Vision
+                    {modalMode === "authorization"
+                      ? "Authorization Required"
+                      : "Let's Engineer Your Vision"}
                   </h4>
 
                   <p className="text-xs sm:text-sm leading-relaxed text-white/75">
-                    Speak directly with our senior AI architects. We take your business workflows, proprietary datasets, and decision rules to engineer deterministic, production-grade autonomous systems.
+                    {modalMode === "authorization"
+                      ? "To safeguard clinical pharmacology datasets and comply with regulatory protocols, direct access to production automation engines requires verified practitioner or organizational authorization."
+                      : "Speak directly with our senior AI architects. We take your business workflows, proprietary datasets, and decision rules to engineer deterministic, production-grade autonomous systems."}
                   </p>
 
                   <div className="space-y-3 pt-2">
@@ -881,21 +914,31 @@ export default function AIAutomationPage() {
                       <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-cyan-500/10 text-cyan-400">
                         <Check className="h-3.5 w-3.5" />
                       </div>
-                      <span><strong>Feasibility Blueprint:</strong> We map inputs, models, and outputs for your exact operational stack.</span>
+                      <span>
+                        {modalMode === "authorization" ? (
+                          <><strong>Verified Credentials:</strong> Direct sandbox tokens issued after domain authentication.</>
+                        ) : (
+                          <><strong>Feasibility Blueprint:</strong> We map inputs, models, and outputs for your exact operational stack.</>
+                        )}
+                      </span>
                     </div>
 
                     <div className="flex items-start gap-2.5 text-xs text-white/80">
                       <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-cyan-500/10 text-cyan-400">
                         <Check className="h-3.5 w-3.5" />
                       </div>
-                      <span><strong>Zero-Leakage Security:</strong> Built with HIPAA, SOC-2, and cryptographic audit compliance.</span>
+                      <span>
+                        <strong>Zero-Leakage Security:</strong> Built with HIPAA, SOC-2, and cryptographic audit compliance.
+                      </span>
                     </div>
 
                     <div className="flex items-start gap-2.5 text-xs text-white/80">
                       <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-cyan-500/10 text-cyan-400">
                         <Check className="h-3.5 w-3.5" />
                       </div>
-                      <span><strong>24-Hour Review:</strong> Our senior engineering team reviews every request within 24 hours.</span>
+                      <span>
+                        <strong>24-Hour Review:</strong> Our senior engineering team reviews every request within 24 hours.
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -912,12 +955,16 @@ export default function AIAutomationPage() {
                     <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shadow-[0_0_24px_rgba(16,185,129,0.2)]">
                       <CheckCircle2 className="h-8 w-8" />
                     </div>
-                    <h4 className="text-xl font-bold text-white">Consultation Request Received!</h4>
+                    <h4 className="text-xl font-bold text-white">
+                      {modalMode === "authorization"
+                        ? "Authorization Request Submitted!"
+                        : "Consultation Request Received!"}
+                    </h4>
                     <p className="text-xs sm:text-sm text-white/80 leading-relaxed max-w-md mx-auto">
-                      Thank you, <strong className="text-white">{formData.name}</strong>. Our senior AI architects have received your requirements, and a confirmation email has been dispatched to <strong className="text-cyan-300">{formData.email}</strong>.
+                      Thank you, <strong className="text-white">{formData.name}</strong>. Our security and engineering team has received your authorization details, and a confirmation receipt has been dispatched to <strong className="text-cyan-300">{formData.email}</strong>.
                     </p>
                     <p className="text-xs text-white/60">
-                      We will review your specifications and contact you at <strong className="text-white">{formData.phone}</strong> within 24 hours to schedule your architecture call.
+                      We will review your credentials and contact you at <strong className="text-white">{formData.phone}</strong> within 24 hours with your sandbox clearance.
                     </p>
                     <button
                       type="button"
@@ -1035,17 +1082,24 @@ export default function AIAutomationPage() {
                       </div>
                     </div>
 
-                    {/* What do you want to build? */}
+                    {/* What do you want to build / Access Scope */}
                     <div>
                       <label className="block text-xs font-medium text-white/70 mb-1">
-                        What do you want to build or automate? <span className="text-rose-400">*</span>
+                        {modalMode === "authorization"
+                          ? "Intended Evaluation Scope & Access Requirements"
+                          : "What do you want to build or automate?"}{" "}
+                        <span className="text-rose-400">*</span>
                       </label>
                       <textarea
                         required
                         rows={3}
                         value={formData.requirement}
                         onChange={(e) => setFormData({ ...formData, requirement: e.target.value })}
-                        placeholder="Describe your workflow, source inputs (e.g. handwritten slips, PDF reports, phone calls, databases), and what decisions or actions the AI should automate..."
+                        placeholder={
+                          modalMode === "authorization"
+                            ? "Describe your practice or organization, clinical/enterprise use case, and specific evaluation requirements..."
+                            : "Describe your workflow, source inputs (e.g. handwritten slips, PDF reports, phone calls, databases), and what decisions or actions the AI should automate..."
+                        }
                         className="w-full rounded-xl border border-white/15 bg-white/5 p-3 text-xs text-white placeholder-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 resize-none"
                       />
                     </div>
@@ -1068,7 +1122,11 @@ export default function AIAutomationPage() {
                           </>
                         ) : (
                           <>
-                            <span>Submit Engineering Request</span>
+                            <span>
+                              {modalMode === "authorization"
+                                ? "Request Access Authorization"
+                                : "Submit Engineering Request"}
+                            </span>
                             <Send className="h-3.5 w-3.5" />
                           </>
                         )}
