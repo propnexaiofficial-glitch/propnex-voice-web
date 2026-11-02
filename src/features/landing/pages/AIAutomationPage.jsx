@@ -97,31 +97,6 @@ const aiAutomationSystems = [
   },
 ];
 
-// Innovation pipeline / upcoming systems in development
-const upcomingSystems = [
-  {
-    title: "FinAudit AI — Autonomous Ledger Reconciliation",
-    category: "Finance & FinTech",
-    desc: "Autonomous agent reconciling multi-bank ledgers, detecting accounting anomalies, and auditing high-volume transactional flows in real time.",
-    status: "In Development",
-    icon: DollarSign,
-  },
-  {
-    title: "LexiGuard — Real Estate & Legal Contract AI",
-    category: "Legal & Real Estate",
-    desc: "Autonomous contract analysis engine redlining high-risk indemnity clauses, regulatory non-compliance, and lease contingencies.",
-    status: "In Development",
-    icon: Scale,
-  },
-  {
-    title: "Agentic Dispatcher — Multi-Agent Process Router",
-    category: "Enterprise Operations",
-    desc: "Autonomous orchestrator synchronizing CRM records, telephony call outcomes, and ERP fulfillment pipelines across disparate SaaS tools.",
-    status: "In Development",
-    icon: Workflow,
-  },
-];
-
 // Automation Blueprint: How we build AI automation for ANY industry
 const automationBlueprint = [
   {
@@ -565,42 +540,24 @@ export default function AIAutomationPage() {
           </div>
         </section>
 
-        {/* UPCOMING AI AUTOMATION SYSTEMS PIPELINE */}
-        <section className="relative mx-auto max-w-7xl px-5 pt-12 pb-24 md:px-8 md:pt-16 md:pb-32 border-t border-white/10">
-          <div className="mb-10 text-center">
-            <span className="inline-block rounded-full bg-cyan-950/40 border border-cyan-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-cyan-300">
-              Future Roadmap
-            </span>
-            <h3 className="mt-3 text-2xl font-bold tracking-tight text-white sm:text-3xl">
-              Upcoming AI Automation Systems in Pipeline
+        {/* BOTTOM CONSULTATION CTA */}
+        <section className="relative mx-auto max-w-7xl px-5 pt-6 pb-20 md:px-8 md:pb-28">
+          <div className="rounded-3xl border border-white/10 bg-gradient-to-r from-cyan-950/40 via-black to-blue-950/40 p-8 text-center sm:p-12">
+            <h3 className="text-2xl font-bold text-white sm:text-4xl">
+              Have a Custom AI Automation Requirement?
             </h3>
-            <p className="mt-2 text-sm text-white/60 sm:text-base">
-              New domain-specific AI automation platforms being engineered for enterprise deployment.
+            <p className="mx-auto mt-3 max-w-xl text-sm text-white/70 sm:text-base">
+              From regulated healthcare workflows to multi-agent enterprise task automation, our AI engineers design bespoke systems that scale seamlessly.
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {upcomingSystems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div
-                  key={item.title}
-                  className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur-xl transition hover:border-white/20 hover:bg-white/[0.04]"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <span className="rounded-full bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 text-[11px] font-medium text-amber-300">
-                      {item.status}
-                    </span>
-                  </div>
-                  <h4 className="mt-4 text-lg font-semibold text-white">{item.title}</h4>
-                  <p className="mt-1 text-xs font-medium text-cyan-400">{item.category}</p>
-                  <p className="mt-2 text-xs leading-relaxed text-white/60">{item.desc}</p>
-                </div>
-              );
-            })}
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
+              <button
+                type="button"
+                onClick={() => setConsultModalOpen(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-6 py-3 text-sm font-semibold text-black transition hover:bg-cyan-300 shadow-[0_0_24px_rgba(34,211,238,0.25)] active:scale-95"
+              >
+                Book an Engineering Consultation
+              </button>
+            </div>
           </div>
         </section>
       </main>
