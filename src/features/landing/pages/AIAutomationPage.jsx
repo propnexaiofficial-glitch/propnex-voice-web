@@ -314,17 +314,17 @@ export default function AIAutomationPage() {
       <Navbar />
 
       <main>
-        {/* HERO SECTION — Matching ProductPage.jsx layout, typography, and Earth Background */}
+        {/* HERO SECTION — Specialized AI Automation Platforms with High-Tech Automation Background */}
         <section className="relative min-h-screen overflow-hidden pt-20">
           <div className="absolute inset-0 bg-black">
             <img
-              src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=2000&q=80"
+              src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=2000&q=80"
               alt="PropNex AI Automation"
-              className="absolute inset-0 h-full w-full object-cover opacity-50 mix-blend-screen"
+              className="absolute inset-0 h-full w-full object-cover opacity-35 mix-blend-screen"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-[#010915]/50 to-black" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/30 to-transparent" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_45%,rgba(34,211,238,0.25),transparent_70%)]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-[#010915]/60 to-black" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/40 to-transparent" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_45%,rgba(34,211,238,0.2),transparent_70%)]" />
           </div>
 
           <div className="auto-hero relative mx-auto flex min-h-[calc(100vh-5rem)] max-w-7xl flex-col justify-end px-5 pb-16 md:px-8 md:pb-24">
@@ -566,7 +566,7 @@ export default function AIAutomationPage() {
         </section>
 
         {/* UPCOMING AI AUTOMATION SYSTEMS PIPELINE */}
-        <section className="relative mx-auto max-w-7xl px-5 py-12 md:px-8 border-t border-white/10">
+        <section className="relative mx-auto max-w-7xl px-5 pt-12 pb-24 md:px-8 md:pt-16 md:pb-32 border-t border-white/10">
           <div className="mb-10 text-center">
             <span className="inline-block rounded-full bg-cyan-950/40 border border-cyan-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-cyan-300">
               Future Roadmap
@@ -601,27 +601,6 @@ export default function AIAutomationPage() {
                 </div>
               );
             })}
-          </div>
-        </section>
-
-        {/* BOTTOM CTA */}
-        <section className="relative mx-auto max-w-7xl px-5 pt-8 pb-16 md:px-8">
-          <div className="rounded-3xl border border-white/10 bg-gradient-to-r from-cyan-950/40 via-black to-blue-950/40 p-8 text-center sm:p-12">
-            <h3 className="text-2xl font-bold text-white sm:text-4xl">
-              Have a Custom AI Automation Requirement?
-            </h3>
-            <p className="mx-auto mt-3 max-w-xl text-sm text-white/70 sm:text-base">
-              From regulated healthcare workflows to multi-agent enterprise task automation, our AI engineers design bespoke systems that scale seamlessly.
-            </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
-              <button
-                type="button"
-                onClick={() => setConsultModalOpen(true)}
-                className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-6 py-3 text-sm font-semibold text-black transition hover:bg-cyan-300 shadow-[0_0_24px_rgba(34,211,238,0.25)] active:scale-95"
-              >
-                Book an Engineering Consultation
-              </button>
-            </div>
           </div>
         </section>
       </main>
