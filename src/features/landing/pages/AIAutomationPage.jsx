@@ -595,7 +595,7 @@ export default function AIAutomationPage() {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 overscroll-contain"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-8 overscroll-contain"
           onWheel={(e) => e.stopPropagation()}
         >
           {/* Enhanced Backdrop with deep blur */}
@@ -613,26 +613,26 @@ export default function AIAutomationPage() {
           />
 
           {/* Modal Container: Wide Horizontal Layout matching page aesthetic */}
-          <div className="relative w-full max-w-6xl max-h-[90vh] overflow-hidden rounded-3xl border border-white/20 bg-gradient-to-br from-[#070f1e]/95 via-black/95 to-[#050b14]/95 shadow-[0_0_60px_rgba(34,211,238,0.15)] backdrop-blur-2xl flex flex-col overscroll-contain">
+          <div className="relative w-full max-w-6xl max-h-[88dvh] sm:max-h-[90vh] overflow-hidden rounded-2xl sm:rounded-3xl border border-white/20 bg-gradient-to-br from-[#070f1e]/95 via-black/95 to-[#050b14]/95 shadow-[0_0_60px_rgba(34,211,238,0.2)] backdrop-blur-2xl flex flex-col my-auto overscroll-contain">
             {/* Modal Header */}
             <div
-              className="flex items-center justify-between border-b border-white/10 px-6 py-4 sm:px-8 bg-white/[0.02]"
+              className="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-8 sm:py-4 bg-white/[0.02] shrink-0"
               onWheel={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-xl">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 pr-2">
+                <span className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-lg sm:text-xl">
                   🦷
                 </span>
-                <div>
+                <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-bold text-white sm:text-xl">
-                      {selectedSystemForModal.name} — Complete Project Specification
+                    <h3 className="text-sm sm:text-lg md:text-xl font-bold text-white truncate">
+                      {selectedSystemForModal.name} — Project Specification
                     </h3>
                     <span className="hidden sm:inline-block rounded-full bg-cyan-400/10 border border-cyan-400/30 px-2 py-0.5 text-[10px] font-semibold text-cyan-300">
                       Live Production
                     </span>
                   </div>
-                  <p className="text-xs text-white/60">
+                  <p className="text-[11px] sm:text-xs text-white/60 truncate mt-0.5">
                     {selectedSystemForModal.subtitle}
                   </p>
                 </div>
@@ -641,16 +641,16 @@ export default function AIAutomationPage() {
               <button
                 type="button"
                 onClick={() => setSelectedSystemForModal(null)}
-                className="rounded-xl border border-white/10 bg-white/5 p-2 text-white/70 transition hover:bg-white/10 hover:text-white"
+                className="shrink-0 rounded-lg sm:rounded-xl border border-white/10 bg-white/5 p-1.5 sm:p-2 text-white/70 transition hover:bg-white/10 hover:text-white"
                 aria-label="Close modal"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
             </div>
 
             {/* Modal Body: Horizontal 2-Column Split Pane */}
             <div
-              className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 sm:p-8 overflow-y-auto flex-1 overscroll-contain"
+              className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 p-4 sm:p-6 lg:p-8 overflow-y-auto flex-1 overscroll-contain"
               onWheel={(e) => e.stopPropagation()}
             >
               {/* Left Pane (lg:col-span-5): Identity, Preview & Actions */}
@@ -790,25 +790,25 @@ export default function AIAutomationPage() {
 
             {/* Modal Footer */}
             <div
-              className="flex flex-wrap items-center justify-between border-t border-white/10 px-6 py-4 bg-white/[0.02]"
+              className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 px-4 py-3 sm:px-6 sm:py-4 bg-white/[0.02] shrink-0"
               onWheel={(e) => e.stopPropagation()}
             >
-              <span className="text-xs text-white/50">
+              <span className="text-[11px] sm:text-xs text-white/50">
                 Smile Clinic CDS &bull; Live Production System
               </span>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5 sm:gap-3">
                 <button
                   type="button"
                   onClick={() => setSelectedSystemForModal(null)}
-                  className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+                  className="rounded-lg sm:rounded-xl border border-white/15 bg-white/5 px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-semibold text-white transition hover:bg-white/10"
                 >
                   Close
                 </button>
                 <button
                   type="button"
                   onClick={() => handleTryNowClick(selectedSystemForModal)}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-5 py-2 text-xs font-semibold text-black shadow-md transition hover:brightness-110 active:scale-95"
+                  className="inline-flex items-center gap-1.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-4 py-1.5 sm:px-5 sm:py-2 text-xs font-semibold text-black shadow-md transition hover:brightness-110 active:scale-95"
                 >
                   <span>Try Now</span>
                   <ShieldCheck className="h-3.5 w-3.5 text-black" />
@@ -824,7 +824,7 @@ export default function AIAutomationPage() {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-6 overscroll-contain"
+          className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 md:p-8 overscroll-contain"
           onWheel={(e) => e.stopPropagation()}
         >
           {/* Enhanced Backdrop with deep blur */}
@@ -842,27 +842,27 @@ export default function AIAutomationPage() {
           />
 
           {/* Modal Container: Wide Horizontal Layout matching page aesthetic */}
-          <div className="relative w-full max-w-5xl max-h-[92vh] overflow-hidden rounded-3xl border border-cyan-500/25 bg-gradient-to-br from-[#070f1e]/98 via-black/98 to-[#050b14]/98 shadow-[0_0_60px_rgba(34,211,238,0.2)] backdrop-blur-2xl flex flex-col overscroll-contain">
+          <div className="relative w-full max-w-5xl max-h-[88dvh] sm:max-h-[90vh] overflow-hidden rounded-2xl sm:rounded-3xl border border-cyan-500/25 bg-gradient-to-br from-[#070f1e]/98 via-black/98 to-[#050b14]/98 shadow-[0_0_60px_rgba(34,211,238,0.25)] backdrop-blur-2xl flex flex-col my-auto overscroll-contain">
             {/* Modal Header */}
             <div
-              className="flex items-center justify-between border-b border-white/10 px-6 py-4 sm:px-8 bg-white/[0.02]"
+              className="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-8 sm:py-4 bg-white/[0.02] shrink-0"
               onWheel={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 pr-2">
+                <span className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
                   {modalMode === "authorization" ? (
-                    <ShieldCheck className="h-5 w-5 text-cyan-400" />
+                    <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400" />
                   ) : (
-                    <HardHat className="h-5 w-5 text-cyan-400" />
+                    <HardHat className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400" />
                   )}
                 </span>
-                <div>
-                  <h3 className="text-lg font-bold text-white sm:text-xl">
+                <div className="min-w-0">
+                  <h3 className="text-sm sm:text-base md:text-xl font-bold text-white leading-tight truncate">
                     {modalMode === "authorization"
                       ? "System Authorization & Evaluation Access"
                       : "Book an AI Engineering Consultation"}
                   </h3>
-                  <p className="text-xs text-white/60">
+                  <p className="text-[11px] sm:text-xs text-white/60 leading-tight mt-0.5 truncate">
                     {modalMode === "authorization"
                       ? "Verified Credentials Required for Live Production Systems"
                       : "Bespoke Autonomous Architecture & System Design"}
@@ -873,22 +873,22 @@ export default function AIAutomationPage() {
               <button
                 type="button"
                 onClick={resetConsultForm}
-                className="rounded-xl border border-white/10 bg-white/5 p-2 text-white/70 transition hover:bg-white/10 hover:text-white"
+                className="shrink-0 rounded-lg sm:rounded-xl border border-white/10 bg-white/5 p-1.5 sm:p-2 text-white/70 transition hover:bg-white/10 hover:text-white"
                 aria-label="Close modal"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
             </div>
 
             {/* Modal Body: Horizontal 2-Column Split Pane */}
             <div
-              className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 sm:p-8 overflow-y-auto flex-1 overscroll-contain"
+              className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 p-4 sm:p-6 lg:p-8 overflow-y-auto flex-1 overscroll-contain"
               onWheel={(e) => e.stopPropagation()}
             >
               {/* Left Column (5 cols): Architecture Studio Overview / Authorization Overview */}
-              <div className="lg:col-span-5 flex flex-col justify-between space-y-6 border-b lg:border-b-0 lg:border-r border-white/10 pb-6 lg:pb-0 lg:pr-6">
-                <div className="space-y-4">
-                  <div className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-950/40 px-3 py-1 text-[11px] font-medium text-cyan-300">
+              <div className="lg:col-span-5 flex flex-col justify-between space-y-4 sm:space-y-6 border-b lg:border-b-0 lg:border-r border-white/10 pb-5 lg:pb-0 lg:pr-6">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-950/40 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-medium text-cyan-300">
                     {modalMode === "authorization" ? (
                       <>
                         <ShieldCheck className="h-3 w-3 text-cyan-400" />
@@ -902,7 +902,7 @@ export default function AIAutomationPage() {
                     )}
                   </div>
 
-                  <h4 className="text-2xl font-bold tracking-tight text-white">
+                  <h4 className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-white">
                     {modalMode === "authorization"
                       ? "Authorization Required"
                       : "Let's Engineer Your Vision"}
@@ -914,10 +914,10 @@ export default function AIAutomationPage() {
                       : "Speak directly with our senior AI architects. We take your business workflows, proprietary datasets, and decision rules to engineer deterministic, production-grade autonomous systems."}
                   </p>
 
-                  <div className="space-y-3 pt-2">
-                    <div className="flex items-start gap-2.5 text-xs text-white/80">
-                      <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-cyan-500/10 text-cyan-400">
-                        <Check className="h-3.5 w-3.5" />
+                  <div className="space-y-2 sm:space-y-3 pt-1">
+                    <div className="flex items-start gap-2 text-xs text-white/80">
+                      <div className="mt-0.5 flex h-4 w-4 sm:h-5 sm:w-5 shrink-0 items-center justify-center rounded bg-cyan-500/10 text-cyan-400">
+                        <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                       </div>
                       <span>
                         {modalMode === "authorization" ? (
@@ -928,17 +928,17 @@ export default function AIAutomationPage() {
                       </span>
                     </div>
 
-                    <div className="flex items-start gap-2.5 text-xs text-white/80">
-                      <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-cyan-500/10 text-cyan-400">
-                        <Check className="h-3.5 w-3.5" />
+                    <div className="flex items-start gap-2 text-xs text-white/80">
+                      <div className="mt-0.5 flex h-4 w-4 sm:h-5 sm:w-5 shrink-0 items-center justify-center rounded bg-cyan-500/10 text-cyan-400">
+                        <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                       </div>
                       <span>
                         <strong>Zero-Leakage Security:</strong> Built with HIPAA, SOC-2, and cryptographic audit compliance.
                       </span>
                     </div>
 
-                    <div className="flex items-start gap-2.5 text-xs text-white/80">
-                      <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-cyan-500/10 text-cyan-400">
+                    <div className="flex items-start gap-2 text-xs text-white/80">
+                      <div className="mt-0.5 flex h-4 w-4 sm:h-5 sm:w-5 shrink-0 items-center justify-center rounded bg-cyan-500/10 text-cyan-400">
                         <Check className="h-3.5 w-3.5" />
                       </div>
                       <span>
@@ -948,7 +948,7 @@ export default function AIAutomationPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-xs text-white/60">
+                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3 sm:p-4 text-[11px] sm:text-xs text-white/60">
                   <span className="font-semibold text-white">Direct Engineering Channel:</span> Submissions automatically notify our lead architects and are logged in the PropNex Platform Admin Vault.
                 </div>
               </div>
@@ -956,11 +956,11 @@ export default function AIAutomationPage() {
               {/* Right Column (7 cols): Consultation Form / Confirmation */}
               <div className="lg:col-span-7 flex flex-col justify-center">
                 {submitted ? (
-                  <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-8 text-center space-y-4">
-                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shadow-[0_0_24px_rgba(16,185,129,0.2)]">
-                      <CheckCircle2 className="h-8 w-8" />
+                  <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-5 sm:p-8 text-center space-y-3 sm:space-y-4">
+                    <div className="mx-auto flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shadow-[0_0_24px_rgba(16,185,129,0.2)]">
+                      <CheckCircle2 className="h-6 w-6 sm:h-8 sm:w-8" />
                     </div>
-                    <h4 className="text-xl font-bold text-white">
+                    <h4 className="text-lg sm:text-xl font-bold text-white">
                       {modalMode === "authorization"
                         ? "Authorization Request Submitted!"
                         : "Consultation Request Received!"}
@@ -968,27 +968,27 @@ export default function AIAutomationPage() {
                     <p className="text-xs sm:text-sm text-white/80 leading-relaxed max-w-md mx-auto">
                       Thank you, <strong className="text-white">{formData.name}</strong>. Our security and engineering team has received your authorization details, and a confirmation receipt has been dispatched to <strong className="text-cyan-300">{formData.email}</strong>.
                     </p>
-                    <p className="text-xs text-white/60">
+                    <p className="text-[11px] sm:text-xs text-white/60">
                       We will review your credentials and contact you at <strong className="text-white">{formData.phone}</strong> within 24 hours with your sandbox clearance.
                     </p>
                     <button
                       type="button"
                       onClick={resetConsultForm}
-                      className="mt-4 rounded-xl bg-cyan-400 px-6 py-2.5 text-xs font-semibold text-black transition hover:bg-cyan-300"
+                      className="mt-3 sm:mt-4 rounded-xl bg-cyan-400 px-6 py-2 sm:py-2.5 text-xs font-semibold text-black transition hover:bg-cyan-300"
                     >
                       Done
                     </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleConsultSubmit} className="space-y-4">
+                  <form onSubmit={handleConsultSubmit} className="space-y-3 sm:space-y-4">
                     {formError && (
-                      <div className="rounded-xl border border-rose-500/30 bg-rose-950/30 p-3 text-xs text-rose-300">
+                      <div className="rounded-xl border border-rose-500/30 bg-rose-950/30 p-2.5 sm:p-3 text-xs text-rose-300">
                         {formError}
                       </div>
                     )}
 
                     {/* Name & Email Row */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                       <div>
                         <label className="block text-xs font-medium text-white/70 mb-1">
                           Full Name <span className="text-rose-400">*</span>
@@ -999,7 +999,7 @@ export default function AIAutomationPage() {
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                           placeholder="e.g. Dr. Alex Mercer"
-                          className="w-full rounded-xl border border-white/15 bg-white/5 px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                          className="w-full rounded-lg sm:rounded-xl border border-white/15 bg-white/5 px-3 py-2 sm:px-3.5 sm:py-2.5 text-xs text-white placeholder-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
                         />
                       </div>
 
@@ -1013,13 +1013,13 @@ export default function AIAutomationPage() {
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           placeholder="alex@organization.com"
-                          className="w-full rounded-xl border border-white/15 bg-white/5 px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                          className="w-full rounded-lg sm:rounded-xl border border-white/15 bg-white/5 px-3 py-2 sm:px-3.5 sm:py-2.5 text-xs text-white placeholder-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
                         />
                       </div>
                     </div>
 
                     {/* Phone & Company Row */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                       <div>
                         <label className="block text-xs font-medium text-white/70 mb-1">
                           Phone / WhatsApp <span className="text-rose-400">*</span>
@@ -1030,7 +1030,7 @@ export default function AIAutomationPage() {
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                           placeholder="+91 98765 43210"
-                          className="w-full rounded-xl border border-white/15 bg-white/5 px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                          className="w-full rounded-lg sm:rounded-xl border border-white/15 bg-white/5 px-3 py-2 sm:px-3.5 sm:py-2.5 text-xs text-white placeholder-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
                         />
                       </div>
 
@@ -1043,13 +1043,13 @@ export default function AIAutomationPage() {
                           value={formData.company}
                           onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                           placeholder="e.g. Mercer Dental Network"
-                          className="w-full rounded-xl border border-white/15 bg-white/5 px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                          className="w-full rounded-lg sm:rounded-xl border border-white/15 bg-white/5 px-3 py-2 sm:px-3.5 sm:py-2.5 text-xs text-white placeholder-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
                         />
                       </div>
                     </div>
 
                     {/* Industry & Timeline Row */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                       <div>
                         <label className="block text-xs font-medium text-white/70 mb-1">
                           Industry / Domain
@@ -1057,7 +1057,7 @@ export default function AIAutomationPage() {
                         <select
                           value={formData.industry}
                           onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                          className="w-full rounded-xl border border-white/15 bg-slate-900 px-3.5 py-2.5 text-xs text-white focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                          className="w-full rounded-lg sm:rounded-xl border border-white/15 bg-slate-900 px-3 py-2 sm:px-3.5 sm:py-2.5 text-xs text-white focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
                         >
                           <option value="Healthcare & Clinical">Healthcare & Clinical Pharmacology</option>
                           <option value="Real Estate & PropTech">Real Estate & PropTech</option>
@@ -1077,7 +1077,7 @@ export default function AIAutomationPage() {
                         <select
                           value={formData.timeline}
                           onChange={(e) => setFormData({ ...formData, timeline: e.target.value })}
-                          className="w-full rounded-xl border border-white/15 bg-slate-900 px-3.5 py-2.5 text-xs text-white focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                          className="w-full rounded-lg sm:rounded-xl border border-white/15 bg-slate-900 px-3 py-2 sm:px-3.5 sm:py-2.5 text-xs text-white focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
                         >
                           <option value="Immediate (< 1 Month)">Immediate (&lt; 1 Month)</option>
                           <option value="1–3 Months">1–3 Months</option>
@@ -1105,20 +1105,20 @@ export default function AIAutomationPage() {
                             ? "Describe your practice or organization, clinical/enterprise use case, and specific evaluation requirements..."
                             : "Describe your workflow, source inputs (e.g. handwritten slips, PDF reports, phone calls, databases), and what decisions or actions the AI should automate..."
                         }
-                        className="w-full rounded-xl border border-white/15 bg-white/5 p-3 text-xs text-white placeholder-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 resize-none"
+                        className="w-full rounded-lg sm:rounded-xl border border-white/15 bg-white/5 p-2.5 sm:p-3 text-xs text-white placeholder-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 resize-none"
                       />
                     </div>
 
                     {/* Submit Button */}
-                    <div className="pt-2 flex items-center justify-between">
-                      <span className="text-[11px] text-white/50">
+                    <div className="pt-2 flex flex-col-reverse sm:flex-row items-center justify-between gap-3">
+                      <span className="text-[11px] text-white/50 text-center sm:text-left">
                         🔒 Confidential &bull; Protected under NDA
                       </span>
 
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-6 py-2.5 text-xs font-semibold text-black transition hover:bg-cyan-300 disabled:opacity-50 active:scale-95 shadow-[0_0_20px_rgba(34,211,238,0.3)]"
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-6 py-2.5 text-xs font-semibold text-black transition hover:bg-cyan-300 disabled:opacity-50 active:scale-95 shadow-[0_0_20px_rgba(34,211,238,0.3)]"
                       >
                         {submitting ? (
                           <>
